@@ -1,0 +1,16 @@
+# Large data source files (not needed for the web app)
+*.csv
+*.tsv*
+*.gz
+Zoning.geojson
+comps_r1r4.csv
+
+# Build scripts (keep locally, not needed for web app)
+*.py
+
+# GeoJSON data (fire zones stamped into listings.js already)
+fire_zones_vhfhsz.geojson
+
+# OS files
+.DS_Store
+.claude/

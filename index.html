@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SB 1123 Deal Finder — LA County Townhome Subdivision Sites</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
+<script src="data.js"></script>
+<script src="listings.js" onerror="window.LOADED_LISTINGS=[]"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --r1:#2563eb;--r2:#16a34a;--r3:#ea580c;--r4:#9333ea;--land:#b45309;
+    --listing:#f43f5e;
+    --bg:#0f1117;--surface:#1a1d27;--surface2:#252833;
+    --border:#2e3140;--text:#e4e6ed;--text-dim:#8b8fa3;--accent:#60a5fa;
+    --green:#22c55e;--red:#ef4444;--yellow:#facc15;--orange:#f97316;
+    --deal-a:#22c55e;--deal-b:#4ade80;--deal-c:#facc15;--deal-d:#f97316;--deal-f:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  body.light-mode{
+    --bg:#f5f5f5;--surface:#ffffff;--surface2:#e8e8e8;
+    --border:#d0d0d0;--text:#1a1a2e;--text-dim:#666;--accent:#2563eb;
+  }
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  .app-row{display:flex;flex:1;overflow:hidden}
+
+  /* ── Sidebar ── */
+  .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
+  .sidebar-header{padding:20px 20px 14px;border-bottom:1px solid var(--border)}
+  .sidebar-header h1{font-size:17px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px}
+  .sidebar-header h1 span{color:var(--green)}
+  .sidebar-header p{font-size:11px;color:var(--text-dim);line-height:1.5}
+  .sidebar-header .law-ref{font-size:10px;color:var(--accent);margin-top:4px;opacity:0.7}
+
+  .section{padding:14px 20px;border-bottom:1px solid var(--border)}
+  .section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .section-title .badge{background:var(--green);color:#000;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;letter-spacing:0.03em}
+
+  /* Stats grid */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .stats-grid.two-col{grid-template-columns:1fr 1fr}
+  .stat-card{background:var(--surface2);border-radius:8px;padding:10px 12px}
+  .stat-card .stat-value{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--accent)}
+  .stat-card .stat-value.green{color:var(--green)}
+  .stat-card .stat-value.yellow{color:var(--yellow)}
+  .stat-card .stat-value.red{color:var(--red)}
+  .stat-card .stat-label{font-size:10px;color:var(--text-dim);margin-top:2px}
+
+  /* SB9 mode toggle */
+  .mode-toggle{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    border-radius:8px;cursor:pointer;transition:all 0.2s;
+    border:1px solid var(--border);background:transparent;width:100%;
+    font-family:inherit;font-size:13px;color:var(--text);
+  }
+  .mode-toggle:hover{border-color:var(--green);background:rgba(34,197,94,0.04)}
+  .mode-toggle.active{border-color:var(--green);background:rgba(34,197,94,0.08)}
+  .mode-toggle .toggle-track{
+    width:36px;height:20px;border-radius:10px;background:var(--surface2);
+    border:1px solid var(--border);position:relative;transition:all 0.2s;flex-shrink:0;
+  }
+  .mode-toggle.active .toggle-track{background:var(--green);border-color:var(--green)}
+  .mode-toggle .toggle-thumb{
+    width:16px;height:16px;border-radius:50%;background:#fff;
+    position:absolute;top:1px;left:1px;transition:all 0.2s;
+  }
+  .mode-toggle.active .toggle-thumb{left:17px}
+  .mode-toggle .toggle-label{flex:1}
+  .mode-toggle .toggle-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)}
+
+  /* Zone toggles */
+  .zone-toggle{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px}
+  .zone-toggle:hover{background:var(--surface2)}
+  .zone-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+  .zone-toggle input[type="checkbox"]{display:none}
+  .zone-toggle .check-box{width:16px;height:16px;border:2px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+  .zone-toggle input:checked+.check-box{border-color:var(--accent);background:var(--accent)}
+  .zone-toggle input:checked+.check-box::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+  .zone-label{font-size:12px;flex:1}
+  .zone-label small{color:var(--text-dim);font-size:10px}
+  .zone-stat{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim)}
+  .data-count{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);background:rgba(96,165,250,0.1);padding:1px 5px;border-radius:3px;margin-left:3px}
+
+  /* Basemap toggle */
+  .basemap-group{display:flex;gap:4px}
+  .basemap-btn{flex:1;padding:6px 0;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;transition:all 0.15s}
+  .basemap-btn:hover{border-color:var(--accent)}
+  .basemap-btn.active{border-color:var(--accent);background:rgba(96,165,250,0.15);color:var(--accent)}
+
+  /* Layer buttons */
+  .layer-btn{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;font-size:12px;margin-bottom:4px;transition:all 0.15s}
+  .layer-btn:hover{border-color:var(--accent)}
+  .layer-btn.active{border-color:var(--accent);background:rgba(96,165,250,0.08)}
+  .layer-btn .icon{font-size:14px}
+  .layer-btn .layer-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);margin-left:auto}
+
+  /* Range filters */
+  .range-filter{margin-top:2px}
+  .range-inputs{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+  .range-inputs input[type="number"]{
+    width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+    outline:none;transition:border 0.15s;
+  }
+  .range-inputs input[type="number"]:focus{border-color:var(--accent)}
+  .range-inputs .separator{color:var(--text-dim);font-size:12px;flex-shrink:0}
+  .range-inputs .input-group{flex:1}
+  .range-inputs .input-label{font-size:9px;color:var(--text-dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em}
+
+  .range-slider-track{position:relative;height:5px;background:var(--surface2);border-radius:3px;margin:0 4px 10px}
+  .range-slider-fill{position:absolute;height:100%;background:var(--accent);border-radius:3px;opacity:0.4}
+  .range-slider-track input[type="range"]{
+    position:absolute;width:100%;height:5px;top:-4px;
+    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
+  }
+  .range-slider-track input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;
+    background:var(--accent);border:2px solid var(--bg);cursor:pointer;pointer-events:auto;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .filter-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-align:center;padding:6px 0;background:rgba(96,165,250,0.06);border-radius:6px}
+  .reset-btn{
+    display:block;width:100%;padding:6px;margin-top:6px;background:transparent;
+    border:1px solid var(--border);border-radius:6px;color:var(--text-dim);
+    font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;text-align:center;
+  }
+  .reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Pro forma assumptions */
+  .proforma-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .proforma-group{display:flex;flex-direction:column;gap:2px}
+  .proforma-group label{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em}
+  .proforma-group input{
+    padding:6px 8px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;
+    outline:none;width:100%;
+  }
+  .proforma-group input:focus{border-color:var(--accent)}
+
+  /* Quick presets */
+  .preset-row{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+  .preset-btn{
+    padding:4px 10px;border:1px solid var(--border);border-radius:4px;
+    background:transparent;color:var(--text-dim);font-family:inherit;font-size:10px;
+    cursor:pointer;transition:all 0.15s;
+  }
+  .preset-btn:hover{border-color:var(--green);color:var(--green)}
+  .preset-btn.active{border-color:var(--green);background:rgba(34,197,94,0.1);color:var(--green)}
+
+  /* Map */
+  #map{flex:1;height:100%;z-index:1}
+
+  /* Popups */
+  .leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border-radius:10px!important;border:1px solid var(--border)!important;box-shadow:0 8px 32px rgba(0,0,0,0.5)!important}
+  .leaflet-popup-tip{background:var(--surface)!important}
+  .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:14px 16px!important;min-width:280px}
+  .popup-title{font-weight:700;font-size:14px;margin-bottom:8px;line-height:1.3}
+  .popup-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-right:4px}
+  .popup-badge.comp{background:rgba(96,165,250,0.15);color:var(--accent)}
+  .popup-badge.listing{background:rgba(244,63,94,0.15);color:var(--listing)}
+  .popup-badge.deal-a{background:rgba(34,197,94,0.2);color:var(--deal-a)}
+  .popup-badge.deal-b{background:rgba(74,222,128,0.2);color:var(--deal-b)}
+  .popup-badge.deal-c{background:rgba(250,204,21,0.2);color:var(--deal-c)}
+  .popup-badge.deal-d{background:rgba(249,115,22,0.2);color:var(--deal-d)}
+  .popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px}
+  .popup-label{font-size:10px;color:var(--text-dim)}
+  .popup-value{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+  .popup-divider{grid-column:1/-1;border-top:1px solid var(--border);margin:4px 0}
+  .popup-section-label{grid-column:1/-1;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-weight:700;margin-top:2px}
+  .popup-profit-positive{color:var(--green)}
+  .popup-profit-negative{color:var(--red)}
+
+  /* Legend */
+  .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+  .legend-item{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .legend-item:last-child{margin-bottom:0}
+  .legend-dot{width:10px;height:10px;border-radius:2px}
+  .legend-section{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin:6px 0 3px;font-weight:700}
+
+  /* Score bar inline */
+  .score-bar{display:inline-flex;align-items:center;gap:4px}
+  .score-bar-track{width:40px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+  .score-bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
+  .score-bar-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;min-width:28px}
+
+  .sidebar::-webkit-scrollbar{width:6px}
+  .sidebar::-webkit-scrollbar-track{background:transparent}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  .loading-banner{padding:10px 20px;background:rgba(96,165,250,0.1);border-bottom:1px solid var(--border);font-size:12px;color:var(--accent);text-align:center;display:none}
+  .loading-banner.active{display:block}
+
+  /* ── Listings Table Panel ── */
+  .listings-panel{
+    position:relative;height:0;min-height:0;background:var(--surface);
+    border-top:1px solid var(--border);transition:height 0.3s ease, min-height 0.3s ease;
+    overflow:hidden;z-index:900;
+  }
+  .listings-panel.open{height:360px;min-height:200px}
+  .listings-panel-header{
+    display:flex;align-items:center;gap:10px;padding:8px 20px;
+    border-bottom:1px solid var(--border);background:var(--surface);
+    position:sticky;top:0;z-index:2;
+  }
+  .listings-panel-header h2{font-size:13px;font-weight:700;letter-spacing:-0.01em}
+  .listings-panel-header h2 span{color:var(--green)}
+  .listings-panel-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:rgba(96,165,250,0.1);padding:2px 6px;border-radius:4px}
+  .listings-panel-close{margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px;transition:all 0.15s}
+  .listings-panel-close:hover{color:var(--text);background:var(--surface2)}
+  .listings-panel-resize{position:absolute;top:0;left:0;right:0;height:5px;cursor:ns-resize;z-index:3}
+  .listings-panel-resize:hover{background:var(--accent);opacity:0.3}
+  .listings-table-wrap{overflow:auto;height:calc(100% - 41px)}
+  .listings-table-wrap::-webkit-scrollbar{width:6px;height:6px}
+  .listings-table-wrap::-webkit-scrollbar-track{background:transparent}
+  .listings-table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  .listings-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:1400px}
+  .listings-table thead{position:sticky;top:0;z-index:1}
+  .listings-table th{
+    background:var(--surface2);padding:7px 10px;text-align:left;font-size:9px;
+    text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);font-weight:700;
+    cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border);
+    user-select:none;transition:color 0.15s;position:relative;
+  }
+  .listings-table th:hover{color:var(--accent)}
+  .listings-table th.sorted{color:var(--accent)}
+  .listings-table th .sort-arrow{display:inline-block;margin-left:3px;font-size:8px;opacity:0;transition:opacity 0.15s}
+  .listings-table th.sorted .sort-arrow{opacity:1}
+  .listings-table th:hover .sort-arrow{opacity:0.5}
+  .listings-table td{padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .listings-table tr{transition:background 0.1s}
+  .listings-table tbody tr:hover{background:var(--surface2);cursor:pointer}
+
+  .listings-table .col-score{width:70px}
+  .listings-table .col-addr{width:220px}
+  .listings-table .col-zone{width:50px}
+  .listings-table .col-price{width:95px}
+  .listings-table .col-ppsf{width:65px}
+  .listings-table .col-hood{width:80px}
+  .listings-table .col-delta{width:65px}
+  .listings-table .col-lot{width:75px}
+  .listings-table .col-units{width:55px}
+  .listings-table .col-ppu{width:90px}
+  .listings-table .col-profit{width:90px}
+  .listings-table .col-sqft{width:75px}
+  .listings-table .col-dom{width:45px}
+  .listings-table .col-link{width:45px}
+
+  .listings-table .zone-pill{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.03em}
+  .listings-table .delta-pos{color:var(--red)}
+  .listings-table .delta-neg{color:var(--green)}
+  .listings-table .redfin-link{color:var(--accent);text-decoration:none;font-size:10px}
+  .listings-table .redfin-link:hover{text-decoration:underline}
+  .listings-table .profit-pos{color:var(--green)}
+  .listings-table .profit-neg{color:var(--red)}
+
+  /* Panel toggle in sidebar */
+  .panel-toggle{
+    display:flex;align-items:center;justify-content:space-between;width:100%;
+    padding:10px 12px;border:1px solid var(--green);border-radius:8px;
+    background:rgba(34,197,94,0.06);color:var(--text);cursor:pointer;
+    font-family:inherit;font-size:13px;transition:all 0.15s;
+  }
+  .panel-toggle:hover{background:rgba(34,197,94,0.12)}
+  .panel-toggle .toggle-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)}
+
+  /* Collapsible sections */
+  .section.collapsed .section-content{display:none}
+  .section-title{cursor:pointer}
+  .section-title .chevron{transition:transform 0.2s;font-size:10px;margin-left:auto;color:var(--text-dim)}
+  .section.collapsed .section-title .chevron{transform:rotate(-90deg)}
+
+  /* Export button */
+  .export-btn{
+    display:block;width:100%;padding:8px;margin-top:6px;
+    background:rgba(96,165,250,0.1);border:1px solid var(--accent);border-radius:6px;
+    color:var(--accent);font-family:inherit;font-size:11px;cursor:pointer;
+    transition:all 0.15s;text-align:center;
+  }
+  .export-btn:hover{background:rgba(96,165,250,0.2)}
+</style>
+</head>
+<body>
+
+<div class="app-row">
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1><span>SB 1123</span> Deal Finder</h1>
+    <p>Find townhome subdivision sites in LA County<br>10K-25K SF lots that split into up to 10 contiguous units</p>
+    <div class="law-ref">CA SB 1123 (eff. Jul 2025) · Up to 10 parcels · No owner-occupancy · 60-day approval · CEQA exempt</div>
+  </div>
+
+  <div class="loading-banner" id="loadingBanner">Rendering data...</div>
+
+  <!-- Deal Pipeline Stats -->
+  <div class="section">
+    <div class="section-title">Deal Pipeline <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value green" id="sb1123Count">0</div><div class="stat-label">1123 Eligible</div></div>
+        <div class="stat-card"><div class="stat-value yellow" id="avgScore">0</div><div class="stat-label">Avg Score</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalListings">0</div><div class="stat-label">Total Listed</div></div>
+      </div>
+      <div class="stats-grid two-col" style="margin-top:6px">
+        <div class="stat-card"><div class="stat-value" id="medPpu">$0</div><div class="stat-label">Med $/Unit</div></div>
+        <div class="stat-card"><div class="stat-value" id="medPpsf">$0</div><div class="stat-label">Med $/SF</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SB9 Mode -->
+  <div class="section">
+    <button class="mode-toggle active" id="sb1123Toggle" onclick="toggle1123Mode()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">SB 1123 Eligible Only</span>
+      <span class="toggle-count" id="sb1123ToggleCount">0</span>
+    </button>
+    <div class="preset-row" style="margin-top:8px">
+      <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">10-15K lot, 8-10 units</span></button>
+      <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
+      <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
+      <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ DOM</span></button>
+    </div>
+  </div>
+
+  <!-- Deal Score Filter -->
+  <div class="section">
+    <div class="section-title">Deal Score <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="scoreMin" step="5" min="0" max="100"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="scoreMax" step="5" min="0" max="100"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="scoreSliderFill"></div>
+          <input type="range" id="scoreSliderMin" min="0" max="100" step="5" value="0">
+          <input type="range" id="scoreSliderMax" min="0" max="100" step="5" value="100">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('score')">Reset Score Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Price Filter -->
+  <div class="section">
+    <div class="section-title">List Price <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="priceMax" step="25000"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="priceSliderFill"></div>
+          <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
+          <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="5000000">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('price')">Reset Price Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- $/SF Filter -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">$/SF Filter <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="psfMax" step="50"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="psfSliderFill"></div>
+          <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
+          <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('psf')">Reset $/SF Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lot Size Filter -->
+  <div class="section">
+    <div class="section-title">Lot Size (SF) <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotMin" step="500"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotMax" step="500"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="lotSliderFill"></div>
+          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="0">
+          <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('lot')">Reset Lot Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Structure Size -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Structure Size (SF) <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="sqftMin" step="100"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="sqftMax" step="100"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="sqftSliderFill"></div>
+          <input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0">
+          <input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('sqft')">Reset Size Filter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter summary -->
+  <div class="section">
+    <div class="filter-count" id="filterCount">Showing all</div>
+    <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
+  </div>
+
+  <!-- Zone Filters -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Zone Filters <span class="chevron">▼</span></div>
+    <div class="section-content" id="zoneToggles"></div>
+  </div>
+
+  <!-- Base Map -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Base Map <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="basemap-group">
+        <button class="basemap-btn active" data-base="dark" onclick="setBaseMap('dark')">Dark</button>
+        <button class="basemap-btn" data-base="light" onclick="setBaseMap('light')">Light</button>
+        <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map Layers -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
+      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
+      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
+      <button class="layer-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)"><span class="icon">&#9633;</span> Parcel Outlines <small style="color:var(--text-dim)">(zoom 15+)</small></button>
+    </div>
+  </div>
+
+  <!-- Pro Forma Assumptions -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Pro Forma Assumptions <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="proforma-inputs">
+        <div class="proforma-group">
+          <label>Build $/SF</label>
+          <input type="number" id="pfBuildCost" value="350" step="25" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Unit SF (avg)</label>
+          <input type="number" id="pfUnitSize" value="1200" step="50" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Soft Cost %</label>
+          <input type="number" id="pfSoftCost" value="25" step="5" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Sale Discount %</label>
+          <input type="number" id="pfDiscount" value="5" step="1" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Demo Cost $</label>
+          <input type="number" id="pfDemoCost" value="25000" step="5000" onchange="onProformaChange()">
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+        SB 1123 ground-up: demolish existing, build all new townhome units.
+        Max avg unit size: 1,200 SF (R1). Guaranteed FAR: 1.0x (3-7 units) / 1.25x (8-10).
+      </p>
+    </div>
+  </div>
+
+  <!-- Listings Table Toggle -->
+  <div class="section">
+    <button class="panel-toggle" onclick="toggleListingsPanel()">
+      <span>Deal Pipeline Table</span>
+      <span class="toggle-count" id="listingPanelCount">0 deals</span>
+    </button>
+    <button class="export-btn" onclick="exportCSV()">Export Filtered Deals to CSV</button>
+  </div>
+</aside>
+
+<div id="map"></div>
+
+<div class="map-legend">
+  <div class="legend-section">Comps (Market Data)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r1)"></div> R1 Single Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r2)"></div> R2 Two Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r3)"></div> R3 Multi-Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
+  <div class="legend-section" style="margin-top:8px">Listings (Hood $/SF)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2563eb;border-radius:50%"></div> &lt;$300 Value</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9;border-radius:50%"></div> $300-450</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $450-600</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $600-750</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $750-900</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $900+ Premium</div>
+</div>
+</div><!-- /app-row -->
+
+<!-- Listings Panel -->
+<div class="listings-panel" id="listingsPanel">
+  <div class="listings-panel-resize" id="panelResize"></div>
+  <div class="listings-panel-header">
+    <h2><span>SB 1123</span> Deal Pipeline</h2>
+    <span class="listings-panel-count" id="tablePanelCount">0</span>
+    <button class="listings-panel-close" onclick="toggleListingsPanel()">x</button>
+  </div>
+  <div class="listings-table-wrap" id="tableWrap">
+    <table class="listings-table">
+      <thead>
+        <tr>
+          <th class="col-score" data-sort="dealScore" onclick="sortTable('dealScore')">Score <span class="sort-arrow">▼</span></th>
+          <th class="col-addr" data-sort="address" onclick="sortTable('address')">Address <span class="sort-arrow">▲</span></th>
+          <th class="col-zone" data-sort="zone" onclick="sortTable('zone')">Zone <span class="sort-arrow">▲</span></th>
+          <th class="col-price" data-sort="price" onclick="sortTable('price')">Price <span class="sort-arrow">▲</span></th>
+          <th class="col-ppsf" data-sort="ppsf" onclick="sortTable('ppsf')">$/SF <span class="sort-arrow">▲</span></th>
+          <th class="col-hood" data-sort="hoodPpsf" onclick="sortTable('hoodPpsf')">Hood $/SF <span class="sort-arrow">▲</span></th>
+          <th class="col-delta" data-sort="delta" onclick="sortTable('delta')">Delta <span class="sort-arrow">▲</span></th>
+          <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot SF <span class="sort-arrow">▲</span></th>
+          <th class="col-units" data-sort="maxUnits" onclick="sortTable('maxUnits')">Units <span class="sort-arrow">▲</span></th>
+          <th class="col-ppu" data-sort="pricePerUnit" onclick="sortTable('pricePerUnit')">$/Unit <span class="sort-arrow">▲</span></th>
+          <th class="col-profit" data-sort="estProfit" onclick="sortTable('estProfit')">Est Profit <span class="sort-arrow">▲</span></th>
+          <th class="col-sqft" data-sort="sqft" onclick="sortTable('sqft')">Struct <span class="sort-arrow">▲</span></th>
+          <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">DOM <span class="sort-arrow">▲</span></th>
+          <th class="col-link">Link</th>
+        </tr>
+      </thead>
+      <tbody id="listingsTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ── Constants ──
+const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
+const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',LAND:'Vacant Land'};
+const SCORE_COLORS = {a:'#22c55e',b:'#4ade80',c:'#facc15',d:'#f97316',f:'#ef4444'};
+
+function scoreGrade(s){ return s>=70?'a':s>=50?'b':s>=30?'c':'d'; }
+function scoreColor(s){ return SCORE_COLORS[scoreGrade(s)]; }
+
+// Hood $/SF color scale: cool (cheap) → hot (expensive)
+function hoodPpsfColor(ppsf){
+  if(!ppsf || ppsf <= 0) return '#888';
+  if(ppsf < 300) return '#2563eb';   // Deep blue — very affordable
+  if(ppsf < 450) return '#0ea5e9';   // Sky blue
+  if(ppsf < 600) return '#22c55e';   // Green — moderate
+  if(ppsf < 750) return '#eab308';   // Yellow — above average
+  if(ppsf < 900) return '#f97316';   // Orange — expensive
+  return '#ef4444';                    // Red — premium
+}
+
+// ── State ──
+let COMPS = [];
+let LISTINGS = [];
+const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L.layerGroup(),LAND:L.layerGroup()};
+const listingsLayer = L.layerGroup();
+const layerState = {markers:false,listings:true,fireZones:false,parcels:true};
+const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
+let sb1123Mode = true;  // Default ON — we only care about 1123 deals
+
+const filters = {
+  score:{ min:0, max:100, dataMin:0, dataMax:100, step:5, cap:null, defaultMin:null, defaultMax:null },
+  price:{ min:0, max:5000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:null },
+  psf:  { min:0, max:2000, dataMin:0, dataMax:2000, step:25, cap:null, defaultMin:null, defaultMax:null },
+  sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
+  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:10000, defaultMax:25000 },
+};
+
+let currentSort = { key:'dealScore', dir:'desc' };
+let listingsPanelOpen = false;
+
+// Pro forma defaults — SB 1123 townhome development
+let proforma = {
+  buildCostPerSf: 350,   // Hard construction $/SF for townhome
+  avgUnitSf: 1200,       // Avg townhome unit size (SB1123 max avg 1,200 SF in R1)
+  softCostPct: 25,       // Permits, architecture, engineering
+  saleDiscountPct: 5,    // Broker fees + closing costs
+  demoCost: 25000,       // Demolition of existing structure
+};
+
+// ── Map ──
+const map = L.map('map',{center:[34.05,-118.35],zoom:11,zoomControl:false});
+L.control.zoom({position:'topright'}).addTo(map);
+
+// Base tile layers
+const baseLayers = {
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    attribution:'OpenStreetMap CARTO',maxZoom:19
+  }),
+  light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'OpenStreetMap CARTO',maxZoom:19
+  }),
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Esri World Imagery',maxZoom:19
+  })
+};
+let activeBase = 'dark';
+baseLayers.dark.addTo(map);
+
+function setBaseMap(name){
+  map.removeLayer(baseLayers[activeBase]);
+  activeBase = name;
+  baseLayers[name].addTo(map);
+  // Update button states
+  document.querySelectorAll('.basemap-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.base===name);
+  });
+  // Toggle body class for light mode adjustments
+  document.body.classList.toggle('light-mode', name==='light');
+}
+
+Object.values(markerLayers).forEach(l=>l.addTo(map));
+listingsLayer.addTo(map);
+
+// Fire Hazard Severity Zone overlay (server-rendered from LA County ArcGIS)
+let fireZoneLayer = null;
+let parcelLayer = null;
+if(L.esri){
+  try {
+    fireZoneLayer = L.esri.dynamicMapLayer({
+      url:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer',
+      layers:[2],
+      opacity:0.4
+    });
+    parcelLayer = L.esri.tiledMapLayer({
+      url:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer',
+      opacity:0.6,
+      maxZoom:20,
+      minZoom:15
+    });
+  } catch(e) {
+    console.warn('esri-leaflet layers failed:', e.message);
+  }
+}
+
+// ══════════════════════════════════════════
+//  SB 1123 DEAL SCORING ENGINE
+//  Starter Home Revitalization Act (eff. Jul 2025)
+//  Split lots into up to 10 parcels, build contiguous townhomes
+//  Min 1,200 SF per parcel (R1), 600 SF per parcel (R2-R4)
+//  Max 10 units, guaranteed FAR 1.0 (3-7 units) / 1.25 (8-10 units)
+//  No owner-occupancy, TIC allowed, CEQA exempt, 60-day approval
+// ══════════════════════════════════════════
+
+// SB 1123 eligibility: R1-R4 + LAND zones, lot 10K+ SF
+// Exclude condos/townhouses — on shared/HOA land, can't subdivide
+// Exclude R1 with HOA — indicates shared land/CC&Rs that block subdivision
+// Exclude VHFHSZ — hard exclusion under SB 1123
+function isSB1123Eligible(l){
+  const validZone = ['R1','R2','R3','R4','LAND'].includes(l.zone);
+  const notCondoTownhouse = !['Condo/Co-op','Townhouse'].includes(l.type);
+  const notR1Hoa = !(l.zone === 'R1' && l.hoa > 0);
+  const notFireZone = !l.fireZone;
+  const validLot = l.lotSf && l.lotSf >= 10000;  // Min 10K for meaningful split
+  return validZone && notCondoTownhouse && notR1Hoa && notFireZone && validLot;
+}
+
+function getMinLotPerUnit(zone){
+  // SB 1123: 1,200 SF min per parcel in single-family zones, 600 SF in multifamily
+  if(zone === 'R1') return 1200;
+  if(zone === 'LAND') return 1200;  // Assume R1 density for unzoned land
+  return 600;  // R2, R3, R4
+}
+
+function getMaxUnits(l){
+  if(!l.lotSf) return 1;
+  const minPer = getMinLotPerUnit(l.zone);
+  const byLot = Math.floor(l.lotSf / minPer);
+  return Math.min(10, Math.max(1, byLot));  // SB 1123 caps at 10
+}
+
+function getGuaranteedFAR(units){
+  // SB 1123 guaranteed FAR minimums
+  if(units >= 8) return 1.25;
+  if(units >= 3) return 1.0;
+  return 0.5;  // Below 3 units, use base zoning
+}
+
+function calculateProForma(l){
+  const maxUnits = getMaxUnits(l);
+  const pf = proforma;
+  const valuePerSf = l.hoodPpsf || l.ppsf;
+
+  // Revenue: sell townhome units at neighborhood $/SF
+  const grossPerUnit = valuePerSf * pf.avgUnitSf;
+  const grossRevenue = maxUnits * grossPerUnit;
+  const netRevenue = grossRevenue * (1 - pf.saleDiscountPct / 100);
+
+  // Costs — SB 1123 is ground-up development (demolish existing, build all new)
+  const acquisition = l.price;
+  const demo = l.sqft > 0 ? pf.demoCost : 0;  // Demo existing structure
+  const hardCost = maxUnits * pf.avgUnitSf * pf.buildCostPerSf;
+  const softCost = hardCost * (pf.softCostPct / 100);
+  const totalBuildCost = hardCost + softCost + demo;
+  const totalCost = acquisition + totalBuildCost;
+
+  return {
+    maxUnits,
+    grossRevenue,
+    netRevenue,
+    acquisition,
+    demo,
+    totalBuildCost,
+    totalCost,
+    profit: netRevenue - totalCost,
+    margin: totalCost > 0 ? ((netRevenue - totalCost) / totalCost * 100) : 0,
+    pricePerUnit: Math.round(acquisition / maxUnits),
+    guaranteedFAR: getGuaranteedFAR(maxUnits),
+    buildableSf: Math.round(l.lotSf * getGuaranteedFAR(maxUnits)),
+  };
+}
+
+function calculateDealScore(l){
+  let score = 0;
+  let maxScore = 0;
+
+  // 1. Lot Size in Sweet Spot (0-30 pts)
+  // SB 1123 target: 10K-25K SF. Peak score at 12K-18K (8-10 townhomes)
+  maxScore += 30;
+  if(l.lotSf){
+    if(l.lotSf >= 12000 && l.lotSf <= 18000) score += 30;      // Perfect: 10 units, efficient
+    else if(l.lotSf >= 10000 && l.lotSf <= 25000) score += 25;  // Target range
+    else if(l.lotSf >= 8000 && l.lotSf < 10000) score += 10;    // Just under, still viable
+    else if(l.lotSf > 25000 && l.lotSf <= 35000) score += 15;   // Big but workable
+  }
+
+  // 2. Unit Density (0-20 pts) — more units = more revenue
+  maxScore += 20;
+  const units = getMaxUnits(l);
+  if(units >= 10) score += 20;
+  else if(units >= 8) score += 16;
+  else if(units >= 6) score += 12;
+  else if(units >= 4) score += 6;
+  else if(units >= 2) score += 2;
+
+  // 3. Acquisition $/Lot-SF (0-20 pts) — cheaper land = better economics
+  maxScore += 20;
+  if(l.lotSf){
+    const landPpsf = l.price / l.lotSf;
+    // LA County land values vary hugely. Lower is better for development.
+    if(landPpsf <= 50) score += 20;
+    else if(landPpsf <= 75) score += 16;
+    else if(landPpsf <= 100) score += 12;
+    else if(landPpsf <= 150) score += 8;
+    else if(landPpsf <= 200) score += 4;
+  }
+
+  // 4. Pro Forma Profitability (0-15 pts)
+  maxScore += 15;
+  const pf = calculateProForma(l);
+  if(pf.margin >= 50) score += 15;
+  else if(pf.margin >= 35) score += 12;
+  else if(pf.margin >= 20) score += 9;
+  else if(pf.margin >= 10) score += 5;
+  else if(pf.margin > 0) score += 2;
+
+  // 5. Days on Market (0-10 pts) — stale = negotiation leverage
+  maxScore += 10;
+  if(l.dom !== null && l.dom !== undefined){
+    if(l.dom >= 120) score += 10;
+    else if(l.dom >= 90) score += 8;
+    else if(l.dom >= 60) score += 6;
+    else if(l.dom >= 30) score += 4;
+    else if(l.dom >= 14) score += 2;
+  }
+
+  // 6. Underutilized lot — small/old structure relative to lot (0-5 pts)
+  // Signals potential vacancy or easy teardown for SB 1123
+  maxScore += 5;
+  if(l.zone === 'LAND' || (l.lotSf && !l.sqft)){
+    score += 5;  // Vacant land — ideal for 1123
+  } else if(l.lotSf && l.sqft){
+    const far = l.sqft / l.lotSf;
+    if(far <= 0.10) score += 5;       // Nearly vacant — ideal for 1123
+    else if(far <= 0.20) score += 4;   // Very underbuilt
+    else if(far <= 0.30) score += 3;
+    else if(far <= 0.40) score += 1;
+  }
+
+  return maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+}
+
+// Generate ZIMAS lookup URL for LA City properties
+function getZimasUrl(l){
+  const addr = (l.address || '').split(',')[0].trim();
+  return 'https://zimas.lacity.org/search?address=' + encodeURIComponent(addr);
+}
+
+// Enrich listings with computed fields
+function enrichListings(){
+  LISTINGS.forEach(l => {
+    l.sb1123Eligible = isSB1123Eligible(l);
+    l.maxUnits = getMaxUnits(l);
+    const pf = calculateProForma(l);
+    l.pricePerUnit = pf.pricePerUnit;
+    l.estProfit = pf.profit;
+    l.estMargin = pf.margin;
+    l.totalCost = pf.totalCost;
+    l.netRevenue = pf.netRevenue;
+    l.totalBuildCost = pf.totalBuildCost;
+    l.guaranteedFAR = pf.guaranteedFAR;
+    l.buildableSf = pf.buildableSf;
+    l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
+    l.dealScore = calculateDealScore(l);
+  });
+}
+
+// ══════════════════════════════════════════
+//  FILTERING
+// ══════════════════════════════════════════
+
+function getFilteredComps(){
+  return COMPS.filter(c =>
+    zoneState[c.zone] &&
+    c.price >= filters.price.min && c.price <= filters.price.max &&
+    (c.ppsf || c.price/c.sqft) >= filters.psf.min &&
+    (c.ppsf || c.price/c.sqft) <= filters.psf.max &&
+    c.sqft >= filters.sqft.min && c.sqft <= filters.sqft.max
+  );
+}
+
+function getFilteredListings(){
+  return LISTINGS.filter(l => {
+    if(sb1123Mode && !l.sb1123Eligible) return false;
+    const zoneOk = !l.zone || zoneState[l.zone];
+    const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
+    const isLand = l.zone === 'LAND';
+    const psfOk = isLand || (l.ppsf >= filters.psf.min && l.ppsf <= filters.psf.max);
+    const sqftOk = isLand || (l.sqft >= filters.sqft.min && l.sqft <= filters.sqft.max);
+    const scoreOk = (l.dealScore || 0) >= filters.score.min && (l.dealScore || 0) <= filters.score.max;
+    const lotVal = l.lotSf || 0;
+    const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
+    const lotOk = lotAtDefault ? true : (lotVal >= filters.lot.min && lotVal <= filters.lot.max);
+    return zoneOk && priceOk && psfOk && sqftOk && lotOk && scoreOk;
+  });
+}
+
+// ══════════════════════════════════════════
+//  MAP RENDERING
+// ══════════════════════════════════════════
+
+function rebuildMarkers(){
+  Object.values(markerLayers).forEach(l=>l.clearLayers());
+  const filtered = getFilteredComps();
+  filtered.forEach(comp => {
+    const psf = comp.ppsf || Math.round(comp.price / comp.sqft);
+    const cm = L.circleMarker([comp.lat,comp.lng],{
+      radius:3, color:ZONE_COLORS[comp.zone], fillColor:ZONE_COLORS[comp.zone],
+      fillOpacity:0.5, weight:1
+    });
+    cm.bindPopup(`
+      <div class="popup-badge comp">Market Comp</div>
+      <div class="popup-title">${comp.address || 'N/A'}</div>
+      <div class="popup-grid">
+        <div><div class="popup-label">Market Value</div><div class="popup-value">$${comp.price.toLocaleString()}</div></div>
+        <div><div class="popup-label">$/SF</div><div class="popup-value" style="color:${ZONE_COLORS[comp.zone]}">$${psf}</div></div>
+        <div><div class="popup-label">Size</div><div class="popup-value">${comp.sqft.toLocaleString()} sf</div></div>
+        <div><div class="popup-label">Zone</div><div class="popup-value">${comp.zone}</div></div>
+        ${comp.zip?`<div><div class="popup-label">Zip</div><div class="popup-value">${comp.zip}</div></div>`:''}
+      </div>
+    `,{maxWidth:280});
+    cm.addTo(markerLayers[comp.zone]);
+  });
+  document.getElementById('compCount').textContent = filtered.length.toLocaleString();
+  refreshVisibility();
+}
+
+function rebuildListings(){
+  listingsLayer.clearLayers();
+  const filtered = getFilteredListings();
+
+  filtered.forEach(l => {
+    const sc = l.dealScore || 0;
+    const color = hoodPpsfColor(l.hoodPpsf);
+    const radius = sc >= 70 ? 8 : sc >= 50 ? 7 : sc >= 30 ? 6 : 5;
+    const cm = L.circleMarker([l.lat,l.lng],{
+      radius, color, fillColor:color,
+      fillOpacity: 0.8,
+      weight: sc >= 70 ? 3 : 2,
+    });
+
+    const delta = l.hoodPpsf ? l.ppsf - l.hoodPpsf : null;
+    const grade = scoreGrade(sc);
+    const pf = calculateProForma(l);
+
+    cm.bindPopup(`
+      <div class="popup-badge deal-${grade}">Score: ${sc}/100</div>
+      ${l.sb1123Eligible ? '<div class="popup-badge deal-a">SB 1123</div>' : ''}
+      <div class="popup-title">${l.address || 'N/A'}</div>
+      <div class="popup-grid">
+        <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
+        <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
+        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:''}
+        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:''}
+        <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
+        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:''}
+        ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:''}
+        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}</div></div>
+        ${l.fireZone?`<div><div class="popup-label">Fire Zone</div><div class="popup-value" style="color:var(--red)">VHFHSZ</div></div>`:''}
+        ${l.hoa?`<div><div class="popup-label">HOA</div><div class="popup-value">$${l.hoa}/mo</div></div>`:''}
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">SB 1123 Townhome Pro Forma</div>
+        <div><div class="popup-label">Max Townhomes</div><div class="popup-value" style="color:${pf.maxUnits>=8?'var(--green)':pf.maxUnits>=5?'var(--yellow)':'var(--text)'}">${pf.maxUnits} units</div></div>
+        <div><div class="popup-label">Guaranteed FAR</div><div class="popup-value">${pf.guaranteedFAR}x</div></div>
+        <div><div class="popup-label">Buildable SF</div><div class="popup-value">${pf.buildableSf.toLocaleString()} sf</div></div>
+        <div><div class="popup-label">Land $/SF</div><div class="popup-value">$${l.lotSf?Math.round(l.price/l.lotSf):0}</div></div>
+        <div><div class="popup-label">Acq $/Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Build Cost</div><div class="popup-value">$${Math.round(pf.totalBuildCost).toLocaleString()}</div></div>
+        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(pf.totalCost).toLocaleString()}</div></div>
+        <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
+        <div><div class="popup-label">Est Profit</div><div class="popup-value ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit).toLocaleString()}</div></div>
+        <div><div class="popup-label">Margin</div><div class="popup-value ${pf.margin>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.margin.toFixed(1)}%</div></div>
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value">${l.dom}</div></div>`:''}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:''}
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">ZIMAS Due Diligence</div>
+        <div style="grid-column:1/-1;font-size:10px;color:var(--text-dim);line-height:1.6">
+          Verify before pursuing:<br>
+          <span style="color:var(--green)">&#10003;</span> R1-1 or R2+ zoning confirmed<br>
+          <span style="color:var(--green)">&#10003;</span> Not in Hillside Area<br>
+          <span style="color:var(--green)">&#10003;</span> No Historic Preservation overlay<br>
+          <span style="color:var(--red)">&#10007;</span> NOT in Very High Fire Hazard Zone (hard exclusion)<br>
+          <span style="color:var(--green)">&#10003;</span> No Specific Plan restrictions<br>
+          <span style="color:var(--yellow)">&#9733;</span> Transit Priority Area = 0 parking req<br>
+          <span style="color:var(--green)">&#10003;</span> No rent-controlled tenants (last 5 yrs)<br>
+          <span style="color:var(--green)">&#10003;</span> No Ellis Act evictions (last 15 yrs)
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
+        ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
+        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+      </div>
+    `,{maxWidth:320});
+    cm.addTo(listingsLayer);
+  });
+
+  document.getElementById('listingCount').textContent = filtered.length.toLocaleString();
+  rebuildTable(filtered);
+}
+
+function refreshVisibility(){
+  Object.entries(markerLayers).forEach(([z,l])=>{
+    if(layerState.markers && zoneState[z]) l.addTo(map);
+    else map.removeLayer(l);
+  });
+  if(layerState.listings) listingsLayer.addTo(map);
+  else map.removeLayer(listingsLayer);
+  if(fireZoneLayer){
+    if(layerState.fireZones) fireZoneLayer.addTo(map);
+    else map.removeLayer(fireZoneLayer);
+  }
+  if(parcelLayer){
+    if(layerState.parcels) parcelLayer.addTo(map);
+    else map.removeLayer(parcelLayer);
+  }
+}
+
+// ══════════════════════════════════════════
+//  UI CONTROLS
+// ══════════════════════════════════════════
+
+function toggle1123Mode(){
+  sb1123Mode = !sb1123Mode;
+  document.getElementById('sb1123Toggle').classList.toggle('active', sb1123Mode);
+  applyFilters();
+}
+
+function toggleZone(zone,enabled){
+  zoneState[zone]=enabled;
+  applyFilters();
+}
+
+function toggleLayer(layer,btn){
+  layerState[layer]=!layerState[layer];
+  btn.classList.toggle('active');
+  refreshVisibility();
+}
+
+function toggleSection(titleEl){
+  titleEl.closest('.section').classList.toggle('collapsed');
+}
+
+function toggleListingsPanel(){
+  const panel = document.getElementById('listingsPanel');
+  listingsPanelOpen = !listingsPanelOpen;
+  panel.classList.toggle('open', listingsPanelOpen);
+  setTimeout(() => map.invalidateSize(), 350);
+}
+
+// ── Panel resize ──
+(function(){
+  const panel = document.getElementById('listingsPanel');
+  const handle = document.getElementById('panelResize');
+  let startY, startH;
+  handle.addEventListener('mousedown', function(e){
+    startY = e.clientY; startH = panel.offsetHeight;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+  function onMove(e){
+    const diff = startY - e.clientY;
+    panel.style.height = Math.max(150, Math.min(window.innerHeight*0.7, startH+diff))+'px';
+  }
+  function onUp(){
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    map.invalidateSize();
+  }
+})();
+
+// ── Presets ──
+function applyPreset(name){
+  // Clear all first
+  resetFilter('all');
+  sb1123Mode = true;
+  document.getElementById('sb1123Toggle').classList.add('active');
+
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  event.target.closest('.preset-btn').classList.add('active');
+
+  if(name === 'sweet'){
+    // Sweet spot: 10-15K SF lots = 8-10 townhomes, efficient build
+    setFilter('lot', 10000, 15000);
+    setFilter('score', 40, 100);
+  } else if(name === 'maxDensity'){
+    // Max density: 15-25K SF lots, all 10 units
+    setFilter('lot', 15000, 25000);
+  } else if(name === 'value'){
+    // Below-market land acquisition
+    setFilter('score', 50, 100);
+  } else if(name === 'stale'){
+    // Stale inventory — negotiation leverage
+    currentSort = {key:'dom', dir:'desc'};
+    setFilter('score', 30, 100);
+  }
+  applyFilters();
+}
+
+function setFilter(key, min, max){
+  const f = filters[key];
+  f.min = Math.max(f.dataMin, min);
+  f.max = Math.min(f.dataMax, max);
+  const sMin = document.getElementById(key+'SliderMin');
+  const sMax = document.getElementById(key+'SliderMax');
+  const iMin = document.getElementById(key+'Min');
+  const iMax = document.getElementById(key+'Max');
+  if(sMin) sMin.value = f.min;
+  if(sMax) sMax.value = f.max;
+  if(iMin) iMin.value = f.min;
+  if(iMax) iMax.value = f.max;
+  updateFill(key);
+}
+
+// ── Stats ──
+function updateStats(){
+  const filtered = getFilteredListings();
+  const scores = filtered.map(l=>l.dealScore||0);
+  const ppus = filtered.filter(l=>l.pricePerUnit>0).map(l=>l.pricePerUnit).sort((a,b)=>a-b);
+  const ppsfs = filtered.map(l=>l.ppsf).sort((a,b)=>a-b);
+
+  const sb1123 = filtered.filter(l=>l.sb1123Eligible);
+  document.getElementById('sb1123Count').textContent = sb1123.length.toLocaleString();
+  document.getElementById('avgScore').textContent = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+  document.getElementById('totalListings').textContent = filtered.length.toLocaleString();
+  document.getElementById('medPpu').textContent = ppus.length ? '$'+(ppus[Math.floor(ppus.length/2)]).toLocaleString() : '$0';
+  document.getElementById('medPpsf').textContent = ppsfs.length ? '$'+ppsfs[Math.floor(ppsfs.length/2)] : '$0';
+
+  document.getElementById('sb1123ToggleCount').textContent = LISTINGS.filter(l=>l.sb1123Eligible).length;
+
+  // Comp stats
+  const compFiltered = getFilteredComps();
+  document.getElementById('compCount').textContent = compFiltered.length.toLocaleString();
+}
+
+function updateFilterCount(){
+  const comps = getFilteredComps().length;
+  const listings = getFilteredListings().length;
+  document.getElementById('filterCount').textContent = `${comps.toLocaleString()} comps | ${listings.toLocaleString()} listings`;
+  document.getElementById('listingPanelCount').textContent = `${listings} deals`;
+}
+
+function rebuildZoneToggles(){
+  const el=document.getElementById('zoneToggles');
+  el.innerHTML='';
+  const filtered = getFilteredComps();
+  const fListings = getFilteredListings();
+  ['R1','R2','R3','R4','LAND'].forEach(zone=>{
+    const zc=filtered.filter(c=>c.zone===zone);
+    const zl=fListings.filter(l=>l.zone===zone);
+    const psfs=zc.map(c=>c.ppsf||c.price/c.sqft);
+    const avg=psfs.length?Math.round(psfs.reduce((a,b)=>a+b,0)/psfs.length):0;
+    const div=document.createElement('label');
+    div.className='zone-toggle';
+    div.innerHTML=`
+      <input type="checkbox" ${zoneState[zone]?'checked':''} onchange="toggleZone('${zone}',this.checked)">
+      <span class="check-box"></span>
+      <span class="zone-swatch" style="background:${ZONE_COLORS[zone]}"></span>
+      <span class="zone-label">${zone} <small>${ZONE_LABELS[zone]}</small></span>
+      <span class="zone-stat">${avg?'$'+avg+'/sf':'—'}<span class="data-count">${zl.length}</span></span>
+    `;
+    el.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════
+//  SORTABLE TABLE
+// ══════════════════════════════════════════
+
+function getSortValue(l, key){
+  if(key==='delta') return l.hoodPpsf ? l.ppsf - l.hoodPpsf : -Infinity;
+  if(key==='beds') return parseFloat(l.beds)||0;
+  if(key==='maxUnits') return l.maxUnits||1;
+  if(key==='pricePerUnit') return l.pricePerUnit||Infinity;
+  if(key==='estProfit') return l.estProfit||(-Infinity);
+  if(key==='dealScore') return l.dealScore||0;
+  const v=l[key]; return v===null||v===undefined ? -Infinity : v;
+}
+
+function sortTable(key){
+  if(currentSort.key===key) currentSort.dir = currentSort.dir==='asc'?'desc':'asc';
+  else{
+    currentSort.key=key;
+    currentSort.dir = (typeof getSortValue(LISTINGS[0]||{},key)==='string')?'asc':'desc';
+  }
+  document.querySelectorAll('.listings-table th').forEach(th=>{
+    th.classList.remove('sorted');
+    th.querySelector('.sort-arrow').textContent='▲';
+  });
+  const th=document.querySelector(`.listings-table th[data-sort="${key}"]`);
+  if(th){th.classList.add('sorted');th.querySelector('.sort-arrow').textContent=currentSort.dir==='asc'?'▲':'▼';}
+  rebuildTable(getFilteredListings());
+}
+
+function rebuildTable(filtered){
+  const tbody = document.getElementById('listingsTableBody');
+  const sorted = [...filtered].sort((a,b) => {
+    let va=getSortValue(a,currentSort.key), vb=getSortValue(b,currentSort.key);
+    if(typeof va==='string') va=va.toLowerCase();
+    if(typeof vb==='string') vb=vb.toLowerCase();
+    if(va<vb) return currentSort.dir==='asc'?-1:1;
+    if(va>vb) return currentSort.dir==='asc'?1:-1;
+    return 0;
+  });
+
+  // Cap table rows for performance
+  const display = sorted.slice(0, 500);
+
+  tbody.innerHTML = display.map(l => {
+    const sc = l.dealScore||0;
+    const color = scoreColor(sc);
+    const delta = l.hoodPpsf ? l.ppsf - l.hoodPpsf : null;
+    const deltaClass = delta>0?'delta-pos':delta<0?'delta-neg':'';
+    const deltaStr = delta!==null ? `${delta>0?'+':''}${delta}` : '—';
+    const zoneColor = ZONE_COLORS[l.zone]||'#666';
+    const profitClass = (l.estProfit||0)>=0?'profit-pos':'profit-neg';
+    return `<tr onclick="flyToListing(${l.lat},${l.lng})">
+      <td class="col-score"><div class="score-bar"><div class="score-bar-track"><div class="score-bar-fill" style="width:${sc}%;background:${color}"></div></div><span class="score-bar-label" style="color:${color}">${sc}</span></div></td>
+      <td class="col-addr" title="${l.address}">${l.address}</td>
+      <td class="col-zone"><span class="zone-pill" style="background:${zoneColor}22;color:${zoneColor}">${l.zone||'—'}</span></td>
+      <td class="col-price mono">$${l.price.toLocaleString()}</td>
+      <td class="col-ppsf mono">$${l.ppsf}</td>
+      <td class="col-hood mono">${l.hoodPpsf?'$'+l.hoodPpsf:'—'}</td>
+      <td class="col-delta mono ${deltaClass}">${deltaStr}</td>
+      <td class="col-lot mono">${l.lotSf?l.lotSf.toLocaleString():'—'}</td>
+      <td class="col-units mono" style="color:${l.maxUnits>=4?'var(--green)':l.maxUnits>=2?'var(--yellow)':'var(--text-dim)'}">${l.maxUnits}</td>
+      <td class="col-ppu mono">$${(l.pricePerUnit||0).toLocaleString()}</td>
+      <td class="col-profit mono ${profitClass}">$${Math.round(l.estProfit||0).toLocaleString()}</td>
+      <td class="col-sqft mono">${l.sqft.toLocaleString()}</td>
+      <td class="col-dom mono">${l.dom!==null&&l.dom!==undefined?l.dom:'—'}</td>
+      <td class="col-link">${l.url?'<a class="redfin-link" href="'+l.url+'" target="_blank" onclick="event.stopPropagation()">View</a>':''}</td>
+    </tr>`;
+  }).join('');
+
+  const countStr = sorted.length > 500 ? `${sorted.length} deals (showing 500)` : `${sorted.length} deals`;
+  document.getElementById('tablePanelCount').textContent = countStr;
+  document.getElementById('listingPanelCount').textContent = `${sorted.length} deals`;
+}
+
+function flyToListing(lat, lng){
+  map.flyTo([lat, lng], 16, {duration:0.8});
+  listingsLayer.eachLayer(layer => {
+    if(layer.getLatLng){
+      const ll = layer.getLatLng();
+      if(Math.abs(ll.lat-lat)<0.0001 && Math.abs(ll.lng-lng)<0.0001) layer.openPopup();
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  FILTER MACHINERY
+// ══════════════════════════════════════════
+
+function initRangeFilter(key, valueFn, dataSource){
+  const f = filters[key];
+  const source = dataSource || COMPS;
+  const values = source.map(valueFn).filter(v => v > 0);
+  if(!values.length) return;
+  let vMin = Infinity, vMax = -Infinity;
+  for(let i=0;i<values.length;i++){ if(values[i]<vMin) vMin=values[i]; if(values[i]>vMax) vMax=values[i]; }
+  f.dataMin = Math.floor(vMin / f.step) * f.step;
+  f.dataMax = Math.ceil(vMax / f.step) * f.step;
+  if(f.cap && f.dataMax > f.cap) f.dataMax = f.cap;
+  f.min = f.dataMin; f.max = f.dataMax;
+  if(f.defaultMin != null && f.defaultMin >= f.dataMin) f.min = Math.min(f.defaultMin, f.dataMax);
+  if(f.defaultMax != null && f.defaultMax <= f.dataMax) f.max = Math.max(f.defaultMax, f.dataMin);
+
+  const sMin=document.getElementById(key+'SliderMin'), sMax=document.getElementById(key+'SliderMax');
+  const iMin=document.getElementById(key+'Min'), iMax=document.getElementById(key+'Max');
+  sMin.min=f.dataMin; sMin.max=f.dataMax; sMin.value=f.min; sMin.step=f.step;
+  sMax.min=f.dataMin; sMax.max=f.dataMax; sMax.value=f.max; sMax.step=f.step;
+  iMin.value=f.min; iMax.value=f.max;
+  updateFill(key);
+
+  let timer=null;
+  function debounced(){ clearTimeout(timer); timer=setTimeout(applyFilters, 250); }
+  sMin.addEventListener('input', function(){
+    let v=parseInt(this.value); if(v>parseInt(sMax.value)-f.step) v=parseInt(sMax.value)-f.step;
+    this.value=v; iMin.value=v; f.min=v; updateFill(key); debounced();
+  });
+  sMax.addEventListener('input', function(){
+    let v=parseInt(this.value); if(v<parseInt(sMin.value)+f.step) v=parseInt(sMin.value)+f.step;
+    this.value=v; iMax.value=v; f.max=v; updateFill(key); debounced();
+  });
+  iMin.addEventListener('change', function(){
+    let v=parseInt(this.value)||f.dataMin; v=Math.max(f.dataMin,Math.min(v,f.max-f.step));
+    this.value=v; sMin.value=v; f.min=v; updateFill(key); applyFilters();
+  });
+  iMax.addEventListener('change', function(){
+    let v=parseInt(this.value)||f.dataMax; v=Math.min(f.dataMax,Math.max(v,f.min+f.step));
+    this.value=v; sMax.value=v; f.max=v; updateFill(key); applyFilters();
+  });
+}
+
+function updateFill(key){
+  const f=filters[key], fill=document.getElementById(key+'SliderFill');
+  if(!fill) return;
+  const range=f.dataMax-f.dataMin; if(range<=0) return;
+  fill.style.left=((f.min-f.dataMin)/range)*100+'%';
+  fill.style.width=((f.max-f.min)/range)*100+'%';
+}
+
+function applyFilters(){
+  rebuildMarkers();
+  rebuildListings();
+  rebuildZoneToggles();
+  updateStats();
+  updateFilterCount();
+}
+
+function resetFilter(key){
+  if(key==='all'){
+    ['score','price','psf','sqft','lot'].forEach(k=>resetFilter(k));
+    sb1123Mode=false;
+    document.getElementById('sb1123Toggle').classList.remove('active');
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    return;
+  }
+  const f=filters[key]; f.min=f.dataMin; f.max=f.dataMax;
+  const sMin=document.getElementById(key+'SliderMin'), sMax=document.getElementById(key+'SliderMax');
+  const iMin=document.getElementById(key+'Min'), iMax=document.getElementById(key+'Max');
+  if(sMin) sMin.value=f.dataMin;
+  if(sMax) sMax.value=f.dataMax;
+  if(iMin) iMin.value=f.dataMin;
+  if(iMax) iMax.value=f.dataMax;
+  updateFill(key);
+  applyFilters();
+}
+
+function onProformaChange(){
+  proforma.buildCostPerSf = parseInt(document.getElementById('pfBuildCost').value)||350;
+  proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1200;
+  proforma.softCostPct = parseInt(document.getElementById('pfSoftCost').value)||25;
+  proforma.saleDiscountPct = parseInt(document.getElementById('pfDiscount').value)||5;
+  proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||25000;
+  enrichListings();
+  applyFilters();
+}
+
+// ── Export ──
+function exportCSV(){
+  const filtered = getFilteredListings();
+  if(!filtered.length) return;
+  const headers = ['Score','Address','Zone','Price','$/SF','Hood $/SF','Delta','Lot SF','Max Units','$/Unit','Est Profit','Margin %','Structure SF','Beds','Baths','DOM','URL'];
+  const rows = filtered.map(l=>[
+    l.dealScore, l.address, l.zone, l.price, l.ppsf,
+    l.hoodPpsf||'', l.hoodPpsf?l.ppsf-l.hoodPpsf:'',
+    l.lotSf||'', l.maxUnits, l.pricePerUnit||'',
+    Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
+    l.sqft, l.beds, l.baths, l.dom!==null?l.dom:'', l.url||''
+  ]);
+  const csv = [headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='sb9_deals_export.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════
+//  INITIALIZATION
+// ══════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', function(){
+  if(typeof LOADED_COMPS !== 'undefined' && LOADED_COMPS.length > 0) COMPS = LOADED_COMPS;
+  if(typeof LOADED_LISTINGS !== 'undefined' && LOADED_LISTINGS.length > 0) LISTINGS = LOADED_LISTINGS;
+
+  if(COMPS.length > 0 || LISTINGS.length > 0){
+    document.getElementById('loadingBanner').classList.add('active');
+    document.getElementById('loadingBanner').textContent =
+      `Loading ${COMPS.length.toLocaleString()} comps + ${LISTINGS.length.toLocaleString()} listings...`;
+
+    setTimeout(function(){
+      // Enrich listings with deal scores
+      enrichListings();
+
+      // Init filters
+      if(COMPS.length){
+        initRangeFilter('price', c=>c.price);
+        initRangeFilter('psf', c=>c.ppsf||Math.round(c.price/c.sqft));
+        initRangeFilter('sqft', c=>c.sqft);
+      }
+      const lotsWithData = LISTINGS.filter(l=>l.lotSf&&l.lotSf>0);
+      if(lotsWithData.length) initRangeFilter('lot', l=>l.lotSf||0, lotsWithData);
+      // Score filter always 0-100
+      initRangeFilter('score', l=>l.dealScore||0, LISTINGS);
+
+      rebuildMarkers();
+      rebuildListings();
+      rebuildZoneToggles();
+      updateStats();
+      updateFilterCount();
+
+      // Fit bounds
+      const allLats=[...COMPS.map(c=>c.lat),...LISTINGS.map(l=>l.lat)];
+      const allLngs=[...COMPS.map(c=>c.lng),...LISTINGS.map(l=>l.lng)];
+      if(allLats.length){
+        let minLat=Infinity,maxLat=-Infinity,minLng=Infinity,maxLng=-Infinity;
+        for(let i=0;i<allLats.length;i++){
+          if(allLats[i]<minLat) minLat=allLats[i]; if(allLats[i]>maxLat) maxLat=allLats[i];
+          if(allLngs[i]<minLng) minLng=allLngs[i]; if(allLngs[i]>maxLng) maxLng=allLngs[i];
+        }
+        map.fitBounds([[minLat,minLng],[maxLat,maxLng]],{padding:[50,50]});
+      }
+
+      // Auto-open the table panel
+      toggleListingsPanel();
+
+      // Set default sort to deal score desc
+      const th=document.querySelector('.listings-table th[data-sort="dealScore"]');
+      if(th){th.classList.add('sorted');th.querySelector('.sort-arrow').textContent='▼';}
+
+      document.getElementById('loadingBanner').classList.remove('active');
+    }, 100);
+  } else {
+    rebuildZoneToggles();
+    updateStats();
+  }
+});
+</script>
+</body>
+</html>
