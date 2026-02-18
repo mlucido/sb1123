@@ -286,6 +286,12 @@
     transition:all 0.15s;text-align:center;
   }
   .export-btn:hover{background:rgba(96,165,250,0.2)}
+  .refresh-btn{
+    padding:4px 10px;background:rgba(34,197,94,0.1);border:1px solid var(--green);
+    border-radius:4px;color:var(--green);font-family:inherit;font-size:10px;
+    cursor:pointer;transition:all 0.15s;white-space:nowrap;
+  }
+  .refresh-btn:hover{background:rgba(34,197,94,0.2)}
 
   /* Favorites */
   .listings-table .col-fav{width:32px;text-align:center;cursor:pointer}
@@ -316,7 +322,10 @@
 <div class="app-row">
 <aside class="sidebar">
   <div class="sidebar-header">
-    <h1><span>SB 1123</span> Deal Finder</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h1><span>SB 1123</span> Deal Finder</h1>
+      <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard">&#8635; Refresh</button>
+    </div>
     <p>Find townhome subdivision sites in LA County<br>10K-25K SF lots that split into up to 10 contiguous units</p>
     <div class="law-ref">CA SB 1123 (eff. Jul 2025) · Up to 10 parcels · No owner-occupancy · 60-day approval · CEQA exempt</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
@@ -679,6 +688,17 @@ function getFavNote(lat,lng){ const f=loadFavorites()[lat+','+lng]; return f?f.n
 function updateFavCount(){
   const n=Object.keys(loadFavorites()).length;
   document.getElementById('favCount').textContent=n;
+}
+function copyRefreshCmd(){
+  const cmd='./refresh.sh';
+  navigator.clipboard.writeText(cmd).then(()=>{
+    const btn=document.querySelector('.refresh-btn');
+    btn.textContent='Copied!';
+    btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';
+    setTimeout(()=>{btn.innerHTML='&#8635; Refresh';btn.style.borderColor='';btn.style.color='';},2000);
+  }).catch(()=>{
+    prompt('Run this in your terminal to refresh data:',cmd);
+  });
 }
 function toggleFavoritesFilter(){
   favoritesOnly=!favoritesOnly;
