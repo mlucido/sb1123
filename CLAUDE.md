@@ -1,0 +1,92 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**SB 1123 Deal Finder** — a static single-page map app that identifies townhome subdivision opportunities in LA County under California SB 1123. Python scripts fetch and enrich Redfin listings, then the browser app renders a filterable interactive map with real-time pro forma analysis.
+
+Deployed via GitHub Pages: `https://mlucido.github.io/la-comps-map/`
+
+## Run Commands
+
+```bash
+# Serve locally
+python3 -m http.server 8080    # → http://localhost:8080
+
+# Full data refresh (fetches listings + sold comps, rebuilds, pushes)
+./refresh.sh
+
+# Quick refresh (listings only, skip sold comps rebuild)
+./refresh.sh --quick
+
+# Individual pipeline steps
+python3 fetch_listings.py           # → redfin_merged.csv
+python3 fetch_listings.py --test    # single tile test
+python3 fetch_parcels.py            # → parcels.json (incremental)
+python3 fetch_sold_comps.py         # → redfin_sold.csv (slow, full LA County)
+python3 build_comps.py              # redfin_sold.csv → data.js
+python3 listings_build.py           # all enrichment → listings.js
+python3 fetch_slopes.py             # → slopes.json (~35 min, incremental)
+```
+
+No build step, no bundler, no test suite. Only Python dependency: `requests`.
+
+## Data Pipeline
+
+```
+fetch_listings.py → redfin_merged.csv
+fetch_parcels.py  → parcels.json (ArcGIS: lot size, AIN, fire zone)
+fetch_slopes.py   → slopes.json  (USGS LiDAR elevation → slope %)
+fetch_sold_comps.py → redfin_sold.csv → build_comps.py → data.js
+
+All of the above feed into:
+listings_build.py → listings.js (enriched active listings with zone $/SF, new-con $/SF, slopes, parcels)
+```
+
+## Key Files
+
+| File | Role |
+|------|------|
+| `index.html` | Entire frontend (~1700 lines): HTML + CSS + JS. Leaflet map, filters, pro forma, favorites. |
+| `data.js` | `const LOADED_COMPS = [...]` — ~50K sold comp records for neighborhood $/SF and heatmap (~25MB) |
+| `listings.js` | `const LOADED_LISTINGS = [...]` + `LISTINGS_META` — enriched active listings (~11MB) |
+| `parcels.json` | Parcel cache keyed by `"lat,lng"` → `{lotSf, ain, landValue, impValue, fireZone}` |
+| `slopes.json` | Slope cache keyed by `"lat,lng"` → slope percent |
+| `listings_build.py` | Main enrichment: stamps parcels, fire zones, zone-matched $/SF (expanding radius search), new-con $/SF, slopes |
+| `fetch_listings.py` | Adaptive geographic tiling of Redfin API (auto-subdivides tiles hitting 350-listing cap) |
+| `refresh.sh` | Full pipeline orchestration + git push |
+
+## Architecture Notes
+
+**Frontend**: No framework — vanilla JS + Leaflet 1.9.4 with esri-leaflet, leaflet.heat. All libraries loaded via CDN. All code lives in `index.html`.
+
+**Python scripts**: Use only stdlib + `requests`. Each fetcher uses adaptive geographic tiling with auto-subdivision when hitting API caps. Fetchers that hit external APIs (`fetch_parcels.py`, `fetch_slopes.py`) are incremental (skip already-cached entries) and checkpoint periodically.
+
+**Output format**: Python scripts write JS files with `const LOADED_COMPS = [...]` / `const LOADED_LISTINGS = [...]` using compact JSON (`separators=(",",":")`) — these are loaded as `<script>` tags, not fetched.
+
+**Spatial indexing**: `listings_build.py` uses a grid index (`GRID_SIZE = 0.01` ≈ 0.7mi cells) for zone-matched comp lookups with expanding radius (0.25mi → 0.5mi → 1mi → 2mi → 4mi, min 5 comps). The JS frontend uses `0.005` degree cells for viewport comp queries.
+
+## Redfin API Constraints
+
+- Endpoint: `www.redfin.com/stingray/api/gis-csv`
+- `num_homes=350` max (500 rejected as of Feb 2026)
+- **Must create fresh `requests.Session()` per tile** — Redfin cookies restrict subsequent queries to same area
+- `user_poly` format: `lng+lat` pairs (literal `+`, not URL-encoded)
+- Rate limit: 1.5–2.5s between requests; retry on 429/403 with 15-25s backoff
+
+## SB 1123 Business Logic (in index.html)
+
+- **Eligibility**: R1-R4/LAND zones, no condo/townhouse (shared land), no R1+HOA, no VHFHSZ fire zone, lot ≥ 10K SF
+- **Unit count**: R1/LAND = `floor(lot/1200)` cap 10; R2-R4 = `floor(lot/600)` cap 10
+- **FAR**: 1.25 (8-10 units), 1.0 (3-7 units), 0.5 (<3 units)
+- **Pro forma defaults**: $350/SF hard + 25% soft, 1,200 SF avg unit, 5% sale discount, $25K demo
+- **Exit $/SF**: prefers new-con comps (`newconPpsf`), falls back to zone $/SF (`hoodPpsf`)
+
+## Property Type → Zone Mapping
+
+```
+Single Family Residential → R1    Multi-Family (2-4 Unit) → R3
+Townhouse / Condo/Co-op   → R2    Multi-Family (5+ Unit)  → R4
+Mobile/Ranch               → R1    Vacant Land / Other     → LAND
+```
