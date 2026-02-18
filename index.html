@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SB 1123 Deal Finder — LA County Townhome Subdivision Sites</title>
+<title>SB 1123 Deal Finder — LA County</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-<script src="data.js"></script>
-<script src="listings.js" onerror="window.LOADED_LISTINGS=[]"></script>
+<script>
+// Mobile: skip 25MB comps file, load only listings (already has pre-computed $/SF)
+// Desktop: load both
+var _isMob = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+if(!_isMob){
+  document.write('<script src="data.js?v=4"><\/script>');
+}
+document.write('<script src="listings.js?v=4"><\/script>');
+window.LOADED_COMPS = window.LOADED_COMPS || [];
+window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -305,8 +314,8 @@
 
   /* ── Mobile: Bottom Sheet + Cards ── */
   @media (max-width: 768px) {
-    body { height: 100vh; height: 100dvh; }
-    .app-row { position: relative; }
+    html, body { height: 100vh; height: 100dvh; overflow-x: hidden; max-width: 100vw; }
+    .app-row { position: relative; max-width: 100vw; overflow-x: hidden; }
     #map { width: 100% !important; }
 
     /* Sidebar → Bottom sheet */
@@ -383,6 +392,7 @@
     .listings-panel {
       position: fixed !important; top: 0; left: 0; right: 0; bottom: 0;
       height: 0; min-height: 0; z-index: 1200; border-top: none;
+      max-width: 100vw; overflow-x: hidden;
     }
     .listings-panel.open { height: 100% !important; min-height: 100% !important; }
     .listings-panel-resize { display: none; }
@@ -394,14 +404,16 @@
     /* Hide desktop table, show mobile cards */
     .listings-table-wrap { display: none; }
     .mobile-cards {
-      display: block; padding: 10px 12px; overflow-y: auto;
+      display: block; padding: 10px 6px; overflow-y: auto; overflow-x: hidden;
       height: calc(100% - 45px); -webkit-overflow-scrolling: touch;
+      max-width: 100%;
     }
 
     /* Mobile card styling */
     .mobile-card {
       background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s;
+      padding: 10px 10px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s;
+      min-width: 0; overflow: hidden; max-width: 100%;
     }
     .mobile-card:active { border-color: var(--accent); }
     .mobile-card .card-addr {
@@ -409,14 +421,16 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .mobile-card .card-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; font-size: 12px;
+      min-width: 0;
     }
     .mobile-card .card-row {
-      display: flex; justify-content: space-between; gap: 6px;
+      display: flex; justify-content: space-between; gap: 4px; min-width: 0;
     }
     .mobile-card .card-label { color: var(--text-dim); font-size: 11px; }
     .mobile-card .card-value {
       font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 12px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .mobile-card .card-margin-row {
       display: flex; justify-content: space-between; align-items: center;
@@ -1646,12 +1660,11 @@ window.addEventListener('DOMContentLoaded', function(){
       // Enrich listings with deal scores
       enrichListings();
 
-      // Init filters
-      if(COMPS.length){
-        initRangeFilter('price', c=>c.price);
-        initRangeFilter('psf', c=>c.ppsf||Math.round(c.price/c.sqft));
-        initRangeFilter('sqft', c=>c.sqft);
-      }
+      // Init filters (use comps if available, fall back to listings)
+      var filterSource = COMPS.length ? COMPS : LISTINGS;
+      initRangeFilter('price', c=>c.price, filterSource);
+      initRangeFilter('psf', c=>c.ppsf||Math.round(c.price/c.sqft), filterSource);
+      initRangeFilter('sqft', c=>c.sqft, filterSource);
       const lotsWithData = LISTINGS.filter(l=>l.lotSf&&l.lotSf>0);
       if(lotsWithData.length) initRangeFilter('lot', l=>l.lotSf||0, lotsWithData);
       const withSlope = LISTINGS.filter(l=>l.slope!=null);
