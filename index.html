@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="data.js"></script>
 <script src="listings.js" onerror="window.LOADED_LISTINGS=[]"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -518,6 +519,7 @@
     <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
     <div class="section-content">
       <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
+      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
       <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
       <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
       <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Zones (FEMA)</button>
@@ -647,7 +649,7 @@ let COMPS = [];
 let LISTINGS = [];
 const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L.layerGroup(),LAND:L.layerGroup()};
 const listingsLayer = L.layerGroup();
-const layerState = {markers:false,listings:true,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
+const layerState = {markers:false,compHeat:false,listings:true,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
 const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
@@ -750,6 +752,7 @@ let fireZoneLayer = null;
 let parcelLayer = null;
 let floodZoneLayer = null;
 let liquefactionLayer = null;
+let compHeatLayer = null;
 if(L.esri){
   try {
     fireZoneLayer = L.esri.dynamicMapLayer({
@@ -1112,6 +1115,10 @@ function refreshVisibility(){
     if(layerState.markers && zoneState[z]) l.addTo(map);
     else map.removeLayer(l);
   });
+  if(compHeatLayer){
+    if(layerState.compHeat) compHeatLayer.addTo(map);
+    else map.removeLayer(compHeatLayer);
+  }
   if(layerState.listings) listingsLayer.addTo(map);
   else map.removeLayer(listingsLayer);
   if(fireZoneLayer){
@@ -1507,6 +1514,24 @@ window.addEventListener('DOMContentLoaded', function(){
       initRangeFilter('score', l=>l.dealScore||0, LISTINGS);
       const withSlope = LISTINGS.filter(l=>l.slope!=null);
       if(withSlope.length) initRangeFilter('slope', l=>l.slope!=null?l.slope:0, withSlope);
+
+      // Build $/SF heatmap layer from sold comps
+      if(COMPS.length && typeof L.heatLayer === 'function'){
+        const heatPts = COMPS.filter(c=>c.ppsf>0).map(c=>{
+          // Normalize $/SF to 0-1 intensity (clamped 200-1500 range)
+          const intensity = Math.min(1, Math.max(0.05, (c.ppsf - 200) / 1300));
+          return [c.lat, c.lng, intensity];
+        });
+        compHeatLayer = L.heatLayer(heatPts, {
+          radius: 25,
+          blur: 20,
+          maxZoom: 15,
+          max: 1.0,
+          minOpacity: 0.25,
+          gradient: {0.0:'#1e50b4', 0.15:'#1e88e5', 0.3:'#1ea0b4', 0.45:'#43a047', 0.6:'#b4d232', 0.75:'#f0b41e', 0.88:'#f0641e', 1.0:'#dc2828'}
+        });
+        document.getElementById('heatCount').textContent = heatPts.length.toLocaleString();
+      }
 
       rebuildMarkers();
       rebuildListings();
