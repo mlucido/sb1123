@@ -754,7 +754,7 @@ let parcelLayer = null;
 let floodZoneLayer = null;
 let liquefactionLayer = null;
 let compHeatLayer = null;
-const compCanvasRenderer = L.canvas({padding:0.5});
+let compCanvasRenderer = null;
 let compPointsLayer = L.layerGroup();
 let compLabelsLayer = L.layerGroup();
 let compSpatialGrid = {};  // grid for fast viewport queries
@@ -1615,6 +1615,7 @@ window.addEventListener('DOMContentLoaded', function(){
           gradient: {0.0:'#1e50b4', 0.15:'#1e88e5', 0.3:'#1ea0b4', 0.45:'#43a047', 0.6:'#b4d232', 0.75:'#f0b41e', 0.88:'#f0641e', 1.0:'#dc2828'}
         });
         document.getElementById('heatCount').textContent = heatPts.length.toLocaleString();
+        compCanvasRenderer = L.canvas({padding:0.5});
         compSpatialGrid = buildCompGrid(COMPS);
         map.on('moveend', updateCompPoints);
         map.on('zoomend', updateCompPoints);
