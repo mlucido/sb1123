@@ -503,7 +503,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <span class="toggle-count" id="sb1123ToggleCount">0</span>
     </button>
     <div class="preset-row" style="margin-top:8px">
-      <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">10-15K lot, 8-10 units</span></button>
+      <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">12-18K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
       <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ DOM</span></button>
@@ -1005,7 +1005,7 @@ function isSB1123Eligible(l){
   const notCondoTownhouse = !['Condo/Co-op','Townhouse'].includes(l.type);
   const notR1Hoa = !(l.zone === 'R1' && l.hoa > 0);
   const notFireZone = !l.fireZone;
-  const validLot = l.lotSf && l.lotSf >= 10000;  // Min 10K for meaningful split
+  const validLot = l.lotSf && l.lotSf >= 12000;  // Min 12K for economic viability
   return validZone && notCondoTownhouse && notR1Hoa && notFireZone && validLot;
 }
 
@@ -1362,8 +1362,8 @@ function applyPreset(name){
   event.target.closest('.preset-btn').classList.add('active');
 
   if(name === 'sweet'){
-    // Sweet spot: 10-15K SF lots = 8-10 townhomes, efficient build
-    setFilter('lot', 10000, 15000);
+    // Sweet spot: 12-18K SF lots = 10 townhomes, efficient build
+    setFilter('lot', 12000, 18000);
   } else if(name === 'maxDensity'){
     // Max density: 15-25K SF lots, all 10 units
     setFilter('lot', 15000, 25000);
