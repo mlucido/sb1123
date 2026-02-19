@@ -312,9 +312,21 @@ if os.path.exists(PARCEL_FILE):
         if key in parcel_data:
             p = parcel_data[key]
             # Parcel lot size is PRIMARY (Redfin CSV is fallback)
-            if p.get("lotSf") and p["lotSf"] > 0:
-                l["lotSf"] = p["lotSf"]
-                parcel_stamped += 1
+            # Exception: if parcel lot is >3x Redfin lot for vacant land,
+            # prefer Redfin — listing agent knows what's actually for sale
+            # (common with flag lots, sliver parcels sold from larger estates)
+            redfin_lot = l.get("lotSf") or 0
+            parcel_lot = p.get("lotSf") or 0
+            if parcel_lot > 0:
+                is_suspicious = (redfin_lot > 0 and parcel_lot > redfin_lot * 3
+                                 and l.get("zone") == "LAND")
+                if not is_suspicious:
+                    l["lotSf"] = parcel_lot
+                    parcel_stamped += 1
+                else:
+                    # Also flag assessed value vs price mismatch
+                    l["lotSfParcel"] = parcel_lot  # Keep for reference
+                    # Keep Redfin lot size
             # Override address with ArcGIS situs address when available
             # Redfin sometimes returns truncated/mangled addresses
             if p.get("situsAddress"):

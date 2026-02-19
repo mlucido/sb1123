@@ -1018,9 +1018,10 @@ function isSB1123Eligible(l){
   const validZone = ['R1','R2','R3','R4','LAND'].includes(l.zone);
   const notCondoTownhouse = !['Condo/Co-op','Townhouse'].includes(l.type);
   const notR1Hoa = !(l.zone === 'R1' && l.hoa > 0);
+  const notHighHoa = !(l.hoa && l.hoa >= 1000);  // High HOA = shared land/CC&Rs
   const notFireZone = !l.fireZone;
   const validLot = l.lotSf && l.lotSf >= 12000;  // Min 12K for economic viability
-  return validZone && notCondoTownhouse && notR1Hoa && notFireZone && validLot;
+  return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && validLot;
 }
 
 function getMinLotPerUnit(zone){
