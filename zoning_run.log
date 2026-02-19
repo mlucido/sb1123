@@ -2,66 +2,2443 @@
   warnings.warn(
 Loading listings from listings.js...
   22,407 listings loaded
-  150 cached zoning lookups
-  Fetching zoning for 22,257 listings...
-  [10/22257] found=7 | last: 4461 W 61st St, Los Angeles, 90043 → —
-  [20/22257] found=16 | last: 7413 Naylor, Los Angeles, 90045 → R1-1
-  [30/22257] found=24 | last: 7801 Flight Ave #1, Los Angeles, 90045 → R2-1
-  [40/22257] found=31 | last: 7272 W 90th St, Los Angeles, 90045 → R1-1
-  [50/22257] found=41 | last: 5000 S Centinela #337, Los Angeles, 9006 → R3-1
-  [60/22257] found=51 | last: 5429 W 76th, Los Angeles, 90045 → R1-1
-  [70/22257] found=57 | last: 5329 Marburn Ave, Los Angeles, 90043 → —
-  [80/22257] found=62 | last: 8024 Stewart Ave, Los Angeles, 90045 → R1V2
-  [90/22257] found=72 | last: 4408 W 59th St, Los Angeles, 90043 → R1-1-O
-  [100/22257] found=80 | last: 7019 Ramsgate Ave, Los Angeles, 90045 → R3-1
+  50 cached zoning lookups
+  Fetching zoning for 22,357 listings...
+  [10/22357] found=7 | last: 1648 E 110th, Los Angeles, 90059 → R2-1
+  [20/22357] found=13 | last: 1359 E 108th, Los Angeles, 90059 → R2-1
+  [30/22357] found=22 | last: 1693 E 110th, Los Angeles, 90059 → R2-1
+  [40/22357] found=26 | last: 2015 N Belhaven Ave, Los Angeles, 90059 → —
+  [50/22357] found=32 | last: 638 E 137th, Los Angeles, 90059 → —
+  [60/22357] found=36 | last: 403 E 131st, Los Angeles, 90061 → —
+  [70/22357] found=46 | last: 248 E 110th St, Los Angeles, 90061 → R2-1
+  [80/22357] found=53 | last: 2459 E 111th St, Los Angeles, 90059 → —
+  [90/22357] found=59 | last: 4037 Wasatch Ave, Los Angeles, 90066 → —
+  [100/22357] found=66 | last: 3975 Frances Ave, Los Angeles, 90066 → —
+  💾 Checkpoint: 150 entries saved
+  [110/22357] found=73 | last: 4461 W 61st St, Los Angeles, 90043 → —
+  [120/22357] found=82 | last: 7413 Naylor, Los Angeles, 90045 → R1-1
+  [130/22357] found=90 | last: 7801 Flight Ave #1, Los Angeles, 90045 → R2-1
+  [140/22357] found=97 | last: 7272 W 90th St, Los Angeles, 90045 → R1-1
+  [150/22357] found=107 | last: 5000 S Centinela #337, Los Angeles, 9006 → R3-1
+  [160/22357] found=117 | last: 5429 W 76th, Los Angeles, 90045 → R1-1
+  [170/22357] found=123 | last: 5329 Marburn Ave, Los Angeles, 90043 → —
+  [180/22357] found=128 | last: 8024 Stewart Ave, Los Angeles, 90045 → R1V2
+  [190/22357] found=138 | last: 4408 W 59th St, Los Angeles, 90043 → R1-1-O
+  [200/22357] found=146 | last: 7019 Ramsgate Ave, Los Angeles, 90045 → R3-1
   💾 Checkpoint: 248 entries saved
-  [110/22257] found=89 | last: 4964 S Centinela Ave, Los Angeles, 90066 → R3-1
-  [120/22257] found=93 | last: 7100 La Tijera Blvd Unit D101, Los Angel → R3-1
-  [130/22257] found=101 | last: 5000 S Centinela Ave #109, Los Angeles,  → R3-1
-  [140/22257] found=109 | last: 2926 S Bentley Ave, Los Angeles, 90064 → R1-1
-  [150/22257] found=119 | last: 3144 -3152 S Barrington Ave, Los Angeles → R3-1
-  [160/22257] found=129 | last: 11290 Ivy Pl, Los Angeles, 90064 → R1V2
-  [170/22257] found=139 | last: 3230 S Barrington Ave, Los Angeles, 9006 → R3-1
-  [180/22257] found=149 | last: 3251 Stewart Ave, Los Angeles, 90066 → R1V2
-  [190/22257] found=159 | last: 11622 Charnock Rd, Los Angeles, 90066 → R1V2
-  [200/22257] found=169 | last: 11919 Mayfield, Los Angeles, 90049 → [Q]R3-1
+  [210/22357] found=155 | last: 4964 S Centinela Ave, Los Angeles, 90066 → R3-1
+  [220/22357] found=159 | last: 7100 La Tijera Blvd Unit D101, Los Angel → R3-1
+  [230/22357] found=167 | last: 5000 S Centinela Ave #109, Los Angeles,  → R3-1
+  [240/22357] found=175 | last: 2926 S Bentley Ave, Los Angeles, 90064 → R1-1
+  [250/22357] found=185 | last: 3144 -3152 S Barrington Ave, Los Angeles → R3-1
+  [260/22357] found=195 | last: 11290 Ivy Pl, Los Angeles, 90064 → R1V2
+  [270/22357] found=205 | last: 3230 S Barrington Ave, Los Angeles, 9006 → R3-1
+  [280/22357] found=215 | last: 3251 Stewart Ave, Los Angeles, 90066 → R1V2
+  [290/22357] found=225 | last: 11622 Charnock Rd, Los Angeles, 90066 → R1V2
+  [300/22357] found=235 | last: 11919 Mayfield, Los Angeles, 90049 → [Q]R3-1
   💾 Checkpoint: 341 entries saved
-  [210/22257] found=179 | last: 11847 Gorham Ave #406, Los Angeles, 9004 → [Q]R3-1
-  [220/22257] found=189 | last: 1424 Amherst Ave #207, Los Angeles, 9002 → [Q]R3-1
-  [230/22257] found=199 | last: 11952 Montana Ave #303, Los Angeles, 900 → [Q]R3-1
-  [240/22257] found=209 | last: 12227 Tweed Ln, Los Angeles, 90049 → R1-1-O
-  [250/22257] found=219 | last: 11938 Dorothy St, Los Angeles, 90049 → [Q]R3-1
-  [260/22257] found=229 | last: 11822 Goshen Ave #301, Los Angeles, 9004 → [Q]R3-1
-  [270/22257] found=239 | last: 505 Barrington #402, Los Angeles, 90049 → R3-1
-  [280/22257] found=249 | last: 1745 S Bundy Dr, Los Angeles, 90025 → R1-1
-  [290/22257] found=259 | last: 2744 S Bentley Ave, Los Angeles, 90064 → R1-1
-  [300/22257] found=269 | last: 1909 Glendon Ave #304, Los Angeles, 9002 → R3-1-O
+  [310/22357] found=245 | last: 11847 Gorham Ave #406, Los Angeles, 9004 → [Q]R3-1
+  [320/22357] found=255 | last: 1424 Amherst Ave #207, Los Angeles, 9002 → [Q]R3-1
+  [330/22357] found=265 | last: 11952 Montana Ave #303, Los Angeles, 900 → [Q]R3-1
+  [340/22357] found=275 | last: 12227 Tweed Ln, Los Angeles, 90049 → R1-1-O
+  [350/22357] found=285 | last: 11938 Dorothy St, Los Angeles, 90049 → [Q]R3-1
+  [360/22357] found=295 | last: 11822 Goshen Ave #301, Los Angeles, 9004 → [Q]R3-1
+  [370/22357] found=305 | last: 505 Barrington #402, Los Angeles, 90049 → R3-1
+  [380/22357] found=315 | last: 1745 S Bundy Dr, Los Angeles, 90025 → R1-1
+  [390/22357] found=325 | last: 2744 S Bentley Ave, Los Angeles, 90064 → R1-1
+  [400/22357] found=335 | last: 1909 Glendon Ave #304, Los Angeles, 9002 → R3-1-O
   💾 Checkpoint: 419 entries saved
-  [310/22257] found=278 | last: 1645 Malcolm Ave #302, Los Angeles, 9002 → [Q]RD1.5-1
-  [320/22257] found=288 | last: 11535 Rochester Ave #308, Los Angeles, 9 → [Q]R3-1
-  [330/22257] found=298 | last: 2371 Midvale, Los Angeles, 90064 → R1-1
-  [340/22257] found=308 | last: 10750 Wilshire Blvd #1503, Los Angeles,  → [Q]R5-3-O
-  [350/22257] found=318 | last: 11500 San Vicente Blvd #202, Los Angeles → [Q]R4-1
-  [360/22257] found=328 | last: 10750 Wilshire Blvd #505, Los Angeles, 9 → [Q]R5-3-O
-  [370/22257] found=338 | last: 1154 S Barrington Ave #101, Los Angeles, → [Q]R4-1
-  [380/22257] found=348 | last: 1809 Overland Ave #5, Los Angeles, 90025 → R3-1-O
-  [390/22257] found=358 | last: 1361 Kelton Ave #502, Los Angeles, 90024 → [Q]R4-1L
-  [400/22257] found=367 | last: 4044 Coolidge Ave, Los Angeles, 90066 → —
+  [410/22357] found=344 | last: 1645 Malcolm Ave #302, Los Angeles, 9002 → [Q]RD1.5-1
+  [420/22357] found=354 | last: 11535 Rochester Ave #308, Los Angeles, 9 → [Q]R3-1
+  [430/22357] found=364 | last: 2371 Midvale, Los Angeles, 90064 → R1-1
+  [440/22357] found=374 | last: 10750 Wilshire Blvd #1503, Los Angeles,  → [Q]R5-3-O
+  [450/22357] found=384 | last: 11500 San Vicente Blvd #202, Los Angeles → [Q]R4-1
+  [460/22357] found=394 | last: 10750 Wilshire Blvd #505, Los Angeles, 9 → [Q]R5-3-O
+  [470/22357] found=404 | last: 1154 S Barrington Ave #101, Los Angeles, → [Q]R4-1
+  [480/22357] found=414 | last: 1809 Overland Ave #5, Los Angeles, 90025 → R3-1-O
+  [490/22357] found=424 | last: 1361 Kelton Ave #502, Los Angeles, 90024 → [Q]R4-1L
+  [500/22357] found=433 | last: 4044 Coolidge Ave, Los Angeles, 90066 → —
   💾 Checkpoint: 501 entries saved
-  [410/22257] found=376 | last: 3910 Mclaughlin Ave, Los Angeles, 90066 → R1V2
-  [420/22257] found=386 | last: 3500 Tuller, Los Angeles, 90034 → R1-1
-  [430/22257] found=394 | last: 11852 WASHINGTON Pl, Los Angeles, 90066 → R3-1
-  [440/22257] found=402 | last: 5447 Blackwelder St, Los Angeles, 90016 → RD1.5-1
-  [450/22257] found=412 | last: 4652 Don Lorenzo Dr Unit A, Los Angeles, → RD1.5-1
-  [460/22257] found=422 | last: 3841 S Redondo Blvd, Los Angeles, 90008 → R1-1
-  [470/22257] found=432 | last: 4400 Don Zarembo, Los Angeles, 90008 → R1-1
-  [480/22257] found=442 | last: 5741 Clemson, Los Angeles, 90016 → RD1.5-1
-  [490/22257] found=452 | last: 3849 Stevely Ave, Los Angeles, 90008 → R3-1XL
-  [500/22257] found=462 | last: 1257 Edris Dr, Los Angeles, 90035 → RD1.5-1-O
+  [510/22357] found=442 | last: 3910 Mclaughlin Ave, Los Angeles, 90066 → R1V2
+  [520/22357] found=452 | last: 3500 Tuller, Los Angeles, 90034 → R1-1
+  [530/22357] found=460 | last: 11852 WASHINGTON Pl, Los Angeles, 90066 → R3-1
+  [540/22357] found=468 | last: 5447 Blackwelder St, Los Angeles, 90016 → RD1.5-1
+  [550/22357] found=478 | last: 4652 Don Lorenzo Dr Unit A, Los Angeles, → RD1.5-1
+  [560/22357] found=488 | last: 3841 S Redondo Blvd, Los Angeles, 90008 → R1-1
+  [570/22357] found=498 | last: 4400 Don Zarembo, Los Angeles, 90008 → R1-1
+  [580/22357] found=508 | last: 5741 Clemson, Los Angeles, 90016 → RD1.5-1
+  [590/22357] found=518 | last: 3849 Stevely Ave, Los Angeles, 90008 → R3-1XL
+  [600/22357] found=528 | last: 1257 Edris Dr, Los Angeles, 90035 → RD1.5-1-O
   💾 Checkpoint: 599 entries saved
-  [510/22257] found=472 | last: 3126 S Canfield Ave, Los Angeles, 90034 → R3-1
-  [520/22257] found=482 | last: 2112 Century Park Ln #411, Los Angeles,  → R4-2-O
-  [530/22257] found=492 | last: 10547 Dunleer Dr, Los Angeles, 90064 → R1V2
-  [540/22257] found=502 | last: 2160 Century Park Unit 104N, Los Angeles → R4-2-O
-  [550/22257] found=512 | last: 9325 Oakmore Rd, Los Angeles, 90035 → R1V2
-  [560/22257] found=522 | last: 10323 Missouri Ave, Los Angeles, 90025 → R3-1-O
+  [610/22357] found=538 | last: 3126 S Canfield Ave, Los Angeles, 90034 → R3-1
+  [620/22357] found=548 | last: 2112 Century Park Ln #411, Los Angeles,  → R4-2-O
+  [630/22357] found=558 | last: 10547 Dunleer Dr, Los Angeles, 90064 → R1V2
+  [640/22357] found=568 | last: 2160 Century Park Unit 104N, Los Angeles → R4-2-O
+  [650/22357] found=578 | last: 9325 Oakmore Rd, Los Angeles, 90035 → R1V2
+  [660/22357] found=588 | last: 10323 Missouri Ave, Los Angeles, 90025 → R3-1-O
+  [670/22357] found=598 | last: 10636 Ayres Ave, Los Angeles, 90064 → R2-1-O
+  [680/22357] found=608 | last: 2220 Avenue Of The Stars #205, Los Angel → R4-1L-O
+  [690/22357] found=618 | last: 1 W Century Dr Unit 37A, Los Angeles, 90 → C2-2-O
+  [700/22357] found=628 | last: 5761 W Olympic Blvd, Los Angeles, 90036 → [Q]R3-1-O-HPOZ
+  💾 Checkpoint: 665 entries saved
+  [710/22357] found=638 | last: 1706 S Crescent Heights Blvd, Los Angele → R1R3-RG
+  [720/22357] found=648 | last: 5618 Venice Blvd, Los Angeles, 90019 → C2-1VL-CPIO
+  [730/22357] found=658 | last: 2706 S Cochran, Los Angeles, 90016 → RD1.5-1
+  [740/22357] found=668 | last: 1114 S La Peer Dr, Los Angeles, 90035 → R2-1-O
+  [750/22357] found=678 | last: 8920 Cadillac Ave, Los Angeles, 90034 → RD2-1
+  [760/22357] found=688 | last: 1823 S Shenandoah St, Los Angeles, 90035 → R1R3-RG
+  [770/22357] found=698 | last: 2226 Hauser Blvd, Los Angeles, 90016 → RD1.5-1
+  [780/22357] found=708 | last: 1568 S Hayworth Ave, Los Angeles, 90035 → [Q]R3-1-O
+  [790/22357] found=718 | last: 5607 Smiley Dr, Los Angeles, 90016 → RD2-1
+  [800/22357] found=728 | last: 2431 S Holt, Los Angeles, 90034 → R1-1
+  💾 Checkpoint: 761 entries saved
+  [810/22357] found=738 | last: 5820 David Ave, Los Angeles, 90034 → RD1.5-1
+  [820/22357] found=748 | last: 5530 Geer Ave, Los Angeles, 90016 → RD2-1
+  [830/22357] found=758 | last: 1036 S Genesee Ave, Los Angeles, 90019 → R3-1-O
+  [840/22357] found=766 | last: 2014 W 84th St, Los Angeles, 90047 → R1-1
+  [850/22357] found=775 | last: 8310 S Broadway, Los Angeles, 90003 → C2-1VL-CPIO
+  [860/22357] found=783 | last: 224 W 84th St, Los Angeles, 90003 → R3-1
+  [870/22357] found=792 | last: 8129 S Hoover, Los Angeles, 90044 → R3-1
+  [880/22357] found=797 | last: 1111 W 98th St, Los Angeles, 90044 → —
+  [890/22357] found=80  [890/22257] found=825 | last: 3119 W 71st, Los Angeles, 90043 → R3-1
+  [900/22257] found=835 | last: 5115 West Blvd, Los Angeles, 90043 → R1-1
+  💾 Checkpoint: 961 entries saved
+  [910/22257] found=845 | last: 6821 11th Ave, Los Angeles, 90043 → R3-1
+  [920/22257] found=855 | last: 4218 W 58th Pl, Los Angeles, 90043 → R1-1-O
+  [930/22257] found=865 | last: 5743 Chesley Ave, Los Angeles, 90043 → R1-1
+  [940/22257] found=874 | last: 3632 W 59th St, Los Angeles, 90043 → R1-1
+  [950/22257] found=884 | last: 4812 Arlington Ave, Los Angeles, 90043 → R1-1
+  [960/22257] found=894 | last: 1046 W 73rd, Los Angeles, 90044 → R1-1
+  [970/22257] found=904 | last: 1627 W 65th St, Los Angeles, 90  [980/22357] found=881 | last: 5814 Arlington, Los Angeles, 90043 → RD4-1
+  [990/22357] found=891 | last: 3119 W 71st, Los Angeles, 90043 → R3-1
+  [1000/22357] found=901 | last: 5115 West Blvd, Los Angeles, 90043 → R1-1
+  💾 Checkpoint: 961 entries saved
+  [1010/22357] found=911 | last: 6821 11th Ave, Los Angeles, 90043 → R3-1
+  [1020/22357] found=921 | last: 4218 W 58th Pl, Los Angeles, 90043 → R1-1-O
+  [1030/22357] found=931 | last: 5743 Chesley Ave, Los Angeles, 90043 → R1-1
+  [1040/22357] found=940 | last: 3632 W 59th St, Los Angeles, 90043 → R1-1
+  [1050/22357] found=950 | last: 4812 Arlington Ave, Los Angeles, 90043 → R1-1
+  [1060/22357] found=960 | last: 1046 W 73rd, Los Angeles, 90044 → R1-1
+  [1070/22357] found=970 | last: 1627 W 65th St, Los Angeles, 90047 → R1-1
+  [1080/22357] found=980 | last: 7611 S Hobart, Los Angeles, 90047 → R1-1
+  [1090/22357] found=990 | last: 1845 W 66th, Los Angeles, 90047 → R1-1
+  [1100/22357] found=1000 | last: 142 W 58th, Los Angeles, 90037 → R3-1-CPIO
+  💾 Checkpoint: 1,061 entries saved
+  [1110/22357] found=1010 | last: 1502 W 62nd St, Los Angeles, 90047 → R1-1
+  [1120/22357] found=1020 | last: 1330 W 48th, Los Angeles, 90037 → R1R3-CPIO
+  [1130/22357] found=1030 | last: 824 W 74th, Los Angeles, 90044 → RD2-1
+  [1140/22357] found=1040 | last: 1205 W 57th, Los Angeles, 90037 → R2-1-CPIO
+  [1150/22357] found=1050 | last: 5164-S Halldale Ave, Los Angeles, 90062 → R2-1-CPIO
+  [1160/22357] found=1060 | last: 1506 W 54th St, Los Angeles, 90062 → R2-1-CPIO
+  [1170/22357] found=1070 | last: 7417 S Broadway, Los Angeles, 90003 → C2-1VL-CPIO
+  [1180/22357] found=1080 | last: 717 W 54th St, Los Angeles, 90037 → R2-1-CPIO
+  [1190/22357] found=1090 | last: 5321 Denker Ave, Los Angeles, 90062 → C1-1L
+  [1200/22357] found=1099 | last: 9412 Wilmington Ave, Los Angeles, 90002 → R1-1
+  💾 Checkpoint: 1,161 entries saved
+  [1210/22357] found=1106 | last: 625 E 50th St, Los Angeles, 90011 → R2-1
+  [1220/22357] found=1114 | last: 8115 S San Pedro, Los Angeles, 90003 → R3-1
+  [1230/22357] found=1123 | last: 8717 Avalon, Los Angeles, 90003 → M1-1-CPIO
+  [1240/22357] found=1130 | last: 327 E 101st St, Los Angeles, 90003 → R2-1
+  [1250/22357] found=1138 | last: 644 E 88th, Los Angeles, 90002 → R2-1
+  [1260/22357] found=1147 | last: 9623 Bandera, Los Angeles, 90002 → R2-1
+  [1270/22357] found=1153 | last: 1420 E 77th Pl, Los Angeles, 90001 → —
+  [1280/22357] found=1159 | last: 8226 S Main, Los Angeles, 90003 → —
+  [1290/22357] found=1163 | last: 1158 E 77th St, Los Angeles, 90001 → —
+  [1300/22357] found=1172 | last: 8405 Mckinley Ave, Los Angeles, 90001 → R2-1
+  💾 Checkpoint: 1,261 entries saved
+  [1310/22357] found=1179 | last: 1959 Firestone, Los Angeles, 90001 → —
+  [1320/22357] found=1187 | last: 10401 S San Pedro, Los Angeles, 90003 → RD2-1
+  [1330/22357] found=1196 | last: 1139 E 68th St, Los Angeles, 90001 → —
+  [1340/22357] found=1202 | last: 7114-7116 Miramonte Blvd, Los Angeles, 9 → —
+  [1350/22357] found=1211 | last: 1142 E Century Blvd, Los Angeles, 90002 → R2-1
+  [1360/22357] found=1221 | last: 124 E 74th St, Los Angeles, 90003 → R1-1
+  [1370/22357] found=1230 | last: 6611 S San Pedro St, Los Angeles, 90003 → [Q]R4-1
+  [1380/22357] found=1238 | last: 7533 Maie Ave, Los Angeles, 90001 → —
+  [1390/22357] found=1246 | last: 2043 W 41st Dr, Los Angeles, 90062 → R1-1
+  [1400/22357] found=1256 | last: 3740 Santa Rosalia Dr #302, Los Angeles, → [Q]C2-1
+  💾 Checkpoint: 1,361 entries saved
+  [1410/22357] found=1266 | last: 4115 Edgehill Dr, Los Angeles, 90008 → R1-1
+  [1420/22357] found=1276 | last: 4135 Garthwaite Ave, Los Angeles, 90008 → R3-1
+  [1430/22357] found=1286 | last: 3905 Roxton Ave, Los Angeles, 90008 → R1-1
+  [1440/22357] found=1296 | last: 3811 S Norton, Los Angeles, 90008 → R1-1
+  [1450/22357] found=1306 | last: 4015 Palmwood Dr, Los Angeles, 90008 → R3-1XL
+  [1460/22357] found=1316 | last: 4034 Abourne Rd Unit B, Los Angeles, 900 → R3-1XL
+  [1470/22357] found=1326 | last: 1858 W Vernon Ave, Los Angeles, 90062 → R2-1
+  [1480/22357] found=1336 | last: 2289 W 29th Pl, Los Angeles, 90018 → R1-1-O-HPOZ
+  [1490/22357] found=1346 | last: 3740 Santa Rosalia Dr #212, Los Angeles, → [Q]C2-1
+  [1500/22357] found=1356 | last: 1805 W 35th St, Los Angeles, 90018 → R2-1-O
+  💾 Checkpoint: 1,460 entries saved
+  [1510/22357] found=1366 | last: 1238 W 30th St, Los Angeles, 90007 → R3-1-O
+  [1520/22357] found=1376 | last: 1788 W 37th Pl, Los Angeles, 90018 → R2-1-O-CPIO
+  [1530/22357] found=1386 | last: 1800 W 42nd St, Los Angeles, 90062 → R1-1
+  [1540/22357] found=1396 | last: 1239 W 30th St, Los Angeles, 90007 → R3-1-O
+  [1550/22357] found=1406 | last: 1406 Exposition Blvd, Los Angeles, 90018 → RD1.5-1-CPIO
+  [1560/22357] found=1416 | last: 2939 Brighton Ave, Los Angeles, 90018 → R1R3-O-CPIO
+  [1570/22357] found=1426 | last: 1514 W 36th Pl, Los Angeles, 90018 → R2-1-O-CPIO
+  [1580/22357] found=1436 | last: 3929 Brighton, Los Angeles, 90062 → R2-1-CPIO
+  [1590/22357] found=1446 | last: 1234 W 37TH Dr, Los Angeles, 90007 → RD2-1-CPIO
+  [1600/22357] found=1456 | last: 2815 S Western Ave, Los Angeles, 90018 → C2-1VL-O-HPOZ-CPIO
+  💾 Checkpoint: 1,559 entries saved
+  [1610/22357] found=1466 | last: 1716 W 45th St, Los Angeles, 90062 → R2-1
+  [1620/22357] found=1476 | last: 1680 S Rimpau Blvd, Los Angeles, 90019 → RD2-1-O
+  [1630/22357] found=1486 | last: 2546 S Bronson, Los Angeles, 90018 → RD2-1-O
+  [1640/22357] found=1496 | last: 4015 W Olympic Blvd, Los Angeles, 90019 → C2-1
+  [1650/22357] found=1506 | last: 1816 S La Brea Ave, Los Angeles, 90019 → R3-1-O
+  [1660/22357] found=1515 | last: 1803 S Orange Dr, Los Angeles, 90019 → —
+  [1670/22357] found=1525 | last: 1224 3rd Ave, Los Angeles, 90019 → RD1.5-1-O-HPOZ
+  [1680/22357] found=1535 | last: 1245 S Hudson, Los Angeles, 90019 → R2-1-O
+  [1690/22357] found=1545 | last: 3741 W 27th, Los Angeles, 90018 → R3-1-O
+  [1700/22357] found=1555 | last: 800 S Bronson Ave, Los Angeles, 90005 → R1-1-HPOZ
+  💾 Checkpoint: 1,658 entries saved
+  [1710/22357] found=1565 | last: 1337 S Hudson Ave, Los Angeles, 90019 → R2-1-O
+  [1720/22357] found=1575 | last: 811 S Wilton Pl, Los Angeles, 90005 → R3-1-HPOZ
+  [1730/22357] found=1585 | last: 4901 4905 W 20th St, Los Angeles, 90016 → RD2-1-O
+  [1740/22357] found=1595 | last: 2245 W 27th St, Los Angeles, 90018 → R3-1-O-HPOZ
+  [1750/22357] found=1605 | last: 2154 W 24th St, Los Angeles, 90018 → R1-1-O-HPOZ
+  [1760/22357] found=1615 | last: 4516 St Charles Pl, Los Angeles, 90019 → RD1.5-1-O
+  [1770/22357] found=1625 | last: 1817 W 12th St, Los Angeles, 90006 → RD1.5-1-HPOZ
+  [1780/22357] found=1635 | last: 1121 S Serrano Ave, Los Angeles, 90006 → R4-1VL
+  [1790/22357] found=1645 | last: 2068 S Hobart Blvd, Los Angeles, 90018 → RD2-1-HPOZ
+  [1800/22357] found=1655 | last: 978 S Mariposa, Los Angeles, 90006 → R4-1
+  💾 Checkpoint: 1,755 entries saved
+  [1810/22357] found=1665 | last: 1625 S Bonnie Brae St, Los Angeles, 9000 → RD1.5-1-HPOZ
+  [1820/22357] found=1675 | last: 2939 Leeward #212, Los Angeles, 90005 → R4-2
+  [1830/22357] found=1685 | last: 1627 S Burlington Ave, Los Angeles, 9000 → RD1.5-1-HPOZ
+  [1840/22357] found=1695 | last: 2325 Portland St, Los Angeles, 90007 → [Q]RD2-1XL-O-  [1840/22257] found=1728 | last: 1616 W 24th St, Los Angeles, 90007 → R2-1-HPOZ
+  [1850/22257] found=1738 | last: 1056 S Serrano Ave, Los Angeles, 90006 → R4-1
+  [1860/22257] found=1748 | last: 4257 San Pedro, Los Angeles, 90011 → R2-1
+  [1870/22257] found=1758 | last: 1403 E 42nd St, Los Angeles, 90011 → R2-1
+  [1880/22257] found=1768 | last: 838 E 43rd St, Los Angeles, 90011 → R2-1
+  [1890/22257] found=1778 | last: 1325 E Adams Blvd, Los Angeles, 90011 → RD1.5-1
+  [1900/22257] found=1788 | last: 150 W 33rd St, Los Angeles, 90007 → M1-2
+  💾 Checkpoint: 1,944 entries saved
+  [1910/22257] found=1798 | last: 415 E Vernon Ave, Los Angeles, 90011 → C2-1-CPIO
+  [1920/22257] found=1808 | last:  [1930/22357] found=1784 | last: 1517 S Westmoreland Ave, Los Angeles, 90 → RD1.5-1
+  [1940/22357] found=1794 | last: 1616 W 24th St, Los Angeles, 90007 → R2-1-HPOZ
+  [1950/22357] found=1804 | last: 1056 S Serrano Ave, Los Angeles, 90006 → R4-1
+  [1960/22357] found=1814 | last: 4257 San Pedro, Los Angeles, 90011 → R2-1
+  [1970/22357] found=1824 | last: 1403 E 42nd St, Los Angeles, 90011 → R2-1
+  [1980/22357] found=1834 | last: 838 E 43rd St, Los Angeles, 90011 → R2-1
+  [1990/22357] found=1844 | last: 1325 E Adams Blvd, Los Angeles, 90011 → RD1.5-1
+  [2000/22357] found=1854 | last: 150 W 33rd St, Los Angeles, 90007 → M1-2
+  💾 Checkpoint: 1,944 entries saved
+  [2010/22357] found=1864 | last: 415 E Vernon Ave, Los Angeles, 90011 → C2-1-CPIO
+  [2020/22357] found=1874 | last: 1226 Hooper Ave, Los Angeles, 90021 → [LF1-WH1-6] [I1-N]
+  [2030/22357] found=1884 | last: 924 Euclid, Los Angeles, 90023 → R2-1-CUGU
+  [2040/22357] found=1894 | last: 100 S Alameda St #371, Los Angeles, 9001 → [DM2-G1-5] [CX2-FA] [CPIO]
+  [2050/22357] found=1904 | last: 257 S Spring St Unit 2M, Los Angeles, 90 → [HB5-SH1-5] [CX3-FA] [CPIO]
+  [2060/22357] found=1913 | last: 400 S Broadway #1014, Los Angeles, 90013 → [DM4-CHC1-5] [CX4-FA] [SN-CPIO-CDO]
+  [2070/22357] found=1922 | last: 330 W S 11th Ave Unit A005, Los Angeles, → [MN1-AL2-5] [CX1-FA] [CPIO-O]
+  [2080/22357] found=1932 | last: 630 W 6th St #505, Los Angeles, 90017 → [HB5-SH1-5] [CX3-FA] [CPIO]
+  [2090/22357] found=1941 | last: 645 W 9th St #712, Los Angeles, 90015 → [HB3-SH1-5] [CX3-FA] [CPIO]
+  [2100/22357] found=1951 | last: 420 S San Pedro St #605, Los Angeles, 90 → [MB2-SH1-5] [CX2-FA] [CPIO]
+  💾 Checkpoint: 2,015 entries saved
+  [2110/22357] found=1961 | last: 900 W Olympic Blvd Unit 47B, Los Angeles → LASED
+  [2120/22357] found=1971 | last: 600 W 9th St #1214, Los Angeles, 90015 → [HB3-SH1-5] [CX3-FA] [CPIO]
+  [2130/22357] found=1981 | last: 900 W Olympic Blvd Unit 46G, Los Angeles → LASED
+  [2140/22357] found=1991 | last: 267 S San Pedro St #213, Los Angeles, 90 → [MN1-SH2-5] [CX1-FA] [CPIO-O-CDO]
+  [2150/22357] found=2001 | last: 655 S Hope St #1006, Los Angeles, 90017 → [HB5-SH1-5] [CX4-FA] [CPIO]
+  [2160/22357] found=2011 | last: 900 W Olympic Blvd Unit 31C, Los Angeles → LASED
+  [2170/22357] found=2020 | last: 645 W 9th St #240, Los Angeles, 90015 → [HB3-SH1-5] [CX3-FA] [CPIO]
+  [2180/22357] found=2030 | last: 108 W 2nd St #709, Los Angeles, 90012 → [HB5-G1-5] [CX3-FA] [CPIO]
+  [2190/22357] found=2040 | last: 1100 S Hope St #516, Los Angeles, 90015 → [HB3-SH1-5] [CX2-FA] [CPIO-O]
+  [2200/22357] found=2049 | last: 746 S Los Angeles St #403, Los Angeles,  → [HM1-CHC1-5] [CX3-FA] [CPIO]
+  💾 Checkpoint: 2,031 entries saved
+  [2210/22357] found=2059 | last: 800 W 1st St #504, Los Angeles, 90012 → [HB3-G1-5] [CX2-FA] [CPIO]
+  [2220/22357] found=2069 | last: 877 Francisco St #3102, Los Angeles, 900 → [HB5-G1-5] [CX4-FA] [CPIO]
+  [2230/22357] found=2079 | last: 889 Francisco St #909, Los Angeles, 9001 → [HB5-G1-5] [CX4-FA] [CPIO]
+  [2240/22357] found=2088 | last: 900 W Olympic Blvd Unit 38D, Los Angeles → LASED
+  [2250/22357] found=2098 | last: 655 S Hope St #1401, Los Angeles, 90017 → [HB5-SH1-5] [CX4-FA] [CPIO]
+  [2260/22357] found=2108 | last: 877 Francisco St #821, Los Angeles, 9001 → [HB5-G1-5] [CX4-FA] [CPIO]
+  [2270/22357] found=2118 | last: 267 S San Pedro St, Los Angeles, 90012 → [MN1-SH2-5] [CX1-FA] [CPIO-O-CDO]
+  [2280/22357] found=2128 | last: 400 S Broadway #2304, Los Angeles, 90013 → [DM4-CHC1-5] [CX4-FA] [SN-CPIO-CDO]
+  [2290/22357] found=2138 | last: 3222 Lanfranco St, Los Angeles, 90063 → R2-1-CUGU
+  [2300/22357] found=2148 | last: 530 S Hewitt St #455, Los Angeles, 90013 → [MB1-CDF1-5] [IX4-FA] [CPIO]
+  💾 Checkpoint: 2,050 entries saved
+  [2310/22357] found=2158 | last: 354 N Breed, Los Angeles, 90033 → R3-1-CUGU
+  [2320/22357] found=2168 | last: 2718 Malabar, Los Angeles, 90033 → R2-1-CUGU
+  [2330/22357] found=2178 | last: 825 E 4th St #110, Los Angeles, 90013 → [MB1-CDF1-5] [IX4-FA] [CPIO]
+  [2340/22357] found=2188 | last: 537 N Cummings St, Los Angeles, 90033 → R2-1-CUGU
+  [2350/22357] found=2198 | last: 616 N St Louis St, Los Angeles, 90033 → R2-1-CUGU
+  [2360/22357] found=2208 | last: 2311 1st St, Los Angeles, 90033 → C2-1-CUGU
+  [2370/22357] found=2218 | last: 629 Traction Ave #312, Los Angeles, 9001 → [LM1-CDF1-5] [IX4-FA] [CPIO]
+  [2380/22357] found=2228 | last: 622 Cornwell, Los Angeles, 90033 → R2-1-CUGU
+  [2390/22357] found=2238 | last: 2737 winter St, Los Angeles, 90033 → RD1.5-1-CUGU
+  [2400/22357] found=2248 | last: 422 N Mott St, Los Angeles, 90033 → RD1.5-1-CUGU
+  💾 Checkpoint: 2,125 entries saved
+  [2410/22357] found=2254 | last: 1059 Record Ave, Los Angeles, 90023 → —
+  [2420/22357] found=2254 | last: 145 S Woods, Los Angeles, 90022 → —
+  [2430/22357] found=2257 | last: 1258 N Ditman, Los Angeles, 90063 → —
+  [2440/22357] found=2259 | last: 537 Bradshawe Ave, Los Angeles, 90022 → —
+  [2450/22357] found=2260 | last: 264 Margaret, Los Angeles, 90022 → —
+  [2460/22357] found=2263 | last: 5938 Southside, Los Angeles, 90022 → —
+  [2470/22357] found=2264 | last: 1248 N Bonnie Beach Pl, Los Angeles, 900 → —
+  [2480/22357] found=2265 | last: 3365 City Ter, Los Angeles, 90063 → —
+  [2490/22357] found=2267 | last: 407 S Vancouver Ave, Los Angeles, 90022 → —
+  [2500/22357] found=2269 | last: 3915 Dwiggins St, Los Angeles, 90063 → —
+  💾 Checkpoint: 2,225 entries saved
+  [2510/22357] found=2273 | last: 3512-3514 E 7th St, Los Angeles, 90023 → RD1.5-1-CUGU
+  [2520/22357] found=2275 | last: 120 N Bonnie Beach Pl, Los Angeles, 9006 → —
+  [2530/22357] found=2277 | last: 3812 E 1st St, Los Angeles, 90063 → —
+  [2540/22357] found=2282 | last: 3560 Siskiyou St, Los Angeles, 90023 → RD1.5-1-CUGU
+  [2550/22357] found=2283 | last: 52270110-07 N Bonnie Beach Pl, Los Angel → —
+  [2560/22357] found=2289 | last: 2600 Mandeville Canyon Rd, Los Angeles,  → RE15-1-H
+  [2570/22357] found=2299 | last: 0 Michael Ln, Los Angeles, 90272 → A1-1XL
+  [2580/22357] found=2308 | last: 35 TORREON Dr, Los Angeles, 91364 → R1-1
+  [2590/22357] found=2318 | last: 13146 Rivers Rd, Los Angeles, 90049 → RE40-1-H
+  [2600/22357] found=2327 | last: 334 N Carmelina Ave, Los Angeles, 90049 → RE20-1
+  💾 Checkpoint: 2,325 entries saved
+  [2610/22357] found=2337 | last: 11670 W Sunset Blvd #104, Los Angeles, 9 → R3-1L
+  [2620/22357] found=2347 | last: 491 N Tigertail Rd, Los Angeles, 90049 → RA-1
+  [2630/22357] found=2357 | last: 11750 W Sunset Blvd #214, Los Angeles, 9 → R3-1
+  [2640/22357] found=2366 | last: 765 N Tigertail Rd, Los Angeles, 90049 → RA-1
+  [2650/22357] found=2376 | last: 821 Glenmere Way, Los Angeles, 90049 → RE15-1-H
+  [2660/22357] found=2386 | last: 501 Woodruff Ave, Los Angeles, 90024 → R1-1
+  [2670/22357] found=2396 | last: 1277 S S Beverly Glen Blvd #107, Los Ang → [Q]R3-1-O
+  [2680/22357] found=2406 | last: 10751 Wilshire Blvd #909, Los Angeles, 9 → [Q]R5-3
+  [2690/22357] found=2415 | last: 1333 S Beverly Gln #105, Los Angeles, 90 → [Q]R3-1-O
+  [2700/22357] found=2425 | last: 10647 Ashton Ave #203, Los Angeles, 9002 → [Q]R3-1-O
+  💾 Checkpoint: 2,409 entries saved
+  [2710/22357] found=2435 | last: 540 Kelton Ave #201, Los Angeles, 90024 → [Q]R4-1VL
+  [2720/22357] found=2445 | last: 10601 Wilshire Blvd #1201, Los Angeles,  → [Q]R5-3
+  [2730  [2720/22257] found=2476 | last: 112 N Beverly Glen Blvd, Los Angeles, 90 → RE20-1-HCR
+  [2730/22257] found=2486 | last: 2304 Donella Cir, Los Angeles, 90077 → RE15-1-H-HCR
+  [2740/22257] found=2496 | last: 2387 Earls Ct, Los Angeles, 90077 → RE15-1-H-HCR
+  [2750/22257] found=2506 | last: 1211 Linda Flora Dr, Los Angeles, 90049 → RE20-1-H-HCR
+  [2760/22257] found=2516 | last: 10853 Via Verona St, Los Angeles, 90077 → RE15-1-H-HCR
+  [2770/22257] found=2526 | last: 1647 N Beverly Glen Blvd, Los Angeles, 9 → RE15-1-HCR
+  [2780/22257] found=2536 | last: 937 N Beverly Glen Bl  [2800/22357] found=2523 | last: 10380 Wilshire Blvd #1501, Los Angeles,  → [Q]R5-3
+  💾 Checkpoint: 2,459 entries saved
+  [2810/22357] found=2533 | last: 10375 Wilshire Blvd Unit 8F, Los Angeles → [Q]R5-3
+  [2820/22357] found=2542 | last: 112 N Beverly Glen Blvd, Los Angeles, 90 → RE20-1-HCR
+  [2830/22357] found=2552 | last: 2304 Donella Cir, Los Angeles, 90077 → RE15-1-H-HCR
+  [2840/22357] found=2562 | last: 2387 Earls Ct, Los Angeles, 90077 → RE15-1-H-HCR
+  [2850/22357] found=2572 | last: 1211 Linda Flora Dr, Los Angeles, 90049 → RE20-1-H-HCR
+  [2860/22357] found=2582 | last: 10853 Via Verona St, Los Angeles, 90077 → RE15-1-H-HCR
+  [2870/22357] found=2592 | last: 1647 N Beverly Glen Blvd, Los Angeles, 9 → RE15-1-HCR
+  [2880/22357] found=2602 | last: 937 N Beverly Glen Blvd, Los Angeles, 90 → RE15-1-HCR
+  [2890/22357] found=2612 | last: 1132 Chantilly Rd, Los Angeles, 90077 → RE20-1-H-HCR
+  [2900/22357] found=2622 | last: 0 Bonpas Ln, Los Angeles, 90077 → RE15-1-HCR
+  💾 Checkpoint: 2,544 entries saved
+  [2910/22357] found=2632 | last: 0 Subdivision 1033, Lot 19, Los Angeles, → RE40-1-H-HCR
+  [2920/22357] found=2641 | last: 0 CLOSE TO BEVERLY GLEN Blvd, Los Angele → RE40-1-HCR
+  [2930/22357] found=2651 | last: 100 S Doheny Dr #506, Los Angeles, 90048 → [Q]R4-1-O
+  [2940/22357] found=2660 | last: 6434 Colgate Ave, Los Angeles, 90048 → R1-1-O-RFA
+  [2950/22357] found=2670 | last: 411 S Hamel Rd #106, Los Angeles, 90048 → R3-1-O
+  [2960/22357] found=2680 | last: 1017 N Croft Ave #203, Los Angeles, 9006 → [Q]R3-1
+  [2970/22357] found=2690 | last: 630 N Martel, Los Angeles, 90036 → R1V2
+  [2980/22357] found=2700 | last: 918 S Wooster St #1, Los Angeles, 90035 → [Q]R3-1-O
+  [2990/22357] found=2710 | last: 915 S Wooster, Los Angeles, 90035 → [Q]R3-1-O
+  [3000/22357] found=2720 | last: 6546 Colgate Ave, Los Angeles, 90048 → R1-1-O-RFA
+  💾 Checkpoint: 2,633 entries saved
+  [3010/22357] found=2730 | last: 6122 W 6th St, Los Angeles, 90048 → R2-1-O
+  [3020/22357] found=2739 | last: 191 S Gardner St, Los Angeles, 90036 → R1-1-O-HPOZ
+  [3030/22357] found=2749 | last: 514 N Hayworth Ave, Los Angeles, 90048 → R3-1XL
+  [3040/22357] found=2758 | last: 7459 Rosewood Ave, Los Angeles, 90036 → R1V2-O
+  [3050/22357] found=2767 | last: 8472 Oakwood Ave, Los Angeles, 90048 → R2-1-O
+  [3060/22357] found=2777 | last: 9226 Swallow Dr, Los Angeles, 90069 → RE15-1-H-HCR
+  [3070/22357] found=2787 | last: 1865 Marcheeta Pl, Los Angeles, 90069 → RE15-1-H-HCR
+  [3080/22357] found=2795 | last: 1434 N Genesee Ave, Los Angeles, 90046 → R1-1-HPOZ
+  [3090/22357] found=2805 | last: 8534 Lookout Mountain Ave, Los Angeles,  → R1-1-HCR
+  [3100/22357] found=2815 | last: 1518 N Stanley Ave, Los Angeles, 90046 → R1-1-HPOZ
+  💾 Checkpoint: 2,726 entries saved
+  [3110/22357] found=2824 | last: 1439 N Curson Ave, Los Angeles, 90046 → R3-1
+  [3120/22357] found=2834 | last: 1626 N Orange Grove Ave, Los Angeles, 90 → R1-1-HPOZ
+  [3130/22357] found=2844 | last: 1737 N Stanley Ave, Los Angeles, 90046 → R1-1-HCR
+  [3140/22357] found=2854 | last: 2452 Horse Shoe Canyon Canyon Rd, Los An → RE15-1-H-HCR
+  [3150/22357] found=2864 | last: 7661 Curson Ter, Los Angeles, 90046 → RE15-1-H-HCR
+  [3160/22357] found=2873 | last: 2239 Laurel Cyn, Los Angeles, 90046 → R1-1-HCR
+  [3170/22357] found=2883 | last: 1614 Viewmont Dr, Los Angeles, 90069 → R1-1-HCR
+  [3180/22357] found=2893 | last: 2161 Laurel Canyon Blvd, Los Angeles, 90 → R1-1-HCR
+  [3190/22357] found=2903 | last: 8813 Wonderland Ave, Los Angeles, 90046 → RE15-1-HCR
+  [3200/22357] found=2912 | last: 7963 Willow Glen Rd, Los Angeles, 90046 → RE11-1-HCR
+  💾 Checkpoint: 2,821 entries saved
+  [3210/22357] found=2922 | last: 1790 Viewmont Dr, Los Angeles, 90069 → R1-1-HCR
+  [3220/22357] found=2932 | last: 8300 Grand View Dr, Los Angeles, 90046 → R1-1-HCR
+  [3230/22357] found=2942 | last: 1541 N Stanley Ave, Los Angeles, 90046 → R1-1-HPOZ
+  [3240/22357] found=2952 | last: 0 Woods Dr, Los Angeles, 90069 → R1-1-HCR
+  [3250/22357] found=2962 | last: 2654 Roscomare Rd, Los Angeles, 90077 → RE15-1-H-HCR
+  [3260/22357] found=2971 | last: 2880 Woodwardia Dr, Los Angeles, 90077 → RE15-1-H-RPD-HCR
+  [3270/22357] found=2981 | last: 2843 Westbrook Ave, Los Angeles, 90046 → R1-1-HCR
+  [3280/22357] found=2991 | last: 2835 Westbrook Ave, Los Angeles, 90046 → R1-1-HCR
+  [3290/22357] found=3001 | last: 8545 Charl Ln, Los Angeles, 90046 → RE15-1-H-HCR
+  [3300/22357] found=3011 | last: 2734 La Cuesta Dr, Los Angeles, 90046 → R1-1-HCR
+  💾 Checkpoint: 2,921 entries saved
+  [3310/22357] found=3021 | last: 800 N N Formosa, Los Angeles, 90046 → [Q]R3-1XL
+  [3320/22357] found=3031 | last: 611 N Bronson Ave #10, Los Angeles, 9000 → R3-1
+  [3330/22357] found=3041 | last: 136 S Arden Blvd, Los Angeles, 90004 → R1-1-HPOZ
+  [3340/22357] found=3051 | last: 838 N Ridgewood Pl, Los Angeles, 90038 → RD1.5-1XL
+  [3350/22357] found=3061 | last: 829 S Mullen Ave, Los Angeles, 90005 → R1V3-RG
+  [3360/22357] found=3071 | last: 856 N Van Ness Ave #3, Los Angeles, 9003 → R3-1XL
+  [3370/22357] found=3081 | last: 4460 Wilshire Blvd #406, Los Angeles, 90 → CR(PKM)-1
+  [3380/22357] found=3091 | last: 651 Wilcox Ave Unit 3G, Los Angeles, 900 → R3-1
+  [3390/22357] found=3101 | last: 5014 Rosewood Ave Unit 1/2, Los Angeles, → R3-1
+  [3400/22357] found=3111 | last: 322 N June St, Los Angeles, 90004 → R1-1-HPOZ
+  💾 Checkpoint: 3,005 entries saved
+  [3410/22357] found=3121 | last: 143 S Highland Ave, Los Angeles, 90036 → R1-1-HPOZ
+  [3420/22357] found=3131 | last: 528 N Westmoreland Ave #5, Los Angeles,  → R3-1
+  [3430/22357] found=3141 | last: 118 N Westmoreland Ave, Los Angeles, 900 → M1-1
+  [3440/22357] found=3151 | last: 182 S Virgil Ave, Los Angeles, 90004 → R3-1
+  [3450/22357] found=3161 | last: 423 N Harvard Blvd, Los Angeles, 90004 → R3-1
+  [3460/22357] found=3170 | last: Los Angeles, 90057 → R4-1
+  [3470/22357] found=3180 | last: 5336 Lemon Grv, Los Angeles, 90038 → R2-1XL
+  [3480/22357] found=3190 | last: 3810 Wilshire Blvd #802, Los Angeles, 90 → C4-2
+  [3490/22357] found=3200 | last: 4255 W 5th #101, Los Angeles, 90020 → R4-1
+  [3500/22357] found=3210 | last: 425 S Kenmore Avenue Ave #306, Los Angel → R4-1
+  💾 Checkpoint: 3,093 entries saved
+  [3510/22357] found=3220 | last: 5456 Barton Ave, Los Angeles, 90038 → RD1.5-1XL
+  [3520/22357] found=3230 | last: 534 S Coronado, Los Angeles, 90057 → R3-1
+  [3530/22357] found=3240 | last: 421 S La Fayette Park #720, Los Angeles, → R4-1
+  [3540/22357] found=3250 | last: 5086 Lemon Grove Ave, Los Angeles, 90029 → R1-1
+  [3550/22357] found=3260 | last: 332 S Serrano Ave #101, Los Angeles, 900 → R3-1
+  [3560/22357] found=3270 | last: 416 N Hobart, Los Angeles, 90004 → R3-1
+  [3570/22357] found=3280 | last: 102 N Oxford Ave, Los Angeles, 90004 → R3-1
+  [3580/22357] found=3290 | last: 422 Normandie Pl, Los Angeles, 90004 → R3-1
+  [3590/22357] found=3299 | last: 4723 Beverly Blvd, Los Angeles, 90004 → R3-1
+  [3600/22357] found=3309 | last: 636 Robinson St, Los Angeles, 90026 → R2-1VL
+  💾 Checkpoint: 3,172 entries saved
+  [3610/22357] found=3319 | last: 5675 Spreading Oak Dr, Los Angeles, 9006 → R1-1D-HCR
+  [3620/22357] found=3329 | last: 2333 Vasanta Way, Los Angeles, 90068 → R1-1-HCR
+  [3630/22357] foun  [3620/22257] found=3363 | last: 6181 Temple Hill Dr, Los Angeles, 90068 → R1-1-HCR
+  [3630/22257] found=3373 | last: 6234 Scenic, Los Angeles, 90068 → R1-1-HCR
+  [3640/22257] found=3383 | last: 2060 High Tower Dr, Los Angeles, 90068 → R2-1XL
+  [3650/22257] found=3393 | last: 5828 Lexington Ave, Los Angeles, 90038 → R3-1
+  [3660/22257] found=3403 | last: 7249 Franklin Ave #205, Los Angeles, 900 → R3-1
+  [3670/22257] found=3413 | last: 5657 FOUNTAIN Ave, Los Angeles, 90028 → R3-1
+  [3680/22257] found=3423 | last: 1741 N La Brea Ave, Los Angeles, 90046 → R3-1
+  [3690/22257] found=3433 | last: 6735 Yucca St #404, Los Angeles, 90028 → [Q]R4-2-CPIO
+  [3700/22257] found=3443 | last: 2049 Argyle Ave, Los A  [3710/22357] found=3419 | last: 6324 Grape, Los Angeles, 90068 → R1-1-HCR
+  [3720/22357] found=3429 | last: 6181 Temple Hill Dr, Los Angeles, 90068 → R1-1-HCR
+  [3730/22357] found=3439 | last: 6234 Scenic, Los Angeles, 90068 → R1-1-HCR
+  [3740/22357] found=3449 | last: 2060 High Tower Dr, Los Angeles, 90068 → R2-1XL
+  [3750/22357] found=3459 | last: 5828 Lexington Ave, Los Angeles, 90038 → R3-1
+  [3760/22357] found=3469 | last: 7249 Franklin Ave #205, Los Angeles, 900 → R3-1
+  [3770/22357] found=3479 | last: 5657 FOUNTAIN Ave, Los Angeles, 90028 → R3-1
+  [3780/22357] found=3489 | last: 1741 N La Brea Ave, Los Angeles, 90046 → R3-1
+  [3790/22357] found=3499 | last: 6735 Yucca St #404, Los Angeles, 90028 → [Q]R4-2-CPIO
+  [3800/22357] found=3509 | last: 2049 Argyle Ave, Los Angeles, 90068 → R3-1XL
+  💾 Checkpoint: 3,329 entries saved
+  [3810/22357] found=3519 | last: 4534 Kingswell Ave, Los Angeles, 90027 → R2-1XL
+  [3820/22357] found=3529 | last: 5125 Harold Way #104, Los Angeles, 90027 → RD1.5-1XL
+  [3830/22357] found=3539 | last: 3110 Griffith Park Blvd, Los Angeles, 90 → RD1.5-1XL
+  [3840/22357] found=3549 | last: 2666 Aberdeen Ave, Los Angeles, 90027 → RE11-1
+  [3850/22357] found=3559 | last: 4799 Bonvue Ave, Los Angeles, 90027 → RE11-1
+  [3860/22357] found=3569 | last: 3822 Clayton Ave, Los Angeles, 90027 → R1-1
+  [3870/22357] found=3579 | last: 4579 Ambrose Ave #4, Los Angeles, 90027 → R3-1XL
+  [3880/22357] found=3589 | last: 1755 N Berendo St #28, Los Angeles, 9002 → RD1.5-1XL
+  [3890/22357] found=3599 | last: 2267 Winona Blvd, Los Angeles, 90027 → RE11-1
+  [3900/22357] found=3609 | last: 3924 W Sunset Blvd, Los Angeles, 90029 → [Q]C2-1VL
+  💾 Checkpoint: 3,422 entries saved
+  [3910/22357] found=3619 | last: 4310 Cedarhurst Cir, Los Angeles, 90027 → R1-1
+  [3920/22357] found=3629 | last: 4320 Cedarhurst Cir, Los Angeles, 90027 → R1-1
+  [3930/22357] found=3639 | last: 1037 Waterloo St, Los Angeles, 90026 → RD2-1VL
+  [3940/22357] found=3649 | last: 1462 W Sunset Blvd, Los Angeles, 90026 → C2-1VL
+  [3950/22357] found=3659 | last: 2004 Echo Park Ave, Los Angeles, 90026 → [Q]PF-1XL
+  [3960/22357] found=3669 | last: 706 N Occidental Blvd, Los Angeles, 9002 → RD1.5-1VL
+  [3970/22357] found=3679 | last: 0 Avon Pl, Los Angeles, 90026 → R1-1VL
+  [3980/22357] found=3689 | last: 1126 White Knoll Dr, Los Angeles, 90012 → [Q]R3-1VL
+  [3990/22357] found=3699 | last: 1923 Preston Ave, Los Angeles, 90026 → RD2-1VL
+  [4000/22357] found=3709 | last: 306 N Bixel St, Los Angeles, 90026 → CW
+  💾 Checkpoint: 3,522 entries saved
+  [4010/22357] found=3719 | last: 933 New Depot Unit 6 & 7, Los Angeles, 9 → [LM2-MU2-5] [RG1-FA] [CPIO]
+  [4020/22357] found=3729 | last: 908 Everett St, Los Angeles, 90026 → [Q]R3-1VL
+  [4030/22357] found=3739 | last: 909 New Depot St Unit 15-16, Los Angeles → [LM2-MU2-5] [RG1-FA] [CPIO]
+  [4040/22357] found=3749 | last: 360 W Avenue 26 #133, Los Angeles, 90031 → UV(CA)
+  [4050/22357] found=3759 | last: 360 W Avenue 26 #111, Los Angeles, 90031 → UV(CA)
+  [4060/22357] found=3769 | last: 360 W Avenue 26 #446, Los Angeles, 90031 → UV(CA)
+  [4070/22357] found=3779 | last: 215 S Avenue 19, Los Angeles, 90031 → UV(CA)
+  [4080/22357] found=3789 | last: 3711 Baldwin, Los Angeles, 90031 → R3-1
+  [4090/22357] found=3799 | last: 2700 Lincoln Park Ave, Los Angeles, 9003 → [Q]RD3-1D-HCR
+  [4100/22357] found=3808 | last: 1 Fenn St, Los Angeles, 90031 → [Q]RE20-1D-HCR
+  💾 Checkpoint: 3,612 entries saved
+  [4110/22357] found=3817 | last: 2919 Waverly Dr #103, Los Angeles, 90039 → RD1.5-1XL-RIO
+  [4120/22357] found=3827 | last: 1924 Cerro Gordo St, Los Angeles, 90039 → R1-1VL
+  [4130/22357] found=3837 | last: 1832 Redcliff St, Los Angeles, 90026 → R1-1VL
+  [4140/22357] found=3847 | last: 3118 Glenhurst Ave, Los Angeles, 90039 → R1-1-RIO
+  [4150/22357] found=3857 | last: 2201 Avon, Los Angeles, 90026 → R1-1VL
+  [4160/22357] found=3867 | last: 3735 Arbolada, Los Angeles, 90027 → R2-1XL
+  [4170/22357] found=3877 | last: 2165 Valentine St #3, Los Angeles, 90026 → RD1.5-1VL
+  [4180/22357] found=3886 | last: 2230 Glendale Blvd, Los Angeles, 90039 → R2-1VL
+  [4190/22357] found=3896 | last: 475 Rustic Dr, Los Angeles, 90065 → R1-1-HCR
+  [4200/22357] found=3905 | last: 3868 N Riley Ln, Los Angeles, 90065 → —
+  💾 Checkpoint: 3,708 entries saved
+  [4210/22357] found=3915 | last: 1070 N Oban Dr, Los Angeles, 90065 → R1-1-HCR
+  [4220/22357] found=3925 | last: 616 Beech St, Los Angeles, 90065 → RE20-1-HCR
+  [4230/22357] found=3935 | last: 3514 Kinney St, Los Angeles, 90065 → R1-1-HCR
+  [4240/22357] found=3944 | last: 4847 Marmion Way, Los Angeles, 90042 → R1-1-HCR
+  [4250/22357] found=3954 | last: 645 N Avenue 50, Los Angeles, 90042 → RD2-1-HCR
+  [4260/22357] found=3964 | last: 0 N Camino Real, Los Angeles, 90065 → RE20-1-HCR
+  [4270/22357] found=3974 | last: 1048 Dexter St, Los Angeles, 90042 → R2-1-HCR
+  [4280/22357] found=3983 | last: 3652 E Altamont St, Los Angeles, 90065 → RE20-1-HCR
+  [4290/22357] found=3992 | last: 4122 N Figueroa St, Los Angeles, 90065 → [Q]C2-1VL-HPOZ
+  [4300/22357] found=4000 | last: 3734 Lavell Dr, Los Angeles, 90065 → R1-1-HCR
+  💾 Checkpoint: 3,808 entries saved
+  [4310/22357] found=4010 | last: 3525 E Thorpe Ave, Los Angeles, 90065 → R1-1-HCR
+  [4320/22357] found=4018 | last: 754 Ganymede Dr, Los Angeles, 90065 → RE11-1-HCR
+  [4330/22357] found=4027 | last: 3184 Deronda Dr, Los Angeles, 90068 → RE9-1-HCR
+  [4340/22357] found=4037 | last: 7141 Woodrow Wilson Dr, Los Angeles, 900 → R1-1
+  [4350/22357] found=4047 | last: 3314 Wonder View Dr, Los Angeles, 90068 → R1-1-HCR
+  [4360/22357] found=4057 | last: 3181 Cadet Ct, Los Angeles, 90068 → R1-1
+  [4370/22357] found=4067 | last: 0 Belden Dr, Los Angeles, 90068 → C1-1D
+  [4380/22357] found=4076 | last: 6893 Pacific View Dr, Los Angeles, 90068 → R1-1
+  [4390/22357] found=4086 | last: 2731 Delor Rd, Los Angeles, 90065 → R1-1-HCR
+  [4400/22357] found=4096 | last: 4220 Toland Way, Los Angeles, 90065 → R1-1-HCR
+  💾 Checkpoint: 3,907 entries saved
+  [4410/22357] found=4106 | last: 4057 Baywood, Los Angeles, 90039 → R1-1-RIO
+  [4420/22357] found=4116 | last: 4026 Baywood St, Los Angeles, 90039 → R1-1-RIO
+  [4430/22357] found=4126 | last: 2222-1/2 Strata, Los Angeles, 90041 → RD1.5-1
+  [4440/22357] found=4135 | last: 5154 Ellenwood Dr, Los Angeles, 90041 → R1-1
+  [4450/22357] found=4142 | last: 1823 Jones Ave, Los Angeles, 90032 → R1-1
+  [4460/22357] found=4152 | last: 601 San Pascual Ave, Los Angeles, 90042 → R1-1
+  [4470/22357] found=4162 | last: 2602 Onyx Dr, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4480/22357] found=4172 | last: 5860 Benner St #107, Los Angeles, 90042 → RD1.5-1-HCR
+  [4490/22357] found=4181 | last: 4962 Gambier St, Los Angeles, 90032 → [Q]RD3-1D-HCR
+  [4500/22357] found=4191 | last: 4141 Via Marisol, Los Angeles, 90042 → [Q]RD5-1D
+  💾 Checkpoint: 4,002 entries saved
+  [4510/22357] found=4201 | last: 2639 Round, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4520/22357] found=4211 | last: 2815 N ROUND, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4530/22357] found=4220 | last: 1957 Barnett, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4540/22357] found=4230 | last: 4903 Barstow, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4550/22357] found=4240 | last: 2849 Adkins Ave, Los Angeles, 90032 → [Q]R1-1D-  [4550/22257] found=4273 | last: 4619 Cassatt, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4560/22257] found=4283 | last: 1503 Nolden St, Los Angeles, 90042 → R1-1-HCR
+  [4570/22257] found=4293 | last: 5231 Loleta Ave, Los Angeles, 90041 → R1-1
+  [4580/22257] found=4302 | last: 1321 Wildwood Dr, Los Angeles, 90041 → R1-1-HCR
+  [4590/22257] found=4312 | last: 4818 Brayton Pl, Los Angeles, 90041 → R1-1-HCR
+  [4600/22257] found=4321 | last: 0 SANTA SUSANA, Los Angeles, 93063 → A2-1
+  💾 Checkpoint: 4,193 entries saved
+  [4610/22257] found=4331 | last: Los Angeles, 91042 → A1-1
+  [4620/22257] found=4337 | last: 23333 Anza Ave, Torrance, 90505 → —
+  [4630/22257] found=4337 | last: 2229 Via Cerritos,  [4640/22357] found=4329 | last: 2871 Budau Ave, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4650/22357] found=4339 | last: 4619 Cassatt, Los Angeles, 90032 → [Q]R1-1D-HCR
+  [4660/22357] found=4349 | last: 1503 Nolden St, Los Angeles, 90042 → R1-1-HCR
+  [4670/22357] found=4359 | last: 5231 Loleta Ave, Los Angeles, 90041 → R1-1
+  [4680/22357] found=4368 | last: 1321 Wildwood Dr, Los Angeles, 90041 → R1-1-HCR
+  [4690/22357] found=4378 | last: 4818 Brayton Pl, Los Angeles, 90041 → R1-1-HCR
+  [4700/22357] found=4387 | last: 0 SANTA SUSANA, Los Angeles, 93063 → A2-1
+  💾 Checkpoint: 4,193 entries saved
+  [4710/22357] found=4397 | last: Los Angeles, 91042 → A1-1
+  [4720/22357] found=4403 | last: 23333 Anza Ave, Torrance, 90505 → —
+  [4730/22357] found=4403 | last: 2229 Via Cerritos, Palos Verdes Estates, → —
+  [4740/22357] found=4403 | last: 204 Via Colusa, Redondo Beach, 90277 → —
+  [4750/22357] found=4403 | last: 28192 S Ridgecove Ct S, Rancho Palos Ver → —
+  [4760/22357] found=4403 | last: 6542 Ocean Crest Dr Unit B308, Rancho Pa → —
+  [4770/22357] found=4403 | last: 27659 Flaming Arrow Dr, Rancho Palos Ver → —
+  [4780/22357] found=4403 | last: 23505 Ladeene Ave, Torrance, 90505 → —
+  [4790/22357] found=4403 | last: 900 Via Nogales, Palos Verdes Estates, 9 → —
+  [4800/22357] found=4403 | last: 32646 Coastsite, Rancho Palos Verdes, 90 → —
+  💾 Checkpoint: 4,288 entries saved
+  [4810/22357] found=4403 | last: 760 Via Del Monte, Palos Verdes Peninsul → —
+  [4820/22357] found=4403 | last: 32679 Seagate Unit H, Rancho Palos Verde → —
+  [4830/22357] found=4403 | last: 28012 Seashell Way, Rancho Palos Verdes, → —
+  [4840/22357] found=4403 | last: 57 Via Del Cielo, Rancho Palos Verdes, 9 → —
+  [4850/22357] found=4406 | last: 340 S Miraleste Dr #269, San Pedro, 9073 → RD1.5-1XL
+  [4860/22357] found=4412 | last: 823 W G, Wilmington, 90744 → [Q]RD1.5-1XL-O-CUGU
+  [4870/22357] found=4418 | last: 1127 Mcfarland, Wilmington, 90744 → (T)(Q)RU-1XL-O-CUGU
+  [4880/22357] found=4423 | last: 1121 Sepulveda, Torrance, 90502 → —
+  [4890/22357] found=4428 | last: 864 W 31st, Long Beach, 90806 → —
+  [4900/22357] found=4432 | last: 23314 S Vermont, Torrance, 90502 → —
+  💾 Checkpoint: 4,386 entries saved
+  [4910/22357] found=4439 | last: 1674 256th, Harbor City, 90710 → R2-1XL
+  [4920/22357] found=4445 | last: 23710 Oakheath Pl, Harbor City, 90710 → R1-1XL-O
+  [4930/22357] found=4454 | last: 23304 Marigold #203, Torrance, 90502 → —
+  [4940/22357] found=4457 | last: 8 Chaparral Ln, Rancho Palos Verdes, 902 → —
+  [4950/22357] found=4464 | last: 2033 W Burnett St, Long Beach, 90810 → —
+  [4960/22357] found=4471 | last: 815 S Grand Ave., #7, San Pedro, 90731 → C2-2D-CPIO
+  [4970/22357] found=4475 | last: 720 W 4th #114, Long Beach, 90802 → —
+  [4980/22357] found=4482 | last: 1280 Stonewood Ct, San Pedro, 90732 → RD2-1XL
+  [4990/22357] found=4489 | last: 22951 Walnut St, Torrance, 90501 → —
+  [5000/22357] found=4497 | last: 1207 Bay Vw, Wilmington, 90744 → R1-1XL-O-CUGU
+  💾 Checkpoint: 4,483 entries saved
+  [5010/22357] found=4501 | last: 2101 W Canton, Long Beach, 90810 → —
+  [5020/22357] found=4507 | last: 1401 Lomita Blvd #108, Harbor City, 9071 → C1-1VL
+  [5030/22357] found=4511 | last: 57 Saddleback, Rolling Hills, 90274 → —
+  [5040/22357] found=4516 | last: 2941 Baltic, Long Beach, 90810 → —
+  [5050/22357] found=4519 | last: 19 Gaucho Dr, Rolling Hills Estates, 902 → —
+  [5060/22357] found=4526 | last: 25710 Crest Rd, Torrance, 90505 → —
+  [5070/22357] found=4530 | last: 3200 La Rotonda Dr, Rancho Palos Verdes, → —
+  [5080/22357] found=4536 | last: 26404 Vermont #19, Harbor City, 90710 → [Q]C2-1VL-O
+  [5090/22357] found=4543 | last: 3200 La Rotonda Dr #405, Rancho Palos Ve → —
+  [5100/22357] found=4550 | last: 1481 Reef Ln, San Pedro, 90732 → PVSP
+  💾 Checkpoint: 4,573 entries saved
+  [5110/22357] found=4553 | last: 29641 S Western Ave #211, Rancho Palos V → —
+  [5120/22357] found=4559 | last: 1120 S Leland St, San Pedro, 90731 → RD1.5-1XL
+  [5130/22357] found=4566 | last: 1441 Brett Pl #148, San Pedro, 90732 → R3-1VLD
+  [5140/22357] found=4573 | last: 372 S Miraleste Dr #398, San Pedro, 9073 → RD1.5-1XL
+  [5150/22357] found=4576 | last: 0 Avenida Aprenda, Rancho Palos Verdes,  → —
+  [5160/22357] found=4583 | last: 1699 Coral Sea Ln, City Of Industry, 907 → PVSP
+  [5170/22357] found=4587 | last: 16 38th Pl, Long Beach, 90803 → —
+  [5180/22357] found=4587 | last: 3631 Windspun Dr, Huntington Beach, 9264 → —
+  [5190/22357] found=4587 | last: 3965 Aladdin Dr, Huntington Beach, 92649 → —
+  [5200/22357] found=4587 | last: 3572 Bravata, Huntington Beach, 92649 → —
+  💾 Checkpoint: 4,667 entries saved
+  [5210/22357] found=4587 | last: 3532 Windspun Dr, Huntington Beach, 9264 → —
+  [5220/22357] found=4587 | last: 16501 Bordeaux Ln #211, Huntington Beach → —
+  [5230/22357] found=4587 | last: 6112 Marina Pacifica Dr N, Long Beach, 9 → —
+  [5240/22357] found=4587 | last: 412 Emerald, Seal Beach, 90740 → —
+  [5250/22357] found=4587 | last: 133 The Promenade N #318, Long Beach, 90 → —
+  [5260/22357] found=4587 | last: 100 W 5th Unit 6C, Long Beach, 90802 → —
+  [5270/22357] found=4587 | last: 388 E Ocean Blvd #412, Long Beach, 90802 → —
+  [5280/22357] found=4587 | last: 433 Pine #201, Long Beach, 90802 → —
+  [5290/22357] found=4587 | last: 388 E Ocean Blvd #305, Long Beach, 90802 → —
+  [5300/22357] found=4587 | last: 700 E Ocean #1002, Long Beach, 90802 → —
+  💾 Checkpoint: 4,749 entries saved
+  [5310/22357] found=4587 | last: 1706 Sherman Pl, Long Beach, 90804 → —
+  [5320/22357] found=4587 | last: 1750 E Ocean #1011, Long Beach, 90802 → —
+  [5330/22357] found=4587 | last: 1602 Locust Ave, Long Beach, 90813 → —
+  [5340/22357] found=4587 | last: 1598 Long Bch #307, Long Beach, 90813 → —
+  [5350/22357] found=4587 | last: 736 Rose, Long Beach, 90813 → —
+  [5360/22357] found=4587 | last: 1400 E Ocean #2410, Long Beach, 90802 → —
+  [5370/22357] found=4587 | last: 401 W 5th St Unit 3B, Long Beach, 90802 → —
+  [5380/22357] found=4587 | last: 1048 E 5th St, Long Beach, 90802 → —
+  [5390/22357] found=4587 | last: 1626 E 6th, Long Beach, 90802 → —
+  [5400/22357] found=4587 | last: 525 E Seaside Way #1801, Long Beach, 908 → —
+  💾 Checkpoint: 4,815 entries saved
+  [5410/22357] found=4587 | last: 430 E Esther, Long Beach, 90813 → —
+  [5420/22357] found=4587 | last: 823 E 10th, Long Beach, 90813 → —
+  [5430/22357] found=4587 | last: 721 E 7th, Long Beach, 90813 → —
+  [5440/22357] found=4587 | last: 354 Chestnut Ave #33, Long Beach, 90802 → —
+  [5450/22357] found=4587 | last: 455 E Ocean Blvd #502, Long Beach, 90802 → —
+  [5460/22357] found=4587 | last: 1100 E 10th St, Long Beach, 90813 → —
+  [5470/22357] found=4587 | last: 820 Temple Ave, Long Beach, 90804 → —
+  [5480/22357] found=4587 | last: 314 Arcadia Ave, Long Beach, 90803 → —
+  [5490/22357] found=4587 | last: 280 Park, Long Beach, 90803 → —
+  [5500/22357] found=4587 | last: 1081 Loma Ave, Long Beach, 90804 → —
+  💾 Checkpoint: 4,891 entries saved
+  [5510/22357] found=4587 | last: 308 Coronado, Long Beach,  [5520/22257] found=4521 | last: 4183 Elizabeth Ct, Cypress, 90630 → —
+  [5530/22257] found=4521 | last: 7065 E Stearns, Long Beach, 90815 → —
+  [5540/22257] found=4521 | last: 3326 Hackett, Long Beach, 90808 → —
+  [5550/22257] found=4521 | last: 4549 Birchwood, Seal Beach, 90740 → —
+  [5560/22257] found=4521 | last: 5585 E Pacific Coast Hwy Unit 129, Long  → —
+  [5570/22257] found=4521 | last: 5585 E Pacific Coast Hwy #342, Long Beac → —
+  [5580/22257] found=4521 | last: 5176-107 Tortuga Dr #107, Huntington Bea → —
+  [5590/22257] found=4521 | last: 16362 Whittier Ln, Huntington Beach, 926 → —
+  [5600/22257] found=4521 | last: 15121 Van Buren, Midway City, 92655 → —
+  💾 Checkpoint: 5,068 entries saved
+  [5610/22257] found=4521 | last: 17952 Seaglass Dr,  [5620/22357] found=4587 | last: 4183 Elizabeth Ct, Cypress, 90630 → —
+  [5630/22357] found=4587 | last: 7065 E Stearns, Long Beach, 90815 → —
+  [5640/22357] found=4587 | last: 3326 Hackett, Long Beach, 90808 → —
+  [5650/22357] found=4587 | last: 4549 Birchwood, Seal Beach, 90740 → —
+  [5660/22357] found=4587 | last: 5585 E Pacific Coast Hwy Unit 129, Long  → —
+  [5670/22357] found=4587 | last: 5585 E Pacific Coast Hwy #342, Long Beac → —
+  [5680/22357] found=4587 | last: 5176-107 Tortuga Dr #107, Huntington Bea → —
+  [5690/22357] found=4587 | last: 16362 Whittier Ln, Huntington Beach, 926 → —
+  [5700/22357] found=4587 | last: 15121 Van Buren, Midway City, 92655 → —
+  💾 Checkpoint: 5,068 entries saved
+  [5710/22357] found=4587 | last: 17952 Seaglass Dr, Huntington Beach, 926 → —
+  [5720/22357] found=4587 | last: 16782 Heritage, Huntington Beach, 92647 → —
+  [5730/22357] found=4587 | last: 4700 Warner Ave #112, Huntington Beach,  → —
+  [5740/22357] found=4587 | last: 14281 Edwards, Westminster, 92683 → —
+  [5750/22357] found=4587 | last: 7251 Aura Cir, Huntington Beach, 92647 → —
+  [5760/22357] found=4587 | last: Plan Three Plan, Huntington Beach, 92647 → —
+  [5770/22357] found=4587 | last: 17690 San Rafael St, Fountain Valley, 92 → —
+  [5780/22357] found=4587 | last: 11912 Verbena Ct, Fountain Valley, 92708 → —
+  [5790/22357] found=4587 | last: 9808 Sturgeon, Fountain Valley, 92708 → —
+  [5800/22357] found=4587 | last: 3314 W 5th, Santa Ana, 92703 → —
+  💾 Checkpoint: 5,154 entries saved
+  [5810/22357] found=4587 | last: 17215 Buttonwood, Fountain Valley, 92708 → —
+  [5820/22357] found=4587 | last: 16082 Cache, Fountain Valley, 92708 → —
+  [5830/22357] found=4587 | last: 308 S Laurel St, Santa Ana, 92704 → —
+  [5840/22357] found=4587 | last: 6252 Santa Rita, Garden Grove, 92845 → —
+  [5850/22357] found=4587 | last: 10452 Courson, Stanton, 90680 → —
+  [5860/22357] found=4587 | last: 12626 Tunstall, Garden Grove, 92845 → —
+  [5870/22357] found=4587 | last: 6971 Knollcrest Ln #47, Garden Grove, 92 → —
+  [5880/22357] found=4587 | last: 4672 Ironwood, Seal Beach, 90740 → —
+  [5890/22357] found=4587 | last: 12683 Ferndale, Stanton, 90680 → —
+  [5900/22357] found=4587 | last: 13361 Yockey St, Garden Grove, 92843 → —
+  💾 Checkpoint: 5,254 entries saved
+  [5910/22357] found=4587 | last: 900 S Hayward, Anaheim, 92804 → —
+  [5920/22357] found=4587 | last: 8784 Hewitt Pl #12, Garden Grove, 92844 → —
+  [5930/22357] found=4587 | last: 2426 Marty, Santa Ana, 92706 → —
+  [5940/22357] found=4587 | last: 1381 S Walnut #2105, Anaheim, 92802 → —
+  [5950/22357] found=4587 | last: 1124-1130 S Lemon St, Anaheim, 92805 → —
+  [5960/22357] found=4587 | last: 13950 Magnolia, Garden Grove, 92844 → —
+  [5970/22357] found=4587 | last: 10092 Roselee Dr, Garden Grove, 92840 → —
+  [5980/22357] found=4587 | last: 12662 Woodland, Garden Grove, 92840 → —
+  [5990/22357] found=4587 | last: 11192 Biscayne Ct, Garden Grove, 92841 → —
+  [6000/22357] found=4587 | last: 10181 Larson Ave, Garden Grove, 92843 → —
+  💾 Checkpoint: 5,343 entries saved
+  [6010/22357] found=4587 | last: 12932 Shackelford Ln, Garden Grove, 9284 → —
+  [6020/22357] found=4587 | last: 12246 Nadine Cir, Garden Grove, 92840 → —
+  [6030/22357] found=4587 | last: 1810 W Bushell St, Anaheim, 92805 → —
+  [6040/22357] found=4587 | last: 1345 Cabrillo Park Unit N04, Santa Ana,  → —
+  [6050/22357] found=4587 | last: 1917 W Myrtle, Santa Ana, 92703 → —
+  [6060/22357] found=4587 | last: 2173 Swaim Way, Tustin, 92782 → —
+  [6070/22357] found=4587 | last: 1314 N Spurgeon, Santa Ana, 92701 → —
+  [6080/22357] found=4587 | last: 2334 Ramona Dr, Santa Ana, 92707 → —
+  [6090/22357] found=4587 | last: 190 W 3rd, Santa Ana, 92701 → —
+  [6100/22357] found=4587 | last: 2914 S Rene, Santa Ana, 92704 → —
+  💾 Checkpoint: 5,434 entries saved
+  [6110/22357] found=4587 | last: 14802 Newport Ave Unit 2B, Tustin, 92780 → —
+  [6120/22357] found=4587 | last: 201 S Orange Ave, Santa Ana, 92701 → —
+  [6130/22357] found=4587 | last: 1327 N Ross, Santa Ana, 92706 → —
+  [6140/22357] found=4587 | last: 1321 S Standard Ave Unit A, Santa Ana, 9 → —
+  [6150/22357] found=4587 | last: 208 N Wright St, Santa Ana, 92701 → —
+  [6160/22357] found=4587 | last: 435 S Ross St, Santa Ana, 92701 → —
+  [6170/22357] found=4587 | last: 163 Pisano, Irvine, 92618 → —
+  [6180/22357] found=4587 | last: 2342 Caper Tree Dr, Tustin, 92780 → —
+  [6190/22357] found=4587 | last: 12 Filare, Irvine, 92620 → —
+  [6200/22357] found=4587 | last: 143 Rodeo, Irvine, 92602 → —
+  💾 Checkpoint: 5,524 entries saved
+  [6210/22357] found=4587 | last: 153 Balsawood, Tustin, 92780 → —
+  [6220/22357] found=4587 | last: 65 Glacier, Irvine, 92602 → —
+  [6230/22357] found=4587 | last: 13472 Epping Way, Tustin, 92780 → —
+  [6240/22357] found=4587 | last: 117 Andirons, Irvine, 92602 → —
+  [6250/22357] found=4587 | last: 413 Transport, Tustin, 92782 → —
+  [6260/22357] found=4587 | last: 31 Dinuba, Irvine, 92602 → —
+  [6270/22357] found=4587 | last: 13691 Red Hill Ave, Tustin, 92780 → —
+  [6280/22357] found=4587 | last: 50 Cattleman, Irvine, 92602 → —
+  [6290/22357] found=4587 | last: 11755 Collar Ave, Tustin, 92782 → —
+  [6300/22357] found=4587 | last: 355 N Pine, Orange, 92866 → —
+  💾 Checkpoint: 5,619 entries saved
+  [6310/22357] found=4587 | last: 365 N Magnolia, Orange, 92866 → —
+  [6320/22357] found=4587 | last: 3518 W Park Central, Orange, 92868 → —
+  [6330/22357] found=4587 | last: 3725 W Park Balboa, Orange, 92868 → —
+  [6340/22357] found=4587 | last: 354 E Culver Ave, Orange, 92866 → —
+  [6350/22357] found=4587 | last: 2601 N Flower, Santa Ana, 92706 → —
+  [6360/22357] found=4587 | last: 13662 Loretta Dr, Tustin, 92780 → —
+  [6370/22357] found=4587 | last: 906 E Buffalo Ave, Santa Ana, 92706 → —
+  [6380/22357] found=4587 | last: 1514 E Palm Ave, Orange, 92866 → —
+  [6390/22357] found=4587 | last: 235 S Dunas, Orange, 92869 → —
+  [6400/22357] found=4587 | last: 7202 E La Cumbre, Orange, 92869 → —
+  💾 Checkpoint: 5,715 entries saved
+  [6410/22357] found=4587 | last: 6036 E Cadbury Dr #53, Orange, 92869 → —
+  [6420/22357] found=4587 | last: 11091 Meads Cir, Orange, 92869 → —
+  [6430/22357] found=4587 | last: 449 S Wellington, Orange, 92869 → —
+  [6440/22357] found=4587 | last: 12254 Circula Panorama, Santa Ana, 92705 → —
+  [6450/22357] found=4587 | last: 125 Toretta, Irvine, 92602 → —
+  [6460/22357] found=4587 | last: 206 Collino, Irvine, 92602 → —
+  [6470/22357] found=4587 | last: 117 Reflection, Irvine, 92620 → —
+  [6480/22357] found=4587 | last: 16 Sedgewick, Irvine, 92620 → —
+  [6490/22357] found=4587 | last: 29432 Silverado Cyn, Silverado, 92676 → —
+  [6500/22357] found=4587 | last: 28622 Modjeska Rd, Silverado, 92676 → —
+  💾 Checkpoint: 5,814 entries saved
+  [6510/22357] found=4587 | last: Huxlee Plan, Irvine, 92602 → —
+  [6520/22357] found=4587 | last: 432 Lomita, El Segundo, 90245 → —
+  [6530/22357] found=4587 | last: 4315 W 177th St, Torrance, 90504 → —
+  [6540/22357] found=4587  [6540/22257] found=4521 | last: 208 S Catalina Ave Unit C, Redondo Beach → —
+  [6550/22257] found=4521 | last: 1321 Beryl St #101, Redondo Beach, 90277 → —
+  [6560/22257] found=4521 | last: 1450 Manhattan Beach Blvd, Manhattan Bea → —
+  [6570/22257] found=4521 | last: 219 W Acacia Ave, El Segundo, 90245 → —
+  [6580/22257] found=4521 | last: 4546 W 171st, Lawndale, 90260 → —
+  [6590/22257] found=4521 | last: 1736 Voorhees Ave, Manhattan Beach, 9026 → —
+  [6600/22257] found=4521 | last: 2618 182nd, Redondo Beach, 90278 → —
+  💾 Checkpoint: 6,000 entries saved
+  [6610/22257] found=4521 | last: 4505 Lennox, Inglewood, 90304 → —
+  [6620/22257] found=4521 | last: 2119 Power St, Hermosa Beach, 90254 → —
+  [6630/22257] found=4521 | last: 2607 Huntington Ln, Red  [6640/22357] found=4587 | last: 208 S Catalina Ave Unit C, Redondo Beach → —
+  [6650/22357] found=4587 | last: 1321 Beryl St #101, Redondo Beach, 90277 → —
+  [6660/22357] found=4587 | last: 1450 Manhattan Beach Blvd, Manhattan Bea → —
+  [6670/22357] found=4587 | last: 219 W Acacia Ave, El Segundo, 90245 → —
+  [6680/22357] found=4587 | last: 4546 W 171st, Lawndale, 90260 → —
+  [6690/22357] found=4587 | last: 1736 Voorhees Ave, Manhattan Beach, 9026 → —
+  [6700/22357] found=4587 | last: 2618 182nd, Redondo Beach, 90278 → —
+  💾 Checkpoint: 6,000 entries saved
+  [6710/22357] found=4587 | last: 4505 Lennox, Inglewood, 90304 → —
+  [6720/22357] found=4587 | last: 2119 Power St, Hermosa Beach, 90254 → —
+  [6730/22357] found=4587 | last: 2607 Huntington Ln, Redondo Beach, 90278 → —
+  [6740/22357] found=4587 | last: 2750 Artesia Blvd #110, Redondo Beach, 9 → —
+  [6750/22357] found=4587 | last: 624 14th St, Manhattan Beach, 90266 → —
+  [6760/22357] found=4587 | last: 1303 Beryl Ave, Redondo Beach, 90277 → —
+  [6770/22357] found=4587 | last: 2604 Grant Ave Unit A, Redondo Beach, 90 → —
+  [6780/22357] found=4587 | last: 1836 The Strand, Hermosa Beach, 90254 → —
+  [6790/22357] found=4587 | last: 2021 Curtis Ave, Redondo Beach, 90278 → —
+  [6800/22357] found=4587 | last: 320 1st St Plan, Manhattan Beach, 90266 → —
+  💾 Checkpoint: 6,093 entries saved
+  [6810/22357] found=4589 | last: 807 Cota, Torrance, 90501 → —
+  [6820/22357] found=4590 | last: 2265 Del Amo, Torrance, 90501 → —
+  [6830/22357] found=4592 | last: 18703 Crenshaw Blvd, Torrance, 90504 → —
+  [6840/22357] found=4595 | last: 21602 Figueroa St Unit #10, Carson, 9074 → —
+  [6850/22357] found=4599 | last: 1544 W 215th St, Torrance, 90501 → R1-1
+  [6860/22357] found=4602 | last: 1611 W 208th #3, Torrance, 90501 → RD1.5-1
+  [6870/22357] found=4605 | last: 906 Sartori, Torrance, 90501 → —
+  [6880/22357] found=4606 | last: 20545 S Vermont Ave #2, Torrance, 90502 → —
+  [6890/22357] found=4609 | last: 2363 Torrance Blvd, Torrance, 90501 → —
+  [6900/22357] found=4612 | last: 17202 Ambler Ave, Carson, 90746 → —
+  💾 Checkpoint: 6,191 entries saved
+  [6910/22357] found=4612 | last: 21328 Orrick Ave, Carson, 90745 → —
+  [6920/22357] found=4612 | last: 16952 Roa Dr, Carson, 90746 → —
+  [6930/22357] found=4612 | last: 19202 Campaign Dr, Carson, 90746 → —
+  [6940/22357] found=4612 | last: 15325 Gramercy Pl, Gardena, 90249 → —
+  [6950/22357] found=4612 | last: 3320 Redondo Beach Blvd, Torrance, 90504 → —
+  [6960/22357] found=4612 | last: 14047 Pearl Ln #2, Gardena, 90247 → —
+  [6970/22357] found=4613 | last: 14110 Yukon Ave, Hawthorne, 90250 → —
+  [6980/22357] found=4614 | last: 10957 Chanera, Inglewood, 90303 → —
+  [6990/22357] found=4614 | last: 4055 W 129th St, Hawthorne, 90250 → —
+  [7000/22357] found=4615 | last: 15616 S MANHATTAN Pl, Gardena, 90249 → —
+  💾 Checkpoint: 6,289 entries saved
+  [7010/22357] found=4616 | last: 3129 W Marine Ave #7, Gardena, 90249 → —
+  [7020/22357] found=4617 | last: 14522 Avis Ave, Lawndale, 90260 → —
+  [7030/22357] found=4618 | last: 4203 W 141st St, Hawthorne, 90250 → —
+  [7040/22357] found=4619 | last: 702 N Willowbrook, Compton, 90220 → —
+  [7050/22357] found=4619 | last: 1485 W 154th St, Compton, 90220 → —
+  [7060/22357] found=4619 | last: 620 S Barclay Ave S, Compton, 90220 → —
+  [7070/22357] found=4619 | last: 15520 S Mckinley, Compton, 90220 → —
+  [7080/22357] found=4619 | last: 3200 Flower, Lynwood, 90262 → —
+  [7090/22357] found=4619 | last: 2010 E 122nd St, Compton, 90222 → —
+  [7100/22357] found=4619 | last: 2107 E Stockwell St, Compton, 90222 → —
+  💾 Checkpoint: 6,387 entries saved
+  [7110/22357] found=4619 | last: 1808 N Grape, Compton, 90222 → —
+  [7120/22357] found=4619 | last: 114 E Alondra, Compton, 90220 → —
+  [7130/22357] found=4619 | last: 1612 E Stockton, Compton, 90221 → —
+  [7140/22357] found=4619 | last: 1512 W 152nd St, Compton, 90220 → —
+  [7150/22357] found=4619 | last: 418 W Spruce St, Compton, 90220 → —
+  [7160/22357] found=4619 | last: 212 E Rosecrans Ave, Compton, 90222 → —
+  [7170/22357] found=4619 | last: 3695 Linden Unit 9C, Long Beach, 90807 → —
+  [7180/22357] found=4619 | last: 4332 Andy St, Lakewood, 90712 → —
+  [7190/22357] found=4619 | last: 410 E 60th St, Long Beach, 90805 → —
+  [7200/22357] found=4619 | last: 1330 E 56th, Long Beach, 90805 → —
+  💾 Checkpoint: 6,484 entries saved
+  [7210/22357] found=4619 | last: 4704 E Centralia St, Long Beach, 90808 → —
+  [7220/22357] found=4619 | last: 6404 Indiana Ave, Long Beach, 90805 → —
+  [7230/22357] found=4619 | last: 5500 Ackerfield Ave #501, Long Beach, 90 → —
+  [7240/22357] found=4619 | last: 2823 Hardwick St, Lakewood, 90712 → —
+  [7250/22357] found=4619 | last: 6118 Amos, Lakewood, 90712 → —
+  [7260/22357] found=4619 | last: 3580 Gundry Ave, Long Beach, 90807 → —
+  [7270/22357] found=4619 | last: 3565-3565 Linden #235, Long Beach, 90807 → —
+  [7280/22357] found=4619 | last: 6014 Lime Ave, Long Beach, 90805 → —
+  [7290/22357] found=4619 | last: Plan 1630 Modeled Plan, Long Beach, 9080 → —
+  [7300/22357] found=4619 | last: 4527 Woodruff, Lakewood, 90713 → —
+  💾 Checkpoint: 6,575 entries saved
+  [7310/22357] found=4619 | last: 16902 Chaparral, Cerritos, 90703 → —
+  [7320/22357] found=4619 | last: 13026 San Salvador, Cerritos, 90703 → —
+  [7330/22357] found=4619 | last: 5344 Adenmoor, Lakewood, 90713 → —
+  [7340/22357] found=4619 | last: 9066 Candlestick #5, Cypress, 90630 → —
+  [7350/22357] found=4619 | last: 11954 168th St, Artesia, 90701 → —
+  [7360/22357] found=4619 | last: 12121 Centralia St #111, Lakewood, 90715 → —
+  [7370/22357] found=4619 | last: 21925 Belshire Ave #7, Hawaiian Gardens, → —
+  [7380/22357] found=4619 | last: 12918 Hanwell Ave, Downey, 90242 → —
+  [7390/22357] found=4619 | last: 11410 Dolan Ave #341, Downey, 90241 → —
+  [7400/22357] found=4619 | last: 9013 Buckles St, Downey, 90241 → —
+  💾 Checkpoint: 6,669 entries saved
+  [7410/22357] found=4619 | last: 13438 Obispo, Paramount, 90723 → —
+  [7420/22357] found=4619 | last: 16822 Ardmore, Bellflower, 90706 → —
+  [7430/22357] found=4619 | last: 15364 Naranja, Paramount, 90723 → —
+  [7440/22357] found=4619 | last: 16401 Clark, Bellflower, 90706 → —
+  [7450/22357] found=4619 | last: 12221 Garfield Ave, South Gate, 90280 → —
+  [7460/22357] found=4619 | last: 12148 Marbel Ave, Downey, 90242 → —
+  [7470/22357] found=4619 | last: 7229 Jackson St, Paramount, 90723 → —
+  [7480/22357] found=4619 | last: 11602 Faculty, Norwalk, 90650 → —
+  [7490/22357] found=4619 | last: 15517 Longworth Ave, Norwalk, 90650 → —
+  [7500/22357] found=4619 | last: 9921 Flora Vis #6, Bellflower, 90706 → —
+  💾 Checkpoint: 6,768 entries saved
+  [7510/22357] found=4619 | last: 12909 Lariat Ln, Norwalk, 90650 → —
+  [7520/22357] found=4619 | last: 16924 Bixby Ave, Bellflower, 90706 → —
+  [7530/22357] found=4619 | last: 11460 Cresson St, Norwalk, 90650 → —
+  [7540/22357] found=4619 | last: 14508 Dumont Ave, Norwalk, 90650 → �  [7550/22257] found=4553 | last: 1127 N Dresden St N #13, Anaheim, 92801 → —
+  [7560/22257] found=4553 | last: 311 N Bayport Cir N, Anaheim, 92801 → —
+  [7570/22257] found=4553 | last: 225 W Knepp, Fullerton, 92832 → —
+  [7580/22257] found=4553 | last: 1981 W Bayshore, Anaheim, 92801 → —
+  [7590/22257] found=4553 | last: 108 S Level, Anaheim, 92804 → —
+  [7600/22257] found=4553 | last: 745 N N Vine St, Anaheim, 92805 → —
+  💾 Checkpoint: 6,948 entries saved
+  [7610/22257] found=4553 | last: 934 N Citron, Anaheim, 92805 → —
+  [7620/22257] found=4553 | last: 510 S Anaheim Blvd S #7, Anaheim, 92805 → —
+  [7630/22257] found=4553 | last: 617 E Eton Pl, Anaheim, 92805 → —
+  [7640/22257] found=4553 | last: 323 N Rose St, Anaheim, 92805 → —
+  [7650/22257] fo  [7650/22357] found=4619 | last: 1127 N Dresden St N #13, Anaheim, 92801 → —
+  [7660/22357] found=4619 | last: 311 N Bayport Cir N, Anaheim, 92801 → —
+  [7670/22357] found=4619 | last: 225 W Knepp, Fullerton, 92832 → —
+  [7680/22357] found=4619 | last: 1981 W Bayshore, Anaheim, 92801 → —
+  [7690/22357] found=4619 | last: 108 S Level, Anaheim, 92804 → —
+  [7700/22357] found=4619 | last: 745 N N Vine St, Anaheim, 92805 → —
+  💾 Checkpoint: 6,948 entries saved
+  [7710/22357] found=4619 | last: 934 N Citron, Anaheim, 92805 → —
+  [7720/22357] found=4619 | last: 510 S Anaheim Blvd S #7, Anaheim, 92805 → —
+  [7730/22357] found=4619 | last: 617 E Eton Pl, Anaheim, 92805 → —
+  [7740/22357] found=4619 | last: 323 N Rose St, Anaheim, 92805 → —
+  [7750/22357] found=4619 | last: 13703 Placid, Whittier, 90605 → —
+  [7760/22357] found=4619 | last: 12128 Armsdale, Whittier, 90604 → —
+  [7770/22357] found=4619 | last: 14865 Mulberry Dr #1105, Whittier, 90604 → —
+  [7780/22357] found=4619 | last: 8641 Buena Tierra, Buena Park, 90621 → —
+  [7790/22357] found=4619 | last: 5471 Jonesboro, Buena Park, 90621 → —
+  [7800/22357] found=4619 | last: 10909 1st, Whittier, 90603 → —
+  💾 Checkpoint: 7,045 entries saved
+  [7810/22357] found=4619 | last: 13116 La Jolla Cir, La Mirada, 90638 → —
+  [7820/22357] found=4619 | last: 11514 Mollyknoll, Whittier, 90604 → —
+  [7830/22357] found=4619 | last: 11237 Gladhill Rd #5, Whittier, 90604 → —
+  [7840/22357] found=4619 | last: Plan 2 Plan, Whittier, 90603 → —
+  [7850/22357] found=4619 | last: 1020 Joyce Dr, Brea, 92821 → —
+  [7860/22357] found=4619 | last: 950 W Lambert #4, La Habra, 90631 → —
+  [7870/22357] found=4619 | last: 2700 Via Colina, Fullerton, 92835 → —
+  [7880/22357] found=4619 | last: 1025 Citron Rd, Fullerton, 92835 → —
+  [7890/22357] found=4619 | last: 2161 S Ferrier Ct, La Habra, 90631 → —
+  [7900/22357] found=4619 | last: 221 S Valencia St, La Habra, 90631 → —
+  💾 Checkpoint: 7,138 entries saved
+  [7910/22357] found=4619 | last: 334 S Walnut Ave, Brea, 92821 → —
+  [7920/22357] found=4619 | last: 840 Kirkwood, La Habra, 90631 → —
+  [7930/22357] found=4619 | last: 306 E William Way, La Habra, 90631 → —
+  [7940/22357] found=4619 | last: 308 S Valencia, La Habra, 90631 → —
+  [7950/22357] found=4619 | last: 1941 Skyline Dr, Fullerton, 92831 → —
+  [7960/22357] found=4619 | last: 1708 Grape St, Fullerton, 92835 → —
+  [7970/22357] found=4619 | last: Torrey 4 Plan, Fullerton, 92835 → —
+  [7980/22357] found=4619 | last: 2236 N Wisteria, Orange, 92867 → —
+  [7990/22357] found=4619 | last: 2620 N Dunbar St, Orange, 92865 → —
+  [8000/22357] found=4619 | last: 1119 E Cumberland Rd, Orange, 92865 → —
+  💾 Checkpoint: 7,215 entries saved
+  [8010/22357] found=4619 | last: 4418 Avenida Del Este, Yorba Linda, 9288 → —
+  [8020/22357] found=4619 | last: 1202 N Ventana, Placentia, 92870 → —
+  [8030/22357] found=4619 | last: 4741 Via La Quinta, Yorba Linda, 92886 → —
+  [8040/22357] found=4619 | last: 525 Dickinson Cir, Placentia, 92870 → —
+  [8050/22357] found=4619 | last: 215 N Avenida Segovia, Anaheim, 92808 → —
+  [8060/22357] found=4619 | last: 20004 Waverly Gln #46, Yorba Linda, 9288 → —
+  [8070/22357] found=4619 | last: 6771 Vista Loma, Yorba Linda, 92886 → —
+  [8080/22357] found=4619 | last: 3730 E Glorietta, Brea, 92823 → —
+  [8090/22357] found=4619 | last: 2321 E Puritan, Anaheim, 92806 → —
+  [8100/22357] found=4619 | last: 3054 Associated #20, Fullerton, 92835 → —
+  💾 Checkpoint: 7,315 entries saved
+  [8110/22357] found=4619 | last: 8415 E Kendra, Orange, 92867 → —
+  [8120/22357] found=4619 | last: 2890 Longspur Dr, Fullerton, 92835 → —
+  [8130/22357] found=4619 | last: 1645 La Paloma, Placentia, 92870 → —
+  [8140/22357] found=4619 | last: 5573 E Vista Del Rio, Anaheim, 92807 → —
+  [8150/22357] found=4619 | last: 221 S Summertree, Anaheim, 92807 → —
+  [8160/22357] found=4619 | last: 21381 Cloud Rdg, Yorba Linda, 92887 → —
+  [8170/22357] found=4619 | last: 1270 E Providence Loop, Placentia, 92870 → —
+  [8180/22357] found=4619 | last: 149 N Bluegrass St, Brea, 92821 → —
+  [8190/22357] found=4619 | last: 2040 Woodbriar Ct, Fullerton, 92831 → —
+  [8200/22357] found=4619 | last: 19931 Crestknoll Dr, Yorba Linda, 92886 → —
+  💾 Checkpoint: 7,412 entries saved
+  [8210/22357] found=4619 | last: 2625 Andover Ave, Fullerton, 92831 → —
+  [8220/22357] found=4619 | last: 21441 Cloud Rdg, Yorba Linda, 92887 → —
+  [8230/22357] found=4619 | last: Plan Two Plan, Placentia, 92870 → —
+  [8240/22357] found=4619 | last: 5320 Silver Cyn Unit 15A, Yorba Linda, 9 → —
+  [8250/22357] found=4619 | last: 733 Via Felipe, Corona, 92882 → —
+  [8260/22357] found=4619 | last: 2320 Del Mar #102, Corona, 92882 → —
+  [8270/22357] found=4619 | last: 3178 Dogwood Dr, Corona, 92882 → —
+  [8280/22357] found=4619 | last: 4279 San Ramon, Corona, 92882 → —
+  [8290/22357] found=4619 | last: 2612 Avenida Del, Corona, 92882 → —
+  [8300/22357] found=4619 | last: 2611 Sierra Bella, Corona, 92882 → —
+  💾 Checkpoint: 7,503 entries saved
+  [8310/22357] found=4619 | last: 3356 Deaver, Corona, 92882 → —
+  [8320/22357] found=4619 | last: 2715 Hidden Hills Way, Corona, 92882 → —
+  [8330/22357] found=4619 | last: 3052 Drake St, Corona, 92882 → —
+  [8340/22357] found=4619 | last: 1204 Thoroughbred, Norco, 92860 → —
+  [8350/22357] found=4619 | last: 665 Barbre Cir, Corona, 92879 → —
+  [8360/22357] found=4619 | last: 3090 Norco Dr, Norco, 92860 → —
+  [8370/22357] found=4619 | last: 938 Ford St, Corona, 92879 → —
+  [8380/22357] found=4619 | last: 3149 Sierra Ave, Norco, 92860 → —
+  [8390/22357] found=4619 | last: 1118 Fallbrook, Corona, 92880 → —
+  [8400/22357] found=4619 | last: 1320 Brentwood Unit B, Corona, 92882 → —
+  💾 Checkpoint: 7,603 entries saved
+  [8410/22357] found=4619 | last: 3090 Bronco Ln, Norco, 92860 → —
+  [8420/22357] found=4619 | last: 664 Rembrandt, Corona, 92882 → —
+  [8430/22357] found=4619 | last: 870 Encanto St, Corona, 92881 → —
+  [8440/22357] found=4619 | last: 0 Norco, Norco, 92860 → —
+  [8450/22357] found=4619 | last: 0 Lords Cyn, Corona, 92882 → —
+  [8460/22357] found=4619 | last: 30311 Morning View Dr, Malibu, 90265 → —
+  [8470/22357] found=4619 | last: 6009 Bonsall Dr, Malibu, 90265 → —
+  [8480/22357] found=4619 | last: 5877 Trancas Canyon Rd, Malibu, 90265 → —
+  [8490/22357] found=4619 | last: 4750 Avenida Del Mar, Malibu, 90265 → —
+  [8500/22357] found=4619 | last: 4620 Via Vienta, Malibu, 90265 → —
+  💾 Checkpoint: 7,702 entries saved
+  [8510/22357] found=4619 | last: 6766 Las Olas Way, Malibu, 90265 → —
+  [8520/22357] found=4619 | last: 31882 Sea Level Dr, Malibu, 90265 → —
+  [8530/22357] found=4619 | last: 7046 Grasswood Ave, Malibu, 90265 → —
+  [8540/22357] found=4619 | last: 6436 Lunita Rd, Malibu, 90265 → —
+  [8550/22357] found=4619 | last: 31583 Pacific Coast Hwy, Malibu, 90265 → —
+  [8560/22357] found=4619 | last: 4755 Avenida Del Mar, Malibu, 90265 → —
+  [8570/22357] found=4619 | last: 5637 Busch Dr, Malibu, 90265 → —
+  [8580/22357] found=461  [8580/22257] found=4553 | last: 26174 Pacific Coast Hwy, Malibu, 90265 → —
+  [8590/22257] found=4553 | last: 27086 Malibu Cove Colony Dr, Malibu, 902 → —
+  [8600/22257] found=4553 | last: 23701 Harbor Vista Dr, Malibu, 90265 → —
+  💾 Checkpoint: 7,891 entries saved
+  [8610/22257] found=4553 | last: 3268 Serra Rd, Malibu, 90265 → —
+  [8620/22257] found=4555 | last: 426 Georgina Ave, Santa Monica, 90402 → —
+  [8630/22257] found=4562 | last: 641 Hightree Rd, Santa Monica, 90402 → RE11-1
+  [8640/22257] found=4571 | last: 854 Las Lomas Ave, Pacific Palisades, 90 → R1-1
+  [8650/22257] found=4578 | last: 1433 Via Anita, Pacific Palisades, 90272 → RE40-1-H
+  [8660/22257] found=4587 | last: 15213 De Pauw St, Pacific Palisades, 902 → R1-1
+  [8670/22257] found=4594 | last  [8680/22357] found=4619 | last: 26174 Pacific Coast Hwy, Malibu, 90265 → —
+  [8690/22357] found=4619 | last: 27086 Malibu Cove Colony Dr, Malibu, 902 → —
+  [8700/22357] found=4619 | last: 23701 Harbor Vista Dr, Malibu, 90265 → —
+  💾 Checkpoint: 7,891 entries saved
+  [8710/22357] found=4619 | last: 3268 Serra Rd, Malibu, 90265 → —
+  [8720/22357] found=4621 | last: 426 Georgina Ave, Santa Monica, 90402 → —
+  [8730/22357] found=4628 | last: 641 Hightree Rd, Santa Monica, 90402 → RE11-1
+  [8740/22357] found=4637 | last: 854 Las Lomas Ave, Pacific Palisades, 90 → R1-1
+  [8750/22357] found=4644 | last: 1433 Via Anita, Pacific Palisades, 90272 → RE40-1-H
+  [8760/22357] found=4653 | last: 15213 De Pauw St, Pacific Palisades, 902 → R1-1
+  [8770/22357] found=4660 | last: 401 Ocean Ave #2, Santa Monica, 90402 → —
+  [8780/22357] found=4666 | last: 701 Ocean Ave #110, Santa Monica, 90402 → —
+  [8790/22357] found=4673 | last: 3945 Las Flores Canyon Rd, Malibu, 90265 → —
+  [8800/22357] found=4681 | last: 341 Surfview Dr, Pacific Palisades, 9027 → RE15-1-H
+  💾 Checkpoint: 7,989 entries saved
+  [8810/22357] found=4688 | last: 533 Via De La Paz, Pacific Palisades, 90 → R1-1
+  [8820/22357] found=4697 | last: 638 Palisades Dr, Pacific Palisades, 902 → (Q)RD3-1
+  [8830/22357] found=4704 | last: 16624 Pequeno Pl, Pacific Palisades, 902 → R1-1
+  [8840/22357] found=4709 | last: 21500 Rambla Vis, Malibu, 90265 → —
+  [8850/22357] found=4716 | last: 17335 Tramonto Dr, Pacific Palisades, 90 → RE40-1-H
+  [8860/22357] found=4721 | last: 2896 Rambla Pacifico St, Malibu, 90265 → —
+  [8870/22357] found=4726 | last: 15014 W Sunset Blvd, Pacific Palisades,  → R1V1
+  [8880/22357] found=4731 | last: 15920 Alcima Ave, Pacific Palisades, 902 → RE15-1
+  [8890/22357] found=4735 | last: 817 5th St Unit B, Santa Monica, 90403 → —
+  [8900/22357] found=4739 | last: 17820 Castellammare Dr, Pacific Palisade → R1-1
+  💾 Checkpoint: 8,082 entries saved
+  [8910/22357] found=4744 | last: 21506 Pacific Coast Hwy, Malibu, 90265 → —
+  [8920/22357] found=4753 | last: 1072 Amalfi Dr, Pacific Palisades, 90272 → RE11-1
+  [8930/22357] found=4755 | last: 18441 Kingsport Dr, Malibu, 90265 → —
+  [8940/22357] found=4764 | last: 16320 Akron St, Pacific Palisades, 90272 → R1-1
+  [8950/22357] found=4768 | last: 419 Lombard Ave, Pacific Palisades, 9027 → R1-1
+  [8960/22357] found=4776 | last: 202 San Vicente Blvd #15, Santa Monica,  → —
+  [8970/22357] found=4781 | last: 1322 Las Pulgas Rd, Pacific Palisades, 9 → RE11-1
+  [8980/22357] found=4785 | last: 18904 Pacific Coast Hwy, Malibu, 90265 → —
+  [8990/22357] found=4794 | last: 389 Upper Mesa Rd, Santa Monica, 90402 → R1-1
+  [9000/22357] found=4802 | last: 16645 Akron St, Pacific Palisades, 90272 → R1-1
+  💾 Checkpoint: 8,174 entries saved
+  [9010/22357] found=4807 | last: 620 Palmera Ave, Pacific Palisades, 9027 → R1-1
+  [9020/22357] found=4815 | last: 20616 Pacific Coast Hwy, Malibu, 90265 → —
+  [9030/22357] found=4823 | last: 1061 Villa View Dr, Pacific Palisades, 9 → RE11-1
+  [9040/22357] found=4830 | last: 7740 Redlands St Unit M3075, Playa Del R → R3-1
+  [9050/22357] found=4840 | last: 8217 Billowvista Dr, Playa Del Rey, 9029 → R1-1
+  [9060/22357] found=4850 | last: 8222 Pershing Dr #24, Playa Del Rey, 902 → R2-1
+  [9070/22357] found=4858 | last: 142 Union Jack Mall, Marina Del Rey, 902 → R1-1
+  [9080/22357] found=4867 | last: 8236 S Delgany Ave, Playa Del Rey, 90293 → R1-1
+  [9090/22357] found=4877 | last: 8346 Manitoba St #11, Playa Del Rey, 902 → R3-1
+  [9100/22357] found=4887 | last: 425 Sunridge St, Playa Del Rey, 90293 → R2-1
+  💾 Checkpoint: 8,267 entries saved
+  [9110/22357] found=4896 | last: 1212 Abbot Kinney Blvd #1, Venice, 90291 → C2-1-O-CA
+  [9120/22357] found=4906 | last: 544 Grand Blvd, Venice, 90291 → RD1.5-1-O
+  [9130/22357] found=4915 | last: 20 -22 Breeze Ave, Venice, 90291 → RD1.5-1
+  [9140/22357] found=4925 | last: 558 San Juan Ave, Venice, 90291 → C2-1-O-CA
+  [9150/22357] found=4934 | last: 3503 Esplanade, Marina Del Rey, 90292 → RW2-1
+  [9160/22357] found=4943 | last: 1016 Oakwood Ave, Venice, 90291 → RD1.5-1
+  [9170/22357] found=4953 | last: 2412 Ocean Ave #4, Venice, 90291 → RD1.5-1-O
+  [9180/22357] found=4962 | last: 724 San Miguel Ave, Venice, 90291 → RD1.5-1
+  [9190/22357] found=4972 | last: 1802 Pacific Ave, Venice, 90291 → R3-1-O
+  [9200/22357] found=4982 | last: 685 Westminster Ave, Venice, 90291 → RD1.5-1
+  💾 Checkpoint: 8,362 entries saved
+  [9210/22357] found=4992 | last: 34 Dudley Ave, Venice, 90291 → RD1.5-1
+  [9220/22357] found=5002 | last: 13336 Maxella Ave #5, Marina Del Rey, 90 → (Q)RD2-1
+  [9230/22357] found=5012 | last: 4080 Glencoe Ave #226, Marina Del Rey, 9 → CM(GM)-2D-CA
+  [9240/22357] found=5022 | last: 1060 Nowita Pl, Venice, 90291 → R1V2
+  [9250/22357] found=5032 | last: 2500 Abbot Kinney Blvd #9, Venice, 90291 → R3-1
+  [9260/22357] found=5042 | last: 4215 Glencoe Ave #405, Marina Del Rey, 9 → CM(GM)-2D-CA
+  [9270/22357] found=5051 | last: 738 Palms Blvd, Venice, 90291 → R2-1
+  [9280/22357] found=5057 | last: 13700 Marina Pointe Dr #1011, Marina Del → C4(OX)-2D
+  [9290/22357] found=5067 | last: 4060 Glencoe Ave #231, Marina Del Rey, 9 → CM(GM)-2D-CA
+  [9300/22357] found=5076 | last: 13600 Marina Pointe Dr #401, Marina Del  → C4(OX)-2D
+  💾 Checkpoint: 8,440 entries saved
+  [9310/22357] found=5083 | last: 13650 Marina Pointe Dr #1603, Marina Del → C4(OX)-2D
+  [9320/22357] found=5092 | last: 2500 Abbot Kinney Unit 10, Venice, 90291 → R3-1
+  [9330/22357] found=5101 | last: 5625 Crescent Park #126, Playa Vista, 90 → C2(PV)
+  [9340/22357] found=5111 | last: 2515 Lincoln Blvd, Venice, 90291 → [Q]C2-1-CDO
+  [9350/22357] found=5119 | last: 1046 Princeton Dr #105, Marina Del Rey,  → C4(OX)-2D
+  [9360/22357] found=5125 | last: 5950 Canterbury Dr Unit C312, Culver Cit → —
+  [9370/22357] found=5129 | last: 543 W Olive, Inglewood, 90301 → —
+  [9380/22357] found=5135 | last: 13044 Pacific Promenade #306, Playa Vist → R4(PV)
+  [9390/22357] found=5135 | last: 127 Plymouth St, Inglewood, 90302 → —
+  [9400/22357] found=5139 | last: 122 E Spruce, Inglewood, 90301 → —
+  💾 Checkpoint: 8,512 entries saved
+  [9410/22357] found=5140 | last: 5650 Sumner #311, Culver City, 90230 → —
+  [9420/22357] found=5142 | last: 10130 S Inglewood Ave, Inglewood, 90304 → —
+  [9430/22357] found=5144 | last: 370 E Hillsdale St, Inglewood, 90302 → —
+  [9440/22357] found=5148 | last: 1210 S La Brea Ave, Inglewood, 90301 → —
+  [9450/22357] found=5148 | last: 1049 Larch St #4, Inglewood, 90301 → —
+  [9460/22357] found=5149 | last: 626 S Inglewood Ave, Inglewood, 90301 → —
+  [9470/22357] found=5150 | last: 1214 14th St #203, Santa Monica, 90404 → —
+  [9480/22357] found=5150 | last: 907 12th St #4, Santa Monica, 90403 → —
+  [9490/22357] found=5151 | last: 837 11th St #7, Santa Monica, 90403 → —
+  [9500/22357] found=5151 | last: 2432 22nd St, Santa Monica, 90405 → —
+  💾 Checkpoint: 8,604 entries saved
+  [9510/22357] found=5151 | last: 1531 12th St #1, Santa Monica, 90401 → —
+  [9520/22357] found=5151 | last: 607 Ashland Ave, Santa Monica, 90405 → —
+  [9530/22357] found=5151 | last: 1020 Ocean Park #3, Santa Monica, 90405 → —
+  [9540/22357]  [9540/22257] found=5090 | last: 1443 25th St #2, Santa Monica, 90404 → —
+  [9550/22257] found=5090 | last: 2009 Montana Ave, Santa Monica, 90403 → —
+  [9560/22257] found=5093 | last: 11109 Summertime Ln, Culver City, 90230 → —
+  [9570/22257] found=5094 | last: 1101 Summertime Ln #101, Culver City, 90 → —
+  [9580/22257] found=5095 | last: 3949 Bentley Ave #8, Culver City, 90232 → —
+  [9590/22257] found=5095 | last: 455 S Oakhurst Dr, Beverly Hills, 90212 → —
+  [9600/22257] found=5095 | last: 427 S Clark Dr, Beverly Hills, 90211 → —
+  💾 Checkpoint: 8,788 entries saved
+  [9610/22257] found=5095 | last: 3814 Dunford Unit M, Inglewood, 90305 → —
+  [9620/22257] found=5095 | last: 551 Dani  [9630/22357] found=5156 | last: 827 18th St, Santa Monica, 90403 → —
+  [9640/22357] found=5156 | last: 1443 25th St #2, Santa Monica, 90404 → —
+  [9650/22357] found=5156 | last: 2009 Montana Ave, Santa Monica, 90403 → —
+  [9660/22357] found=5159 | last: 11109 Summertime Ln, Culver City, 90230 → —
+  [9670/22357] found=5160 | last: 1101 Summertime Ln #101, Culver City, 90 → —
+  [9680/22357] found=5161 | last: 3949 Bentley Ave #8, Culver City, 90232 → —
+  [9690/22357] found=5161 | last: 455 S Oakhurst Dr, Beverly Hills, 90212 → —
+  [9700/22357] found=5161 | last: 427 S Clark Dr, Beverly Hills, 90211 → —
+  💾 Checkpoint: 8,788 entries saved
+  [9710/22357] found=5161 | last: 3814 Dunford Unit M, Inglewood, 90305 → —
+  [9720/22357] found=5161 | last: 551 Daniel Freeman Cir, Inglewood, 90301 → —
+  [9730/22357] found=5161 | last: 587 Daniel Freeman Cir, Inglewood, 90301 → —
+  [9740/22357] found=5161 | last: 3867 Thorncroft Ln Unit B, Inglewood, 90 → —
+  [9750/22357] found=5161 | last: 3500 W Manchester Blvd #30, Inglewood, 9 → —
+  [9760/22357] found=5161 | last: 1008 Long, Inglewood, 90302 → —
+  [9770/22357] found=5161 | last: 523 E Hazel St, Inglewood, 90302 → —
+  [9780/22357] found=5161 | last: 2548 Missouri Ave, South Gate, 90280 → —
+  [9790/22357] found=5161 | last: 9826 California, South Gate, 90280 → —
+  [9800/22357] found=5161 | last: 6100 Arbutus Ave #42, Huntington Park, 9 → —
+  💾 Checkpoint: 8,888 entries saved
+  [9810/22357] found=5161 | last: 2749 Live Oak St, Huntington Park, 90255 → —
+  [9820/22357] found=5161 | last: 2768 Randolph St, Huntington Park, 90255 → —
+  [9830/22357] found=5163 | last: 4152 Mount Vernon Dr, View Park, 90008 → —
+  [9840/22357] found=5163 | last: 7371 Suva St, Downey, 90240 → —
+  [9850/22357] found=5163 | last: 6374 Gage #121, Bell Gardens, 90201 → —
+  [9860/22357] found=5163 | last: 6518 Walker, Bell, 90201 → —
+  [9870/22357] found=5163 | last: 7114 el Selinda Ave, Bell Gardens, 90201 → —
+  [9880/22357] found=5163 | last: 4215 Hartle Ave, Cudahy, 90201 → —
+  [9890/22357] found=5163 | last: 9525 Bowman Ave, South Gate, 90280 → —
+  [9900/22357] found=5163 | last: 4301 E 60th St, Huntington Park, 90255 → —
+  💾 Checkpoint: 8,988 entries saved
+  [9910/22357] found=5163 | last: 8905 Warvale St, Pico Rivera, 90660 → —
+  [9920/22357] found=5163 | last: 7940 Appledale Ave, Whittier, 90606 → —
+  [9930/22357] found=5163 | last: 8713 Samoline, Downey, 90240 → —
+  [9940/22357] found=5163 | last: 9453 Danby Ave, Santa Fe Springs, 90670 → —
+  [9950/22357] found=5163 | last: 6350 Court Ave, Whittier, 90601 → —
+  [9960/22357] found=5163 | last: 9213 Call St, Pico Rivera, 90660 → —
+  [9970/22357] found=5163 | last: 2348 Bleakwood, Monterey Park, 91754 → —
+  [9980/22357] found=5163 | last: 2560 Valentina Way #2, Commerce, 90040 → —
+  [9990/22357] found=5163 | last: 5609 E Beverly Blvd, East Los Angeles, 9 → —
+  [10000/22357] found=5163 | last: 0 N Record Ave, East Los Angeles, 90063 → —
+  💾 Checkpoint: 9,088 entries saved
+  [10010/22357] found=5163 | last: 4288 Rosemead #25, Pico Rivera, 90660 → —
+  [10020/22357] found=5163 | last: 2529 Academy St, South El Monte, 91733 → —
+  [10030/22357] found=5163 | last: 2005 Heather, Monterey Park, 91755 → —
+  [10040/22357] found=5163 | last: 1958 Hollyleaf Ter, Montebello, 90640 → —
+  [10050/22357] found=5163 | last: 138 Verbena Way, Montebello, 90640 → —
+  [10060/22357] found=5163 | last: 2520 Iconic St, South El Monte, 91733 → —
+  [10070/22357] found=5163 | last: 8630 Elba, Pico Rivera, 90660 → —
+  [10080/22357] found=5163 | last: 421 S Garfield #79, Monterey Park, 91754 → —
+  [10090/22357] found=5163 | last: 621 Hazel Ave, Rosemead, 91770 → —
+  [10100/22357] found=5163 | last: 835 Walnut Ter, Montebello, 90640 → —
+  💾 Checkpoint: 9,185 entries saved
+  [10110/22357] found=5163 | last: 845 Walnut Ter, Montebello, 90640 → —
+  [10120/22357] found=5163 | last: 728 Snowberry Pl, Montebello, 90640 → —
+  [10130/22357] found=5163 | last: 975 Walnut Ter, Montebello, 90640 → —
+  [10140/22357] found=5163 | last: 1385 Snowberry Pl, Montebello, 90640 → —
+  [10150/22357] found=5163 | last: 108 Verbena Way, Montebello, 90640 → —
+  [10160/22357] found=5163 | last: Aria 2BX Plan, Montebello, 90640 → —
+  [10170/22357] found=5163 | last: Aria 3AR Plan, Montebello, 90640 → —
+  [10180/22357] found=5163 | last: Ridgeview 3A Plan, Montebello, 90640 → —
+  [10190/22357] found=5163 | last: Crest 1R Plan, Montebello, 90640 → —
+  [10200/22357] found=5163 | last: Plan 1680 Modeled Plan, Pico Rivera, 906 → —
+  💾 Checkpoint: 9,219 entries saved
+  [10210/22357] found=5163 | last: 340 San Fidel, La Puente, 91746 → —
+  [10220/22357] found=5163 | last: 922 Sandpiper, West Covina, 91790 → —
+  [10230/22357] found=5163 | last: 15742 Tetley #29, Hacienda Heights, 9174 → —
+  [10240/22357] found=5163 | last: 2233 Angelcrest Dr, Hacienda Heights, 91 → —
+  [10250/22357] found=5163 | last: 13527 Ramona, Whittier, 90602 → —
+  [10260/22357] found=5163 | last: 14641 Lassalette, La Puente, 91744 → —
+  [10270/22357] found=5163 | last: 1847 N Descanso, La Habra Heights, 90631 → —
+  [10280/22357] found=5163 | last: 18153 Galatina, Rowland Heights, 91748 → —
+  [10290/22357] found=5163 | last: 860 Reposado Dr, La Habra Heights, 90631 → —
+  [10300/22357] found=5163 | last: 16149 Abbey St, La Puente, 91744 → —
+  💾 Checkpoint: 9,317 entries saved
+  [10310/22357] found=5163 | last: 1425 Forest Gln, Hacienda Heights, 91745 → —
+  [10320/22357] found=5163 | last: 876 Durfee, South El Monte, 91733 → —
+  [10330/22357] found=5163 | last: 8437 La Bajada, Whittier, 90605 → —
+  [10340/22357] found=5163 | last: 15224 Shadybend Dr #36, Hacienda Heights → —
+  [10350/22357] found=5163 | last: 1903 S Summerplace #15, West Covina, 917 → —
+  [10360/22357] found=5163 | last: 16004 Sierra Pass, Hacienda Heights, 917 → —
+  [10370/22357] found=5163 | last: 401 Dixford, La Puente, 91744 → —
+  [10380/22357] found=5163 | last: 1315 Ameluxen, Hacienda Heights, 91745 → —
+  [10390/22357] found=5163 | last: 2719 S Stimson, Hacienda Heights, 91745 → —
+  [10400/22357] found=5163 | last: 105 Reposado Dr, La Habra Heights, 90631 → —
+  💾 Checkpoint: 9,417 entries saved
+  [10410/22357] found=5163 | last: 2503 Donosa, Rowland Heights, 91748 → —
+  [10420/22357] found=5163 | last: 2240 Valle Dr, La Habra Heights, 90631 → —
+  [10430/22357] found=5163 | last: 12708 Hadley St, Whittier, 90601 → —
+  [10440/22357] found=5163 | last: 0 Newton St, Hacienda Heights, 91745 → —
+  [10450/22357] found=5163 | last: 2708 Penn Mar Ave, El Monte, 91732 → —
+  [10460/22357] found=5163 | last: 0 Las Palomas Dr, La Habra Heights, 9063 → —
+  [10470/22357] found=5163 | last: 1135 Jurupa Dr, City Of Industry, 91745 → —
+  [10480/22357] found=5163 | last: 20814 E Boulder, Walnut, 91789 → —
+  [10490/22357] found=5163 | last: 21029 Stoddard Wls, Walnut, 91789 → —
+  [10500/22357] found=5163 | last: 1888 Valencia, Rowland Heights, 91748 → —
+  💾 Checkpoint: 9,515 entries saved
+  [10510  [10510/22257] found=5097 | last: 2825 Majestic St, West Covina, 91791 → —
+  [10520/22257] found=5097 | last: 23641 Golden Spgs Unit C-4, Diamond Bar, → —
+  [10530/22257] found=5097 | last: 1030 Golden Spgs Unit B, Diamond Bar, 91 → —
+  [10540/22257] found=5097 | last: 0 Hillside, Chino Hills, 91709 → —
+  [10550/22257] found=5097 | last: 16567 Vellano Club Dr, Chino Hills, 9170 → —
+  [10560/22257] found=5097 | last: 2726 Amanda, West Covina, 91792 → —
+  [10570/22257] found=5097 | last: 19410 Empty Saddle Rd, Walnut, 91789 → —
+  [10580/22257] found=5097 | last: 1816 Nowell Ave, Rowland Heights, 91748 → —
+  [10590/22257] found=5097 | last: 3538 Bottlebrush, West Covina, 91792 → —
+  [10600/22257] found=5097 | last: 451 Avenida Esplendor, Walnut, 91789 → —
+  💾 Ch  [10610/22357] found=5163 | last: 2825 Majestic St, West Covina, 91791 → —
+  [10620/22357] found=5163 | last: 23641 Golden Spgs Unit C-4, Diamond Bar, → —
+  [10630/22357] found=5163 | last: 1030 Golden Spgs Unit B, Diamond Bar, 91 → —
+  [10640/22357] found=5163 | last: 0 Hillside, Chino Hills, 91709 → —
+  [10650/22357] found=5163 | last: 16567 Vellano Club Dr, Chino Hills, 9170 → —
+  [10660/22357] found=5163 | last: 2726 Amanda, West Covina, 91792 → —
+  [10670/22357] found=5163 | last: 19410 Empty Saddle Rd, Walnut, 91789 → —
+  [10680/22357] found=5163 | last: 1816 Nowell Ave, Rowland Heights, 91748 → —
+  [10690/22357] found=5163 | last: 3538 Bottlebrush, West Covina, 91792 → —
+  [10700/22357] found=5163 | last: 451 Avenida Esplendor, Walnut, 91789 → —
+  💾 Checkpoint: 9,710 entries saved
+  [10710/22357] found=5163 | last: 23966 Decorah Rd, Diamond Bar, 91765 → —
+  [10720/22357] found=5163 | last: 1060 S Rebecca St, Pomona, 91766 → —
+  [10730/22357] found=5163 | last: 22100 Portofino Ave, Walnut, 91789 → —
+  [10740/22357] found=5163 | last: 7 Town And Country Rd, Pomona, 91766 → —
+  [10750/22357] found=5163 | last: 455 Avenida Esplendor, Walnut, 91789 → —
+  [10760/22357] found=5163 | last: 1822 Diamond Knoll Ln, Diamond Bar, 9176 → —
+  [10770/22357] found=5163 | last: 387 Bourdet St, Walnut, 91789 → —
+  [10780/22357] found=5163 | last: Las Vistas Plan 2 Plan, Walnut, 91789 → —
+  [10790/22357] found=5163 | last: 2856 Calle Invierno, Chino Hills, 91709 → —
+  [10800/22357] found=5163 | last: 5082 Sundance Hl, Chino Hills, 91709 → —
+  💾 Checkpoint: 9,799 entries saved
+  [10810/22357] found=5163 | last: 13079 Monte Vis, Chino, 91710 → —
+  [10820/22357] found=5163 | last: 8587 Tamarack St, Chino, 91708 → —
+  [10830/22357] found=5163 | last: 905 S Mountain, Ontario, 91762 → —
+  [10840/22357] found=5163 | last: 14937 Edgewood, Eastvale, 92880 → —
+  [10850/22357] found=5163 | last: 12524 Ross Ave, Chino, 91710 → —
+  [10860/22357] found=5163 | last: 15109 Monterey, Chino Hills, 91709 → —
+  [10870/22357] found=5163 | last: 8801 Festival, Chino, 91708 → —
+  [10880/22357] found=5163 | last: 15953 Pilot, Chino, 91708 → —
+  [10890/22357] found=5163 | last: 895 E 9th, Pomona, 91766 → —
+  [10900/22357] found=5163 | last: 13185 14th St, Chino, 91710 → —
+  💾 Checkpoint: 9,898 entries saved
+  [10910/22357] found=5163 | last: 16671 Terra Seca Ave, Chino, 91708 → —
+  [10920/22357] found=5163 | last: 15825 Mcintosh Ave, Chino, 91708 → —
+  [10930/22357] found=5163 | last: 16270 Van Gogh Ct, Chino Hills, 91709 → —
+  [10940/22357] found=5163 | last: 320 W Walnut St #51, Ontario, 91762 → —
+  [10950/22357] found=5163 | last: 2572 Collinas Pt, Chino Hills, 91709 → —
+  [10960/22357] found=5163 | last: 513 E Fairfield Ct, Ontario, 91761 → —
+  [10970/22357] found=5163 | last: 4965 Independence St, Chino, 91710 → —
+  [10980/22357] found=5163 | last: 6550 Eucalyptus Ave, Chino, 91710 → —
+  [10990/22357] found=5163 | last: 0 Central Ave, Chino, 91710 → —
+  [11000/22357] found=5163 | last: 7474 Devon Ln, Chino, 91708 → —
+  💾 Checkpoint: 9,996 entries saved
+  [11010/22357] found=5163 | last: 14585 Baylor Ave, Chino, 91710 → —
+  [11020/22357] found=5163 | last: 8369 Spirit St, Chino, 91708 → —
+  [11030/22357] found=5163 | last: 13123 2nd St, Chino, 91710 → —
+  [11040/22357] found=5163 | last: 890 S Magnolia Ave, Ontario, 91762 → —
+  [11050/22357] found=5163 | last: 4653 Granville St, Chino, 91710 → —
+  [11060/22357] found=5163 | last: Plan 4 Plan, Chino, 91708 → —
+  [11070/22357] found=5163 | last: Plan 4 Plan, Ontario, 91762 → —
+  [11080/22357] found=5163 | last: Plan 1 Plan, Chino, 91708 → —
+  [11090/22357] found=5163 | last: 4643 S Moonstar Privado St, Ontario, 917 → —
+  [11100/22357] found=5163 | last: 5061 S Centennial, Ontario, 91762 → —
+  💾 Checkpoint: 10,070 entries saved
+  [11110/22357] found=5163 | last: 4703 S S Aurora Ave, Ontario, 91762 → —
+  [11120/22357] found=5163 | last: 5001 S Centennial W, Ontario, 91762 → —
+  [11130/22357] found=5163 | last: 2920 E Arbor, Ontario, 91762 → —
+  [11140/22357] found=5163 | last: 7691 Coffeeberry Dr, Eastvale, 92880 → —
+  [11150/22357] found=5163 | last: 2617 E Tatum Ln, Ontario, 91762 → —
+  [11160/22357] found=5163 | last: 2650 E Lincoln Paseo, Ontario, 91762 → —
+  [11170/22357] found=5163 | last: 4192 S Limecrest Paseo #33, Ontario, 917 → —
+  [11180/22357] found=5163 | last: Plan 2488 Plan, Ontario, 91762 → —
+  [11190/22357] found=5163 | last: Residence Two Plan, Ontario, 91762 → —
+  [11200/22357] found=5163 | last: 12679 Silas Phelps, Eastvale, 92880 → —
+  💾 Checkpoint: 10,137 entries saved
+  [11210/22357] found=5163 | last: 4246 East Honeybee Paseo, Ontario, 91761 → —
+  [11220/22357] found=5163 | last: 6573 Harrow, Eastvale, 91752 → —
+  [11230/22357] found=5163 | last: 12783 Lomond Way, Eastvale, 92880 → —
+  [11240/22357] found=5163 | last: 6310 Cosmos, Eastvale, 92880 → —
+  [11250/22357] found=5163 | last: 5961 Silveira St, Eastvale, 92880 → —
+  [11260/22357] found=5163 | last: 4153 S S. LIMECREST PASEO #61, Ontario,  → —
+  [11270/22357] found=5163 | last: 12463 Phoenix Ct, Eastvale, 91752 → —
+  [11280/22357] found=5163 | last: 4288 S Hermosa Paseo, Ontario, 91761 → —
+  [11290/22357] found=5163 | last: 4268 S Malagon Privado, Ontario, 91761 → —
+  [11300/22357] found=5163 | last: 4270 S Hermosa Paseo, Ontario, 91761 → —
+  💾 Checkpoint: 10,230 entries saved
+  [11310/22357] found=5163 | last: 6 Plan, Ontario, 91761 → —
+  [11320/22357] found=5163 | last: Hikari Plan, Eastvale, 92880 → —
+  [11330/22357] found=5163 | last: Plan 3X Plan, Ontario, 91761 → —
+  [11340/22357] found=5163 | last: 3424 East Moonstone Dr, Ontario, 91761 → —
+  [11350/22357] found=5163 | last: 2854 E Sarnia, Ontario, 91761 → —
+  [11360/22357] found=5163 | last: 3503 S Tanager Dr, Ontario, 91761 → —
+  [11370/22357] found=5163 | last: 3238 S Agate Paseo, Ontario, 91761 → —
+  [11380/22357] found=5163 | last: 3979 E Tulane Way, Ontario, 91761 → —
+  [11390/22357] found=5163 | last: 3910 E Bucknell Paseo, Ontario, 91761 → —
+  [11400/22357] found=5163 | last: 3679 W S. Eichler Paseo #11, Ontario, 91 → —
+  💾 Checkpoint: 10,290 entries saved
+  [11410/22357] found=5163 | last: 3679 S Eichler Paseo #1, Ontario, 91761 → —
+  [11420/22357] found=5163 | last: 1 Plan, Ontario, 91761 → —
+  [11430/22357] found=5163 | last: 2398 Leeward Cir, Westlake Village, 9136 → —
+  [11440/22357] found=5163 | last: 1885 Fallview Rd, Westlake Village, 9136 → —
+  [11450/22357] found=5163 | last: 35 Ilex Dr, Newbury Park, 91320 → —
+  [11460/22357] found=5163 | last: 87 Castilian Ave, Newbury Park, 91320 → —
+  [11470/22357] found=5163 | last: 3063 W Stafford Rd, Thousand Oaks, 91361 → —
+  [11480/22357] found=5163 | last: 1324 Rudolph Dr, Newbury Park, 91320 → —
+  [11490/22357] found=5163 | last: 1465 Cheswick Pl, Westlake Village, 9136 → —
+  [11500/22357] found=5163 | last: 2257 Glastonbury, Westlake Village, 9136 → —
+  💾 Checkpoint: 10,376 entries saved
+  [11510/22357] found=5163 | last: 112 Hampstead Ct, W  [11510/22257] found=5099 | last: 25300 Prado De La Magia, Calabasas, 9130 → —
+  [11520/22257] found=5099 | last: 29068 Lake Dr, Agoura Hills, 91301 → —
+  [11530/22257] found=5099 | last: 105 Conifer Cir, Oak Park, 91377 → —
+  [11540/22257] found=5099 | last: 26250 Alizia Canyon Dr, Calabasas, 91302 → —
+  [11550/22257] found=5099 | last: 113 Conifer Cir, Oak Park, 91377 → —
+  [11560/22257] found=5099 | last: 0 Laura La Plante, Agoura Hills, 91301 → —
+  [11570/22257] found=5099 | last: 5747 HOBACK GLEN Rd, Hidden Hills, 91302 → —
+  [11580/22257] found=5100 | last: 24201 Burbank Blvd, Woodland Hills, 9136 → RE11-1
+  [11590/22257] found=5101 | last: 25066 Mulholland Hwy, Calabasas, 91302 → —
+  [11600/22257] found=5101 | last: 0 Schueren / Rambla Pacifico, Malibu, 90 →   [11610/22357] found=5165 | last: 25300 Prado De La Magia, Calabasas, 9130 → —
+  [11620/22357] found=5165 | last: 29068 Lake Dr, Agoura Hills, 91301 → —
+  [11630/22357] found=5165 | last: 105 Conifer Cir, Oak Park, 91377 → —
+  [11640/22357] found=5165 | last: 26250 Alizia Canyon Dr, Calabasas, 91302 → —
+  [11650/22357] found=5165 | last: 113 Conifer Cir, Oak Park, 91377 → —
+  [11660/22357] found=5165 | last: 0 Laura La Plante, Agoura Hills, 91301 → —
+  [11670/22357] found=5165 | last: 5747 HOBACK GLEN Rd, Hidden Hills, 91302 → —
+  [11680/22357] found=5166 | last: 24201 Burbank Blvd, Woodland Hills, 9136 → RE11-1
+  [11690/22357] found=5167 | last: 25066 Mulholland Hwy, Calabasas, 91302 → —
+  [11700/22357] found=5167 | last: 0 Schueren / Rambla Pacifico, Malibu, 90 → —
+  💾 Checkpoint: 10,572 entries saved
+  [11710/22357] found=5167 | last: 28933 Wagon Rd, Agoura Hills, 91301 → —
+  [11720/22357] found=5167 | last: 231 Loma Metisse Rd, Malibu, 90265 → —
+  [11730/22357] found=5168 | last: 6451 Chesebro Rd, Agoura Hills, 91301 → —
+  [11740/22357] found=5169 | last: 29376 Laro Dr, Agoura Hills, 91301 → —
+  [11750/22357] found=5169 | last: 24910 John Fremont Rd, Hidden Hills, 913 → —
+  [11760/22357] found=5171 | last: 25217 Eldorado Meadow Rd, Hidden Hills,  → —
+  [11770/22357] found=5171 | last: 317 Acres - The Calabasas Rnch, Monte Ni → —
+  [11780/22357] found=5171 | last: 524 Moonrise, Malibu, 90265 → —
+  [11790/22357] found=5171 | last: 24725 Saddle Peak Rd, Malibu, 90265 → —
+  [11800/22357] found=5171 | last: 2344 Laguna Circle Dr, Agoura Hills, 913 → —
+  💾 Checkpoint: 10,669 entries saved
+  [11810/22357] found=5171 | last: 24201 Mulholland Hwy, Calabasas, 91302 → —
+  [11820/22357] found=5171 | last: 19901 Grand View Dr, Topanga, 90290 → —
+  [11830/22357] found=5171 | last: 20155 Observation Dr, Topanga, 90290 → —
+  [11840/22357] found=5171 | last: 1551 Penny Rd, Topanga, 90290 → —
+  [11850/22357] found=5171 | last: 0 Fir Ridge Dr, Topanga, 90290 → —
+  [11860/22357] found=5171 | last: 20266 Reigate Rd, Topanga, 90290 → —
+  [11870/22357] found=5171 | last: 1128 Canyon Trl, Topanga, 90290 → —
+  [11880/22357] found=5171 | last: 1527 Bainum Dr, Topanga, 90290 → —
+  [11890/22357] found=5171 | last: 2026 Topanga Skyline Dr, Topanga, 90290 → —
+  [11900/22357] found=5175 | last: 1120 Cumbre Alta Ct, Pacific Palisades,  → RE15-1-H
+  💾 Checkpoint: 10,769 entries saved
+  [11910/22357] found=5185 | last: 1424 Avenida De Cortez, Pacific Palisade → R1-1
+  [11920/22357] found=5195 | last: 1550 Palisades Dr, Pacific Palisades, 90 → RD3-1
+  [11930/22357] found=5205 | last: 16632 Calle Jermaine, Pacific Palisades, → R1-1
+  [11940/22357] found=5214 | last: 22942 Crespi St, Woodland Hills, 91364 → R1-1
+  [11950/22357] found=5222 | last: 23020 Lita Pl, Woodland Hills, 91364 → RS-1
+  [11960/22357] found=5229 | last: 5535 Canoga Ave #207, Woodland Hills, 91 → (WC)PARK-SN
+  [11970/22357] found=5239 | last: 4140 Picasso Ave, Woodland Hills, 91364 → RE15-1-H
+  [11980/22357] found=5246 | last: 4632 Park Granada #93, Calabasas, 91302 → —
+  [11990/22357] found=5253 | last: 22930 Dolorosa St, Woodland Hills, 91367 → R1-1
+  [12000/22357] found=5260 | last: 22548 Waterbury St, Woodland Hills, 9136 → RE15-1-H
+  💾 Checkpoint: 10,866 entries saved
+  [12010/22357] found=5268 | last: 23755 Clarendon, Woodland Hills, 91367 → RE11-1
+  [12020/22357] found=5274 | last: 23670 Summit Dr, Calabasas, 91302 → —
+  [12030/22357] found=5280 | last: 4384 Saltillo, Woodland Hills, 91364 → R1-1
+  [12040/22357] found=5286 | last: 20619 Martha St, Woodland Hills, 91367 → RS-1
+  [12050/22357] found=5294 | last: 5800 Owensmouth Ave #40, Woodland Hills, → (WC)PARK-SN
+  [12060/22357] found=5303 | last: 5707 Topanga Canyon Blvd #5, Woodland Hi → QR3-1
+  [12070/22357] found=5309 | last: 5692 Como Cir #34, Woodland Hills, 91367 → (Q)RD6-1
+  [12080/22357] found=5317 | last: 22037 Ybarra, Woodland Hills, 91364 → R1-1
+  [12090/22357] found=5324 | last: 23637 Park Capri #36, Calabasas, 91302 → —
+  [12100/22357] found=5331 | last: 4256 N Canoga Ave, Woodland Hills, 91364 → R1-1
+  💾 Checkpoint: 10,963 entries saved
+  [12110/22357] found=5337 | last: 22248 Cairnloch St, Calabasas, 91302 → —
+  [12120/22357] found=5343 | last: 23246 Canzonet St, Woodland Hills, 91367 → R1-1
+  [12130/22357] found=5350 | last: 4525 Ensenada, Woodland Hills, 91307 → R1-1
+  [12140/22357] found=5355 | last: 4314 N Canoga Dr, Woodland Hills, 91364 → R1-1
+  [12150/22357] found=5362 | last: 5403 Newcastle Ave #28, Encino, 91316 → R3-1
+  [12160/22357] found=5372 | last: 5412 Lindley Ave #325, Encino, 91316 → R3-1
+  [12170/22357] found=5382 | last: 5460 White Oak Ave Unit B103, Encino, 91 → R3-1
+  [12180/22357] found=5392 | last: 4755 Vanalden, Tarzana, 91356 → RA-1
+  [12190/22357] found=5402 | last: 17528 Jayden Ln, Encino, 91316 → RA-1
+  [12200/22357] found=5412 | last: 5056 Louise Ave, Encino, 91316 → RA-1
+  💾 Checkpoint: 11,057 entries saved
+  [12210/22357] found=5422 | last: 3960 Ellenita, Tarzana, 91356 → RA-1-H
+  [12220/22357] found=5431 | last: 5972-5974 Jamieson Ave, Encino, 91316 → —
+  [12230/22357] found=5441 | last: 17929 Martha St, Encino, 91316 → R1-1-RIO
+  [12240/22357] found=5451 | last: 17228 Otsego St, Encino, 91316 → RA-1
+  [12250/22357] found=5461 | last: 5460 White Oak Ave Unit C325, Encino, 91 → R3-1
+  [12260/22357] found=5471 | last: 18324 Clark St #315, Tarzana, 91356 → QR4-1LD
+  [12270/22357] found=5481 | last: 17601 McCormick St, Encino, 91316 → RA-1
+  [12280/22357] found=5491 | last: 4676 Arriba Dr, Tarzana, 91356 → RE11-1
+  [12290/22357] found=5501 | last: 5310 Zelzah #303, Encino, 91316 → R3-1
+  [12300/22357] found=5511 | last: 5514 Sylvia Ave, Tarzana, 91356 → R1-1
+  💾 Checkpoint: 11,139 entries saved
+  [12310/22357] found=5521 | last: 4522 Conchita, Tarzana, 91356 → RA-1
+  [12320/22357] found=5530 | last: 5244 Tampa Ave, Tarzana, 91356 → RA-1
+  [12330/22357] found=5540 | last: 5142 ZELZAH Ave #25, Encino, 91316 → R3-1
+  [12340/22357] found=5550 | last: 4965 Avenida Oriente, Tarzana, 91356 → RA-1
+  [12350/22357] found=5560 | last: 5315 Zelzah Ave #6, Encino, 91316 → R3-1
+  [12360/22357] found=5568 | last: 5339 Newcastle Ave #112, Encino, 91316 → R3-1
+  [12370/22357] found=5578 | last: 5206 Topeka Dr, Tarzana, 91356 → RA-1
+  [12380/22357] found=5588 | last: 4540 Estrondo Dr, Encino, 91436 → RA-1
+  [12390/22357] found=5597 | last: 1141 Angelo Dr, Beverly Hills, 90210 → RE15-1-HCR
+  [12400/22357] found=5606 | last: 2533 Benedict Canyon Dr, Beverly Hills,  → RE20-1-H-HCR
+  💾 Checkpoint: 11,210 entries saved
+  [12410/22357] found=5616 | last: 1350 Benedict Canyon Dr, Beverly Hills,  → RE15-1-H-HCR
+  [12420/22357] found=5626 | last: 10216 Cielo Dr, Beverly Hills, 90210 → RE15-1-H-HCR
+  [12430/22357] found=5636 | last: 10074 Westwanda Dr, Beverly Hills, 90210 → RE40-1-H-HCR
+  [12440/22357] found=5641 | last: 712 N Arden Dr, Beverly Hills, 90210 → —
+  [12450/22357] found=5642 | last: 240 S Doheny Dr, Beverly Hills, 90211 → —
+  [12460/22357] found=5642 | last: 205 S Reeves Dr, Beve  [12460/22257] found=5578 | last: 211 S Spalding Dr Unit 603S, Beverly Hil → —
+  [12470/22257] found=5579 | last: 927 N Kings Rd #118, West Hollywood, 900 → —
+  [12480/22257] found=5582 | last: 750 N Kings Rd #224, West Hollywood, 900 → [Q]R3-1
+  [12490/22257] found=5583 | last: 1033 N Vista St Unit D, West Hollywood,  → —
+  [12500/22257] found=5587 | last: 235 S Tower Dr #305, Beverly Hills, 9021 → —
+  💾 Checkpoint: 11,368 entries saved
+  [12510/22257] found=5588 | last: 8969 Dicks St, West Hollywood, 90069 → —
+  [12520/22257] found=5589 | last: 8899 Beverly Blvd Unit PHW, West Hollywo → —
+  [12530/22257] found=5590 | last: 300 N Swall Dr #356, Beverly Hills, 9021 → —
+  [12540/22257] found=5591 | last: 848 N Kings Rd #208, West Hollywood, 900 → —
+  [12550/22257] f  [12560/22357] found=5644 | last: 211 S Spalding Dr Unit 603S, Beverly Hil → —
+  [12570/22357] found=5645 | last: 927 N Kings Rd #118, West Hollywood, 900 → —
+  [12580/22357] found=5648 | last: 750 N Kings Rd #224, West Hollywood, 900 → [Q]R3-1
+  [12590/22357] found=5649 | last: 1033 N Vista St Unit D, West Hollywood,  → —
+  [12600/22357] found=5653 | last: 235 S Tower Dr #305, Beverly Hills, 9021 → —
+  💾 Checkpoint: 11,368 entries saved
+  [12610/22357] found=5654 | last: 8969 Dicks St, West Hollywood, 90069 → —
+  [12620/22357] found=5655 | last: 8899 Beverly Blvd Unit PHW, West Hollywo → —
+  [12630/22357] found=5656 | last: 300 N Swall Dr #356, Beverly Hills, 9021 → —
+  [12640/22357] found=5657 | last: 848 N Kings Rd #208, West Hollywood, 900 → —
+  [12650/22357] found=5658 | last: 8535 W West Knoll Dr #111, West Hollywoo → —
+  [12660/22357] found=5660 | last: 155 N Hamilton Dr #102, Beverly Hills, 9 → —
+  [12670/22357] found=5662 | last: 1015 N Martel Ave, West Hollywood, 90046 → —
+  [12680/22357] found=5665 | last: 806 N Sweetzer Ave, West Hollywood, 9006 → [Q]R3-1
+  [12690/22357] found=5670 | last: 1555 San Ysidro Dr, Beverly Hills, 90210 → RE15-1-H-HCR
+  [12700/22357] found=5678 | last: 9631 Cedarbrook Dr, Beverly Hills, 90210 → RE15-1-H-HCR
+  💾 Checkpoint: 11,444 entries saved
+  [12710/22357] found=5682 | last: 9455 Eden Dr, Beverly Hills, 90210 → RE15-1-H-HCR
+  [12720/22357] found=5688 | last: 9626 Highridge Dr, Beverly Hills, 90210 → RE15-1-H-HCR
+  [12730/22357] found=5692 | last: 1648 Summitridge Dr, Beverly Hills, 9021 → RE40-1-H-HCR
+  [12740/22357] found=5695 | last: 9422 Readcrest Dr, Beverly Hills, 90210 → RE15-1-HCR
+  [12750/22357] found=5699 | last: 1642 Lindacrest Dr, Beverly Hills, 90210 → RE15-1-HCR
+  [12760/22357] found=5704 | last: 1754 Franklin Canyon Dr, Beverly Hills,  → RE15-1-H-HCR
+  [12770/22357] found=5709 | last: 1422 Lindacrest Dr, Beverly Hills, 90210 → RE15-1-HCR
+  [12780/22357] found=5714 | last: 1140 Calle Vista Dr, Beverly Hills, 9021 → —
+  [12790/22357] found=5715 | last: 1203 N Sweetzer Ave #118, West Hollywood → —
+  [12800/22357] found=5716 | last: 1700 Queens Rd, West Hollywood, 90069 → R1-1-HCR
+  💾 Checkpoint: 11,539 entries saved
+  [12810/22357] found=5717 | last: 1100 Alta Loma Rd #1404, West Hollywood, → —
+  [12820/22357] found=5717 | last: 1131 Alta Loma Rd #412, West Hollywood,  → —
+  [12830/22357] found=5719 | last: 1129 Larrabee St #10, West Hollywood, 90 → —
+  [12840/22357] found=5721 | last: 1230 Horn Ave #304, West Hollywood, 9006 → —
+  [12850/22357] found=5722 | last: 1201 N Vista St Unit 1201-1203, West Hol → —
+  [12860/22357] found=5723 | last: 1351 N Crescent Heights Blvd #313, West  → —
+  [12870/22357] found=5723 | last: 8787 Shoreham Dr #201, West Hollywood, 9 → —
+  [12880/22357] found=5729 | last: 14812 Morrison St, Sherman Oaks, 91403 → R1-1-RIO
+  [12890/22357] found=5739 | last: 4163 Sunnyslope Ave, Sherman Oaks, 91423 → R1-1
+  [12900/22357] found=5749 | last: 14141 Dickens St #111, Sherman Oaks, 914 → RD1.5-1
+  💾 Checkpoint: 11,602 entries saved
+  [12910/22357] found=5759 | last: 4558 Willis Ave #121, Sherman Oaks, 9140 → R3-1
+  [12920/22357] found=5769 | last: 13607 Huston St, Sherman Oaks, 91423 → R1-1-RIO
+  [12930/22357] found=5779 | last: 16815 Shileno Pl, Encino, 91436 → RE15-1-H
+  [12940/22357] found=5789 | last: 5009 Woodman Ave #113, Sherman Oaks, 914 → [Q]R3-1-RIO
+  [12950/22357] found=5799 | last: 14000 Otsego St, Sherman Oaks, 91423 → R1-1-RIO
+  [12960/22357] found=5809 | last: 4487 Colbath Ave #207, Sherman Oaks, 914 → R3-1-RIO
+  [12970/22357] found=5819 | last: 4273 Murietta Ave, Sherman Oaks, 91423 → R1-1
+  [12980/22357] found=5829 | last: 5226 Woodman Ave, Sherman Oaks, 91401 → R1-1
+  [12990/22357] found=5839 | last: 3820 Knobhill Dr, Sherman Oaks, 91423 → RE15-1-H
+  [13000/22357] found=5849 | last: 16708 Chaplin Ave, Encino, 91436 → RE15-1-H
+  💾 Checkpoint: 11,701 entries saved
+  [13010/22357] found=5858 | last: 5021 Tilden Ave #1, Sherman Oaks, 91423 → R3-1-RIO
+  [13020/22357] found=5868 | last: 14955 Hartsook, Sherman Oaks, 91403 → R1-1-RIO
+  [13030/22357] found=5878 | last: 3690 Crownridge Dr, Sherman Oaks, 91403 → RE15-1-H
+  [13040/22357] found=5888 | last: 3325 Alginet, Encino, 91436 → RE15-1-H
+  [13050/22357] found=5898 | last: 4512 Sunnyslope Ave, Sherman Oaks, 91423 → R1-1-RIO
+  [13060/22357] found=5908 | last: 14333 Tiara St, Van Nuys, 91401 → [Q]RD2-1
+  [13070/22357] found=5918 | last: 14713 Valleyheart Dr, Sherman Oaks, 9140 → R1-1-RIO
+  [13080/22357] found=5928 | last: 3654 Oakfield Dr, Sherman Oaks, 91423 → RE15-1-H
+  [13090/22357] found=5938 | last: 14807 Round Valley Dr, Sherman Oaks, 914 → R1-1
+  [13100/22357] found=5948 | last: 15508 Royal Ridge Rd, Sherman Oaks, 9140 → RE15-1-H
+  💾 Checkpoint: 11,794 entries saved
+  [13110/22357] found=5958 | last: 3573 Camino De La Cumbre, Sherman Oaks,  → RE15-1-H
+  [13120/22357] found=5968 | last: 3747 Camino De La Cumbre, Sherman Oaks,  → RE15-1-H
+  [13130/22357] found=5978 | last: 15454 Sutton St, Sherman Oaks, 91403 → R1-1
+  [13140/22357] found=5988 | last: 3708 Oakfield Dr, Sherman Oaks, 91423 → RE15-1-H
+  [13150/22357] found=5998 | last: 4328 Gentry Ave #2, Studio City, 91604 → [Q]RD1.5-1-RIO
+  [13160/22357] found=6008 | last: 3866 Alta Mesa Dr, Studio City, 91604 → R1-1
+  [13170/22357] found=6018 | last: 13355 Mulholland Dr, Beverly Hills, 9021 → RE40-1-H
+  [13180/22357] found=6028 | last: 3405 Fryman Rd, Studio City, 91604 → RE40-1-H
+  [13190/22357] found=6038 | last: 4153 Vantage Ave, Studio City, 91604 → R1-1-RIO
+  [13200/22357] found=6048 | last: 3911 N Alta Mesa Dr, Studio City, 91604 → R1-1
+  💾 Checkpoint: 11,891 entries saved
+  [13210/22357] found=6058 | last: 3635 Potosi Ave, Studio City, 91604 → R1-1
+  [13220/22357] found=6068 | last: 4205 Agnes Ave, Studio City, 91604 → R1-1-RIO
+  [13230/22357] found=6078 | last: 3301 Coldwater Canyon Ave, Studio City,  → RE40-1-H
+  [13240/22357] found=6088 | last: 11534 Laurelcrest Dr, Studio City, 91604 → R1-1
+  [13250/22357] found=6098 | last: 3678 Willowcrest, Studio City, 91604 → R1-1
+  [13260/22357] found=6108 | last: 10940 Terryview Dr, Studio City, 91604 → RE15-1-H
+  [13270/22357] found=6118 | last: 11138 Aqua Vista St #73, North Hollywood → R3-1-RIO
+  [13280/22357] found=6128 | last: 11452 Canton Dr, Studio City, 91604 → RE15-1-H
+  [13290/22357] found=6138 | last: 4040 Cartwright Ave, Studio City, 91604 → R1-1-RIO
+  [13300/22357] found=6148 | last: 12811 Oxnard St, North Hollywood, 91606 → RD1.5-1
+  💾 Checkpoint: 11,988 entries saved
+  [13310/22357] found=6158 | last: 11937 Addison St, Valley Village, 91607 → R1-1
+  [13320/22357] found=6168 | last: 5232 Corteen Pl #7, Valley Village, 9160 → R3-1
+  [13330/22357] found=6178 | last: 12727 La Maida St, Valley Village, 91607 → R1-1
+  [13340/22357] found=6188 | last: 4559 Morella Ave, Valley Village, 91607 → R1-1-RIO
+  [13350/22357] found=6198 | last: 5055 Coldwater Canyon Ave #217, Sherman  → R3-1
+  [13360/22357] found=6208 | last: 5651 Radford, Valley Village, 91607 → R1-1
+  [13370/22357] found=6218 | last: 5314 Wilkinson Ave, Valley Village, 9160 → RD1.5-  [13370/22257] found=6243 | last: 1207 Greenacre Ave, West Hollywood, 9004 → —
+  [13380/22257] found=6247 | last: 2906 Alta St, Lincoln Heights, 90031 → [Q]R1-1D-HCR
+  [13390/22257] found=6257 | last: 3722 Lavell Dr, Glassell Park, 90065 → R1-1-HCR
+  [13400/22257] found=6264 | last: 1607 Glenwood, Glendale, 91201 → —
+  💾 Checkpoint: 12,185 entries saved
+  [13410/22257] found=6265 | last: 625 N Naomi, Burbank, 91505 → —
+  [13420/22257] found=6267 | last: 355 N Maple St #203, Burbank, 91505 → —
+  [13430/22257] found=6267 | last: 2912 W Riverside Dr, Burbank, 91505 → —
+  [13440/22257] found=6267 | last: 4140 Warner Blvd #208, Burbank, 91505 → —
+  [13450/22257] found=6267 | last: 1323 5th St, Glendale, 91201 → —
+  [13460/22257] found=6267 | last: 217 Thompson, Glendale,   [13470/22357] found=6309 | last: 1207 Greenacre Ave, West Hollywood, 9004 → —
+  [13480/22357] found=6313 | last: 2906 Alta St, Lincoln Heights, 90031 → [Q]R1-1D-HCR
+  [13490/22357] found=6323 | last: 3722 Lavell Dr, Glassell Park, 90065 → R1-1-HCR
+  [13500/22357] found=6330 | last: 1607 Glenwood, Glendale, 91201 → —
+  💾 Checkpoint: 12,185 entries saved
+  [13510/22357] found=6331 | last: 625 N Naomi, Burbank, 91505 → —
+  [13520/22357] found=6333 | last: 355 N Maple St #203, Burbank, 91505 → —
+  [13530/22357] found=6333 | last: 2912 W Riverside Dr, Burbank, 91505 → —
+  [13540/22357] found=6333 | last: 4140 Warner Blvd #208, Burbank, 91505 → —
+  [13550/22357] found=6333 | last: 1323 5th St, Glendale, 91201 → —
+  [13560/22357] found=6333 | last: 217 Thompson, Glendale, 91201 → —
+  [13570/22357] found=6334 | last: 835 N Lincoln St, Burbank, 91506 → —
+  [13580/22357] found=6334 | last: 222 Monterey Rd #1603, Glendale, 91206 → —
+  [13590/22357] found=6334 | last: 81 Barmore Ct, Glendale, 91206 → —
+  [13600/22357] found=6334 | last: 1720 Orchard Ave, Glendale, 91206 → —
+  💾 Checkpoint: 12,274 entries saved
+  [13610/22357] found=6334 | last: 404 Lincoln Ave, Glendale, 91205 → —
+  [13620/22357] found=6336 | last: 608 Hawthorne St Unit E, Glendale, 91204 → —
+  [13630/22357] found=6336 | last: 1241 Corona Dr, Glendale, 91205 → —
+  [13640/22357] found=6336 | last: 1 Valley Vista Dr, Glendale, 91206 → —
+  [13650/22357] found=6336 | last: 805 E Acacia Ave Unit F, Glendale, 91205 → —
+  [13660/22357] found=6336 | last: 520 W California, Glendale, 91203 → —
+  [13670/22357] found=6336 | last: 126 Franklin Ct, Glendale, 91205 → —
+  [13680/22357] found=6336 | last: 1523 E Windsor Unit 208A, Glendale, 9120 → —
+  [13690/22357] found=6338 | last: 0 N Hwy 34, Eagle Rock, 90041 → A1-1XL-HCR
+  [13700/22357] found=6338 | last: 0 Whitehall, Glendale, 91206 → —
+  💾 Checkpoint: 12,368 entries saved
+  [13710/22357] found=6339 | last: 1720 Mission St #7, South Pasadena, 9103 → —
+  [13720/22357] found=6339 | last: 130 Monterey Rd #205, South Pasadena, 91 → —
+  [13730/22357] found=6339 | last: 216 Stockbridge Ave, Alhambra, 91801 → —
+  [13740/22357] found=6339 | last: 1730 S Euclid Ave, San Marino, 91108 → —
+  [13750/22357] found=6339 | last: 1111 Alhambra Rd, Alhambra, 91801 → —
+  [13760/22357] found=6340 | last: 116 Marmion Way #9, South Pasadena, 9103 → —
+  [13770/22357] found=6340 | last: 417 W Emerson, Monterey Park, 91754 → —
+  [13780/22357] found=6340 | last: 300 E Alhambra Rd Unit F, Alhambra, 9180 → —
+  [13790/22357] found=6340 | last: 226 Warwick Ave Ave, South Pasadena, 910 → —
+  [13800/22357] found=6340 | last: 419 N Chandler Ave #413, Monterey Park,  → —
+  💾 Checkpoint: 12,459 entries saved
+  [13810/22357] found=6341 | last: 4648 Harriman Ave, South Pasadena, 91030 → —
+  [13820/22357] found=6341 | last: 9942-Dr Howland, Temple City, 91780 → —
+  [13830/22357] found=6341 | last: 4922 Heleo, Temple City, 91780 → —
+  [13840/22357] found=6341 | last: 9654 Emperor Ave, Arcadia, 91007 → —
+  [13850/22357] found=6341 | last: 233 Russell Ave, Monterey Park, 91755 → —
+  [13860/22357] found=6341 | last: 83 E Commonwealth Unit 3C, Alhambra, 918 → —
+  [13870/22357] found=6341 | last: 5827 Oak Ave, Temple City, 91780 → —
+  [13880/22357] found=6341 | last: 904 S 2nd Unit E, Alhambra, 91801 → —
+  [13890/22357] found=6341 | last: 5067 Sereno Dr Unit B, Temple City, 9178 → —
+  [13900/22357] found=6341 | last: 315 S Pine, San Gabriel, 91776 → —
+  💾 Checkpoint: 12,552 entries saved
+  [13910/22357] found=6341 | last: 25 Palmetto Dr Unit A, Alhambra, 91801 → —
+  [13920/22357] found=6341 | last: 9467 Cortada St Unit F, El Monte, 91733 → —
+  [13930/22357] found=6341 | last: 126 N New Ave #8, Monterey Park, 91755 → —
+  [13940/22357] found=6341 | last: 1920 Lorain, San Marino, 91108 → —
+  [13950/22357] found=6341 | last: 203 N Nicholson Ave, Monterey Park, 9175 → —
+  [13960/22357] found=6341 | last: 168 S Monterey St #211, Alhambra, 91801 → —
+  [13970/22357] found=6342 | last: 316 N Orange Grv, Pasadena, 91103 → —
+  [13980/22357] found=6342 | last: 1220 Hillcrest Ave, Pasadena, 91106 → —
+  [13990/22357] found=6342 | last: 1305 Solita Rd, Pasadena, 91103 → —
+  [14000/22357] found=6343 | last: 933 Avenue 66, Highland Park, 90042 → R1-1-HCR
+  💾 Checkpoint: 12,641 entries saved
+  [14010/22357] found=6343 | last: 220 Orange Grove Ave, South Pasadena, 91 → —
+  [14020/22357] found=6343 | last: 239 S Marengo Ave #102, Pasadena, 91101 → —
+  [14030/22357] found=6343 | last: 330 W California Blvd #203, Pasadena, 91 → —
+  [14040/22357] found=6343 | last: 262 S San Rafael Ave, Pasadena, 91105 → —
+  [14050/22357] found=6343 | last: 159 W Green St #408, Pasadena, 91105 → —
+  [14060/22357] found=6343 | last: 139 S Oak Knoll Ave #203, Pasadena, 9110 → —
+  [14070/22357] found=6343 | last: 166 Dearborn St, Pasadena → —
+  [14080/22357] found=6343 | last: 150 S Oak Knoll Ave #103, Pasadena, 9110 → —
+  [14090/22357] found=6343 | last: 570 N Madison, Pasadena, 91101 → —
+  [14100/22357] found=6343 | last: 530-540 N Catalina Ave, Pasadena, 91106 → —
+  💾 Checkpoint: 12,722 entries saved
+  [14110/22357] found=6346 | last: 808 S Los Robles Ave, Pasadena, 91106 → —
+  [14120/22357] found=6346 | last: 137 S Wilson Ave #106, Pasadena, 91106 → —
+  [14130/22357] found=6346 | last: 1-Bedroom 1-Bath Condominium Plan, Pasad → —
+  [14140/22357] found=6346 | last: 3176 La Tierra St, Pasadena, 91107 → —
+  [14150/22357] found=6346 | last: 1511 Coolidge Ave, Pasadena, 91104 → —
+  [14160/22357] found=6346 | last: 1058 Sunset Blvd Unit B, Arcadia, 91007 → —
+  [14170/22357] found=6346 | last: 212 S Craig Ave, Pasadena, 91107 → —
+  [14180/22357] found=6346 | last: 921 Chapea Rd, Pasadena, 91107 → —
+  [14190/22357] found=6346 | last: 16 Esperanza Dr, La Verne, 91750 → —
+  [14200/22357] found=6346 | last: 1290 E Woodbury, Pasadena, 91104 → —
+  💾 Checkpoint: 12,816 entries saved
+  [14210/22357] found=6346 | last: 725 Carriage House, Arcadia, 91006 → —
+  [14220/22357] found=6346 | last: 827 Hampton Rd, Arcadia, 91006 → —
+  [14230/22357] found=6346 | last: 2964 Lombardy Rd, Pasadena, 91107 → —
+  [14240/22357] found=6346 | last: 1117 Encanto Dr, Arcadia, 91007 → —
+  [14250/22357] found=6346 | last: 951 N Allen Ave, Pasadena, 91104 → —
+  [14260/22357] found=6346 | last: 820 San Simeon Rd, Arcadia, 91007 → —
+  [14270/22357] found=6346 | last: 660 Chaparral Rd, Sierra Madre, 91024 → —
+  [14280/22357] found=6346 | last: 3880 Startouch Dr, Pasadena → —
+  [14290/22357] found=6346 | last: 1222 Temple City Blvd, Arcadia, 91007 → —
+  [14300/22357] found=6346 | last: 4216 Jasmine Ln, Arcadia, 91006 → —
+  💾 Checkpoint: 12,911 entries saved
+  [14310/22357] found=6346 | last: 315 E Las Flores, Arcadia, 91006 → —
+  [14320/22357] found=6346 | last: 11734 Lower Azusa, El Monte, 91732 → —
+  [14330/22357] found=6346 | last: 10531 Mulhall St, El Monte, 91731 → —
+  [14340/22357] found=6346 | last: 4007 Valley Oak Ln Unit B, El Monte, 917 �  [14350/22257] found=6280 | last: 223 N Lark Ellen, West Covina, 91791 → —
+  [14360/22257] found=6280 | last: 17104 E Orkney, Azusa, 91702 → —
+  [14370/22257] found=6280 | last: 304 Park Shadow Ct, Baldwin Park, 91706 → —
+  [14380/22257] found=6280 | last: 3707 Vineland Ave, Baldwin Park, 91706 → —
+  [14390/22257] found=6280 | last: 511 N Lark Ellen Ave Unit F, Covina, 917 → —
+  [14400/22257] found=6280 | last: 627 W Front St, Covina, 91722 → —
+  💾 Checkpoint: 13,089 entries saved
+  [14410/22257] found=6280 | last: 0 near Puenta Ave and channing, Baldwin  → —
+  [14420/22257] found=6280 | last: 910 S 5th, Arcadia, 91006 → —
+  [14430/22257] found=6280 | last: 1328 Oaklawn Rd, Arcadia, 91006 → —
+  [14440/22257] found=6280 | last: 200 S 2nd Ave Unit C, Arcadia, 91006  [14450/22357] found=6346 | last: 223 N Lark Ellen, West Covina, 91791 → —
+  [14460/22357] found=6346 | last: 17104 E Orkney, Azusa, 91702 → —
+  [14470/22357] found=6346 | last: 304 Park Shadow Ct, Baldwin Park, 91706 → —
+  [14480/22357] found=6346 | last: 3707 Vineland Ave, Baldwin Park, 91706 → —
+  [14490/22357] found=6346 | last: 511 N Lark Ellen Ave Unit F, Covina, 917 → —
+  [14500/22357] found=6346 | last: 627 W Front St, Covina, 91722 → —
+  💾 Checkpoint: 13,089 entries saved
+  [14510/22357] found=6346 | last: 0 near Puenta Ave and channing, Baldwin  → —
+  [14520/22357] found=6346 | last: 910 S 5th, Arcadia, 91006 → —
+  [14530/22357] found=6346 | last: 1328 Oaklawn Rd, Arcadia, 91006 → —
+  [14540/22357] found=6346 | last: 200 S 2nd Ave Unit C, Arcadia, 91006 → —
+  [14550/22357] found=6346 | last: 918 Huntington Dr Unit O, Duarte, 91010 → —
+  [14560/22357] found=6346 | last: 924 W Colorado Blvd, Monrovia, 91016 → —
+  [14570/22357] found=6346 | last: 56 E Duarte #418, Arcadia, 91006 → —
+  [14580/22357] found=6346 | last: 45 Genoa St Unit A, Arcadia, 91006 → —
+  [14590/22357] found=6346 | last: 1601 Highland Oaks Dr, Arcadia, 91006 → —
+  [14600/22357] found=6346 | last: 365 Oak Mountain Rd, Bradbury, 91008 → —
+  💾 Checkpoint: 13,184 entries saved
+  [14610/22357] found=6346 | last: 261 Oakhurst, Arcadia, 91007 → —
+  [14620/22357] found=6346 | last: 1118 S 4th Ave, Arcadia, 91006 → —
+  [14630/22357] found=6346 | last: 18 Dovetail Ln, Bradbury, 91008 → —
+  [14640/22357] found=6346 | last: 188 Deodar Ln, Bradbury, 91008 → —
+  [14650/22357] found=6346 | last: 3464 Deerlane Dr, Duarte, 91010 → —
+  [14660/22357] found=6346 | last: 1126 W Calle De La Luna # 4, Azusa, 9170 → —
+  [14670/22357] found=6346 | last: 824 N Pasadena Ave #31, Azusa, 91702 → —
+  [14680/22357] found=6346 | last: 227 N Azusa Ave, Azusa, 91702 → —
+  [14690/22357] found=6346 | last: 549 E Ada, Glendora, 91741 → —
+  [14700/22357] found=6346 | last: 4265 Emerald Ave, La Verne, 91750 → —
+  💾 Checkpoint: 13,283 entries saved
+  [14710/22357] found=6346 | last: 1021 E Gaillard St, Azusa, 91702 → —
+  [14720/22357] found=6346 | last: 605 W Gaillard, Glendora, 91740 → —
+  [14730/22357] found=6346 | last: 468 Calle Canela, San Dimas, 91773 → —
+  [14740/22357] found=6346 | last: 2370 Canyon Crst, La Verne, 91750 → —
+  [14750/22357] found=6346 | last: 4485 Broken Spur Rd, La Verne, 91750 → —
+  [14760/22357] found=6346 | last: 3738 N Woodhurst, Covina, 91724 → —
+  [14770/22357] found=6346 | last: 4900 N Grand #322, Covina, 91724 → —
+  [14780/22357] found=6346 | last: 1483 Thunder Ct, Pomona, 91768 → —
+  [14790/22357] found=6346 | last: 2030 Cobblefield Way, Glendora, 91740 → —
+  [14800/22357] found=6346 | last: 5227 N Fairvalley, Covina, 91722 → —
+  💾 Checkpoint: 13,382 entries saved
+  [14810/22357] found=6346 | last: 1295 Loma Vis, Pomona, 91768 → —
+  [14820/22357] found=6346 | last: 3230 E Drycreek, West Covina, 91791 → —
+  [14830/22357] found=6346 | last: 1507 Maplewood, La Verne, 91750 → —
+  [14840/22357] found=6346 | last: 447 S Newton, Covina, 91723 → —
+  [14850/22357] found=6346 | last: 21544 E Covina Hills Rd, Covina, 91724 → —
+  [14860/22357] found=6346 | last: 2551 E Larkwood, West Covina, 91791 → —
+  [14870/22357] found=6346 | last: 2537 Fulton, La Verne, 91750 → —
+  [14880/22357] found=6346 | last: 4215 N Sunflower, Covina, 91724 → —
+  [14890/22357] found=6346 | last: 3295 E Springcreek, West Covina, 91791 → —
+  [14900/22357] found=6346 | last: 680 Redwood Ln, San Dimas, 91773 → —
+  💾 Checkpoint: 13,479 entries saved
+  [14910/22357] found=6346 | last: 123 S Hollenbeck Ave, Covina, 91723 → —
+  [14920/22357] found=6346 | last: 2225 Saratoga Ln, Glendora, 91741 → —
+  [14930/22357] found=6346 | last: 2532 N White Ave, La Verne, 91750 → —
+  [14940/22357] found=6346 | last: 1954 E Covina Blvd, Covina, 91723 → —
+  [14950/22357] found=6346 | last: 0 Dallas, San Dimas, 91733 → —
+  [14960/22357] found=6346 | last: 0 Broken Spur Rd, Bonita, 91750 → —
+  [14970/22357] found=6346 | last: 1597 Stratus Dr, Pomona, 91768 → —
+  [14980/22357] found=6346 | last: Plan 6 Plan, Covina, 91723 → —
+  [14990/22357] found=6346 | last: 415 E Green St, Claremont, 91711 → —
+  [15000/22357] found=6346 | last: 1589 Bison, Upland, 91784 → —
+  💾 Checkpoint: 13,568 entries saved
+  [15010/22357] found=6346 | last: 2800 N Mountain Ave, Upland, 91784 → —
+  [15020/22357] found=6346 | last: 6285 Beryl, Rancho Cucamonga, 91701 → —
+  [15030/22357] found=6346 | last: 673 Sawyer, Upland, 91786 → —
+  [15040/22357] found=6346 | last: 944 Butte St, Claremont, 91711 → —
+  [15050/22357] found=6346 | last: 2937 Claremont Hts, Claremont, 91711 → —
+  [15060/22357] found=6346 | last: 8394 Comet, Rancho Cucamonga, 91730 → —
+  [15070/22357] found=6346 | last: 1646 Coral Bells, Upland, 91784 → —
+  [15080/22357] found=6346 | last: 1388 E La Deney, Ontario, 91764 → —
+  [15090/22357] found=6346 | last: 460 University Cir, Claremont, 91711 → —
+  [15100/22357] found=6346 | last: 5836 Buckthorn, Rancho Cucamonga, 91737 → —
+  💾 Checkpoint: 13,667 entries saved
+  [15110/22357] found=6346 | last: 718 Central Ave, Upland, 91786 → —
+  [15120/22357] found=6346 | last: 846 Amber Ct, Upland, 91786 → —
+  [15130/22357] found=6346 | last: 2717 N Mountain Ave, Claremont, 91711 → —
+  [15140/22357] found=6346 | last: 1435 W Rosewood Ct, Ontario, 91762 → —
+  [15150/22357] found=6346 | last: 8039 City View Pl, Rancho Cucamonga, 917 → —
+  [15160/22357] found=6346 | last: 428 W 8th St, Upland, 91786 → —
+  [15170/22357] found=6346 | last: 634 E Kingsley, Pomona, 91767 → —
+  [15180/22357] found=6346 | last: 9364 Langston St, Rancho Cucamonga, 9173 → —
+  [15190/22357] found=6346 | last: 1420 N Marcella, Ontario, 91764 → —
+  [15200/22357] found=6346 | last: 1667 E Kingsley, Pomona, 91767 → —
+  💾 Checkpoint: 13,766 entries saved
+  [15210/22357] found=6346 | last: 8825 Vineyard Ave, Rancho Cucamonga, 917 → —
+  [15220/22357] found=6346 | last: 404 E Kingsley Ave, Pomona, 91767 → —
+  [15230/22357] found=6346 | last: 8847 Jacaranda Unit C, Montclair, 91763 → —
+  [15240/22357] found=6346 | last: 855 N Palm, Upland, 91786 → —
+  [15250/22357] found=6346 | last: 9382 Shadowood Dr, Montclair, 91763 → —
+  [15260/22357] found=6346 | last: 121 Evergreen Ln, Claremont, 91711 → —
+  [15270/22357] found=6346 | last: 0 VL-8675022001, Claremont, 91711 → —
+  [15280/22357] found=6346 | last: Plan 7 The Mountain Collection- The Aspe → —
+  [15290/22357] found=6346 | last: Residence One Plan, Rancho Cucamonga, 91 → —
+  [15300/22357] found=6346 | last: 9805 Devon St, Rancho Cucamonga, 91730 → —
+  💾 Checkpoint: 13,850 entries saved
+  [15310/22357] found=6346 | last: 10902 Wilson, Rancho Cucamonga, 91737 → —
+  [15320/22357] found=6346 | last: 6270 Kinlock, Rancho Cucamonga, 91737 → —
+  [15330/22357] found=6346 | last: 7297 Meadowlark, Rancho Cucamonga, 91701 → —
+  [15340/22357] found=6346 | last: 8423 Western Trl Unit H, Rancho Cucamong → —
+  [15350/22357] found=6346 | last: 5895   [15350/22257] found=6280 | last: 13142 E Mesa Verde Dr, Moorpark, 93021 → —
+  [15360/22257] found=6280 | last: 15006 Varsity Unit C, Moorpark, 93021 → —
+  [15370/22257] found=6280 | last: 430 Fresh Mdws, Simi Valley, 93065 → —
+  [15380/22257] found=6280 | last: 4944 Read Rd, Moorpark, 93021 → —
+  [15390/22257] found=6280 | last: 349 Newbury Vista Ln, Newbury Park, 9132 → —
+  [15400/22257] found=6280 | last: 245 Oakleaf Dr #202, Thousand Oaks, 9136 → —
+  💾 Checkpoint: 14,036 entries saved
+  [15410/22257] found=6280 | last: 2 Dolin Ln, Thousand Oaks, 91320 → —
+  [15420/22257] found=6280 | last: 4695 Club View Dr, Westlake Village, 913 → —
+  [15430/22257] found=6280 | last: 1300 Woodland Grove Ct, Westlake Village → —
+  [15440/22257] found=6280 | last: 4862 Arroyo   [15450/22357] found=6346 | last: 13142 E Mesa Verde Dr, Moorpark, 93021 → —
+  [15460/22357] found=6346 | last: 15006 Varsity Unit C, Moorpark, 93021 → —
+  [15470/22357] found=6346 | last: 430 Fresh Mdws, Simi Valley, 93065 → —
+  [15480/22357] found=6346 | last: 4944 Read Rd, Moorpark, 93021 → —
+  [15490/22357] found=6346 | last: 349 Newbury Vista Ln, Newbury Park, 9132 → —
+  [15500/22357] found=6346 | last: 245 Oakleaf Dr #202, Thousand Oaks, 9136 → —
+  💾 Checkpoint: 14,036 entries saved
+  [15510/22357] found=6346 | last: 2 Dolin Ln, Thousand Oaks, 91320 → —
+  [15520/22357] found=6346 | last: 4695 Club View Dr, Westlake Village, 913 → —
+  [15530/22357] found=6346 | last: 1300 Woodland Grove Ct, Westlake Village → —
+  [15540/22357] found=6346 | last: 4862 Arroyo Run, Moorpark, 93021 → —
+  [15550/22357] found=6346 | last: 2447 Blanchard Pl, Camarillo, 93012 → —
+  [15560/22357] found=6346 | last: 1193 Ramona Dr, Newbury Park, 91320 → —
+  [15570/22357] found=6346 | last: 714 Brossard Dr, Thousand Oaks, 91360 → —
+  [15580/22357] found=6346 | last: 14744 Marymount St, Moorpark, 93021 → —
+  [15590/22357] found=6346 | last: 5076 Island Forest Pl, Westlake Village, → —
+  [15600/22357] found=6346 | last: Rae Plan, Santa Rosa Valley, 93012 → —
+  💾 Checkpoint: 14,134 entries saved
+  [15610/22357] found=6346 | last: 1763 Kearney, Simi Valley, 93065 → —
+  [15620/22357] found=6348 | last: 5518 E Los Angeles Ave #3, Simi Valley,  → —
+  [15630/22357] found=6348 | last: 5502 E Los Angeles Ave #1, Simi Valley,  → —
+  [15640/22357] found=6349 | last: 42 Dapplegray, Bell Canyon, 91307 → —
+  [15650/22357] found=6349 | last: 2516 E Phyllis St, Simi Valley, 93065 → —
+  [15660/22357] found=6352 | last: 683 Languid Ln, Simi Valley, 93065 → —
+  [15670/22357] found=6352 | last: 4776 El Prado St, Simi Valley, 93063 → —
+  [15680/22357] found=6352 | last: 158 Bell Canyon Rd, Bell Canyon, 91307 → —
+  [15690/22357] found=6352 | last: 938 Ventura Ave, Simi Valley, 93065 → —
+  [15700/22357] found=6352 | last: 1904 Heywood St Unit L, Simi Valley, 930 → —
+  💾 Checkpoint: 14,215 entries saved
+  [15710/22357] found=6355 | last: 912 Blackbourne Pt, Oak Park, 91377 → —
+  [15720/22357] found=6356 | last: 6505 Canyon Oaks Dr, Simi Valley, 93063 → —
+  [15730/22357] found=6356 | last: 2183 E Chesterton St, Simi Valley, 93065 → —
+  [15740/22357] found=6356 | last: 5614 Roundtree Pl, Westlake Village, 913 → —
+  [15750/22357] found=6357 | last: 3307 Cole, Simi Valley, 93063 → —
+  [15760/22357] found=6359 | last: 90 La Paz Ct, Simi Valley, 93065 → —
+  [15770/22357] found=6360 | last: 2098 Covington Ave, Simi Valley, 93065 → —
+  [15780/22357] found=6362 | last: 1114 Catlin St Unit A, Simi Valley, 9306 → —
+  [15790/22357] found=6363 | last: 3067 Harrison Ln, Simi Valley, 93065 → —
+  [15800/22357] found=6363 | last: 5946 Oak Knolls Rd, Simi Valley, 93063 → —
+  💾 Checkpoint: 14,311 entries saved
+  [15810/22357] found=6363 | last: 652 Stonebrook St, Simi Valley, 93065 → —
+  [15820/22357] found=6365 | last: 6544 Canyon Oaks Dr, Simi Valley, 93063 → —
+  [15830/22357] found=6370 | last: 8009 Lena Ave, West Hills, 91304 → RS-1
+  [15840/22357] found=6380 | last: 20458 Malden, Winnetka, 91306 → RS-1
+  [15850/22357] found=6390 | last: 22726 Marlin Pl, West Hills, 91307 → RS-1
+  [15860/22357] found=6400 | last: 22137 Gault, Canoga Park, 91303 → R1-1-RIO
+  [15870/22357] found=6410 | last: 6815 Remmet #215, Canoga Park, 91303 → (WC)RIVER-SN-RIO
+  [15880/22357] found=6420 | last: 7439 Mason Ave, Winnetka, 91306 → RS-1
+  [15890/22357] found=6430 | last: 8479 Moorcroft Ave, West Hills, 91304 → RE11-1
+  [15900/22357] found=6440 | last: 8353 Lurline Ave, Winnetka, 91306 → R1-1
+  💾 Checkpoint: 14,401 entries saved
+  [15910/22357] found=6450 | last: 22046 Parthenia St, West Hills, 91304 → RE11-1
+  [15920/22357] found=6459 | last: 20308 Mobile St, Winnetka, 91306 → RS-1-RIO
+  [15930/22357] found=6468 | last: 21219 Roscoe Blvd #211, Canoga Park, 913 → (Q)R3-1
+  [15940/22357] found=6477 | last: 9204 Notre Dame, Chatsworth, 91311 → —
+  [15950/22357] found=6486 | last: 9322 FRANKLIN St, Chatsworth, 91311 → —
+  [15960/22357] found=6495 | last: 7957 Sausalito Ave, Canoga Park, 91304 → RS-1
+  [15970/22357] found=6504 | last: 8600 Mason Ave, Winnetka, 91306 → RS-1
+  [15980/22357] found=6512 | last: 18725 Schoenborn St, Northridge, 91324 → RS-1
+  [15990/22357] found=6522 | last: 19016 Runnymede, Reseda, 91335 → R1-1
+  [16000/22357] found=6532 | last: 7625 Reseda Blvd #104, Reseda, 91335 → [Q]R3-1VL-CDO
+  💾 Checkpoint: 14,486 entries saved
+  [16010/22357] found=6542 | last: 7927 Paso Robles Ave, Van Nuys, 91406 → RA-1
+  [16020/22357] found=6552 | last: 20155 Keswick St #219, Winnetka, 91306 → R3-1
+  [16030/22357] found=6562 | last: 8846 Laramie Ave, Winnetka, 91306 → RS-1
+  [16040/22357] found=6572 | last: 19505 Herringbone Dr, Northridge, 91324 → [Q]C2-1
+  [16050/22357] found=6582 | last: 7848 Chastain Ave, Reseda, 91335 → R1-1
+  [16060/22357] found=6592 | last: 17641 Kittridge, Van Nuys, 91406 → R1-1-RIO
+  [16070/22357] found=6602 | last: 9055 Forbes Ave, Northridge, 91343 → RS-1
+  [16080/22357] found=6612 | last: 7959 Bothwell Rd, Reseda, 91335 → RS-1
+  [16090/22357] found=6622 | last: 6820 Jellico Ave, Van Nuys, 91406 → R1-1
+  [16100/22357] found=6632 | last: 17800 Raymer St, Sherwood Frst, 91325 → RA-1
+  💾 Checkpoint: 14,579 entries saved
+  [16110/22357] found=6642 | last: 7001 Lasaine Ave, Van Nuys, 91406 → R1-1
+  [16120/22357] found=6652 | last: 17734 Baltar St, Reseda, 91335 → R1-1
+  [16130/22357] found=6662 | last: 7414 Quartz, Winnetka, 91306 → R1-1
+  [16140/22357] found=6672 | last: 7252 Rhea, Reseda, 91335 → R1-1
+  [16150/22357] found=6682 | last: 7434 Nestle Ave, Reseda, 91335 → R1-1
+  [16160/22357] found=6692 | last: 6834 Baird Ave, Reseda, 91335 → (T)[Q]RAS4-1L-CDO-RIO
+  [16170/22357] found=6699 | last: 21138 Poema Pl, Chatsworth, 91311 → —
+  [16180/22357] found=6705 | last: 9950 Topanga Cyn, Chatsworth, 91311 → R3-1
+  [16190/22357] found=6714 | last: 21206 Merridy St, Chatsworth, 91311 → RS-1
+  [16200/22357] found=6723 | last: 9527 oso Ave, Chatsworth, 91311 → RS-1
+  💾 Checkpoint: 14,677 entries saved
+  [16210/22357] found=6731 | last: 7449 Studio Rd, Canoga Park, 91304 → —
+  [16220/22357] found=6741 | last: 9626 Hanna Ave, Chatsworth, 91311 → RS-1
+  [16230/22357] found=6748 | last: 22655 La Quilla Dr, Chatsworth, 91311 → —
+  [16240/22357] found=6753 | last: 21316 Nashville, Chatsworth, 91311 → RA-1
+  [16250/22357] found=6761 | last: 11826 Canoga Ave, Chatsworth, 91311 → —
+  [16260/22357] found=6769 | last: 10401 Willowbrae, Chatsworth, 91311 → R1-1
+  [16270/22357] found=6774 | last: 0 Box Cyn, Canoga Park, 91304 → —
+  [16280/22357] found=6782 | last: 0 Tulsa Ave, Chatsworth, 91311 → (T)(Q)RA-1-K
+  [16290/22357] found=6786 | last: 0 Lake Mnr, Chatsworth, 91311 → A2-1
+  [16300/22357] found=6790 | last: 69 COYA Trl, Chatsworth, 91311 → —
+  💾 Checkpoint: 14,773 entries saved
+  [16310/22357] found=6797 | last: 22804 W Seaqua Cir, Chatsworth, 91311 → (T)(Q)RE40-1-H-K
+  [16320/22357] found=6806 | last: Rome Plan, Ch  [16320/22257] found=6838 | last: 10861 Lindley Ave, Granada Hills, 91344 → RS-1
+  [16330/22257] found=6848 | last: 18169 Knoll Hl, Granada Hills, 91344 → RE20-1-O-K
+  [16340/22257] found=6858 | last: 7301 Lennox Unit B8, Van Nuys, 91405 → R3-1
+  [16350/22257] found=6868 | last: 6631 Densmore Ave, Van Nuys, 91406 → R1-1-RIO
+  [16360/22257] found=6878 | last: 15542 Sherman Way #11, Van Nuys, 91406 → [Q]RD1.5-1
+  [16370/22257] found=6888 | last: 8430 Langdon #3, North Hills, 91343 → R3-1
+  [16380/22257] found=6898 | last: 15865 Vanowen St, Van Nuys, 91406 → R3-1
+  [16390/22257] found=6908 | last: 14860 Nordhoff St, Panorama City, 91402 → (Q)RD1.5-1
+  [16400/22257] found=6918 | last: 9213 Independence Way, North Hills, 9134 → (Q)RD3-1
+  💾 Checkpoint: 14,966 entries saved
+  [16410/222  [16420/22357] found=6904 | last: 10861 Lindley Ave, Granada Hills, 91344 → RS-1
+  [16430/22357] found=6914 | last: 18169 Knoll Hl, Granada Hills, 91344 → RE20-1-O-K
+  [16440/22357] found=6924 | last: 7301 Lennox Unit B8, Van Nuys, 91405 → R3-1
+  [16450/22357] found=6934 | last: 6631 Densmore Ave, Van Nuys, 91406 → R1-1-RIO
+  [16460/22357] found=6944 | last: 15542 Sherman Way #11, Van Nuys, 91406 → [Q]RD1.5-1
+  [16470/22357] found=6954 | last: 8430 Langdon #3, North Hills, 91343 → R3-1
+  [16480/22357] found=6964 | last: 15865 Vanowen St, Van Nuys, 91406 → R3-1
+  [16490/22357] found=6974 | last: 14860 Nordhoff St, Panorama City, 91402 → (Q)RD1.5-1
+  [16500/22357] found=6984 | last: 9213 Independence Way, North Hills, 9134 → (Q)RD3-1
+  💾 Checkpoint: 14,966 entries saved
+  [16510/22357] found=6994 | last: 14426 Friar St, Van Nuys, 91401 → [Q]C2-1L-CDO
+  [16520/22357] found=7004 | last: 16751 Rayen, Northridge, 91343 → RA-1
+  [16530/22357] found=7014 | last: 6038 Allott Ave, Van Nuys, 91401 → R1-1
+  [16540/22357] found=7024 | last: 9119 Wakefield Ave #2, Panorama City, 91 → [Q]R3-1VL
+  [16550/22357] found=7034 | last: 8901 Rubio Ave, North Hills, 91343 → RS-1
+  [16560/22357] found=7044 | last: 9144 Burnet #31, North Hills, 91343 → (Q)RD1.5-1
+  [16570/22357] found=7054 | last: 14835 Kittridge St, Van Nuys, 91405 → R1-1
+  [16580/22357] found=7064 | last: 15044 Nordhoff #1, North Hills, 91343 → (Q)RD1.5-1
+  [16590/22357] found=7074 | last: 7924 Woodman Ave #35, Panorama City, 914 → R3-1
+  [16600/22357] found=7084 | last: 6121 Woodman Ave, Van Nuys, 91401 → R3-1
+  💾 Checkpoint: 15,056 entries saved
+  [16610/22357] found=7094 | last: 13617 Valerio St Unit C, Van Nuys, 91405 → R3-1
+  [16620/22357] found=7104 | last: 8828 Zeiler, Arleta, 91331 → R1-1
+  [16630/22357] found=7114 | last: 7035 Woodley Ave #113, Van Nuys, 91406 → (Q)R3-1
+  [16640/22357] found=7124 | last: 14206 Calvert St, Van Nuys, 91401 → [Q]R3-1
+  [16650/22357] found=7134 | last: 14629 Erwin St, Van Nuys, 91411 → [Q]R3-1
+  [16660/22357] found=7144 | last: 15240 Nordhoff St, North Hills, 91343 → R3-1
+  [16670/22357] found=7153 | last: 13400 Roscoe Blvd, Panorama City, 91402 → RS-1
+  [16680/22357] found=7161 | last: 2016 N Screenland, Burbank, 91505 → —
+  [16690/22357] found=7171 | last: 7409 Irvine Dr, North Hollywood, 91605 → R1-1
+  [16700/22357] found=7181 | last: 6223 Morse, North Hollywood, 91606 → R3-1
+  💾 Checkpoint: 15,151 entries saved
+  [16710/22357] found=7191 | last: 7608 Ani Way, North Hollywood, 91605 → (T)(Q)RD3-1
+  [16720/22357] found=7201 | last: 7617 Lilly Way, North Hollywood, 91605 → (T)(Q)RD3-1
+  [16730/22357] found=7210 | last: 6122 Satsuma Ave, North Hollywood, 91606 → R1-1
+  [16740/22357] found=7220 | last: 6046 Fair Ave, North Hollywood, 91606 → R1-1
+  [16750/22357] found=7230 | last: 6059 N Tujunga Ave, North Hollywood, 916 → [Q]R3-1
+  [16760/22357] found=7239 | last: 6250 Coldwater Canyon Ave, North Hollywo → RD2-1
+  [16770/22357] found=7248 | last: 7745 Radford Ave, North Hollywood, 91605 → R1-1-CUGU
+  [16780/22357] found=7257 | last: 6738 Coldwater Cyn, North Hollywood, 916 → R1-1
+  [16790/22357] found=7266 | last: 8446 Bradley Ave, Sun Valley, 91352 → R1-1-CUGU
+  [16800/22357] found=7276 | last: 15952 Kalisher, Granada Hills, 91344 → RS-1
+  💾 Checkpoint: 15,247 entries saved
+  [16810/22357] found=7286 | last: 14632 Glenridge Ct, Sylmar, 91342 → (Q)RD3-1
+  [16820/22357] found=7295 | last: 14357 Herron St, Sylmar, 91342 → R1-1
+  [16830/22357] found=7305 | last: 14870 Hubbard, Sylmar, 91342 → RS-1
+  [16840/22357] found=7313 | last: 16553 Kingsbury, Granada Hills, 91344 → RS-1
+  [16850/22357] found=7321 | last: 15786 Midwood, Granada Hills, 91344 → RD2-1
+  [16860/22357] found=7331 | last: 9506 Burnet, North Hills, 91343 → RA-1
+  [16870/22357] found=7341 | last: 12519 Haleh Ln, Sylmar, 91342 → (Q)R1-1
+    Timeout, retry 1...
+  [16880/22357] found=7351 | last: 15952 Simonds, Granada Hills, 91344 → RS-1
+  [16890/22357] found=7360 | last: 1128 7th, San Fernando, 91340 → —
+  [16900/22357] found=7369 | last: 12603 Ralston, Sylmar, 91342 → RD3-1XL-CPIO
+  💾 Checkpoint: 15,347 entries saved
+  [16910/22357] found=7378 | last: 10831 Orion Ave, Mission Hills, 91345 → RS-1
+  [16920/22357] found=7387 | last: 15657-15657 Devonshire, Granada Hills, 9 → C1-1VL
+  [16930/22357] found=7394 | last: 14761 Astoria St, Sylmar, 91342 → RD3-1XL-CPIO
+  [16940/22357] found=7402 | last: Plan One Plan, North Hills, 91343 → (T)(Q)RD1.5-1
+  [16950/22357] found=7410 | last: 10600 Helen Ave, Shadow Hills, 91040 → —
+  [16960/22357] found=7419 | last: 10521 Mary Bell Ave, Sunland, 91040 → RE40-1-K
+  [16970/22357] found=7428 | last: 12367 Stonegate Rd, Pacoima, 91331 → (Q)RD2-1-CUGU
+  [16980/22357] found=7438 | last: 10004 San Fernando Rd, Pacoima, 91331 → [Q]C2-1VL-CUGU
+  [16990/22357] found=7445 | last: 11465 Fox Hollow Ln, Pacoima, 91331 → (Q)RD2-1-CUGU
+  [17000/22357] found=7455 | last: 12330 Osborne St #77, Pacoima, 91331 → RD1.5-1VL-CUGU
+  💾 Checkpoint: 15,438 entries saved
+  [17010/22357] found=7465 | last: 11080 De Foe Ave, Pacoima, 91331 → R1-1-CUGU
+  [17020/22357] found=7475 | last: 11926 Kathyann St, Sylmar, 91342 → RS-1
+  [17030/22357] found=7478 | last: 0 Spring Trl, Sylmar, 91342 → —
+  [17040/22357] found=7480 | last: 1927 N Fairview St, Burbank, 91505 → —
+  [17050/22357] found=7483 | last: 3003 Mesa Verde Dr, Burbank, 91504 → —
+  [17060/22357] found=7487 | last: 1420 N Frederic, Burbank, 91505 → —
+  [17070/22357] found=7492 | last: 441 Dartmouth Rd, Burbank, 91504 → —
+  [17080/22357] found=7494 | last: 2123 Crescent, Montrose, 91020 → —
+  [17090/22357] found=7498 | last: 1640 N Lincoln St, Burbank, 91506 → —
+  [17100/22357] found=7503 | last: 10323 Eldora, Sunland, 91040 → RD3-1
+  💾 Checkpoint: 15,535 entries saved
+  [17110/22357] found=7507 | last: 7422 valaho, Tujunga, 91042 → RE40-1
+  [17120/22357] found=7510 | last: 900 E Palm Ave, Burbank, 91501 → —
+  [17130/22357] found=7516 | last: 10200 Willow Spgs, Sunland, 91040 → A1-1
+  [17140/22357] found=7518 | last: 2109 N Lincoln St, Burbank, 91504 → —
+  [17150/22357] found=7524 | last: 505 Cambridge Dr, Burbank, 91504 → —
+  [17160/22357] found=7530 | last: 902 E WALNUT Ave, Burbank, 91501 → —
+  [17170/22357] found=7533 | last: 4 Vista Del Verde Dr, Glendale, 91208 → —
+  [17180/22357] found=7538 | last: 9631 Oak Bend Rd, Tujunga, 91402 → RE11-1
+  [17190/22357] found=7543 | last: 9442 Hillrose, Sunland, 91040 → RE40-1-K
+  [17200/22357] found=7548 | last: 9739 N Estaban Way, Tujunga, 91042 → RE11-1
+  💾 Checkpoint: 15,628 entries saved
+  [17210/22357] found=7554 | last: 10161 Foothill Blvd, Sylmar, 91342 → A2-1-K
+  [17220/22357] found=7562 | last: 182 EMBURNS Rd, Glendale, 91206 → —
+  [17230/22357] found=7569 | last: 9400 N Del Arroyo Dr, Sun Valley, 91352 → A2-1
+  [17240/22357] found=7570 | last: 2971 Emerson Way, Altadena, 91001 → —
+  [17250/22357] found=7570 | last: 632 Hartwell Ct, Altadena, 91001 → —
+  [17260/22357] found=7570 | last: 2236 Suree Ellen Ln, Altadena, 91001 → —
+  [17270/22357] found=7570 | last: 740 Via Arezzo Pl, Altadena, 91001 → —
+  [17280/22357] found=7570 | last: 163 E Loma Alta Dr, Altadena, 91001 → �  [17290/22257] found=7504 | last: 513 Heritage Valley Pkwy, Fillmore, 9301 → —
+  [17300/22257] found=7504 | last: 251 E Telegraph Rd, Fillmore, 93015 → —
+  💾 Checkpoint: 15,827 entries saved
+  [17310/22257] found=7504 | last: The Orchards Residence 4 Plan, Fillmore, → —
+  [17320/22257] found=7504 | last: 0 Young Wolf, Simi Valley, 93065 → —
+  [17330/22257] found=7504 | last: 87 Crown Hill St, Simi Valley, 93063 → —
+  [17340/22257] found=7504 | last: 146 Bushwillow Way, Piru, 93040 → —
+  [17350/22257] found=7504 | last: 23515 Lyons, Valencia, 91355 → —
+  [17360/22257] found=7504 | last: 24109 Del Monte Dr #467, Valencia, 91355 → —
+  [17370/22257] found=7505 | last: 27120 Purple Sage Ct, Vale  [17380/22357] found=7570 | last: 7017 Bergamot Ave, Moorpark, 93021 → —
+  [17390/22357] found=7570 | last: 513 Heritage Valley Pkwy, Fillmore, 9301 → —
+  [17400/22357] found=7570 | last: 251 E Telegraph Rd, Fillmore, 93015 → —
+  💾 Checkpoint: 15,827 entries saved
+  [17410/22357] found=7570 | last: The Orchards Residence 4 Plan, Fillmore, → —
+  [17420/22357] found=7570 | last: 0 Young Wolf, Simi Valley, 93065 → —
+  [17430/22357] found=7570 | last: 87 Crown Hill St, Simi Valley, 93063 → —
+  [17440/22357] found=7570 | last: 146 Bushwillow Way, Piru, 93040 → —
+  [17450/22357] found=7570 | last: 23515 Lyons, Valencia, 91355 → —
+  [17460/22357] found=7570 | last: 24109 Del Monte Dr #467, Valencia, 91355 → —
+  [17470/22357] found=7571 | last: 27120 Purple Sage Ct, Valencia, 91381 → —
+  [17480/22357] found=7571 | last: 24981 Greensbrier, Stevenson Ranch, 9138 → —
+  [17490/22357] found=7574 | last: 23745 Del Monte #153, Valencia, 91355 → —
+  [17500/22357] found=7574 | last: 22435 Cardiff Dr, Santa Clarita, 91350 → —
+  💾 Checkpoint: 15,919 entries saved
+  [17510/22357] found=7575 | last: 13354 Mission Tierra Way, Granada Hills, → RS-1
+  [17520/22357] found=7575 | last: 21982 Moveo Dr, Santa Clarita, 91350 → —
+  [17530/22357] found=7575 | last: 27408 Horizon View Ln, Valencia, 91381 → —
+  [17540/22357] found=7575 | last: 26669 Orion Way, Valencia, 91381 → —
+  [17550/22357] found=7575 | last: 23712 Wilcox Dr, Santa Clarita, 91321 → —
+  [17560/22357] found=7575 | last: 26524 Valley Oak Ln, Valencia, 91381 → —
+  [17570/22357] found=7575 | last: 25530 Hemingway, Stevenson Ranch, 91381 → —
+  [17580/22357] found=7575 | last: 26729 Laurel Mountain Loop, Valencia, 91 → —
+  [17590/22357] found=7576 | last: 25845 McBean Pkwy #19, Valencia, 91355 → —
+  [17600/22357] found=7578 | last: 27409 Journey Pl #205, Valencia, 91381 → —
+  💾 Checkpoint: 16,014 entries saved
+  [17610/22357] found=7578 | last: 25657 Almendra Dr, Valencia, 91355 → —
+  [17620/22357] found=7578 | last: 27404 Creekwood Ln, Valencia, 91381 → —
+  [17630/22357] found=7578 | last: 27314 Shore Pine Pl, Valencia, 91381 → —
+  [17640/22357] found=7578 | last: 26851 Rugged Ridge Ln, Valencia, 91381 → —
+  [17650/22357] found=7578 | last: 27387 Fox Den Pl, Valencia, 91381 → —
+  [17660/22357] found=7578 | last: 27381 Fox Den Pl, Valencia, 91381 → —
+  [17670/22357] found=7578 | last: 26819 Serif Pl, Valencia, 91381 → —
+  [17680/22357] found=7578 | last: 27306 Bear Creek Ln, Stevenson Ranch, 91 → —
+  [17690/22357] found=7578 | last: Sunstone 3 Plan, Stevenson Ranch, 91381 → —
+  [17700/22357] found=7578 | last: Ruby 3 Plan, V1z4fy Valencia, 91381 → —
+  💾 Checkpoint: 16,053 entries saved
+  [17710/22357] found=7578 | last: Newarke Plan, Valencia, 91381 → —
+  [17720/22357] found=7582 | last: 19366 Avenue Of The Oaks, Newhall, 91321 → —
+  [17730/22357] found=7590 | last: 13342 Glenoaks Blvd, Sylmar, 91342 → RA-1-K
+  [17740/22357] found=7592 | last: 16400 Alamo Cyn, Canyon Country, 91387 → —
+  [17750/22357] found=7594 | last: 19711 Skyview Ct, Canyon Country, 91351 → —
+  [17760/22357] found=7596 | last: 18619 Cedar Crest Dr, Canyon Country, 91 → —
+  [17770/22357] found=7601 | last: 17913 Maplehurst Pl, Canyon Country, 913 → —
+  [17780/22357] found=7604 | last: 14325 Foothill Blvd #34, Sylmar, 91342 → QRD1.5-1
+  [17790/22357] found=7608 | last: 14428 Rex St, Sylmar, 91342 → R1-1-K
+  [17800/22357] found=7611 | last: 13901 Olive View Ln #51, Sylmar, 91342 → QRD1.5-1
+  💾 Checkpoint: 16,141 entries saved
+  [17810/22357] found=7616 | last: 14030 Simshaw, Sylmar, 91342 → RS-1
+  [17820/22357] found=7618 | last: 0 Kadina Dr, Sylmar, 91342 → —
+  [17830/22357] found=7621 | last: 13050 Dronfield Ave #21, Sylmar, 91342 → R3-1-CPIO
+  [17840/22357] found=7624 | last: 13748 Amanda Ln, Sylmar, 91342 → (Q)RD3-1
+  [17850/22357] found=7627 | last: 0 Sally Rd, Santa Clarita, 91321 → —
+  [17860/22357] found=7629 | last: 14031 Astoria St #102, Sylmar, 91342 → R3-1-CPIO
+  [17870/22357] found=7630 | last: 0 VIC Ave. M12 5th St. West, Palmdale, 9 → —
+  [17880/22357] found=7630 | last: 0 Desert Vw, Wrightwood, 92397 → —
+  [17890/22357] found=7630 | last: 1671 Twin Lks, Wrightwood, 92397 → —
+  [17900/22357] found=7630 | last: 1501 Oriole, Wrightwood, 92397 → —
+  💾 Checkpoint: 16,234 entries saved
+  [17910/22357] found=7630 | last: 5412 Heath Crk, Wrightwood, 92397 → —
+  [17920/22357] found=7630 | last: 784 Apple Ave, Wrightwood, 92397 → —
+  [17930/22357] found=7630 | last: 1074 Yellowstone Dr, Wrightwood, 92397 → —
+  [17940/22357] found=7630 | last: 1056 Eagle Rd, Wrightwood, 92397 → —
+  [17950/22357] found=7630 | last: 0 North Cardinal Rd, Wrightwood, 92397 → —
+  [17960/22357] found=7630 | last: 0 Logwood Dr, Wrightwood, 92397 → —
+  [17970/22357] found=7630 | last: 1202 N Hwy 2, Wrightwood, 92397 → —
+  [17980/22357] found=7630 | last: 8325 Johnson Rd, Phelan, 92371 → —
+  [17990/22357] found=7630 | last: 7939 Pipeline Rd, Pinon Hills, 92372 → —
+  [18000/22357] found=7630 | last: 1 Cygnet Rd, Phelan, 92371 → —
+  💾 Checkpoint: 16,334 entries saved
+  [18010/22357] found=7630 | last: 0 Romero Cyn, Castaic, 91384 → —
+  [18020/22357] found=7630 | last: 0 Lincoln Ave, Pacoima, 91331 → —
+  [18030/22357] found=7630 | last: 29164 Justamere, Val Verde, 91384 → —
+  [18040/22357] found=7630 | last: 29180 Eveningside Dr, Castaic, 91384 → —
+  [18050/22357] found=7630 | last: 0 Hunstock St, Val Verde Park, 91384 → —
+  [18060/22357] found=7630 | last: 27834 Parkvale Dr, Santa Clarita, 91350 → —
+  [18070/22357] found=7630 | last: 26815 Lugar De Oro Dr, Valencia, 91354 → —
+  [18080/22357] found=7630 | last: 27606 Skylark Ln, Santa Clarita, 91350 → —
+  [18090/22357] found=7630 | last: 27976 Red Pine Ct, Valencia, 91354 → —
+  [18100/22357] found=7630 | last: 24313 Camino Oceano, Santa Clarita, 9135 → —
+  💾 Checkpoint: 16,434 entries saved
+  [18110/22357] found=7630 | last: 29223 Bernardo Way, Valencia, 91354 → —
+  [18120/22357] found=7630 | last: 29013 Mirada Circulo, Valencia, 91354 → —
+  [18130/22357] found=7630 | last: 23097 Lowridge Pl, Santa Clarita, 91390 → —
+  [18140/22357] found=7630 | last: 0 Seco, Santa Clarita, 91350 → —
+  [18150/22357] found=7630 | last: 23402 Brookdale Ln #56, Valencia, 91355 → —
+  [18160/22357] found=7630 | last: 31363 The Old Rd Unit A, Castaic, 91384 → —
+  [18170/22357] found=7630 | last: 27646-A Susan Beth Way, Santa Clarita, 9 → —
+  [18180/22357] found=7630 | last: 28314 Easton, Santa Clarita, 91350 → —
+  [18190/22357] found=7630 | last: 24120 Victoria #47, Valencia, 91355 → —
+  [18200/22357] found=7630 | last: 24600 Avignon, Santa Clarita, 91355 → —
+  💾 Checkpoint: 16,534 entries saved
+  [18210/22357] found=7630 | last: 0 San Francisquito, Saugus, 91355 → —
+  [18220/22357] found=7630 | last: 27127 Rio Bosque Dr, Valencia, 91354 → —
+  [18230/22357] found=7630 | last: 24427 Camino Oceano, Santa Clarita, 9135 → —
+  [18240/22357] found=7630 | last: 28515 Wildflower Ter, Castaic, 91384 → —
+  [18250/22357] found=7630 | last: 24317 Camino Oceano, Santa Clarita, 9135 → —
+  [18260/22357] found=763  [18260/22257] found=7564 | last: 27832 Audrey Ct, Canyon Country, 91351 → —
+  [18270/22257] found=7564 | last: Cheryl Ln, Cottonwood, 96022 → —
+  [18280/22257] found=7564 | last: 19038 Carranza, Santa Clarita, 91350 → —
+  [18290/22257] found=7564 | last: 17930 Scherzinger Ln, Santa Clarita, 913 → —
+  [18300/22257] found=7564 | last: 26972 Flo #305, Canyon Country, 91351 → —
+  💾 Checkpoint: 16,695 entries saved
+  [18310/22257] found=7564 | last: 27806 Meadowcreek, Canyon Country, 91351 → —
+  [18320/22257] found=7564 | last: 27828 Spyglass Ln, Canyon Country, 91351 → —
+  [18330/22257] found=7564 | last: 0 Shadow Valley Ln, Saugus, 91390 → —
+  [18340/22257] found=7564 | last: Plan 4 Plan, S  [18350/22357] found=7630 | last: 28217 Nield Ct, Santa Clarita, 91350 → —
+  [18360/22357] found=7630 | last: 27832 Audrey Ct, Canyon Country, 91351 → —
+  [18370/22357] found=7630 | last: Cheryl Ln, Cottonwood, 96022 → —
+  [18380/22357] found=7630 | last: 19038 Carranza, Santa Clarita, 91350 → —
+  [18390/22357] found=7630 | last: 17930 Scherzinger Ln, Santa Clarita, 913 → —
+  [18400/22357] found=7630 | last: 26972 Flo #305, Canyon Country, 91351 → —
+  💾 Checkpoint: 16,695 entries saved
+  [18410/22357] found=7630 | last: 27806 Meadowcreek, Canyon Country, 91351 → —
+  [18420/22357] found=7630 | last: 27828 Spyglass Ln, Canyon Country, 91351 → —
+  [18430/22357] found=7630 | last: 0 Shadow Valley Ln, Saugus, 91390 → —
+  [18440/22357] found=7630 | last: Plan 4 Plan, Santa Clarita, 91350 → —
+  [18450/22357] found=7630 | last: 35315 Glenwall St, Agua Dulce, 91390 → —
+  [18460/22357] found=7630 | last: 1 Vac cor of Quail/Elkhorn, Acton, 93510 → —
+  [18470/22357] found=7630 | last: 0 Clanfield St, Acton, 93510 → —
+  [18480/22357] found=7630 | last: 3943 Sierra Hwy, Acton, 93510 → —
+  [18490/22357] found=7630 | last: Cor Eager Rd Maxine Way, Acton, 93510 → —
+  [18500/22357] found=7630 | last: 11709 Mint Canyon Rd, Santa Clarita, 913 → —
+  💾 Checkpoint: 16,788 entries saved
+  [18510/22357] found=7630 | last: 0 Sierra Hwy, Agua Dulce, 91390 → —
+  [18520/22357] found=7630 | last: 0 Escondido, Agua Dulce, 91350 → —
+  [18530/22357] found=7630 | last: 33344 Rose Ave, Acton, 93510 → —
+  [18540/22357] found=7630 | last: 36042 32nd E, Palmdale, 93550 → —
+  [18550/22357] found=7630 | last: 172 W Avenue U, Palmdale, 93551 → —
+  [18560/22357] found=7630 | last: 0 Tuckerway Rnch, Acton, 93510 → —
+  [18570/22357] found=7630 | last: 82 Ovac/vic 82nd ste Mt Emma Rd, Palmdal → —
+  [18580/22357] found=7630 | last: 0 VIC KALMAN N OF SIERRA H, Acton, 93510 → —
+  [18590/22357] found=7630 | last: 0 Tierra Subida Ave, Palmdale, 93551 → —
+  [18600/22357] found=7630 | last: 0 Rolandee St, Action, 93510 → —
+  💾 Checkpoint: 16,888 entries saved
+  [18610/22357] found=7630 | last: 0 Kentucky Springs Rd, Acton, 93510 → —
+  [18620/22357] found=7630 | last: Vic Ranchero Rd Blackber, Palmdale, 9355 → —
+  [18630/22357] found=7630 | last: 2 Rushing Creek Trl, Palmdale, 93550 → —
+  [18640/22357] found=7630 | last: 31st Street West, Acton, 93510 → —
+  [18650/22357] found=7630 | last: Vic Avenue Y 96 Ste, Juniper Hills, 9354 → —
+  [18660/22357] found=7630 | last: 0 Vac/Vic, Juniper Hills, 93543 → —
+  [18670/22357] found=7630 | last: 12399 E Ave V-12, Pearblossom, 93553 → —
+  [18680/22357] found=7630 | last: 0 Vic Cima Mesa 104 St E, Juniper Hills, → —
+  [18690/22357] found=7630 | last: Cor Avenue W8 Pav 126 Ste, Pearblossom,  → —
+  [18700/22357] found=7630 | last: 0 E Ave T-12, Pearblossom, 93553 → —
+  💾 Checkpoint: 16,987 entries saved
+  [18710/22357] found=7630 | last: Vac Land Hampel Ave, Juniper Hills, 9354 → —
+  [18720/22357] found=7630 | last: 33403 111th St, Littlerock, 93543 → —
+  [18730/22357] found=7630 | last: 96 E Vac/Pearblossom Hwy/Vic 96th S, Lit → —
+  [18740/22357] found=7630 | last: 1 E 121 St Pav Vic Avenue St W, Pearblos → —
+  [18750/22357] found=7630 | last: 47-St S 47 Th STE  Ave V7, Palmdale, 935 → —
+  [18760/22357] found=7630 | last: 6386 Pearblossom Hwy, Palmdale, 93552 → —
+  [18770/22357] found=7630 | last: 0 E Pearblossom Hwy, Littlerock (also Li → —
+  [18780/22357] found=7630 | last: 0 Vac/96 Ste/Vic Avenue Y2, Juniper Hill → —
+  [18790/22357] found=7630 | last: 31100 195th St E, Llano, 93544 → —
+  [18800/22357] found=7630 | last: Vic Avenue W12 146 Ste, Pearblossom, 935 → —
+  💾 Checkpoint: 17,086 entries saved
+  [18810/22357] found=7630 | last: Vic Avenue X8 Largo Vis, Llano, 93544 → —
+  [18820/22357] found=7630 | last: Vic Avenue Y4 183 Ste, Llano, 93544 → —
+  [18830/22357] found=7630 | last: Ave W And Vic 146th St East, Pearblossom → —
+  [18840/22357] found=7630 | last: 0 COR AVE V6 133 St E, Pearblossom, 9355 → —
+  [18850/22357] found=7630 | last: 31550 Longview Rd, Juniper Hills, 93543 → —
+  [18860/22357] found=7630 | last: Vic Longview Rd, Pearblossom, 93553 → —
+  [18870/22357] found=7630 | last: 13510 E Avenue W11, Pearblossom, 93553 → —
+  [18880/22357] found=7630 | last: 172 E Avenue T#4, Palmdale, 93591 → —
+  [18890/22357] found=7630 | last: 0 165th St E, Llano, 93544 → —
+  [18900/22357] found=7630 | last: 0 Vac/Pearblossom Pav /Vic 160 S, Pearbl → —
+  💾 Checkpoint: 17,180 entries saved
+  [18910/22357] found=7630 | last: 250th St E/north Of Ave U, Llano, 93544 → —
+  [18920/22357] found=7630 | last: 0 Colorado Rd, Pinon Hills, 92372 → —
+  [18930/22357] found=7630 | last: 0 Minero Rd, Pinon Hills, 92372 → —
+  [18940/22357] found=7630 | last: 31300 235th St E, Llano, 93544 → —
+  [18950/22357] found=7630 | last: 12326 Silver Rock, Pinon Hills, 92372 → —
+  [18960/22357] found=7630 | last: 14 Vic Ave Z14 235 STE, Llano, 93544 → —
+  [18970/22357] found=7630 | last: 0-14 E 230th E, Palmdale, 93591 → —
+  [18980/22357] found=7630 | last: 0 Z12 257 STE, Llano, 93544 → —
+  [18990/22357] found=7630 | last: 1111 Wintergreen Rd, Pinon Hills, 92372 → —
+  [19000/22357] found=7630 | last: 23000 E Antelope Hwy & Vic Ave X, Llano, → —
+  💾 Checkpoint: 17,280 entries saved
+  [19010/22357] found=7630 | last: 10823 Daisy Court Ln, Pinon Hills, 92372 → —
+  [19020/22357] found=7630 | last: 165 Vac/Vic 165 Ste/Ft Tejon St E, Llano → —
+  [19030/22357] found=7630 | last: 15745 Silver Rock Rd, Pinon Hills, 92372 → —
+  [19040/22357] found=7630 | last: 10120 Mescalero, Phelan, 92371 → —
+  [19050/22357] found=7630 | last: 9610 Mescalero, Phelan, 92371 → —
+  [19060/22357] found=7630 | last: 0 Yuba Rd, Phelan, 92371 → —
+  [19070/22357] found=7630 | last: 9527 Riggins Rd, Phelan, 92371 → —
+  [19080/22357] found=7630 | last: 0 Tokay Rd, Phelan, 92371 → —
+  [19090/22357] found=7630 | last: 0 South St, Phelan, 92371 → —
+  [19100/22357] found=7630 | last: 0 White Fox Trl, Phelan, 92371 → —
+  💾 Checkpoint: 17,380 entries saved
+  [19110/22357] found=7630 | last: 0 Ridge Rd, Castaic, 91384 → —
+  [19120/22357] found=7630 | last: 0 Cliffedge Dr, Green Valley, 91350 → —
+  [19130/22357] found=7630 | last: 0-vac Deer Bank, Elizabeth Lake, 93532 → —
+  [19140/22357] found=7630 | last: 42846 Montello Dr, Lake Hughes, 93532 → —
+  [19150/22357] found=7630 | last: Kiptree Dr, Elizabeth Lake, 93532 → —
+  [19160/22357] found=7630 | last: 0 Vac Calle El Baranco/Vic Spunk, Green  → —
+  [19170/22357] found=7630 | last: Calle Maceta De Flores, Green Valley, 91 → —
+  [19180/22357] found=7630 | last: 6727 Miramar, Palmdale, 93551 → —
+  [19190/22357] found=7630 | last: 40755 Knollwood Ct, Palmdale, 93551 → —
+  [19200/22357] found=7630 | last: 95 W Avenue N, Palmdale, 93551 → —
+  💾 Checkpoint: 17,480 entries saved
+  [19210/22357] found=7630 | last: 0 Joshua Ranch Lot on Yianni Ct, Palmdal → —
+  [19220/22357] found=7630 | last: 42118 Tropez, Lancaster, 93536 → —
+  [19230/22357] found=7630 | last: 41301 Elsdale Pl, Palmdale, 93551 → —
+  [19240/22357] found=7630 | last: 5121 W Avenue M4, Lancaster, 93536 → �  [19250/22257] found=7564 | last: 38667 Panther Dr, Palmdale, 93551 → —
+  [19260/22257] found=7564 | last: 0 AVE S4 & EL Camino., Palmdale, 93551 → —
+  [19270/22257] found=7564 | last: 1728 Blackberry Ct, Palmdale, 93551 → —
+  [19280/22257] found=7564 | last: 0 DIVISION St, Palmdale, 93550 → —
+  [19290/22257] found=7564 | last: 38251 Lisman, Palmdale, 93550 → —
+  [19300/22257] found=7564 | last: 1635 Balinese, Leona Valley, 93551 → —
+  💾 Checkpoint: 17,673 entries saved
+  [19310/22257] found=7564 | last: S Avenue Vic Ave, Palmdale, 93550 → —
+  [19320/22257] found=7564 | last: Aqueduct Vic El Camino, Lake Los Angeles → —
+  [19330/22257] found=7564 | last: Palmdale Ca 93551 St, City Ranch, 9355  [19340/22357] found=7630 | last: 39221 Beacon Ln, Palmdale, 93551 → —
+  [19350/22357] found=7630 | last: 38667 Panther Dr, Palmdale, 93551 → —
+  [19360/22357] found=7630 | last: 0 AVE S4 & EL Camino., Palmdale, 93551 → —
+  [19370/22357] found=7630 | last: 1728 Blackberry Ct, Palmdale, 93551 → —
+  [19380/22357] found=7630 | last: 0 DIVISION St, Palmdale, 93550 → —
+  [19390/22357] found=7630 | last: 38251 Lisman, Palmdale, 93550 → —
+  [19400/22357] found=7630 | last: 1635 Balinese, Leona Valley, 93551 → —
+  💾 Checkpoint: 17,673 entries saved
+  [19410/22357] found=7630 | last: S Avenue Vic Ave, Palmdale, 93550 → —
+  [19420/22357] found=7630 | last: Aqueduct Vic El Camino, Lake Los Angeles → —
+  [19430/22357] found=7630 | last: Palmdale Ca 93551 St, City Ranch, 93551 → —
+  [19440/22357] found=7630 | last: 18 Street West and Ave S, Palmdale, 9355 → —
+  [19450/22357] found=7630 | last: Montera Plan 3 Plan, Palmdale, 93551 → —
+  [19460/22357] found=7630 | last: 4051 Sage Ct, Palmdale, 93552 → —
+  [19470/22357] found=7630 | last: 37031 Firethorn, Palmdale, 93550 → —
+  [19480/22357] found=7630 | last: 36418 Ramona, Palmdale, 93550 → —
+  [19490/22357] found=7630 | last: 38657 Lilacview Ave, Palmdale, 93550 → —
+  [19500/22357] found=7630 | last: 1252 E Avenue R6, Palmdale, 93550 → —
+  💾 Checkpoint: 17,767 entries saved
+  [19510/22357] found=7630 | last: 42nd Ste Vic Avenue S12 Ste, Palmdale, 9 → —
+  [19520/22357] found=7630 | last: 38726 4th E, Palmdale, 93550 → —
+  [19530/22357] found=7630 | last: 37012 Calle Bonita, Palmdale, 93550 → —
+  [19540/22357] found=7630 | last: 0 none, Palmdale, 93550 → —
+  [19550/22357] found=7630 | last: 37775 Aquarius Cir, Palmdale, 93552 → —
+  [19560/22357] found=7630 | last: 37121 Casa Grande, Palmdale, 93550 → —
+  [19570/22357] found=7630 | last: 38550 22nd E, Palmdale, 93550 → —
+  [19580/22357] found=7630 | last: Cor Avenue Q14 17th St East, Palmdale, 9 → —
+  [19590/22357] found=7630 | last: 38547 10th St E, Palmdale, 93550 → —
+  [19600/22357] found=7630 | last: 0 VAC/COR AVE Q5/15TH STE, Palmdale, 935 → —
+  💾 Checkpoint: 17,867 entries saved
+  [19610/22357] found=7630 | last: 0 E 12the Ste/Vic Ave Q5, Palmdale, 9355 → —
+  [19620/22357] found=7630 | last: 0 E Avenue Q, Palmdale, 93550 → —
+  [19630/22357] found=7630 | last: SW Avenue Q, Palmdale, 93550 → —
+  [19640/22357] found=7630 | last: 40327 Preston Rd, Palmdale, 93551 → —
+  [19650/22357] found=7630 | last: 0 W Ave L4, Lancaster, 93536 → —
+  [19660/22357] found=7630 | last: 41933 Loma Vis, Lancaster, 93536 → —
+  [19670/22357] found=7630 | last: 0 Ave L8 Vic 33 E, Lancaster, 93535 → —
+  [19680/22357] found=7630 | last: 2321 W Avenue M4, Palmdale, 93551 → —
+  [19690/22357] found=7630 | last: Vic Division St And Ave N8, Palmdale, 93 → —
+  [19700/22357] found=7630 | last: 0 W Avenue L, Lancaster, 93536 → —
+  💾 Checkpoint: 17,967 entries saved
+  [19710/22357] found=7630 | last: 2057 W Avenue O, Palmdale, 93551 → —
+  [19720/22357] found=7630 | last: 40247 Preston Rd, Palmdale, 93551 → —
+  [19730/22357] found=7630 | last: 39884 Golfers Dr, Palmdale, 93551 → —
+  [19740/22357] found=7630 | last: 102 E Avenue M, Palmdale, 93591 → —
+  [19750/22357] found=7630 | last: 0 Vac/Vic 40 Stw/Ave M8, Lancaster, 9353 → —
+  [19760/22357] found=7630 | last: 0 Avenue L4 / 23rd St E, Palmdale, 93550 → —
+  [19770/22357] found=7630 | last: 0 Nearby 115th St E/E Ave N8, Palmdale,  → —
+  [19780/22357] found=7630 | last: 6864 Buchet Dr, Palmdale, 93552 → —
+  [19790/22357] found=7630 | last: 38145 Lido Dr, Palmdale, 93552 → —
+  [19800/22357] found=7630 | last: 5522 Lighthouse Ln, Palmdale, 93552 → —
+  💾 Checkpoint: 18,067 entries saved
+  [19810/22357] found=7630 | last: Apn 3077-009-079 N8, Palmdale, 93591 → —
+  [19820/22357] found=7630 | last: 5139 Saint Laurent Pl, Palmdale, 93552 → —
+  [19830/22357] found=7630 | last: 5113 E Essex Dr, Palmdale, 93552 → —
+  [19840/22357] found=7630 | last: 36904 95th E, Littlerock, 93543 → —
+  [19850/22357] found=7630 | last: 111th St E/ave N4, Palmdale, 93591 → —
+  [19860/22357] found=7630 | last: 5060 Adobe Dr, Palmdale, 93552 → —
+  [19870/22357] found=7630 | last: 125th Cor 125th Ste 125th Ste Ste, Sun V → —
+  [19880/22357] found=7630 | last: 5642 Lighthouse, Palmdale, 93552 → —
+  [19890/22357] found=7630 | last: Vac/vic Ave N12/112 Ste Alpine, Palmdale → —
+  [19900/22357] found=7630 | last: 5602 E Avenue R11, Palmdale, 93552 → —
+  💾 Checkpoint: 18,167 entries saved
+  [19910/22357] found=7630 | last: 10117 E Avenue S2, Littlerock, 93543 → —
+  [19920/22357] found=7630 | last: 9860 E Avenue S-8, Littlerock, 93543 → —
+  [19930/22357] found=7630 | last: 0 COR 110TH STE PAV Ave, Sun Village, 93 → —
+  [19940/22357] found=7630 | last: Ave R6 Vic 105 Ste, Sun Village, 93543 → —
+  [19950/22357] found=7630 | last: 8700 E Palmdale Blvd, Littlerock, 93543 → —
+  [19960/22357] found=7630 | last: 4832 Summerbreeze Ct, Palmdale, 93552 → —
+  [19970/22357] found=7630 | last: 10710 E Avenue T, Littlerock, 93543 → —
+  [19980/22357] found=7630 | last: E 106th And S2 Littlerock Ca St, Littler → —
+  [19990/22357] found=7630 | last: 114th E & Ave L 7, Lancaster, 93535 → —
+  [20000/22357] found=7630 | last: 40734 163rd E, Lancaster, 93535 → —
+  💾 Checkpoint: 18,264 entries saved
+  [20010/22357] found=7630 | last: Vic Avenue L12 105 Ste, Palmdale, 93591 → —
+  [20020/22357] found=7630 | last: 40103 169th E, Palmdale, 93591 → —
+  [20030/22357] found=7630 | last: 0 Vic Avenue 04 147, Lake Los Angeles, 9 → —
+  [20040/22357] found=7630 | last: 170 E 170th Ste St, Palmdale, 93591 → —
+  [20050/22357] found=7630 | last: 0 152nd Ste/Vic, Lake Los Angeles, 93535 → —
+  [20060/22357] found=7630 | last: 0 E Grayback Dr, Hi Vista, 93535 → —
+  [20070/22357] found=7630 | last: 41136 174th E, Lancaster, 93535 → —
+  [20080/22357] found=7630 | last: 0 166Th St East, Lancaster, 93535 → —
+  [20090/22357] found=7630 | last: 40287 Fieldspring, Palmdale, 93591 → —
+  [20100/22357] found=7630 | last: 30710140 Valport Avenue 178th Ste Lake L → —
+  💾 Checkpoint: 18,362 entries saved
+  [20110/22357] found=7630 | last: 0 Vac/Palmdale Blvd, Palmdale, 93591 → —
+  [20120/22357] found=7630 | last: 184 Ste Vic Avenue N4 Ste, Palmdale, 935 → —
+  [20130/22357] found=7630 | last: 226-STE Vac/Cor Ave, Llano, 93544 → —
+  [20140/22357] found=7630 | last: 30720200 179th Street,, Lake Los Angeles → —
+  [20150/22357] found=7630 | last: Valeport Ave By 177th St E, Lake Los Ang → —
+  [20160/22357] found=7630 | last: 21000 E Avenue M-12, Lancaster, 93535 → —
+  [20170/22357] found=7630 | last: 162 High Chaparral, Lake Los Angeles, 93 → —
+  [20180/22357] found=7630 | last: 132 E Vic Avenue N9, Palmdale, 93591 → —
+  [20190/22357] found=7630 | last: Longview Rd, Lancaster, 93535 → —
+  [20200/22357] found=7630 | last: 150 Avenue N8 Unit Vic, Lake Los Angeles → —
+  💾 Checkpoint: 18,458 entries saved
+  [20210/22357] found=7630 | last: 0 E Avenue Q3, Palmdale, 93591 → —
+  [20220/22357] found=7630 | last: 0 Palmdale-lancaster, Palmdale, 93591 → —
+  [20230/22357] found=7630 | last: E 168th St, Palmdale, 93591 → �  [20240/22257] found=7564 | last: 0 Holly St #4, Phelan, 92371 → —
+  [20250/22257] found=7564 | last: 0 Palmer Rd, Adelanto, 92301 → —
+  [20260/22257] found=7564 | last: 0 Vac/Vic Avenue N11/Largo, Palmdale, 93 → —
+  [20270/22257] found=7564 | last: 0 ST HELEN, El Mirage, 92301 → —
+  [20280/22257] found=7564 | last: 0 Holly St, Phelan, 92371 → —
+  [20290/22257] found=7564 | last: 7 Quail Lk, Gorman, 93536 → —
+  [20300/22257] found=7564 | last: 229 W Avenue D-11, Lancaster, 93536 → —
+  💾 Checkpoint: 18,654 entries saved
+  [20310/22257] found=7564 | last: 240 AVE D4 DRT VIC 240TH S LOT 46, Lanca → —
+  [20320/22257] found=7564 | last: 0 260th St W, Lancaster, 93536 → —
+  [20330/22257] found=756  [20330/22357] found=7630 | last: 0 E Avenue O, Palmdale, 93591 → —
+  [20340/22357] found=7630 | last: 0 Holly St #4, Phelan, 92371 → —
+  [20350/22357] found=7630 | last: 0 Palmer Rd, Adelanto, 92301 → —
+  [20360/22357] found=7630 | last: 0 Vac/Vic Avenue N11/Largo, Palmdale, 93 → —
+  [20370/22357] found=7630 | last: 0 ST HELEN, El Mirage, 92301 → —
+  [20380/22357] found=7630 | last: 0 Holly St, Phelan, 92371 → —
+  [20390/22357] found=7630 | last: 7 Quail Lk, Gorman, 93536 → —
+  [20400/22357] found=7630 | last: 229 W Avenue D-11, Lancaster, 93536 → —
+  💾 Checkpoint: 18,654 entries saved
+  [20410/22357] found=7630 | last: 240 AVE D4 DRT VIC 240TH S LOT 46, Lanca → —
+  [20420/22357] found=7630 | last: 0 260th St W, Lancaster, 93536 → —
+  [20430/22357] found=7630 | last: 13200 W Avenue G12, Lancaster, 93536 → —
+  [20440/22357] found=7630 | last: 43379 Lookabout, Lake Hughes, 93532 → —
+  [20450/22357] found=7630 | last: Avenue F And 185th St W, Del Sur, 93536 → —
+  [20460/22357] found=7630 | last: Cor Avenue C12 & 141st St West, Fairmont → —
+  [20470/22357] found=7630 | last: 44132 Munz Ranch Rd, Lake Hughes, 93532 → —
+  [20480/22357] found=7630 | last: 17713 Valley Trl, Lake Hughes, 93532 → —
+  [20490/22357] found=7630 | last: 0 Sandrock Dr, Elizabeth Lake, 93532 → —
+  [20500/22357] found=7630 | last: 20500 W Avenue F-10, Lancaster, 93536 → —
+  💾 Checkpoint: 18,753 entries saved
+  [20510/22357] found=7630 | last: Austin Way / Lakeshore Rd, Lake Hughes,  → —
+  [20520/22357] found=7630 | last: 10-AC W Avenue D8, Lancaster, 93536 → —
+  [20530/22357] found=7630 | last: 43323 Honeybee Ln, Lancaster, 93536 → —
+  [20540/22357] found=7630 | last: 6700 W Avenue E-8, Lancaster, 93536 → —
+  [20550/22357] found=7630 | last: Cor 95 Stw Unit D8, Lancaster, 93536 → —
+  [20560/22357] found=7630 | last: 47306 93rd W, Lancaster, 93536 → —
+  [20570/22357] found=7630 | last: 90 W Avenue K, Lancaster, 93536 → —
+  [20580/22357] found=7630 | last: 43890 Moccasin, Lancaster, 93536 → —
+  [20590/22357] found=7630 | last: 50001 77th Street West, Lancaster, 93536 → —
+  [20600/22357] found=7630 | last: W Ave K2, Lancaster, 93536 → —
+  💾 Checkpoint: 18,852 entries saved
+  [20610/22357] found=7630 | last: 44451 63rd St, Lancaster, 93536 → —
+  [20620/22357] found=7630 | last: 43637 59th St, Lancaster, 93536 → —
+  [20630/22357] found=7630 | last: 0 Stw/Vic Lumber, Lancaster, 93535 → —
+  [20640/22357] found=7630 | last: 8347 W Avenue D10, Lancaster, 93536 → —
+  [20650/22357] found=7630 | last: Vac/vic 70th St W & Ave F, Lancaster, 93 → —
+  [20660/22357] found=7630 | last: Lancaster, 93536 → —
+  [20670/22357] found=7630 | last: 75 Vac/Vic AVE E6, Lancaster, 93536 → —
+  [20680/22357] found=7630 | last: 6717-6999 Ave J, Lancaster, 93536 → —
+  [20690/22357] found=7630 | last: 0 Lancaster, Caliche, 93536 → —
+  [20700/22357] found=7630 | last: 85 W Avenue F, Lancaster, 93536 → —
+  💾 Checkpoint: 18,952 entries saved
+  [20710/22357] found=7630 | last: 8155 W Avenue E, Lancaster, 93536 → —
+  [20720/22357] found=7630 | last: 11000 Avenue G8, Lancaster, 93536 → —
+  [20730/22357] found=7630 | last: 0 W Avenue L, Lancaster, 93536 → —
+  [20740/22357] found=7630 | last: Avenue K Vic 77 Stw, Lancaster, 93536 → —
+  [20750/22357] found=7630 | last: 99 W Avenue I12, Lancaster, 93536 → —
+  [20760/22357] found=7630 | last: W Vic West Ave G And 60th W, Lancaster,  → —
+  [20770/22357] found=7630 | last: 0 W Cor Avenue D 55th, Lancaster, 93536 → —
+  [20780/22357] found=7630 | last: 48 Ave E-2, Lancaster, 93536 → —
+  [20790/22357] found=7630 | last: APN 3268-016-027, Lancaster, 93536 → —
+  [20800/22357] found=7630 | last: 0 Vac/Vic Avenue H8/120 Stw, Del Sur, 93 → —
+  💾 Checkpoint: 19,049 entries saved
+  [20810/22357] found=7630 | last: 0 Ave L Vic 46th St W, Lancaster, 93536 → —
+  [20820/22357] found=7630 | last: 0 34th St West and Ave E-8, Antelope Acr → —
+  [20830/22357] found=7630 | last: 75 Vac/75 Stw/Vic Avenue G8, Antelope Ac → —
+  [20840/22357] found=7630 | last: Vic191StW Ave E2, Lancaster, 93536 → —
+  [20850/22357] found=7630 | last: 55 Vac Cor Ave I55 Stw Drt, Del Sur, 935 → —
+  [20860/22357] found=7630 | last: 2822 W Lumber, Lancaster, 93536 → —
+  [20870/22357] found=7630 | last: 44200 Kingtree Ave #50, Lancaster, 93534 → —
+  [20880/22357] found=7630 | last: 45228 Lorimer, Lancaster, 93534 → —
+  [20890/22357] found=7630 | last: 42927 W 21st St, Lancaster, 93536 → —
+  [20900/22357] found=7630 | last: 433 W Avenue J5 #13, Lancaster, 93534 → —
+  💾 Checkpoint: 19,144 entries saved
+  [20910/22357] found=7630 | last: 75-th W Avenue I, Del Sur, 93536 → —
+  [20920/22357] found=7630 | last: 3525 W Avenue J3, Lancaster, 93536 → —
+  [20930/22357] found=7630 | last: 2805 W Avenue K12 Apt#143, Lancaster, 93 → —
+  [20940/22357] found=7630 | last: 110 Ave L-8 Unit Vic, Lancaster, 93535 → —
+  [20950/22357] found=7630 | last: 44019 W 22nd St, Lancaster, 93536 → —
+  [20960/22357] found=7630 | last: 44410 Loneoak Ave, Lancaster, 93534 → —
+  [20970/22357] found=7630 | last: 45 Avenue H, Lancaster, 93535 → —
+  [20980/22357] found=7630 | last: 42901 Willow West Ct, Lancaster, 93536 → —
+  [20990/22357] found=7630 | last: 44913 Redwood, Lancaster, 93534 → —
+  [21000/22357] found=7630 | last: E Ave K-10 And 136th St St E, Lancaster, → —
+  💾 Checkpoint: 19,240 entries saved
+  [21010/22357] found=7630 | last: 45724 Victoria Ave, Lancaster, 93534 → —
+  [21020/22357] found=7630 | last: 140 E Ave I, Lancaster, 93535 → —
+  [21030/22357] found=7630 | last: 1475 Boyden Ave, Lancaster, 93534 → —
+  [21040/22357] found=7630 | last: 42801-42801 15th W, Lancaster, 93534 → —
+  [21050/22357] found=7630 | last: 44620 Painted Desert St, Lancaster, 9353 → —
+  [21060/22357] found=7630 | last: 42803 ALEXO Dr, Lancaster, 93536 → —
+  [21070/22357] found=7630 | last: 215 Cor Lancaster Blvd/215 Ste, Lancaste → —
+  [21080/22357] found=7630 | last: Cor Ave J 250 Ste, Lancaster, 93535 → —
+  [21090/22357] found=7630 | last: 50 W Lancaster Blvd, Lancaster, 93536 → —
+  [21100/22357] found=7630 | last: 44152 Elm Ave, Lancaster, 93534 → —
+  💾 Checkpoint: 19,332 entries saved
+  [21110/22357] found=7630 | last: 110 E Avenue J-8, Lancaster, 93535 → —
+  [21120/22357] found=7630 | last: 105 W Avenue K, Lancaster, 93536 → —
+  [21130/22357] found=7630 | last: Vic Ave C2 102 Stw, Lancaster, 93536 → —
+  [21140/22357] found=7630 | last: 0 Vac/117 Ste/Vic Avenue J5, Lancaster,  → —
+  [21150/22357] found=7630 | last: 0 Vac/114 Ste/Vic Avenue J10, Lancaster, → —
+  [21160/22357] found=7630 | last: 105 E Avenue H, Lancaster, 93535 → —
+  [21170/22357] found=7630 | last: 0 Lancaster Bl / 108 St E, Lancaster, 93 → —
+  [21180/22357] found=7630 | last: 43653 32nd E, Lancaster, 93535 → —
+  [21190/22357] found=7630 | last: 0 Avenue H 41st St East, Lancaster, 9353 → —
+  [21200/22357] found=7630 | last: 2013 E Ivesbrook St, Lancaster, 93535 → —
+  💾 Checkpoint: 19,427 entries saved
+  [21210/22357] found=7630 | last: 44715 Gingham, Lancaster, 93535 → —
+  [21220/22357] found=7630 | last: 1335 Samra Ave, Lancaster, 93535 → —
+  [21230/22357] found=7630 | last: 0 VAC/AVE L/VIC CHALLENGER Way, Lancaste → —
+  [21240/  [21240/22257] found=7564 | last: E Avenue K 8, Lancaster, 93535 → —
+  [21250/22257] found=7564 | last: Ave H8 / Foxton Ave, Lancaster, 93534 → —
+  [21260/22257] found=7564 | last: Cor Avenue K 35th Ste, Lancaster, 93535 → —
+  [21270/22257] found=7564 | last: V.L. E Kettering St, Lancaster, 93535 → —
+  [21280/22257] found=7564 | last: 45644 Rachel Ave, Lancaster, 93535 → —
+  [21290/22257] found=7564 | last: Plan 2089 Modeled Plan, Lancaster, 93535 → —
+  [21300/22257] found=7564 | last: 12 E Ste Vic Avenue G8 Ste, Lancaster, 9 → —
+  💾 Checkpoint: 19,617 entries saved
+  [21310/22257] found=7564 | last: 46135 10th St W, Lan  [21320/22357] found=7630 | last: 2108 Beechwood, Lancaster, 93535 → —
+  [21330/22357] found=7630 | last: 637 E Avenue K4, Lancaster, 93535 → —
+  [21340/22357] found=7630 | last: E Avenue K 8, Lancaster, 93535 → —
+  [21350/22357] found=7630 | last: Ave H8 / Foxton Ave, Lancaster, 93534 → —
+  [21360/22357] found=7630 | last: Cor Avenue K 35th Ste, Lancaster, 93535 → —
+  [21370/22357] found=7630 | last: V.L. E Kettering St, Lancaster, 93535 → —
+  [21380/22357] found=7630 | last: 45644 Rachel Ave, Lancaster, 93535 → —
+  [21390/22357] found=7630 | last: Plan 2089 Modeled Plan, Lancaster, 93535 → —
+  [21400/22357] found=7630 | last: 12 E Ste Vic Avenue G8 Ste, Lancaster, 9 → —
+  💾 Checkpoint: 19,617 entries saved
+  [21410/22357] found=7630 | last: 46135 10th St W, Lancaster, 93536 → —
+  [21420/22357] found=7630 | last: Vic G8, Lancaster, 93535 → —
+  [21430/22357] found=7630 | last: 0 Vic Ave J6 34Th Stw, Lancaster, 93536 → —
+  [21440/22357] found=7630 | last: 20 Street. West Vic Unit D6, Lancaster,  → —
+  [21450/22357] found=7630 | last: 65 E Avenue G-12, Lancaster, 93535 → —
+  [21460/22357] found=7630 | last: 0 E Avenue G-6, Lancaster, 93535 → —
+  [21470/22357] found=7630 | last: 0 Vac/127 Ste/Vic Avenue F2, Lake Los An → —
+  [21480/22357] found=7630 | last: 0 Vac/Sierra Hwy/Vic Avenue E6, Lancaste → —
+  [21490/22357] found=7630 | last: 0 Avenue E-4, Lancaster, 93535 → —
+  [21500/22357] found=7630 | last: 16 E Avenue F-12 St, Lancaster, 93535 → —
+  💾 Checkpoint: 19,715 entries saved
+  [21510/22357] found=7630 | last: 22nd East & F2, Lancaster, 93535 → —
+    Timeout, retry 1...
+  [21520/22357] found=7630 | last: Avenue E / 44th Street East, Lancaster,  → —
+  [21530/22357] found=7630 | last: 0 E Vac Ave E #Vic 20, Lancaster, 93535 → —
+  [21540/22357] found=7630 | last: 20 E Ste Vic Avenue G4 Ste, Lancaster, 9 → —
+  [21550/22357] found=7630 | last: 120th St E/south Of Ave K8, Lancaster, 9 → —
+  [21560/22357] found=7630 | last: 12300 E Avenue G-4, Lancaster, 93535 → —
+  [21570/22357] found=7630 | last: Vic Avenue G8 11 Ste, Lancaster, 93535 → —
+  [21580/22357] found=7630 | last: Avenue J And 80 St E, Lancaster, 93535 → —
+  [21590/22357] found=7630 | last: Cor Avenue E 50 Ste, Hi Vista, 93535 → —
+  [21600/22357] found=7630 | last: 10000 E 87th St, Lancaster, 93535 → —
+  💾 Checkpoint: 19,811 entries saved
+  [21610/22357] found=7630 | last: 0 Ave. D-12 & Vic. 91st Ste., Lancaster, → —
+  [21620/22357] found=7630 | last: Vic Avenue E 260 Ste, Hi Vista, 93535 → —
+  [21630/22357] found=7630 | last: 0 Vac/vic Ave Unit K12/58, Roosevelt, 93 → —
+  [21640/22357] found=7630 | last: 9680 E E Ave. J, Lancaster, 93535 → —
+  [21650/22357] found=7630 | last: 47805 55th St E, Lancaster, 93535 → —
+  [21660/22357] found=7630 | last: 47660 120th St E, Lancaster, 93535 → —
+  [21670/22357] found=7630 | last: 0 Vac/Vic Avenue H8/245th Ste, Lancaster → —
+  [21680/22357] found=7630 | last: Vic 92 Ste Ave I10, Lake Los Angeles, 93 → —
+  [21690/22357] found=7630 | last: 0 Vac/Cor Avenue H4/150 Ste, Lancaster,  → —
+  [21700/22357] found=7630 | last: 107th Street East & Avenue D 4, Lancaste → —
+  💾 Checkpoint: 19,901 entries saved
+  [21710/22357] found=7630 | last: Cor Elizabeth Lane Ave, Lancaster, 93535 → —
+  [21720/22357] found=7630 | last: 0 Vac/ E Ave G/ 50th St E, Lancaster, 11 → —
+  [21730/22357] found=7630 | last: 0 E Ave H4/East Of 150th St E, Lancaster → —
+  [21740/22357] found=7630 | last: 13200 E Avenue E-10, Lancaster, 93535 → —
+  [21750/22357] found=7630 | last: 185 Ste, Palmdale, 93591 → —
+  [21760/22357] found=7630 | last: 46919 197th St, Lancaster, 93535 → —
+  [21770/22357] found=7630 | last: 158-158 S Newmont Ave, Lake Los Angeles, → —
+  [21780/22357] found=7630 | last: 800 (200th St. E), Lancaster, 93535 → —
+  [21790/22357] found=7630 | last: 205 Vac/vic Ave, Hi Vista, 93535 → —
+  [21800/22357] found=7630 | last: 204 E Avenue H4, Hi Vista, 93535 → —
+  💾 Checkpoint: 19,994 entries saved
+  [21810/22357] found=7630 | last: 0 165th St E, Lancaster, 93535 → —
+  [21820/22357] found=7630 | last: 20623 E Avenue K, Lancaster, 93535 → —
+  [21830/22357] found=7630 | last: Vic Avenue I-4, Lancaster, 93535 → —
+  [21840/22357] found=7630 | last: 170th E & Ave K 4 Ave, Lancaster, 93535 → —
+  [21850/22357] found=7630 | last: 0 Nearby 250th St E/Ave L, Lancaster, 93 → —
+  [21860/22357] found=7630 | last: E Ave J/260th St E, Adelanto, 92301 → —
+  [21870/22357] found=7630 | last: E 230th St, Lancaster, 93535 → —
+  [21880/22357] found=7630 | last: 220 E Avenue D-8, Hi Vista, 93535 → —
+  [21890/22357] found=7630 | last: Vic Avenue D 234 Ste, Hi Vista, 93535 → —
+  [21900/22357] found=7630 | last: 0 Avenue E-8, Hi Vista, 93535 → —
+  💾 Checkpoint: 20,082 entries saved
+  [21910/22357] found=7630 | last: 0 Cor Ave D8 Drt 215 Ste, Hi Vista, 9353 → —
+  [21920/22357] found=7630 | last: 11 Blanco Rd, El Mirage, 92301 → —
+  [21930/22357] found=7630 | last: 1 Verano Dr, Adelanto, 92301 → —
+  [21940/22357] found=7630 | last: 3821 North End Dr, Frazier Park, 93225 → —
+  [21950/22357] found=7630 | last: 0 Landfill Rd, Lebec, 93243 → —
+  [21960/22357] found=7630 | last: 0 North End Dr, Frazier Park, 93225 → —
+  [21970/22357] found=7630 | last: S/e Corner Of 265th St W/georg, Rosamond → —
+  [21980/22357] found=7630 | last: 246th St W And Ave B10, Lancaster, 93536 → —
+  [21990/22357] found=7630 | last: 290th W Stw Vic, Lancaster, 93536 → —
+  [22000/22357] found=7630 | last: 230 Avenue B-4, Lancaster, 93536 → —
+  💾 Checkpoint: 20,180 entries saved
+  [22010/22357] found=7630 | last: 26602 Avenue C-4, Lancaster, 93536 → —
+  [22020/22357] found=7630 | last: 0 270th St, Tehachapi, 93561 → —
+  [22030/22357] found=7630 | last: 0 230th St, Rosamond, 93560 → —
+  [22040/22357] found=7630 | last: 0 Avenue A, Lancaster, 93536 → —
+  [22050/22357] found=7630 | last: W Ave A & 185th St W, Rosamond, 93560 → —
+  [22060/22357] found=7630 | last: Cor Avenue B12 125 Stw, Lancaster, 93536 → —
+  [22070/22357] found=7630 | last: 0 Vac/135 Stw/Vic Avenue C10, Lancaster, → —
+  [22080/22357] found=7630 | last: 12 Vac/150 Stw/Vic Avenue B12, Lancaster → —
+  [22090/22357] found=7630 | last: 7095 Cypress Ave, Rosamond, 93560 → —
+  [22100/22357] found=7630 | last: Corner Avenue A8 And 67th St W, Lancaste → —
+  💾 Checkpoint: 20,279 entries saved
+  [22110/22357] found=7630 | last: 42nd Street West & Avenue C-10, Lancaste → —
+  [22120/22357] found=7630 | last: 0 67th St W, Lancaster, 93536 → —
+  [22130/22357] found=7630 | last: 89 street E Avenue A, Del Sur, 93536 → —
+  [22140/22357] found=7630 | last: 37509029 Rosamond, Rosamond, 93560 → —
+  [22150/22357] found=7630 | last: Charan Rd Rd, Rosamond, 93560 → —
+  [22160/22357] found=7630 | last: 7315 W Ave A 8, Lancaster, 93536 → —
+  [22170/22357] found=7630 | last: Cor Ave B2 122 Stw, Lancaster, 93536 → —
+  [22180/22357] found=7630 | last: 80th St W & Gaskell Rd, Rosamond, 93560 → —
+  [22190/22357] found=7630 | last: 96 W Avenue A, Lancaster, 93536 → —
+  [22200/22357] found=7630 | last: 105th St West And B10, Lancaster, 93536 → —
+  💾 Checkpoint: 20,376 entries saved
+  [22210/22357] found=7630 | last: 71 Antelope Hwy, Lancaster, 93536 → —
+  [22220/22357] found=7630 | last: 97th St & A Ave, Rosamond, 93560 → —
+  [22230/22357] found=7630 | last: 0 Vac/Cor Avenue A6 Drt /106 Stw, Lancas → —
+  [22240/22357] found=7630 | last: 0 Buckhorn Ave & Killdeer (92nd), Ros  [22250/22257] found=7564 | last: 225th St E And Ave B8, Hi Vista, 93535 → —
+  [22257/22257] found=7564 | last: Ave B, Lancaster, 93535 → —
+
+Done! 7564/22257 lookups returned zoning data.
+Total cached: 20,523 entries → zoning.json
+280/22357] found=7630 | last: Cor Avenue A-10, Lancaster, 93536 → —
+  [22290/22357] found=7630 | last: 0 W Vic Ave C5 35 STW, Lancaster, 93536 → —
+  [22300/22357] found=7630 | last: 14-Hwy 20 Street West & Marie Ave, Rosam → —
+  💾 Checkpoint: 20,471 entries saved
+  [22310/22357] found=7630 | last: 0 Vac/Vic Avenue A/5 Stw, Lancaster, 935 → —
+  [22320/22357] found=7630 | last: 235 Avenue B, Lancaster, 93535 → —
+  [22330/22357] found=7630 | last: 0 Avenue A #HI, Lancaster, 93535 → —
+  [22340/22357] found=7630 | last: 245th St East And A8, Lancaster, 93535 → —
+  [22350/22357] found=7630 | last: 225th St E And Ave B8, Hi Vista, 93535 → —
+  [22357/22357] found=7630 | last: Ave B, Lancaster, 93535 → —
+
+Done! 7630/22357 lookups returned zoning data.
+Total cached: 20,523 entries → zoning.json
