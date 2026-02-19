@@ -1,0 +1,2997 @@
+{
+ "33.740948,-118.289799": {
+  "zoning": "RD1.5-1XL-CPIO",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.939419,-118.279079": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.937083,-118.288129": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.932046,-118.304384": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.925024,-118.278437": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.925933,-118.292357": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.934715,-118.299913": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.917671,-118.308874": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.933675,-118.275916": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.935833,-118.308725": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.924423,-118.301092": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938024,-118.281225": {
+  "zoning": "[Q]R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "33.936056,-118.287312": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.938899,-118.283712": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.935707,-118.294656": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.935308,-118.301193": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.934569,-118.317481": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.939889,-118.308484": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.934224,-118.294617": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.936977,-118.282614": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.935105,-118.312425": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.936524,-118.306741": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.936669,-118.298267": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.925896,-118.284114": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.919528,-118.305243": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93407,-118.285145": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.918562,-118.287288": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.935123,-118.295073": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938621,-118.277961": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.921305,-118.28375": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.931716,-118.315045": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.934145,-118.295902": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.937141,-118.276039": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.933451,-118.282343": {
+  "zoning": "C2-2D-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.924443,-118.279492": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.931523,-118.295184": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.925127,-118.306134": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93844,-118.30241": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.939858,-118.312017": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.935277,-118.293611": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.924919,-118.303061": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.931767,-118.275247": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.93884,-118.303286": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.930483,-118.295479": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93545,-118.275505": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.935854,-118.275505": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.919142,-118.282796": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.924943,-118.297583": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.926519,-118.29993": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93851,-118.296786": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938865,-118.289216": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.934753,-118.294768": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93059,-118.286786": {
+  "zoning": "C2-2D-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.935861,-118.275767": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.923957,-118.279103": {
+  "zoning": "R2-1-CPIO",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.931754,-118.262768": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.920215,-118.247191": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938253,-118.237761": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.909544,-118.254975": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.935634,-118.244365": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.912651,-118.256394": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938717,-118.229124": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.924565,-118.24693": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.937535,-118.246636": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.926677,-118.269": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.920492,-118.266094": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.937767,-118.239664": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.931792,-118.234403": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.934063,-118.228947": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.938064,-118.250997": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.922166,-118.271579": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.932144,-118.263541": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.936182,-118.238216": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.939768,-118.237177": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.936569,-118.258444": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.939895,-118.264889": {
+  "zoning": "[Q]R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "33.937727,-118.241181": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.938658,-118.260676": {
+  "zoning": "M1-1-CPIO",
+  "category": "Manufacturing",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.934947,-118.240784": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.936067,-118.242846": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.933879,-118.240167": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.932771,-118.229216": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.939085,-118.247153": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.937621,-118.268445": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.931281,-118.228974": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.924552,-118.252482": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.911922,-118.255765": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.921518,-118.244627": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93128,-118.236924": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.911107,-118.256621": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.93482,-118.240744": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.939134,-118.26646": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.935639,-118.24454": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.91992,-118.253333": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.906845,-118.269943": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.930474,-118.244914": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.90896,-118.26932": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.939926,-118.255634": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.938777,-118.238164": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.907041,-118.26387": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.909527,-118.268372": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.924361,-118.229482": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.92289,-118.272158": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.92214,-118.253436": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.921543,-118.241925": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.936675,-118.258855": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.930268,-118.236619": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.939104,-118.272784": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.935006,-118.249617": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.913916,-118.267275": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.939462,-118.246715": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.92979,-118.240954": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.936119,-118.238774": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.924824,-118.27356": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.933501,-118.260113": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.93287,-118.26585": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.924867,-118.268051": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.932175,-118.234491": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.93815,-118.269371": {
+  "zoning": "C2-1VL",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.935455,-118.269936": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.929629,-118.269897": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.936616,-118.245391": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.937146,-118.246545": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.936682,-118.244245": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.936486,-118.23222": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.938497,-118.273043": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.914094,-118.259915": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.936676,-118.259907": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.913249,-118.265573": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.934595,-118.229083": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.935581,-118.251494": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.913485,-118.272063": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.913151,-118.273683": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.932221,-118.268873": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.935937,-118.264846": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.939196,-118.240392": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.02793,-118.515064": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.052361,-118.548566": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.998025,-118.439539": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.997457,-118.431446": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.992674,-118.440105": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.993559,-118.437326": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.997549,-118.440964": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.994559,-118.437967": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.996243,-118.438034": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.997421,-118.431886": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.990025,-118.430422": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.989652,-118.43939": {
+  "zoning": "CM(GM)-2D-CA",
+  "category": "Manufacturing",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.998234,-118.437815": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.998546,-118.434329": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.987586,-118.431776": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.997604,-118.433256": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.986554,-118.425226": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.99831,-118.43424": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.989131,-118.439161": {
+  "zoning": "CM(GM)-2D-CA",
+  "category": "Manufacturing",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.995245,-118.433725": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.999223,-118.44328": {
+  "zoning": "[Q]R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.98346,-118.429591": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.965432,-118.405034": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.984654,-118.353795": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.998422,-118.424376": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.963145,-118.392615": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.984348,-118.380649": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.97111,-118.372195": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.994983,-118.420084": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.974072,-118.397388": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.963375,-118.397139": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.967915,-118.39291": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.983416,-118.418362": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.973539,-118.393976": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.961171,-118.422028": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.957497,-118.423735": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.979515,-118.373398": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.966278,-118.376414": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.956604,-118.38731": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.973878,-118.370542": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.957161,-118.387355": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.988357,-118.377425": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.998359,-118.416287": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.968758,-118.382702": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.976333,-118.401683": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.980422,-118.378784": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.961966,-118.394709": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.95728,-118.381874": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.957448,-118.381879": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.975042,-118.401627": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.982842,-118.377101": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.988929,-118.420273": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.986398,-118.375408": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.955508,-118.421016": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.972892,-118.422078": {
+  "zoning": "R4(PV)",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "33.987022,-118.414408": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.979337,-118.400411": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.973339,-118.375747": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.958072,-118.407744": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.973973,-118.394928": {
+  "zoning": "RD1.5-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.966551,-118.394602": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.966188,-118.392175": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.99044,-118.42327": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.972389,-118.39063": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.962578,-118.411114": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.968953,-118.408788": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.971567,-118.400884": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.964009,-118.401756": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.966447,-118.399544": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.97271,-118.424756": {
+  "zoning": "C2(PV)",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "33.984984,-118.405485": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.974483,-118.377809": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.968549,-118.374919": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.972211,-118.388705": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.962657,-118.384456": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.988969,-118.374892": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.987205,-118.366318": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.958414,-118.38237": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.962181,-118.4104": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.97635,-118.403052": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.98821,-118.351004": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.985062,-118.380821": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.992941,-118.350658": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.987499,-118.374848": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.999204,-118.416405": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.968473,-118.411242": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.994796,-118.375696": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.984069,-118.375329": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.999417,-118.424014": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.978426,-118.380573": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.997199,-118.413538": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.983411,-118.370065": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.966268,-118.409349": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.959533,-118.424573": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.956569,-118.392066": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.963806,-118.375999": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.972769,-118.409556": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.962295,-118.408708": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.970004,-118.397072": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.961523,-118.39953": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.977828,-118.395635": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.966058,-118.40985": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.986841,-118.352218": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.957387,-118.381299": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.963797,-118.373778": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.974666,-118.375303": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.960224,-118.393151": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.985094,-118.36128": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.987865,-118.375677": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.975901,-118.376395": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.982182,-118.420671": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.973309,-118.371946": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.967919,-118.397337": {
+  "zoning": "RD1.5-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.983266,-118.363208": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.974668,-118.372063": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.975327,-118.420061": {
+  "zoning": "R4(PV)",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "33.962307,-118.407574": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.961058,-118.418015": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.959068,-118.408634": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "33.987706,-118.416333": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.987568,-118.416325": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.956892,-118.387129": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.987182,-118.366057": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.980944,-118.379462": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.990814,-118.369626": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.983138,-118.377333": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.972541,-118.375967": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.979936,-118.37587": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.990268,-118.423624": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.988757,-118.375894": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.962266,-118.402932": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.959181,-118.383344": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.985018,-118.354539": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.988753,-118.375882": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.970283,-118.404755": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.957771,-118.383789": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.958439,-118.383821": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.972532,-118.376828": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "33.96141,-118.40757": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.996232,-118.350315": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.968486,-118.374246": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.964378,-118.37931": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "33.993347,-118.369648": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "33.97235,-118.376241": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.026518,-118.451357": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.000537,-118.43848": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.009422,-118.438831": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.023539,-118.448748": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.028682,-118.427721": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.024537,-118.425568": {
+  "zoning": "R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.026784,-118.4409": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.015671,-118.44198": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.019427,-118.439653": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.009175,-118.448862": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.025916,-118.442168": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.006267,-118.43647": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.029938,-118.445224": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.020616,-118.436525": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.017099,-118.443446": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.010819,-118.430236": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.005704,-118.449681": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.027077,-118.441777": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027069,-118.440049": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018768,-118.430667": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.005657,-118.447775": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018356,-118.441449": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.009171,-118.42919": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.029155,-118.433036": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.005337,-118.45115": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.010062,-118.431185": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.021494,-118.438641": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.002216,-118.439972": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.007883,-118.454052": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.002831,-118.433261": {
+  "zoning": "[T][Q]C2-1",
+  "category": "Commercial",
+  "sb1123": null
+ },
+ "34.007007,-118.452429": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.012277,-118.434105": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.015809,-118.431142": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018999,-118.435322": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.01914,-118.435215": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027369,-118.431674": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.025601,-118.426673": {
+  "zoning": "R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.000133,-118.443159": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.011333,-118.435663": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.00889,-118.427575": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.007728,-118.435709": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.027384,-118.426505": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.009304,-118.438288": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.013546,-118.446434": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.025438,-118.450412": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027366,-118.449021": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.01428,-118.42547": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.002401,-118.432892": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.003524,-118.440976": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.02612,-118.447941": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.029846,-118.430692": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.012184,-118.427682": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.012511,-118.426853": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.001058,-118.425257": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.000071,-118.438826": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050003,-118.462559": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.057356,-118.464994": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056322,-118.465827": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.040375,-118.466875": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048935,-118.462842": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048992,-118.467258": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.057499,-118.467658": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.036984,-118.465308": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042558,-118.468558": {
+  "zoning": "[T][Q]C2-1VL-CDO",
+  "category": "Commercial",
+  "sb1123": null
+ },
+ "34.05097,-118.472569": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052493,-118.480306": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.0511,-118.469958": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.045673,-118.462976": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042126,-118.464288": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052001,-118.469021": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050801,-118.470674": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059587,-118.469569": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050894,-118.465746": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050639,-118.472026": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.049744,-118.492534": {
+  "zoning": "RE11-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.057697,-118.469128": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.040871,-118.464839": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059955,-118.489351": {
+  "zoning": "RE20-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.0514,-118.48086": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.046579,-118.466813": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048182,-118.468368": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.048209,-118.470215": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.05106,-118.471227": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.054069,-118.468689": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052203,-118.46778": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.057801,-118.466734": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059986,-118.468829": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048084,-118.464834": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.054753,-118.464611": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056974,-118.465912": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052239,-118.47522": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052604,-118.477118": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.055926,-118.465262": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050108,-118.472459": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047973,-118.467633": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04955,-118.463167": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059708,-118.481795": {
+  "zoning": "RS-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.049828,-118.4682": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.044363,-118.484908": {
+  "zoning": "RE11-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.049741,-118.469035": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.045953,-118.46413": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.0423,-118.462544": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047013,-118.466995": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04615,-118.475087": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.058301,-118.475568": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.056036,-118.487176": {
+  "zoning": "RE20-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.047507,-118.465706": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04834,-118.463608": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.053463,-118.486533": {
+  "zoning": "RE20-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.05266,-118.490434": {
+  "zoning": "RE11-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.042919,-118.464339": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.049832,-118.472155": {
+  "zoning": "[Q]RD3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.059451,-118.469125": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.049054,-118.471938": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.042743,-118.484073": {
+  "zoning": "RE9-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.050904,-118.467557": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052067,-118.492513": {
+  "zoning": "RE20-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.049092,-118.443212": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.036285,-118.458717": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.042442,-118.436259": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.048729,-118.427475": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.048413,-118.438103": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.041075,-118.449026": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.033663,-118.438403": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.033261,-118.429506": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.049015,-118.443828": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.038942,-118.452936": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.042896,-118.451844": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.031012,-118.429317": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.051618,-118.446843": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.040064,-118.448204": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.031037,-118.44139": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.046112,-118.462003": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.040114,-118.447576": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.043241,-118.429426": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.059958,-118.438189": {
+  "zoning": "[Q]R5-3-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.04135,-118.449988": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048167,-118.439014": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04829,-118.434546": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04786,-118.433257": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042645,-118.425552": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.039121,-118.450619": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.039076,-118.450981": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.039296,-118.453277": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.038884,-118.45513": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.039673,-118.455828": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.042094,-118.457092": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.034558,-118.442833": {
+  "zoning": "[T][Q]C2-1VL-CDO",
+  "category": "Commercial",
+  "sb1123": null
+ },
+ "34.052964,-118.437477": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.05335,-118.443582": {
+  "zoning": "[Q]R4-1L",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.055359,-118.425685": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.040708,-118.454023": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.059519,-118.43928": {
+  "zoning": "[Q]R5-3-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.042563,-118.431677": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.048309,-118.432331": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.034091,-118.431296": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.052552,-118.428636": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.054088,-118.430545": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048075,-118.455838": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047483,-118.455528": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04344,-118.447638": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.03219,-118.438081": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.041361,-118.451521": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059673,-118.438691": {
+  "zoning": "[Q]R5-3-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.045314,-118.425867": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.040096,-118.430242": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.046657,-118.441292": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.044833,-118.428883": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.039673,-118.451474": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.046242,-118.427347": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.045719,-118.456726": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056683,-118.434294": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052316,-118.44403": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.039934,-118.441421": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.057289,-118.436017": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.038612,-118.452055": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.056458,-118.432778": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.04305,-118.460174": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.05188,-118.436042": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.051968,-118.461868": {
+  "zoning": "[Q]R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.057309,-118.436005": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.047895,-118.441057": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.044224,-118.433792": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.056709,-118.434486": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.059095,-118.425321": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.031079,-118.428917": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.03141,-118.452059": {
+  "zoning": "RAS4-1VL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R1"
+ },
+ "34.033406,-118.426479": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.054347,-118.433474": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056402,-118.443855": {
+  "zoning": "[Q]R4-1L",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.047054,-118.459638": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.049245,-118.442277": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.038318,-118.45816": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048147,-118.457978": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047322,-118.438239": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047143,-118.439042": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.054692,-118.431223": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.050461,-118.461307": {
+  "zoning": "[Q]R4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.034372,-118.442691": {
+  "zoning": "[T][Q]C2-1VL-CDO",
+  "category": "Commercial",
+  "sb1123": null
+ },
+ "34.050033,-118.431223": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056838,-118.436682": {
+  "zoning": "[Q]RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.0462,-118.440155": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056598,-118.427826": {
+  "zoning": "R1-1-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.05935,-118.440243": {
+  "zoning": "[Q]R5-3-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.039856,-118.441519": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.05073,-118.432666": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.046755,-118.44267": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.039865,-118.459295": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.047323,-118.433742": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042897,-118.45286": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.055148,-118.444558": {
+  "zoning": "[Q]R4-1L",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.046769,-118.450439": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042242,-118.450851": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.042198,-118.448625": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.043414,-118.439003": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.052235,-118.444758": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.056352,-118.431584": {
+  "zoning": "[Q]R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.048073,-118.440381": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.037609,-118.447573": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.043466,-118.444784": {
+  "zoning": "[Q]R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.003968,-118.419456": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.027583,-118.400321": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.022125,-118.413901": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.004676,-118.421828": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.024602,-118.404579": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.002298,-118.417671": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.015881,-118.417202": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.02798,-118.412313": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.0178,-118.41071": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.02669,-118.394345": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.006818,-118.422853": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.005201,-118.421078": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.012884,-118.422494": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.000445,-118.419319": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.000804,-118.419278": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018791,-118.413697": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.012446,-118.420132": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.00218,-118.424588": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027815,-118.397836": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.017892,-118.4172": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018712,-118.422862": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.015196,-118.413914": {
+  "zoning": "C2-1",
+  "category": "Commercial",
+  "sb1123": "COMMERCIAL"
+ },
+ "34.027619,-118.395057": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.015684,-118.420332": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.006127,-118.415466": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.012306,-118.421556": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.022132,-118.41042": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.01672,-118.423575": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.005392,-118.423498": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.001013,-118.418196": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.002863,-118.423235": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.010897,-118.418935": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.001915,-118.418958": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null
+ },
+ "34.016895,-118.414328": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.022435,-118.408049": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027325,-118.411813": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.024142,-118.369584": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.000758,-118.356484": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.017427,-118.353009": {
+  "zoning": "R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.028689,-118.363276": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.029404,-118.364446": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.006222,-118.352445": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.0176,-118.352555": {
+  "zoning": "R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.021291,-118.363025": {
+  "zoning": "RD4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.013627,-118.355988": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.028711,-118.350468": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.026122,-118.351127": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.015204,-118.36042": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.02018,-118.375023": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.001119,-118.35706": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.028583,-118.362055": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.026711,-118.36259": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.005802,-118.351156": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.010304,-118.350422": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.027134,-118.352239": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.028584,-118.363168": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.01588,-118.359458": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.026766,-118.355274": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.018149,-118.370238": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.017118,-118.359385": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.018475,-118.363288": {
+  "zoning": "RD4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.008129,-118.350223": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.010707,-118.354712": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.01702,-118.35279": {
+  "zoning": "R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.029556,-118.352631": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.019242,-118.373555": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.028857,-118.362627": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.020378,-118.373808": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.017567,-118.351462": {
+  "zoning": "R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.005095,-118.352116": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.024108,-118.367465": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.01221,-118.365238": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.019564,-118.373896": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.001549,-118.356086": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.01455,-118.356726": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.028674,-118.363141": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.02681,-118.354763": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.021774,-118.356774": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.024413,-118.370661": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.026377,-118.358548": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.001037,-118.357312": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.024229,-118.370253": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.029281,-118.367164": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.021268,-118.362325": {
+  "zoning": "RD4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.018529,-118.358796": {
+  "zoning": "RD4-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.026084,-118.359137": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.003993,-118.355656": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.020754,-118.373661": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.016782,-118.353961": {
+  "zoning": "R3-1XL",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.028492,-118.371215": {
+  "zoning": "R1-1",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.021101,-118.374474": {
+  "zoning": "RD2-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.028368,-118.361288": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ },
+ "34.052035,-118.407929": {
+  "zoning": "R4-1L-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.056677,-118.395205": {
+  "zoning": "R4-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R4"
+ },
+ "34.051893,-118.388239": {
+  "zoning": "R1V2-O",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.038553,-118.390956": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "sb1123": "R1"
+ },
+ "34.054575,-118.389018": {
+  "zoning": "R3-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.055388,-118.399438": {
+  "zoning": "R3-1VL-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R3"
+ },
+ "34.055687,-118.398292": {
+  "zoning": "RD1.5-1-O",
+  "category": "Multiple Family Residential",
+  "sb1123": "R2"
+ }
+}

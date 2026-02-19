@@ -1,0 +1,67 @@
+/Users/mattlucido/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Loading listings from listings.js...
+  22,407 listings loaded
+  150 cached zoning lookups
+  Fetching zoning for 22,257 listings...
+  [10/22257] found=7 | last: 4461 W 61st St, Los Angeles, 90043 → —
+  [20/22257] found=16 | last: 7413 Naylor, Los Angeles, 90045 → R1-1
+  [30/22257] found=24 | last: 7801 Flight Ave #1, Los Angeles, 90045 → R2-1
+  [40/22257] found=31 | last: 7272 W 90th St, Los Angeles, 90045 → R1-1
+  [50/22257] found=41 | last: 5000 S Centinela #337, Los Angeles, 9006 → R3-1
+  [60/22257] found=51 | last: 5429 W 76th, Los Angeles, 90045 → R1-1
+  [70/22257] found=57 | last: 5329 Marburn Ave, Los Angeles, 90043 → —
+  [80/22257] found=62 | last: 8024 Stewart Ave, Los Angeles, 90045 → R1V2
+  [90/22257] found=72 | last: 4408 W 59th St, Los Angeles, 90043 → R1-1-O
+  [100/22257] found=80 | last: 7019 Ramsgate Ave, Los Angeles, 90045 → R3-1
+  💾 Checkpoint: 248 entries saved
+  [110/22257] found=89 | last: 4964 S Centinela Ave, Los Angeles, 90066 → R3-1
+  [120/22257] found=93 | last: 7100 La Tijera Blvd Unit D101, Los Angel → R3-1
+  [130/22257] found=101 | last: 5000 S Centinela Ave #109, Los Angeles,  → R3-1
+  [140/22257] found=109 | last: 2926 S Bentley Ave, Los Angeles, 90064 → R1-1
+  [150/22257] found=119 | last: 3144 -3152 S Barrington Ave, Los Angeles → R3-1
+  [160/22257] found=129 | last: 11290 Ivy Pl, Los Angeles, 90064 → R1V2
+  [170/22257] found=139 | last: 3230 S Barrington Ave, Los Angeles, 9006 → R3-1
+  [180/22257] found=149 | last: 3251 Stewart Ave, Los Angeles, 90066 → R1V2
+  [190/22257] found=159 | last: 11622 Charnock Rd, Los Angeles, 90066 → R1V2
+  [200/22257] found=169 | last: 11919 Mayfield, Los Angeles, 90049 → [Q]R3-1
+  💾 Checkpoint: 341 entries saved
+  [210/22257] found=179 | last: 11847 Gorham Ave #406, Los Angeles, 9004 → [Q]R3-1
+  [220/22257] found=189 | last: 1424 Amherst Ave #207, Los Angeles, 9002 → [Q]R3-1
+  [230/22257] found=199 | last: 11952 Montana Ave #303, Los Angeles, 900 → [Q]R3-1
+  [240/22257] found=209 | last: 12227 Tweed Ln, Los Angeles, 90049 → R1-1-O
+  [250/22257] found=219 | last: 11938 Dorothy St, Los Angeles, 90049 → [Q]R3-1
+  [260/22257] found=229 | last: 11822 Goshen Ave #301, Los Angeles, 9004 → [Q]R3-1
+  [270/22257] found=239 | last: 505 Barrington #402, Los Angeles, 90049 → R3-1
+  [280/22257] found=249 | last: 1745 S Bundy Dr, Los Angeles, 90025 → R1-1
+  [290/22257] found=259 | last: 2744 S Bentley Ave, Los Angeles, 90064 → R1-1
+  [300/22257] found=269 | last: 1909 Glendon Ave #304, Los Angeles, 9002 → R3-1-O
+  💾 Checkpoint: 419 entries saved
+  [310/22257] found=278 | last: 1645 Malcolm Ave #302, Los Angeles, 9002 → [Q]RD1.5-1
+  [320/22257] found=288 | last: 11535 Rochester Ave #308, Los Angeles, 9 → [Q]R3-1
+  [330/22257] found=298 | last: 2371 Midvale, Los Angeles, 90064 → R1-1
+  [340/22257] found=308 | last: 10750 Wilshire Blvd #1503, Los Angeles,  → [Q]R5-3-O
+  [350/22257] found=318 | last: 11500 San Vicente Blvd #202, Los Angeles → [Q]R4-1
+  [360/22257] found=328 | last: 10750 Wilshire Blvd #505, Los Angeles, 9 → [Q]R5-3-O
+  [370/22257] found=338 | last: 1154 S Barrington Ave #101, Los Angeles, → [Q]R4-1
+  [380/22257] found=348 | last: 1809 Overland Ave #5, Los Angeles, 90025 → R3-1-O
+  [390/22257] found=358 | last: 1361 Kelton Ave #502, Los Angeles, 90024 → [Q]R4-1L
+  [400/22257] found=367 | last: 4044 Coolidge Ave, Los Angeles, 90066 → —
+  💾 Checkpoint: 501 entries saved
+  [410/22257] found=376 | last: 3910 Mclaughlin Ave, Los Angeles, 90066 → R1V2
+  [420/22257] found=386 | last: 3500 Tuller, Los Angeles, 90034 → R1-1
+  [430/22257] found=394 | last: 11852 WASHINGTON Pl, Los Angeles, 90066 → R3-1
+  [440/22257] found=402 | last: 5447 Blackwelder St, Los Angeles, 90016 → RD1.5-1
+  [450/22257] found=412 | last: 4652 Don Lorenzo Dr Unit A, Los Angeles, → RD1.5-1
+  [460/22257] found=422 | last: 3841 S Redondo Blvd, Los Angeles, 90008 → R1-1
+  [470/22257] found=432 | last: 4400 Don Zarembo, Los Angeles, 90008 → R1-1
+  [480/22257] found=442 | last: 5741 Clemson, Los Angeles, 90016 → RD1.5-1
+  [490/22257] found=452 | last: 3849 Stevely Ave, Los Angeles, 90008 → R3-1XL
+  [500/22257] found=462 | last: 1257 Edris Dr, Los Angeles, 90035 → RD1.5-1-O
+  💾 Checkpoint: 599 entries saved
+  [510/22257] found=472 | last: 3126 S Canfield Ave, Los Angeles, 90034 → R3-1
+  [520/22257] found=482 | last: 2112 Century Park Ln #411, Los Angeles,  → R4-2-O
+  [530/22257] found=492 | last: 10547 Dunleer Dr, Los Angeles, 90064 → R1V2
+  [540/22257] found=502 | last: 2160 Century Park Unit 104N, Los Angeles → R4-2-O
+  [550/22257] found=512 | last: 9325 Oakmore Rd, Los Angeles, 90035 → R1V2
+  [560/22257] found=522 | last: 10323 Missouri Ave, Los Angeles, 90025 → R3-1-O

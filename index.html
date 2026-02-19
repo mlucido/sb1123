@@ -249,6 +249,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .listings-table .col-margin{width:65px}
   .listings-table .col-slope{width:60px}
   .listings-table .col-dom{width:45px}
+  .listings-table .col-new{width:40px;text-align:center}
   .listings-table .col-link{width:45px}
 
   .listings-table .zone-pill{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.03em}
@@ -256,6 +257,12 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .listings-table .redfin-link:hover{text-decoration:underline}
   .listings-table .profit-pos{color:var(--green)}
   .listings-table .profit-neg{color:var(--red)}
+
+  /* NEW listing badge */
+  .new-badge{display:inline-block;padding:1px 6px;border-radius:9px;font-size:9px;font-weight:700;letter-spacing:0.04em;background:#22c55e;color:#fff;vertical-align:middle;margin-left:4px;line-height:1.4}
+  .new-badge.week{background:#0ea5e9}
+  .listing-marker-new{animation:newPulse 2s ease-in-out infinite}
+  @keyframes newPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,0.6))}50%{filter:drop-shadow(0 0 10px rgba(34,197,94,0.9))}}
 
   /* Panel toggle in sidebar */
   .panel-toggle{
@@ -492,6 +499,10 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         <div class="stat-card"><div class="stat-value" id="medPpu">$0</div><div class="stat-label">Med $/Unit</div></div>
         <div class="stat-card"><div class="stat-value" id="medPpsf">$0</div><div class="stat-label">Med $/SF</div></div>
       </div>
+      <div class="stats-grid two-col" style="margin-top:6px">
+        <div class="stat-card"><div class="stat-value green" id="newCount">0</div><div class="stat-label">New (≤3 days)</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--accent)" id="newWeekCount">0</div><div class="stat-label">New This Week</div></div>
+      </div>
     </div>
   </div>
 
@@ -507,6 +518,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
       <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ DOM</span></button>
+      <button class="preset-btn" onclick="applyPreset('newThisWeek')">🆕 New This Week<br><span style="font-size:9px;color:var(--text-dim)">DOM ≤ 7</span></button>
     </div>
   </div>
 
@@ -747,6 +759,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           <th class="col-margin" data-sort="estMargin" onclick="sortTable('estMargin')">Margin <span class="sort-arrow">▲</span></th>
           <th class="col-slope" data-sort="slope" onclick="sortTable('slope')">Slope <span class="sort-arrow">▲</span></th>
           <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">DOM <span class="sort-arrow">▲</span></th>
+          <th class="col-new" data-sort="isNew" onclick="sortTable('isNew')">New <span class="sort-arrow">▲</span></th>
           <th class="col-link">Link</th>
         </tr>
       </thead>
@@ -791,6 +804,7 @@ const filters = {
 let currentSort = { key:'estMargin', dir:'desc' };
 let listingsPanelOpen = false;
 let favoritesOnly = false;
+let newThisWeekFilter = false;
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
@@ -1088,6 +1102,9 @@ function enrichListings(){
     l.guaranteedFAR = pf.guaranteedFAR;
     l.buildableSf = pf.buildableSf;
     l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
+    // NEW listing detection: DOM <= 3 = NEW, DOM <= 7 = new this week
+    l.isNew = (l.dom !== null && l.dom !== undefined && l.dom <= 3) ? 1 : 0;
+    l.isNewThisWeek = (l.dom !== null && l.dom !== undefined && l.dom <= 7) ? 1 : 0;
   });
 }
 
@@ -1110,6 +1127,7 @@ function getFilteredListings(){
   return LISTINGS.filter(l => {
     if(favoritesOnly && !favs[listingKey(l)]) return false;
     if(sb1123Mode && !l.sb1123Eligible) return false;
+    if(newThisWeekFilter && !l.isNewThisWeek) return false;
     const zoneOk = !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
@@ -1163,12 +1181,17 @@ function rebuildListings(){
     const exitPpsf = l.newconPpsf || l.hoodPpsf;
     const color = hoodPpsfColor(exitPpsf);
     const lotSf = l.lotSf || 0;
-    const radius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
+    const isNewListing = l.isNew;
+    const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
+    const radius = isNewListing ? baseRadius + 3 : baseRadius;
+    const markerColor = isNewListing ? '#22c55e' : '#fff';
+    const markerWeight = isNewListing ? 4 : 3;
     const cm = L.circleMarker([l.lat,l.lng],{
-      radius, color:'#fff', fillColor:color,
+      radius, color:markerColor, fillColor:color,
       fillOpacity: 0.95,
-      weight: 3,
+      weight: markerWeight,
       pane:'listingsPane',
+      className: isNewListing ? 'listing-marker-new' : '',
     });
 
     const delta = l.hoodPpsf ? l.ppsf - l.hoodPpsf : null;
@@ -1176,6 +1199,7 @@ function rebuildListings(){
 
     cm.bindPopup(`
       ${l.sb1123Eligible ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:var(--green)">SB 1123</div>' : ''}
+      ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
@@ -1356,6 +1380,7 @@ function applyPreset(name){
   // Clear all first
   resetFilter('all');
   sb1123Mode = true;
+  newThisWeekFilter = false;
   document.getElementById('sb1123Toggle').classList.add('active');
 
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
@@ -1373,6 +1398,10 @@ function applyPreset(name){
   } else if(name === 'stale'){
     // Stale inventory — negotiation leverage
     currentSort = {key:'dom', dir:'desc'};
+  } else if(name === 'newThisWeek'){
+    // New listings this week — DOM <= 7
+    newThisWeekFilter = true;
+    currentSort = {key:'dom', dir:'asc'};
   }
   applyFilters();
 }
@@ -1407,6 +1436,12 @@ function updateStats(){
   document.getElementById('medPpsf').textContent = ppsfs.length ? '$'+ppsfs[Math.floor(ppsfs.length/2)] : '$0';
 
   document.getElementById('sb1123ToggleCount').textContent = LISTINGS.filter(l=>l.sb1123Eligible).length;
+
+  // New listing counts
+  const newListings = filtered.filter(l=>l.isNew);
+  const newWeekListings = filtered.filter(l=>l.isNewThisWeek);
+  document.getElementById('newCount').textContent = newListings.length;
+  document.getElementById('newWeekCount').textContent = newWeekListings.length;
 
   // Comp stats
   const compFiltered = getFilteredComps();
@@ -1450,6 +1485,7 @@ function rebuildZoneToggles(){
 
 function getSortValue(l, key){
   if(key==='fav') return isFavorite(l)?1:0;
+  if(key==='isNew') return l.isNew ? 2 : l.isNewThisWeek ? 1 : 0;
   if(key==='maxUnits') return l.maxUnits||1;
   if(key==='pricePerUnit') return l.pricePerUnit||Infinity;
   if(key==='salePerUnit') return l.salePerUnit||0;
@@ -1507,6 +1543,7 @@ function rebuildTable(filtered){
       <td class="col-margin mono ${marginClass}">${(l.estMargin||0).toFixed(0)}%</td>
       <td class="col-slope mono" style="color:${l.slope!=null?(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'):'var(--text-dim)'}">${l.slope!=null?l.slope+'%':'—'}</td>
       <td class="col-dom mono">${l.dom!==null&&l.dom!==undefined?l.dom:'—'}</td>
+      <td class="col-new">${l.isNew?'<span class="new-badge">NEW</span>':l.isNewThisWeek?'<span class="new-badge week">7d</span>':''}</td>
       <td class="col-link">${l.url?'<a class="redfin-link" href="'+l.url+'" target="_blank" onclick="event.stopPropagation()">View</a>':''}</td>
     </tr>`;
   }).join('');
@@ -1596,6 +1633,7 @@ function resetFilter(key){
   if(key==='all'){
     ['price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
     sb1123Mode=false;
+    newThisWeekFilter=false;
     document.getElementById('sb1123Toggle').classList.remove('active');
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     return;
@@ -1774,8 +1812,9 @@ function rebuildMobileCards(sorted) {
     var marginClass = (l.estMargin || 0) >= 0 ? 'profit-pos' : 'profit-neg';
     var profitK = Math.round((l.estProfit || 0) / 1000);
     var profitStr = profitK >= 0 ? '+$' + profitK.toLocaleString() + 'K' : '-$' + Math.abs(profitK).toLocaleString() + 'K';
+    var newBadge = l.isNew ? ' <span class="new-badge">NEW</span>' : (l.isNewThisWeek ? ' <span class="new-badge week">7d</span>' : '');
     return '<div class="mobile-card" onclick="flyToListing(' + l.lat + ',' + l.lng + ')">' +
-      '<div class="card-addr">' + l.address + '</div>' +
+      '<div class="card-addr">' + l.address + newBadge + '</div>' +
       '<div class="card-grid">' +
         '<div class="card-row"><span class="card-label">Zone</span><span class="card-value" style="color:' + (ZONE_COLORS[l.zone] || '#666') + '">' + (l.zone || '\u2014') + '</span></div>' +
         '<div class="card-row"><span class="card-label">Price</span><span class="card-value">$' + l.price.toLocaleString() + '</span></div>' +
