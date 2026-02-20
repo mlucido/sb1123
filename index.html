@@ -1446,46 +1446,6 @@ function buildBTRLayer(){
     
     const marker = L.marker([l.lat, l.lng], { icon: btrIcon });
     
-    const tooltipHTML = `
-      <div class="tooltip-header">◆ BTR OPPORTUNITY</div>
-      <div class="tooltip-addr">${l.address || 'N/A'}</div>
-      <div class="tooltip-row">
-        <span class="label">Sale $/SF:</span>
-        <span class="gap-negative">$${(l.hoodPpsf || l.ppsf || 0)} (below $650)</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Est. Rent:</span>
-        <span>$${l.estRent ? l.estRent.toLocaleString() : '—'}/mo/unit</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Yield on Cost:</span>
-        <span style="color:#22c55e">${l.yoc ? (l.yoc * 100).toFixed(1) : '—'}%</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Est. NOI:</span>
-        <span>$${l.noi ? l.noi.toLocaleString() : '—'}K</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Stabilized Value:</span>
-        <span>$${l.stabilizedValue ? (l.stabilizedValue / 1000000).toFixed(2) : '—'}M</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Zone:</span>
-        <span>${l.zone || '—'}</span>
-      </div>
-      <div class="tooltip-row">
-        <span class="label">Lot:</span>
-        <span>${l.lotSf ? l.lotSf.toLocaleString() : '—'} SF</span>
-      </div>
-    `;
-    
-    marker.bindTooltip(tooltipHTML, {
-      className: 'btr-tooltip',
-      direction: 'top',
-      offset: [0, -10],
-      opacity: 1
-    });
-    
     // Full deal card popup on click
     const delta = l.hoodPpsf ? l.ppsf - l.hoodPpsf : null;
     const btrPF = calculateBTRProForma(l);
