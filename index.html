@@ -466,6 +466,87 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     .mobile-filter-btn { display: none !important; }
     .mobile-cards { display: none !important; }
   }
+
+  /* ── BTR Opportunity Layer ── */
+  @keyframes btr-pulse {
+    0% {
+      transform: rotate(45deg) scale(1);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+    }
+    50% {
+      transform: rotate(45deg) scale(1.15);
+      box-shadow: 0 0 12px 4px rgba(245, 158, 11, 0.25);
+    }
+    100% {
+      transform: rotate(45deg) scale(1);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+  }
+
+  .btr-pin {
+    width: 12px;
+    height: 12px;
+    background: rgba(245, 158, 11, 0.85);
+    border: 1.5px dashed #d97706;
+    transform: rotate(45deg);
+    animation: btr-pulse 2.5s ease-in-out infinite;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btr-pin:hover {
+    animation: none;
+    transform: rotate(45deg) scale(1.4);
+    box-shadow: 0 0 16px 6px rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 1);
+  }
+
+  /* BTR Tooltip Styles */
+  .btr-tooltip {
+    background: #1a1d27 !important;
+    border: 1px solid #f59e0b !important;
+    border-radius: 8px !important;
+    color: #e4e6ed !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 12px !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+    max-width: 280px !important;
+  }
+
+  .btr-tooltip .leaflet-tooltip-top::before {
+    border-top-color: #f59e0b !important;
+  }
+
+  .btr-tooltip .tooltip-header {
+    color: #f59e0b;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .btr-tooltip .tooltip-addr {
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .btr-tooltip .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 2px 0;
+  }
+
+  .btr-tooltip .tooltip-row .label {
+    color: #8b8fa3;
+  }
+
+  .btr-tooltip .gap-negative {
+    color: #f87171;
+  }
 </style>
 </head>
 <body class="light-mode">
@@ -665,6 +746,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     <div class="section-content">
       <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
       <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
+      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> BTR Opportunities <span class="layer-count" id="btrCount"></span></button>
       <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
       <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
       <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Zones (FEMA)</button>
@@ -794,7 +876,8 @@ let COMPS = [];
 let LISTINGS = [];
 const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L.layerGroup(),LAND:L.layerGroup()};
 const listingsLayer = L.layerGroup();
-const layerState = {markers:false,compHeat:false,listings:true,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
+const btrLayer = L.layerGroup();  // BTR opportunity layer
+const layerState = {markers:false,compHeat:false,listings:true,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
 const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
@@ -1267,6 +1350,69 @@ function rebuildListings(){
   rebuildTable(filtered);
 }
 
+function buildBTRLayer(){
+  btrLayer.clearLayers();
+  const filtered = getFilteredListings();
+  const btrListings = filtered.filter(l => l.btr === true);
+  
+  btrListings.forEach(l => {
+    const btrIcon = L.divIcon({
+      className: '',
+      html: '<div class="btr-pin"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+    
+    const marker = L.marker([l.lat, l.lng], { icon: btrIcon });
+    
+    const tooltipHTML = `
+      <div class="tooltip-header">◆ BTR OPPORTUNITY</div>
+      <div class="tooltip-addr">${l.address || 'N/A'}</div>
+      <div class="tooltip-row">
+        <span class="label">Sale $/SF:</span>
+        <span class="gap-negative">$${(l.hoodPpsf || l.ppsf || 0)} (below $650)</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Est. Rent:</span>
+        <span>$${l.estRent ? l.estRent.toLocaleString() : '—'}/mo/unit</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Yield on Cost:</span>
+        <span style="color:#22c55e">${l.yoc ? (l.yoc * 100).toFixed(1) : '—'}%</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Est. NOI:</span>
+        <span>$${l.noi ? l.noi.toLocaleString() : '—'}K</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Stabilized Value:</span>
+        <span>$${l.stabilizedValue ? (l.stabilizedValue / 1000000).toFixed(2) : '—'}M</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Zone:</span>
+        <span>${l.zone || '—'}</span>
+      </div>
+      <div class="tooltip-row">
+        <span class="label">Lot:</span>
+        <span>${l.lotSf ? l.lotSf.toLocaleString() : '—'} SF</span>
+      </div>
+    `;
+    
+    marker.bindTooltip(tooltipHTML, {
+      className: 'btr-tooltip',
+      direction: 'top',
+      offset: [0, -10],
+      opacity: 1
+    });
+    
+    marker.addTo(btrLayer);
+  });
+  
+  // Update BTR count in UI if toggle exists
+  const btrCountEl = document.getElementById('btrCount');
+  if (btrCountEl) btrCountEl.textContent = btrListings.length.toLocaleString();
+}
+
 function refreshVisibility(){
   Object.entries(markerLayers).forEach(([z,l])=>{
     if(layerState.markers && zoneState[z]) l.addTo(map);
@@ -1286,6 +1432,12 @@ function refreshVisibility(){
   }
   if(layerState.listings) listingsLayer.addTo(map);
   else map.removeLayer(listingsLayer);
+  if(layerState.btr) {
+    if(btrLayer.getLayers().length === 0) buildBTRLayer();
+    btrLayer.addTo(map);
+  } else {
+    map.removeLayer(btrLayer);
+  }
   if(fireZoneLayer){
     if(layerState.fireZones) fireZoneLayer.addTo(map);
     else map.removeLayer(fireZoneLayer);
@@ -1623,6 +1775,7 @@ function updateFill(key){
 function applyFilters(){
   rebuildMarkers();
   rebuildListings();
+  if(layerState.btr) buildBTRLayer();
   rebuildZoneToggles();
   updateStats();
   updateFilterCount();
