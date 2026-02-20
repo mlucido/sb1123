@@ -1179,6 +1179,62 @@ function calculateProForma(l){
   };
 }
 
+// BTR (Build-to-Rent) Pro Forma Calculator
+function calculateBTRProForma(l){
+  const maxUnits = getMaxUnits(l);
+  const pf = proforma;
+  
+  // BTR uses same build assumptions as SB1123
+  const buildPerUnit = pf.avgUnitSf * pf.buildCostPerSf + (pf.avgUnitSf * pf.buildCostPerSf * pf.softCostPct / 100) / maxUnits;
+  const acquisition = l.price;
+  const demo = l.sqft > 0 ? pf.demoCost : 0;
+  const hardCost = maxUnits * pf.avgUnitSf * pf.buildCostPerSf;
+  const softCost = hardCost * (pf.softCostPct / 100);
+  const totalBuildCost = hardCost + softCost + demo;
+  const totalCost = acquisition + totalBuildCost;
+  
+  // BTR-specific assumptions (from spec)
+  const rentPerUnit = l.estRent || 0;  // Monthly rent per unit from ZORI
+  const grossAnnualRent = rentPerUnit * maxUnits * 12;
+  const opexRatio = 0.35;  // 35% operating expense ratio
+  const estNOI = grossAnnualRent * (1 - opexRatio);
+  const capRate = 0.05;  // 5% cap rate
+  const stabilizedValue = estNOI / capRate;
+  const yieldOnCost = totalCost > 0 ? (estNOI / totalCost) : 0;
+  
+  // Debt service calculation for DSCR
+  const ltc = 0.65;  // 65% loan-to-cost
+  const interestRate = 0.075;  // 7.5% annual
+  const loanYears = 30;
+  const loanAmount = totalCost * ltc;
+  const monthlyRate = interestRate / 12;
+  const numPayments = loanYears * 12;
+  const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+  const annualDebtService = monthlyPayment * 12;
+  const dscr = annualDebtService > 0 ? (estNOI / annualDebtService) : 0;
+  
+  // Equity multiple
+  const equityInvested = totalCost * (1 - ltc);  // 35% equity
+  const equityMultiple = equityInvested > 0 ? (stabilizedValue / equityInvested) : 0;
+  
+  return {
+    maxUnits,
+    buyPerUnit: Math.round(acquisition / maxUnits),
+    buildPerUnit: Math.round(buildPerUnit),
+    allInPerUnit: Math.round((acquisition + totalBuildCost) / maxUnits),
+    rentPerUnit: Math.round(rentPerUnit),
+    totalCost,
+    grossAnnualRent,
+    estNOI,
+    yieldOnCost,
+    stabilizedValue,
+    dscr,
+    equityMultiple,
+    guaranteedFAR: getGuaranteedFAR(maxUnits),
+    buildableSf: Math.round(l.lotSf * getGuaranteedFAR(maxUnits)),
+  };
+}
+
 // Generate ZIMAS lookup URL for LA City properties
 function getZimasUrl(l){
   const addr = (l.address || '').split(',')[0].trim();
@@ -1430,6 +1486,120 @@ function buildBTRLayer(){
       opacity: 1
     });
     
+    // Full deal card popup on click
+    const delta = l.hoodPpsf ? l.ppsf - l.hoodPpsf : null;
+    const btrPF = calculateBTRProForma(l);
+    const salePF = calculateProForma(l);  // For dual-qualifying parcels
+    
+    // Color coding functions
+    const getYieldColor = (yoc) => {
+      if (yoc >= 0.05) return 'var(--green)';
+      if (yoc >= 0.04) return 'var(--yellow)';
+      return 'var(--red)';
+    };
+    const getDSCRColor = (dscr) => {
+      if (dscr >= 1.2) return 'var(--green)';
+      if (dscr >= 1.0) return 'var(--yellow)';
+      return 'var(--red)';
+    };
+    const getEquityMultColor = (em) => {
+      if (em >= 2.0) return 'var(--green)';
+      if (em >= 1.5) return 'var(--yellow)';
+      return 'var(--red)';
+    };
+    
+    let popupHTML = `
+      <div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">◆ BTR OPPORTUNITY</div>
+      ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
+      <div class="popup-title">${l.address || 'N/A'}, ${l.city || ''}, ${l.zip || ''}</div>
+      
+      <div class="popup-grid">
+        <div><div class="popup-label">List Price</div><div class="popup-value">$${l.price.toLocaleString()}</div></div>
+        <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
+        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
+        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        
+        <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
+        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:'<div></div>'}
+        ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
+        ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
+        
+        <div><div class="popup-label">Zone ${l.track?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Lot Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">BTR PRO FORMA — ${btrPF.maxUnits} UNITS • ${btrPF.guaranteedFAR}x FAR (${btrPF.buildableSf.toLocaleString()} SF) • $${btrPF.rentPerUnit.toLocaleString()}/MO/UNIT</div>
+      </div>
+      
+      <div class="popup-grid-2">
+        <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${btrPF.buyPerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btrPF.totalCost).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${btrPF.buildPerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btrPF.grossAnnualRent).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">All-In / Unit</div><div class="popup-value">$${btrPF.allInPerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Est. NOI</div><div class="popup-value">$${Math.round(btrPF.estNOI).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Rent / Unit</div><div class="popup-value" style="color:var(--green)">$${btrPF.rentPerUnit.toLocaleString()}/mo</div></div>
+        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${getYieldColor(btrPF.yieldOnCost)}">${(btrPF.yieldOnCost * 100).toFixed(1)}%</div></div>
+        
+        <div></div>
+        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btrPF.stabilizedValue / 1000000).toFixed(2)}M</div></div>
+        
+        <div></div>
+        <div><div class="popup-label">DSCR</div><div class="popup-value" style="color:${getDSCRColor(btrPF.dscr)}">${btrPF.dscr.toFixed(2)}x</div></div>
+        
+        <div></div>
+        <div><div class="popup-label">Equity Multiple</div><div class="popup-value" style="color:${getEquityMultColor(btrPF.equityMultiple)}">${btrPF.equityMultiple.toFixed(2)}x</div></div>
+    `;
+    
+    // If dual-qualifying (both SB1123 and BTR), add sale pro forma section
+    if (l.sb1123Eligible) {
+      popupHTML += `
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">SB 1123 PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
+      </div>
+      
+      <div class="popup-grid-2">
+        <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${salePF.pricePerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(salePF.totalCost).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${Math.round(salePF.totalBuildCost/salePF.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(salePF.netRevenue).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(salePF.netRevenue/salePF.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Est Profit</div><div class="popup-value ${salePF.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(salePF.profit).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Profit / Unit</div><div class="popup-value ${salePF.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(salePF.profit/salePF.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Margin</div><div class="popup-value ${salePF.margin>=0?'popup-profit-positive':'popup-profit-negative'}">${salePF.margin.toFixed(1)}%</div></div>
+      `;
+    }
+    
+    popupHTML += `
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">ZIMAS Due Diligence</div>
+        <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
+          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning • 
+          <span style="color:var(--green)">✓</span> Not Hillside Area • 
+          <span style="color:var(--green)">✓</span> No Historic Overlay • 
+          <span style="color:var(--red)">✗</span> NOT VHFHSZ (hard exclusion) • 
+          <span style="color:var(--green)">✓</span> No Specific Plan restrictions • 
+          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • 
+          <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
+        </div>
+      </div>
+      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
+        ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
+        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
+      </div>
+      <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
+    `;
+    
+    marker.bindPopup(popupHTML, {maxWidth: 580});
     marker.addTo(btrLayer);
   });
   
