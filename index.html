@@ -1352,8 +1352,21 @@ function rebuildListings(){
 
 function buildBTRLayer(){
   btrLayer.clearLayers();
-  const filtered = getFilteredListings();
-  const btrListings = filtered.filter(l => l.btr === true);
+  
+  // BTR-specific filtering: apply zone, lot, slope filters BUT NOT $/SF or price
+  // (BTR opportunities are defined by low $/SF, so $/SF filter would exclude them all)
+  const btrListings = LISTINGS.filter(l => {
+    if (!l.btr) return false;
+    if (sb1123Mode && !l.sb1123Eligible) return false;
+    const zoneOk = !l.zone || zoneState[l.zone];
+    const lotVal = l.lotSf || 0;
+    const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
+    const lotOk = lotAtDefault ? true : (lotVal >= filters.lot.min && lotVal <= filters.lot.max);
+    const slopeVal = l.slope != null ? l.slope : 0;
+    const slopeAtDefault = filters.slope.min === filters.slope.dataMin && filters.slope.max === filters.slope.dataMax;
+    const slopeOk = slopeAtDefault ? true : (slopeVal >= filters.slope.min && slopeVal <= filters.slope.max);
+    return zoneOk && lotOk && slopeOk;
+  });
   
   btrListings.forEach(l => {
     const btrIcon = L.divIcon({
