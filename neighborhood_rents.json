@@ -2,33 +2,169 @@
   "updated": "2026-02-19",
   "source": "Manual compilation from Zillow/Apartments.com listings (2-3BR, 2+BA)",
   "note": "Median monthly rents for townhomes/SFR rentals in key LA County neighborhoods",
+  "adjustment": "Applied 15% new-construction premium to reflect higher rents for new builds vs existing stock (W/D, HVAC, dishwasher, modern finishes)",
   "neighborhoods": {
-    "Palmdale": {"median_rent": 2800, "sample_size": 45, "notes": "High supply, Antelope Valley"},
-    "Lancaster": {"median_rent": 2650, "sample_size": 38, "notes": "Similar to Palmdale"},
-    "Santa Clarita": {"median_rent": 3400, "sample_size": 52, "notes": "Valencia/Stevenson Ranch area"},
-    "Woodland Hills": {"median_rent": 4200, "sample_size": 67, "notes": "West SFV, premium"},
-    "Chatsworth": {"median_rent": 3200, "sample_size": 31, "notes": "Northwest SFV"},
-    "Porter Ranch": {"median_rent": 3800, "sample_size": 28, "notes": "North SFV, newer development"},
-    "Northridge": {"median_rent": 3100, "sample_size": 42, "notes": "Central SFV near CSUN"},
-    "Simi Valley": {"median_rent": 3500, "sample_size": 34, "notes": "Ventura County border"},
-    "Castaic": {"median_rent": 3300, "sample_size": 19, "notes": "North of Santa Clarita"},
-    "Valencia": {"median_rent": 3500, "sample_size": 41, "notes": "Part of Santa Clarita"},
-    "Norco": {"median_rent": 3600, "sample_size": 23, "notes": "Riverside County, horse properties"},
-    "Hacienda Heights": {"median_rent": 3400, "sample_size": 29, "notes": "East SGV"},
-    "Walnut": {"median_rent": 3500, "sample_size": 24, "notes": "East SGV, good schools"},
-    "Yorba Linda": {"median_rent": 4000, "sample_size": 31, "notes": "Orange County, premium"},
-    "Encino": {"median_rent": 4800, "sample_size": 58, "notes": "South SFV, very premium"},
-    "Sherman Oaks": {"median_rent": 4500, "sample_size": 61, "notes": "South SFV, premium"},
-    "Studio City": {"median_rent": 4600, "sample_size": 48, "notes": "South SFV, premium"},
-    "Tarzana": {"median_rent": 4300, "sample_size": 44, "notes": "South SFV"},
-    "Pasadena": {"median_rent": 3900, "sample_size": 72, "notes": "SGV, highly variable by sub-area"},
-    "Arcadia": {"median_rent": 4100, "sample_size": 37, "notes": "SGV, premium, Asian market"},
-    "Beverly Hills": {"median_rent": 6500, "sample_size": 28, "notes": "Ultra-premium, limited sample"},
-    "Pacific Palisades": {"median_rent": 7000, "sample_size": 19, "notes": "Westside, ocean proximity"},
-    "Malibu": {"median_rent": 8500, "sample_size": 12, "notes": "Coastal, very premium"},
-    "Rancho Palos Verdes": {"median_rent": 5200, "sample_size": 24, "notes": "South Bay, ocean views"},
-    "Calabasas": {"median_rent": 5500, "sample_size": 21, "notes": "West Valley, gated communities"},
-    "Santa Ana": {"median_rent": 2900, "sample_size": 89, "notes": "Orange County, more affordable"},
-    "Los Angeles": {"median_rent": 3800, "sample_size": 450, "notes": "City-wide average, huge variance by neighborhood"}
+    "Palmdale": {
+      "median_rent": 3220,
+      "sample_size": 45,
+      "notes": "High supply, Antelope Valley",
+      "base_rent": 2800
+    },
+    "Lancaster": {
+      "median_rent": 3047,
+      "sample_size": 38,
+      "notes": "Similar to Palmdale",
+      "base_rent": 2650
+    },
+    "Santa Clarita": {
+      "median_rent": 3910,
+      "sample_size": 52,
+      "notes": "Valencia/Stevenson Ranch area",
+      "base_rent": 3400
+    },
+    "Woodland Hills": {
+      "median_rent": 4830,
+      "sample_size": 67,
+      "notes": "West SFV, premium",
+      "base_rent": 4200
+    },
+    "Chatsworth": {
+      "median_rent": 3680,
+      "sample_size": 31,
+      "notes": "Northwest SFV",
+      "base_rent": 3200
+    },
+    "Porter Ranch": {
+      "median_rent": 4370,
+      "sample_size": 28,
+      "notes": "North SFV, newer development",
+      "base_rent": 3800
+    },
+    "Northridge": {
+      "median_rent": 3565,
+      "sample_size": 42,
+      "notes": "Central SFV near CSUN",
+      "base_rent": 3100
+    },
+    "Simi Valley": {
+      "median_rent": 4025,
+      "sample_size": 34,
+      "notes": "Ventura County border",
+      "base_rent": 3500
+    },
+    "Castaic": {
+      "median_rent": 3795,
+      "sample_size": 19,
+      "notes": "North of Santa Clarita",
+      "base_rent": 3300
+    },
+    "Valencia": {
+      "median_rent": 4025,
+      "sample_size": 41,
+      "notes": "Part of Santa Clarita",
+      "base_rent": 3500
+    },
+    "Norco": {
+      "median_rent": 4140,
+      "sample_size": 23,
+      "notes": "Riverside County, horse properties",
+      "base_rent": 3600
+    },
+    "Hacienda Heights": {
+      "median_rent": 3910,
+      "sample_size": 29,
+      "notes": "East SGV",
+      "base_rent": 3400
+    },
+    "Walnut": {
+      "median_rent": 4025,
+      "sample_size": 24,
+      "notes": "East SGV, good schools",
+      "base_rent": 3500
+    },
+    "Yorba Linda": {
+      "median_rent": 4600,
+      "sample_size": 31,
+      "notes": "Orange County, premium",
+      "base_rent": 4000
+    },
+    "Encino": {
+      "median_rent": 5520,
+      "sample_size": 58,
+      "notes": "South SFV, very premium",
+      "base_rent": 4800
+    },
+    "Sherman Oaks": {
+      "median_rent": 5175,
+      "sample_size": 61,
+      "notes": "South SFV, premium",
+      "base_rent": 4500
+    },
+    "Studio City": {
+      "median_rent": 5290,
+      "sample_size": 48,
+      "notes": "South SFV, premium",
+      "base_rent": 4600
+    },
+    "Tarzana": {
+      "median_rent": 4945,
+      "sample_size": 44,
+      "notes": "South SFV",
+      "base_rent": 4300
+    },
+    "Pasadena": {
+      "median_rent": 4485,
+      "sample_size": 72,
+      "notes": "SGV, highly variable by sub-area",
+      "base_rent": 3900
+    },
+    "Arcadia": {
+      "median_rent": 4715,
+      "sample_size": 37,
+      "notes": "SGV, premium, Asian market",
+      "base_rent": 4100
+    },
+    "Beverly Hills": {
+      "median_rent": 7475,
+      "sample_size": 28,
+      "notes": "Ultra-premium, limited sample",
+      "base_rent": 6500
+    },
+    "Pacific Palisades": {
+      "median_rent": 8050,
+      "sample_size": 19,
+      "notes": "Westside, ocean proximity",
+      "base_rent": 7000
+    },
+    "Malibu": {
+      "median_rent": 9775,
+      "sample_size": 12,
+      "notes": "Coastal, very premium",
+      "base_rent": 8500
+    },
+    "Rancho Palos Verdes": {
+      "median_rent": 5980,
+      "sample_size": 24,
+      "notes": "South Bay, ocean views",
+      "base_rent": 5200
+    },
+    "Calabasas": {
+      "median_rent": 6325,
+      "sample_size": 21,
+      "notes": "West Valley, gated communities",
+      "base_rent": 5500
+    },
+    "Santa Ana": {
+      "median_rent": 3335,
+      "sample_size": 89,
+      "notes": "Orange County, more affordable",
+      "base_rent": 2900
+    },
+    "Los Angeles": {
+      "median_rent": 4370,
+      "sample_size": 450,
+      "notes": "City-wide average, huge variance by neighborhood",
+      "base_rent": 3800
+    }
   }
 }
