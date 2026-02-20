@@ -812,12 +812,12 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
   <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#2563eb;border-radius:50%"></div> &lt;$300/SF</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9;border-radius:50%"></div> $300-450</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $450-600</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $600-750</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $750-900</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $900+</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> &lt;$600/SF</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $600-700</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $700-800</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800-900</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900-1,000</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $1,000+</div>
 </div>
 </div><!-- /app-row -->
 
@@ -861,14 +861,25 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
 const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',LAND:'Vacant Land'};
 // Hood $/SF color scale: cool (cheap) → hot (expensive)
+// RECENTERED for SFV: $600-$1,000 decision range
 function hoodPpsfColor(ppsf){
   if(!ppsf || ppsf <= 0) return '#888';
-  if(ppsf < 300) return '#2563eb';   // Deep blue — very affordable
-  if(ppsf < 450) return '#0ea5e9';   // Sky blue
-  if(ppsf < 600) return '#22c55e';   // Green — moderate
-  if(ppsf < 750) return '#eab308';   // Yellow — above average
-  if(ppsf < 900) return '#f97316';   // Orange — expensive
-  return '#ef4444';                    // Red — premium
+  if(ppsf < 600) return '#3b82f6';   // Blue — below target range
+  if(ppsf < 700) return '#22d3ee';   // Cyan
+  if(ppsf < 800) return '#22c55e';   // Green
+  if(ppsf < 900) return '#eab308';   // Yellow
+  if(ppsf < 1000) return '#f97316';  // Orange
+  return '#ef4444';                   // Red — premium
+}
+
+function getPinBorder(ppsf){
+  if(!ppsf || ppsf <= 0) return '#666';
+  if(ppsf < 600) return '#2563eb';   // Darker blue border
+  if(ppsf < 700) return '#06b6d4';   // Darker cyan border
+  if(ppsf < 800) return '#16a34a';   // Darker green border
+  if(ppsf < 900) return '#ca8a04';   // Darker yellow border
+  if(ppsf < 1000) return '#ea580c';  // Darker orange border
+  return '#dc2626';                   // Darker red border
 }
 
 // ── State ──
@@ -1269,11 +1280,12 @@ function rebuildListings(){
   filtered.forEach(l => {
     const exitPpsf = l.newconPpsf || l.hoodPpsf;
     const color = hoodPpsfColor(exitPpsf);
+    const borderColor = getPinBorder(exitPpsf);
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
     const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const markerColor = isNewListing ? '#22c55e' : '#fff';
+    const markerColor = isNewListing ? '#22c55e' : borderColor;
     const markerWeight = isNewListing ? 4 : 3;
     const cm = L.circleMarker([l.lat,l.lng],{
       radius, color:markerColor, fillColor:color,
@@ -1875,19 +1887,28 @@ window.addEventListener('DOMContentLoaded', function(){
 
       // Build $/SF heatmap layer from sold comps
       if(COMPS.length && typeof L.heatLayer === 'function'){
+        // **CRITICAL FIX**: Clamp heatmap to $600-$1,000 decision range
+        const HEAT_MIN = 600;
+        const HEAT_MAX = 1000;
         const heatPts = COMPS.filter(c=>c.ppsf>0).map(c=>{
-          // Normalize $/SF to 0-1 intensity (clamped 200-1500 range)
-          const intensity = Math.min(1, Math.max(0.05, (c.ppsf - 200) / 1300));
+          // Normalize $/SF to 0-1 intensity within $600-$1,000 range
+          const intensity = Math.max(0, Math.min(1, (c.ppsf - HEAT_MIN) / (HEAT_MAX - HEAT_MIN)));
           return [c.lat, c.lng, intensity];
         });
         compHeatLayer = L.heatLayer(heatPts, {
           radius: 25,
-          blur: 20,
-          maxZoom: 15,
+          blur: 15,
+          maxZoom: 17,
           max: 1.0,
           minOpacity: 0.25,
           pane:'heatmapPane',
-          gradient: {0.0:'#1e50b4', 0.15:'#1e88e5', 0.3:'#1ea0b4', 0.45:'#43a047', 0.6:'#b4d232', 0.75:'#f0b41e', 0.88:'#f0641e', 1.0:'#dc2828'}
+          gradient: {
+            0.0:  '#3b82f6',  // $600 — blue (cool)
+            0.25: '#22d3ee',  // $700 — cyan
+            0.50: '#22c55e',  // $800 — green
+            0.75: '#eab308',  // $900 — yellow
+            1.0:  '#ef4444'   // $1,000 — red (hot)
+          }
         });
         document.getElementById('heatCount').textContent = heatPts.length.toLocaleString();
         compCanvasRenderer = L.canvas({padding:0.5});
