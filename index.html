@@ -479,7 +479,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <h1><span>SB 1123</span> Deal Finder</h1>
       <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard">&#8635; Refresh</button>
     </div>
-    <p>Find townhome subdivision sites in LA County<br>10K-25K SF lots that split into up to 10 contiguous units</p>
+    <p>Find townhome subdivision sites in LA County<br>12K-40K SF lots that split into up to 10 contiguous units</p>
     <div class="law-ref">CA SB 1123 (eff. Jul 2025) · Up to 10 parcels · No owner-occupancy · 60-day approval · CEQA exempt</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
   </div>
@@ -797,7 +797,7 @@ const filters = {
   price:{ min:0, max:5000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:null },
   psf:  { min:0, max:2000, dataMin:0, dataMax:2000, step:25, cap:null, defaultMin:800, defaultMax:null },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
-  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:25000 },
+  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:40000 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
 };
 
@@ -1391,8 +1391,8 @@ function applyPreset(name){
     // Sweet spot: 12-18K SF lots = 10 townhomes, efficient build
     setFilter('lot', 12000, 18000);
   } else if(name === 'maxDensity'){
-    // Max density: 15-25K SF lots, all 10 units
-    setFilter('lot', 15000, 25000);
+    // Max density: 15-40K SF lots, all 10 units
+    setFilter('lot', 15000, 40000);
   } else if(name === 'value'){
     // Below-market land acquisition — sort by margin
     currentSort = {key:'estMargin', dir:'desc'};
