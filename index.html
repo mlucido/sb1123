@@ -900,7 +900,7 @@ const filters = {
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
 };
 
-let currentSort = { key:'estMargin', dir:'desc' };
+let currentSort = { key:null, dir:'desc' };
 let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
@@ -2069,9 +2069,8 @@ window.addEventListener('DOMContentLoaded', function(){
       // Auto-open the table panel (desktop only)
       if(!isMobile()) toggleListingsPanel();
 
-      // Set default sort to margin desc
-      const th=document.querySelector('.listings-table th[data-sort="estMargin"]');
-      if(th){th.classList.add('sorted');th.querySelector('.sort-arrow').textContent='▼';}
+      // Set default sort to margin desc and explicitly trigger sort
+      sortTable('estMargin');
 
       // Data freshness indicator
       if(typeof LISTINGS_META !== 'undefined' && LISTINGS_META.builtAt){
