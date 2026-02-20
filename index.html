@@ -2151,14 +2151,19 @@ function sortTable(key){
 
 function rebuildTable(filtered){
   const tbody = document.getElementById('listingsTableBody');
-  const sorted = [...filtered].sort((a,b) => {
-    let va=getSortValue(a,currentSort.key), vb=getSortValue(b,currentSort.key);
-    if(typeof va==='string') va=va.toLowerCase();
-    if(typeof vb==='string') vb=vb.toLowerCase();
-    if(va<vb) return currentSort.dir==='asc'?-1:1;
-    if(va>vb) return currentSort.dir==='asc'?1:-1;
-    return 0;
-  });
+  
+  // Only sort if we have a valid sort key
+  let sorted = filtered;
+  if (currentSort && currentSort.key) {
+    sorted = [...filtered].sort((a,b) => {
+      let va=getSortValue(a,currentSort.key), vb=getSortValue(b,currentSort.key);
+      if(typeof va==='string') va=va.toLowerCase();
+      if(typeof vb==='string') vb=vb.toLowerCase();
+      if(va<vb) return currentSort.dir==='asc'?-1:1;
+      if(va>vb) return currentSort.dir==='asc'?1:-1;
+      return 0;
+    });
+  }
 
   // Cap table rows for performance
   const display = sorted.slice(0, 500);
