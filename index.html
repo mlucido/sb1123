@@ -2142,10 +2142,15 @@ function sortTable(key){
   }
   document.querySelectorAll('.listings-table th').forEach(th=>{
     th.classList.remove('sorted');
-    th.querySelector('.sort-arrow').textContent='▲';
+    const arrow = th.querySelector('.sort-arrow');
+    if(arrow) arrow.textContent='▲';
   });
   const th=document.querySelector(`.listings-table th[data-sort="${key}"]`);
-  if(th){th.classList.add('sorted');th.querySelector('.sort-arrow').textContent=currentSort.dir==='asc'?'▲':'▼';}
+  if(th){
+    th.classList.add('sorted');
+    const arrow = th.querySelector('.sort-arrow');
+    if(arrow) arrow.textContent=currentSort.dir==='asc'?'▲':'▼';
+  }
   rebuildTable(getFilteredListings());
 }
 
