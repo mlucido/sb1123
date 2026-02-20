@@ -1355,9 +1355,9 @@ function buildBTRLayer(){
   
   // BTR-specific filtering: apply zone, lot, slope filters BUT NOT $/SF or price
   // (BTR opportunities are defined by low $/SF, so $/SF filter would exclude them all)
+  // BTR is a separate acquisition strategy, so it ignores the SB1123 toggle
   const btrListings = LISTINGS.filter(l => {
     if (!l.btr) return false;
-    if (sb1123Mode && !l.sb1123Eligible) return false;
     const zoneOk = !l.zone || zoneState[l.zone];
     const lotVal = l.lotSf || 0;
     const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
