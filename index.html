@@ -736,6 +736,31 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     <div class="section-title" onclick="toggleSection(this)">Filters <span class="chevron">▼</span></div>
     <div class="section-content">
 
+  <!-- Margin Filter -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Deal Margin <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min %</div><input type="number" id="marginMin" step="5"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max %</div><input type="number" id="marginMax" step="5"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="marginSliderFill"></div>
+          <input type="range" id="marginSliderMin" min="-100" max="100" step="5" value="-100">
+          <input type="range" id="marginSliderMax" min="-100" max="100" step="5" value="100">
+        </div>
+        <div class="preset-row">
+          <button class="preset-btn" onclick="setMarginPreset(30,this)">Green (30%+)</button>
+          <button class="preset-btn" onclick="setMarginPreset(20,this)">Yellow+ (20%+)</button>
+          <button class="preset-btn" onclick="setMarginPreset(0,this)">Profitable (0%+)</button>
+        </div>
+        <button class="reset-btn" onclick="resetFilter('margin')">Reset Margin Filter</button>
+      </div>
+    </div>
+  </div>
+
   <!-- List Price Filter -->
   <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
@@ -1022,6 +1047,7 @@ const filters = {
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
   lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:40000 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
+  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:null, defaultMax:null },
 };
 
 let currentSort = { key:null, dir:'desc' };
@@ -1490,7 +1516,10 @@ function getFilteredListings(){
     const slopeVal = l.slope != null ? l.slope : 0;
     const slopeAtDefault = filters.slope.min === filters.slope.dataMin && filters.slope.max === filters.slope.dataMax;
     const slopeOk = slopeAtDefault ? true : (slopeVal >= filters.slope.min && slopeVal <= filters.slope.max);
-    return zoneOk && priceOk && psfOk && sqftOk && lotOk && slopeOk;
+    const marginVal = l.estMargin || 0;
+    const marginAtDefault = filters.margin.min === filters.margin.dataMin && filters.margin.max === filters.margin.dataMax;
+    const marginOk = marginAtDefault ? true : (marginVal >= filters.margin.min && marginVal <= filters.margin.max);
+    return zoneOk && priceOk && psfOk && sqftOk && lotOk && slopeOk && marginOk;
   });
 }
 
@@ -2580,6 +2609,21 @@ function updateFill(key){
   fill.style.width=((f.max-f.min)/range)*100+'%';
 }
 
+function setMarginPreset(minPct,btn){
+  document.querySelectorAll('.preset-row .preset-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const f=filters.margin;
+  f.min=minPct; f.max=f.dataMax;
+  const sMin=document.getElementById('marginSliderMin'), sMax=document.getElementById('marginSliderMax');
+  const iMin=document.getElementById('marginMin'), iMax=document.getElementById('marginMax');
+  if(sMin) sMin.value=minPct;
+  if(iMin) iMin.value=minPct;
+  if(sMax) sMax.value=f.dataMax;
+  if(iMax) iMax.value=f.dataMax;
+  updateFill('margin');
+  applyFilters();
+}
+
 function applyFilters(){
   rebuildMarkers();
   rebuildListings();
@@ -2595,7 +2639,7 @@ function applyFilters(){
 
 function resetFilter(key){
   if(key==='all'){
-    ['price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
+    ['margin','price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
     newThisWeekFilter=false;
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     return;
@@ -2676,6 +2720,8 @@ window.addEventListener('DOMContentLoaded', function(){
       if(lotsWithData.length) initRangeFilter('lot', l=>l.lotSf||0, lotsWithData);
       const withSlope = LISTINGS.filter(l=>l.slope!=null);
       if(withSlope.length) initRangeFilter('slope', l=>l.slope!=null?l.slope:0, withSlope);
+      const withMargin = LISTINGS.filter(l=>l.estMargin!=null);
+      if(withMargin.length) initRangeFilter('margin', l=>l.estMargin||0, withMargin);
 
       // Build $/SF heatmap layer from sold comps
       if(COMPS.length && typeof L.heatLayer === 'function'){
