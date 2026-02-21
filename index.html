@@ -1826,24 +1826,109 @@ function buildOffMarketLayer(){
   const offMarketListings = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
     
-    const exitPsf = l.newconPpsf || l.hoodPpsf || l.ppsf || 0;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    const BUILD_COST_PSF = proforma.buildCostPerSf || 350;
-    const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
+    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
+    const structure_sf = l.sqft || 0;
+    
+    // FIX 1: Est. Market Value = hood_psf × structure_sf
+    const est_market_value = hood_psf * structure_sf;
+    
+    // FIX 2: Est. Offer = est_market_value × 0.95 (5% below market)
+    const est_offer = est_market_value * 0.95;
+    
+    // Calculate pro forma metrics for margin calculation
+    const maxUnits = getMaxUnits(l);
+    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
+    
+    // FIX 3: Margin at Offer - full pro forma using est_offer as acquisition
+    const exit_psf = hood_psf;
+    const gross_revenue = exit_psf * effective_buildable_sf;
+    const net_revenue = gross_revenue * 0.95; // 5% closing costs
+    const build_cost = adjBuildCostPerSf * effective_buildable_sf;
+    const demo = l.sqft > 0 ? proforma.demoCost : 0;
+    const soft_cost = build_cost * (proforma.softCostPct / 100);
+    const total_build = build_cost + soft_cost + demo;
+    const avg_outstanding = est_offer + total_build * 0.5;
+    const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
+    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
+    const total_carry = carry_interest + carry_prop_tax;
+    const total_cost = est_offer + total_build + total_carry;
+    const est_profit = net_revenue - total_cost;
+    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
+    
+    // FIX 4: Land basis per product SF
+    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
+    
+    // Calculate spread
+    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
+    
     const lotEff = l.lotEfficiency || 0;
     const slope = l.slope || 0;
     
-    // Filters: spread >$150/SF, lot efficiency >70%, not VHFHSZ, slope <15%
-    return spread > 150 && lotEff > 70 && !l.fireZone && slope < 15;
+    // FIX 8: Updated filter - add margin_at_offer >= 0.25 requirement
+    return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
   });
   
   offMarketListings.forEach(l => {
-    const exitPsf = l.newconPpsf || l.hoodPpsf || l.ppsf || 0;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    const BUILD_COST_PSF = proforma.buildCostPerSf || 350;
-    const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
+    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
+    const structure_sf = l.sqft || 0;
     
-    // Color by spread
+    // FIX 1: Est. Market Value = hood_psf × structure_sf
+    const est_market_value = hood_psf * structure_sf;
+    
+    // FIX 2: Est. Offer = est_market_value × 0.95
+    const est_offer = est_market_value * 0.95;
+    
+    // Calculate pro forma metrics
+    const maxUnits = getMaxUnits(l);
+    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
+    
+    // FIX 3: Margin at Offer
+    const exit_psf = hood_psf;
+    const gross_revenue = exit_psf * effective_buildable_sf;
+    const net_revenue = gross_revenue * 0.95;
+    const build_cost = adjBuildCostPerSf * effective_buildable_sf;
+    const demo = l.sqft > 0 ? proforma.demoCost : 0;
+    const soft_cost = build_cost * (proforma.softCostPct / 100);
+    const total_build = build_cost + soft_cost + demo;
+    const avg_outstanding = est_offer + total_build * 0.5;
+    const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
+    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
+    const total_carry = carry_interest + carry_prop_tax;
+    const total_cost = est_offer + total_build + total_carry;
+    const est_profit = net_revenue - total_cost;
+    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
+    
+    // FIX 4: Land basis per product SF
+    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
+    
+    // Calculate target max buy (from existing pro forma)
+    const target_margin = 0.30;
+    const target_all_in_psf = exit_psf * (1 - target_margin);
+    const target_land_basis_psf = target_all_in_psf - adjBuildCostPerSf;
+    const target_max_buy = target_land_basis_psf * effective_buildable_sf;
+    
+    // FIX 5: Headroom
+    const headroom = target_max_buy - est_offer;
+    
+    // Calculate spread
+    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
+    
+    // Color coding for margin_at_offer
+    let marginColor = '#ef4444'; // red
+    if(margin_at_offer >= 0.30) marginColor = '#22c55e'; // green
+    else if(margin_at_offer >= 0.20) marginColor = '#facc15'; // yellow
+    
+    // Color coding for land_basis_psf
+    let landBasisColor = '#ef4444'; // red
+    if(land_basis_psf < 120) landBasisColor = '#22c55e'; // green
+    else if(land_basis_psf >= 120 && land_basis_psf <= 160) landBasisColor = '#facc15'; // yellow
+    
+    // Color coding for headroom
+    const headroomColor = headroom > 0 ? '#22c55e' : '#ef4444';
+    
+    // Color by spread for pin
     let pinColor = '#ef4444'; // red
     if(spread >= 300) pinColor = '#059669'; // deep green
     else if(spread >= 200) pinColor = '#22c55e'; // green
@@ -1862,27 +1947,28 @@ function buildOffMarketLayer(){
     
     const marker = L.marker([l.lat, l.lng], { icon: offMarketIcon });
     
-    // Calculate estimated value using neighborhood median
-    const estValue = l.lotSf * (l.hoodPpsf || exitPsf || 800);
-    const targetBuyPrice = estValue * 0.7; // 30% discount target
-    
-    const pf = calculateProForma(l);
-    
+    // FIX 6 & 7 & 9 & 10: Reordered card layout with proper formatting and renamed labels
     marker.bindPopup(`
       <div class="popup-badge" style="background:#666;color:#fff">OFF-MARKET</div>
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}, ${l.city || ''}</div>
       
       <div class="popup-grid">
-        <div><div class="popup-label">Est. Value</div><div class="popup-value">$${estValue.toLocaleString()}</div></div>
-        <div><div class="popup-label">Target Buy Price</div><div class="popup-value" style="color:var(--green)">$${targetBuyPrice.toLocaleString()}</div></div>
-        <div><div class="popup-label">Lot Size</div><div class="popup-value">${(l.lotSf||0).toLocaleString()} sf</div></div>
-        <div><div class="popup-label">Est. Spread</div><div class="popup-value" style="color:${spread >= 200 ? 'var(--green)' : spread >= 100 ? 'var(--yellow)' : 'var(--red)'}">$${spread.toFixed(0)}/sf</div></div>
+        <div><div class="popup-label">Est. Offer</div><div class="popup-value" style="color:var(--green)">$${Math.round(est_offer).toLocaleString()}</div></div>
+        <div><div class="popup-label">Margin at Offer</div><div class="popup-value" style="color:${marginColor}">${Math.round(margin_at_offer * 100)}%</div></div>
+        <div><div class="popup-label">Est. Spread</div><div class="popup-value" style="color:${spread >= 200 ? 'var(--green)' : spread >= 100 ? 'var(--yellow)' : 'var(--red)'}">$${Math.round(spread).toLocaleString()}/sf</div></div>
+        
+        <div><div class="popup-label">Est. Market Value</div><div class="popup-value">$${Math.round(est_market_value).toLocaleString()}</div></div>
+        <div><div class="popup-label">Target Max Buy</div><div class="popup-value">$${Math.round(target_max_buy).toLocaleString()}</div></div>
+        <div><div class="popup-label">Headroom</div><div class="popup-value" style="color:${headroomColor}">${headroom > 0 ? '+' : ''}$${Math.round(headroom).toLocaleString()}</div></div>
         
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}</div></div>
-        <div><div class="popup-label">Lot Efficiency</div><div class="popup-value">${(l.lotEfficiency||0).toFixed(0)}%</div></div>
+        <div><div class="popup-label">Lot Size</div><div class="popup-value">${Math.round(l.lotSf||0).toLocaleString()} sf</div></div>
+        <div><div class="popup-label">Lot Efficiency</div><div class="popup-value">${Math.round((l.lotEfficiency||0)*100)}%</div></div>
         <div><div class="popup-label">Slope</div><div class="popup-value">${(l.slope||0).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Max Units</div><div class="popup-value">${pf.maxUnits}</div></div>
+        
+        <div><div class="popup-label">Max Units</div><div class="popup-value">${maxUnits}</div></div>
+        <div><div class="popup-label">Land Basis/Product SF</div><div class="popup-value" style="color:${landBasisColor}">$${Math.round(land_basis_psf).toLocaleString()}/sf</div></div>
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
