@@ -658,9 +658,9 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     <div class="section-title">Quick Actions</div>
     <div class="section-content">
       <div class="preset-row">
-        <button class="preset-btn" onclick="applyPreset('newThisWeek')" title="Listed in last 7 days">New This Week</button>
-        <button class="preset-btn" onclick="applyPreset('stale')" title="60+ days on market">Stale Listings</button>
-        <button class="preset-btn" onclick="applyPreset('offMarket')" title="Show off-market acquisition targets">Off-Market</button>
+        <button class="preset-btn" onclick="applyPreset('newThisWeek',this)" title="Listed in last 7 days">New This Week</button>
+        <button class="preset-btn" onclick="applyPreset('stale',this)" title="60+ days on market">Stale Listings</button>
+        <button class="preset-btn" onclick="applyPreset('offMarket',this)" title="Show off-market acquisition targets">Off-Market</button>
       </div>
     </div>
   </div>
@@ -859,11 +859,11 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <button class="close-btn" onclick="dismissOnboarding()">×</button>
   👋 <strong>First time here?</strong> Click any <span style="color:var(--green);font-weight:700">green pin</span> to see a profitable deal. Yellow = moderate margin, Gray = below target.
 </div>
-<div id="map"></div>
-
-<!-- Pin Color Legend (bottom-left, always visible, dynamic) -->
-<div class="pin-legend" id="pinLegend">
-  <!-- Dynamically populated based on active layers -->
+<div id="map">
+  <!-- Pin Color Legend (bottom-left of map, always visible, dynamic) -->
+  <div class="pin-legend" id="pinLegend">
+    <!-- Dynamically populated based on active layers -->
+  </div>
 </div>
 
 <div class="map-legend">
@@ -1521,19 +1521,12 @@ function rebuildListings(){
   const filtered = getFilteredListings();
 
   filtered.forEach(l => {
-    // Color by margin, not exit $/SF
+    // Color by margin
     const margin = l.estMargin || 0;
-    let color, borderColor;
-    if(margin >= 30){
-      color = '#22c55e'; // Green - 30%+ margin
-      borderColor = '#16a34a';
-    } else if(margin >= 20){
-      color = '#facc15'; // Yellow - 20-29% margin
-      borderColor = '#ca8a04';
-    } else {
-      color = '#9ca3af'; // Gray - under 20% margin (avoids clash with heatmap red)
-      borderColor = '#6b7280';
-    }
+    let color;
+    if(margin >= 30) color = '#22c55e';       // Green - 30%+ margin
+    else if(margin >= 20) color = '#facc15';  // Yellow - 20-29% margin
+    else color = '#9ca3af';                   // Gray - under 20% margin
     
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
@@ -2091,7 +2084,7 @@ function buildOffMarketLayer(){
         
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}</div></div>
         <div><div class="popup-label">Lot Size</div><div class="popup-value">${Math.round(l.lotSf||0).toLocaleString()} sf</div></div>
-        <div><div class="popup-label">Lot Efficiency</div><div class="popup-value">${Math.round((l.lotEfficiency||0)*100)}%</div></div>
+        <div><div class="popup-label">Lot Efficiency</div><div class="popup-value">${l.lotEfficiency||0}%</div></div>
         <div><div class="popup-label">Slope</div><div class="popup-value">${(l.slope||0).toFixed(1)}%</div></div>
         
         <div><div class="popup-label">Max Units</div><div class="popup-value">${maxUnits}</div></div>
@@ -2237,7 +2230,7 @@ function updateHeroStats(){
   const filtered = getFilteredListings();
   const forSale = filtered.filter(l=>l.sb1123Eligible);
   
-  // Count off-market opportunities (simulated from filtered listings)
+  // Count off-market opportunities (must match buildOffMarketLayer filter)
   const offMarket = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
     const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
@@ -2247,11 +2240,20 @@ function updateHeroStats(){
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
+    const exit_psf = hood_psf;
+    const net_revenue = exit_psf * effective_buildable_sf * (1 - proforma.saleDiscountPct/100);
+    const build_cost = adjBuildCostPerSf * effective_buildable_sf;
+    const demo = l.sqft > 0 ? proforma.demoCost : 0;
+    const soft_cost = build_cost * (proforma.softCostPct / 100);
+    const total_build = build_cost + soft_cost + demo;
+    const total_cost = est_offer + total_build;
+    const est_profit = net_revenue - total_cost;
+    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
     const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
     const spread = hood_psf - land_basis_psf - adjBuildCostPerSf;
     const lotEff = l.lotEfficiency || 0;
     const slope = l.slope || 0;
-    return spread > 150 && lotEff > 70 && !l.fireZone && slope < 15;
+    return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
   }).length;
   
   const highMargin = forSale.filter(l => l.estMargin >= 30).length;
@@ -2341,14 +2343,14 @@ function toggleListingsPanel(){
 })();
 
 // ── Presets ──
-function applyPreset(name){
+function applyPreset(name,btn){
   // Clear all first
   resetFilter('all');
   sb1123Mode = true;
   newThisWeekFilter = false;
 
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  if(event && event.target) event.target.closest('.preset-btn').classList.add('active');
+  if(btn) btn.classList.add('active');
 
   if(name === 'stale'){
     // Stale inventory — negotiation leverage
