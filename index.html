@@ -706,11 +706,11 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">
             <span class="icon" style="color:#a855f7">▪</span> Earthquake Risk
           </button>
-          <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)">
-            <span class="icon">◻</span> Parcel Boundaries
-          </button>
         </div>
       </div>
+      <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)">
+        <span class="icon">◻</span> Parcel Boundaries
+      </button>
     </div>
   </div>
 
@@ -2242,7 +2242,8 @@ function updateHeroStats(){
   }).length;
   
   const highMargin = forSale.filter(l => l.estMargin >= 30).length;
-  const avgMargin = forSale.length ? Math.round(forSale.reduce((sum,l)=>sum+(l.estMargin||0),0)/forSale.length) : 0;
+  const positiveMargin = forSale.filter(l => l.estMargin > 0);
+  const avgMargin = positiveMargin.length ? Math.round(positiveMargin.reduce((sum,l)=>sum+l.estMargin,0)/positiveMargin.length) : 0;
   
   document.getElementById('heroForSale').textContent = forSale.length.toLocaleString();
   document.getElementById('heroOffMarket').textContent = offMarket.toLocaleString();
