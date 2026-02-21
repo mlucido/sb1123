@@ -906,7 +906,7 @@ const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
 const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:true,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
-const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
+const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
 const filters = {
