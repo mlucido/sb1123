@@ -247,6 +247,16 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .listings-panel-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:rgba(96,165,250,0.1);padding:2px 6px;border-radius:4px}
   .listings-panel-close{margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px;transition:all 0.15s}
   .listings-panel-close:hover{color:var(--text);background:var(--surface2)}
+  .listings-panel-tab{
+    position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+    background:var(--surface);border:1px solid var(--border);border-bottom:none;
+    border-radius:8px 8px 0 0;padding:5px 18px;cursor:pointer;z-index:901;
+    display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;
+    color:var(--text-dim);transition:all 0.15s;
+  }
+  .listings-panel-tab:hover{color:var(--text);background:var(--surface2)}
+  .listings-panel-tab .tab-arrow{font-size:9px}
+  .listings-panel-tab .tab-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent)}
   .listings-panel-resize{position:absolute;top:0;left:0;right:0;height:5px;cursor:ns-resize;z-index:3}
   .listings-panel-resize:hover{background:var(--accent);opacity:0.3}
   .listings-table-wrap{overflow:auto;height:calc(100% - 41px)}
@@ -427,8 +437,9 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     .reset-btn, .export-btn { min-height: 44px; }
     .preset-btn, .basemap-btn { min-height: 40px; }
 
-    /* Legend: hide on mobile */
+    /* Legend + panel tab: hide on mobile */
     .map-legend { display: none; }
+    .listings-panel-tab { display: none !important; }
 
     /* Popup: mobile-friendly */
     .leaflet-popup-content { min-width: unset !important; }
@@ -927,6 +938,11 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       </p>
     </div>
   </div>
+</div>
+
+<!-- Listings Panel Tab (visible when panel is closed) -->
+<div class="listings-panel-tab" id="listingsPanelTab" onclick="toggleListingsPanel()">
+  <span class="tab-arrow">&#9650;</span> Deal Pipeline <span class="tab-count" id="tabPanelCount">0</span>
 </div>
 
 <!-- Listings Panel -->
@@ -2299,8 +2315,10 @@ function toggleSection(titleEl){
 
 function toggleListingsPanel(){
   const panel = document.getElementById('listingsPanel');
+  const tab = document.getElementById('listingsPanelTab');
   listingsPanelOpen = !listingsPanelOpen;
   panel.classList.toggle('open', listingsPanelOpen);
+  if(tab) tab.style.display = listingsPanelOpen ? 'none' : 'flex';
   if(isMobile() && listingsPanelOpen) setSheetState('collapsed');
   setTimeout(() => map.invalidateSize(), 350);
 }
@@ -2517,8 +2535,8 @@ function rebuildTable(filtered){
   const countStr = sorted.length > 500 ? `${sorted.length} deals (showing 500)` : `${sorted.length} deals`;
   const tablePanelCount = document.getElementById('tablePanelCount');
   if(tablePanelCount) tablePanelCount.textContent = countStr;
-  const listingPanelCount = document.getElementById('listingPanelCount');
-  if(listingPanelCount) listingPanelCount.textContent = `${sorted.length} deals`;
+  const tabPanelCount = document.getElementById('tabPanelCount');
+  if(tabPanelCount) tabPanelCount.textContent = `${sorted.length} deals`;
   rebuildMobileCards(sorted);
 }
 
