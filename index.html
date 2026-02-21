@@ -683,7 +683,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
       <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)">
-        <span class="icon" style="color:#f59e0b">◆</span> Rental Fallback <span class="layer-count" id="btrCount">0</span>
+        <span class="icon" style="color:#f59e0b">◆</span> BTR Strategy <span class="layer-count" id="btrCount">0</span>
       </button>
       
       <!-- Risk Overlays (collapsible group) -->
@@ -2167,7 +2167,7 @@ function updatePinLegend(){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444"></div> Under 20% margin</div>';
   }
   
-  // Show BTR legend if rental fallback layer is on
+  // Show BTR legend if BTR strategy layer is on
   if(layerState.btr){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker diamond"></div> Rental opportunity</div>';
   }
