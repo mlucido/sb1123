@@ -726,7 +726,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Zone Filters -->
-  <div class="section collapsed">
+  <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Zone Filters <span class="chevron">▼</span></div>
     <div class="section-content" id="zoneToggles"></div>
   </div>
@@ -748,11 +748,11 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
     <div class="section-content">
       <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
-      <button class="layer-btn active" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> Exit $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
+      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> Exit $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
       <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)"><span class="icon" style="color:#22c55e">&#9608;</span> Spread Heatmap <span class="layer-count" id="spreadCount"></span></button>
       <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)"><span class="icon" style="color:#8b5cf6">&#9632;</span> Neighborhoods <span class="layer-count" id="neighborhoodCount"></span></button>
-      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> BTR Opportunities <span class="layer-count" id="btrCount"></span></button>
-      <button class="layer-btn" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
+      <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> BTR Opportunities <span class="layer-count" id="btrCount"></span></button>
+      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
       <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)"><span class="icon" style="color:#a0a0a0">&#9678;</span> Off-Market <span class="layer-count" id="offMarketCount"></span></button>
       <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
       <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Zones (FEMA)</button>
@@ -905,7 +905,7 @@ const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:true,spreadHeat:true,neighborhoods:false,listings:false,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:true,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
 const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
