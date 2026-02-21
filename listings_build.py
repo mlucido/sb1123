@@ -7,7 +7,8 @@ What it does:
   1. Reads the Redfin CSV
   2. Filters to LA County only (lat/lng bounding box)
   3. Pulls lot size from the CSV
-  4. Computes hyperlocal zone-matched neighborhood $/SF from sold comps
+  4. Computes hyperlocal zone-matched exit $/SF (P75) from sold comps
+     - P75 = 75th percentile (new townhomes compete with top quartile)
      - Spatial grid index for fast radius-based lookup
      - Same-zone comps only (R2 listing → R2 comps only)
      - Expanding radius search: 0.25mi → 0.5mi → 1mi → 2mi → 4mi
@@ -64,7 +65,7 @@ else:
 # Key: (grid_row, grid_col) → list of (lat, lng, ppsf)
 zone_grid = {}   # { zone: { (row,col): [(lat,lng,ppsf), ...] } }
 all_grid = {}    # { (row,col): [(lat,lng,ppsf), ...] }
-newcon_zone_grid = {} # New construction (year_built >= 2021) — zone-specific
+newcon_zone_grid = {} # New/remodeled construction (year_built >= 2015) — zone-specific
 # Zip-level fallback: { (zip, zone): [ppsf], zip: [ppsf] }
 zip_zone_ppsfs = {}
 zip_all_ppsfs = {}
@@ -93,9 +94,9 @@ for c in comps:
     # All-zone grid
     all_grid.setdefault((grow, gcol), []).append(entry)
 
-    # New construction grid (year_built >= 2021) — zone-specific
+    # New/remodeled construction grid (year_built >= 2015) — zone-specific
     yb = c.get("yb")
-    if yb and yb >= 2021 and czone:
+    if yb and yb >= 2015 and czone:
         if czone not in newcon_zone_grid:
             newcon_zone_grid[czone] = {}
         newcon_zone_grid[czone].setdefault((grow, gcol), []).append(entry)
@@ -113,24 +114,31 @@ for z in ["R1", "R2", "R3", "R4"]:
     print(f"     {z}: {zone_comp_counts.get(z, 0):,} comps")
 newcon_zone_counts = {z: sum(len(v) for v in g.values()) for z, g in newcon_zone_grid.items()}
 newcon_cells = sum(len(g) for g in newcon_zone_grid.values())
-print(f"   New construction (2021+): {newcon_count:,} comps in {newcon_cells:,} cells")
+print(f"   New/remodeled (2015+): {newcon_count:,} comps in {newcon_cells:,} cells")
 for z in ["R1", "R2", "R3", "R4"]:
     if z in newcon_zone_counts:
         print(f"     {z}: {newcon_zone_counts[z]:,} new-con comps")
 print(f"   Zip+zone fallbacks: {len(zip_zone_ppsfs)} combos")
 
 
-def find_hood_ppsf(lat, lng, zone, zipcode):
-    """Find zone-matched neighborhood median $/SF using radius-based search.
+def find_exit_ppsf(lat, lng, zone, zipcode):
+    """Find zone-matched exit $/SF (P75) using radius-based search.
+
+    Uses 75th percentile — new-construction townhomes with roof decks
+    compete with the top quartile of neighborhood sales.
 
     Priority:
       1. Same-zone comps within expanding radius (hyperlocal)
       2. All-zone comps within expanding radius (if <MIN_COMPS same-zone)
-      3. Same zip + same zone median (fallback)
-      4. Same zip all-zone median (last resort)
+      3. Same zip + same zone P75 (fallback)
+      4. Same zip all-zone P75 (last resort)
     """
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
+
+    def p75(vals):
+        vals.sort()
+        return round(vals[int(len(vals) * 0.75)])
 
     # Try same-zone spatial search at expanding radii
     zg = zone_grid.get(zone, {})
@@ -145,7 +153,7 @@ def find_hood_ppsf(lat, lng, zone, zipcode):
                             nearby.append(cppsf)
             if len(nearby) >= MIN_COMPS:
                 miles = round(radius * 69, 2)
-                return round(statistics.median(nearby)), len(nearby), miles, "zone"
+                return p75(nearby), len(nearby), miles, "zone"
 
     # Fallback: all-zone spatial search at expanding radii
     for radius in SEARCH_RADII_DEG:
@@ -158,24 +166,24 @@ def find_hood_ppsf(lat, lng, zone, zipcode):
                         nearby.append(cppsf)
         if len(nearby) >= MIN_COMPS:
             miles = round(radius * 69, 2)
-            return round(statistics.median(nearby)), len(nearby), miles, "all"
+            return p75(nearby), len(nearby), miles, "all"
 
     # Fallback: zip + same zone
     zz_key = (zipcode, zone)
     if zz_key in zip_zone_ppsfs and len(zip_zone_ppsfs[zz_key]) >= 3:
-        vals = zip_zone_ppsfs[zz_key]
-        return round(statistics.median(vals)), len(vals), 0, "zip+zone"
+        vals = list(zip_zone_ppsfs[zz_key])
+        return p75(vals), len(vals), 0, "zip+zone"
 
     # Last resort: zip all-zone
     if zipcode in zip_all_ppsfs:
-        vals = zip_all_ppsfs[zipcode]
-        return round(statistics.median(vals)), len(vals), 0, "zip"
+        vals = list(zip_all_ppsfs[zipcode])
+        return p75(vals), len(vals), 0, "zip"
 
     return 0, 0, 0, "none"
 
 
 def find_newcon_ppsf(lat, lng, zone):
-    """Find zone-matched new-construction (2021+) median $/SF.
+    """Find zone-matched new/remodeled (2015+) median $/SF.
     Returns median or None if fewer than MIN_COMPS comps found."""
     zg = newcon_zone_grid.get(zone, {})
     if not zg:
@@ -466,20 +474,19 @@ elif need_fire_check:
 else:
     print(f"\n✅ Step 3: All {len(listings):,} listings already have fire zone data from parcels.json")
 
-# ── Step 4: Zone-matched spatial hood $/SF ──
+# ── Step 4: Zone-matched spatial exit $/SF (P75) ──
 if comps:
-    print(f"\n📍 Step 4: Computing zone-matched neighborhood $/SF...")
+    print(f"\n📍 Step 4: Computing zone-matched exit $/SF (P75)...")
     t0 = time.time()
     method_counts = {"zone": 0, "all": 0, "zip+zone": 0, "zip": 0, "none": 0}
     radius_sum = 0
     comp_count_sum = 0
 
     for i, l in enumerate(listings):
-        hood_ppsf, n_comps, radius_mi, method = find_hood_ppsf(
+        exit_ppsf, n_comps, radius_mi, method = find_exit_ppsf(
             l["lat"], l["lng"], l["zone"], l["zip"]
         )
-        l["hoodPpsf"] = hood_ppsf if hood_ppsf > 0 else None
-        l["hoodComps"] = n_comps if n_comps > 0 else None
+        l["exitPsf"] = exit_ppsf if exit_ppsf > 0 else None
         method_counts[method] += 1
         if method in ("zone", "all"):
             radius_sum += radius_mi
@@ -505,14 +512,13 @@ if comps:
         print(f"   Avg search radius: {avg_radius:.2f} mi")
         print(f"   Avg comps per listing: {avg_comps:.0f}")
 else:
-    print(f"\n⚠️  No comps loaded — skipping hood $/SF computation")
+    print(f"\n⚠️  No comps loaded — skipping exit $/SF computation")
     for l in listings:
-        l["hoodPpsf"] = None
-        l["hoodComps"] = None
+        l["exitPsf"] = None
 
 # ── Step 4b: New-construction sell-side $/SF ──
 if newcon_count > 0:
-    print(f"\n🏗️  Step 4b: Computing zone-matched new-construction $/SF (2021+ built)...")
+    print(f"\n🏗️  Step 4b: Computing zone-matched new/remodeled $/SF (2015+ built)...")
     nc_found = 0
     for l in listings:
         nc = find_newcon_ppsf(l["lat"], l["lng"], l["zone"])
@@ -566,22 +572,22 @@ for z in ["R1", "R2", "R3", "R4", "LAND", "Unknown"]:
     if z in zone_counts:
         print(f"   {z}: {zone_counts[z]} listings")
 
-with_hood = sum(1 for l in listings if l.get("hoodPpsf"))
+with_exit = sum(1 for l in listings if l.get("exitPsf"))
 with_lot = sum(1 for l in listings if l["lotSf"])
-print(f"   With neighborhood $/SF: {with_hood}/{len(listings)}")
+print(f"   With exit $/SF (P75): {with_exit}/{len(listings)}")
 print(f"   With lot size: {with_lot}/{len(listings)}")
 
-# Show zone-specific hood $/SF samples
-if with_hood:
-    print(f"\n   Zone-specific hood $/SF samples:")
+# Show zone-specific exit $/SF samples
+if with_exit:
+    print(f"\n   Zone-specific exit $/SF (P75):")
     for z in ["R1", "R2", "R3", "R4"]:
-        zone_hoods = [l["hoodPpsf"] for l in listings if l["zone"] == z and l.get("hoodPpsf")]
-        if zone_hoods:
-            zone_hoods.sort()
-            med = zone_hoods[len(zone_hoods)//2]
-            p10 = zone_hoods[len(zone_hoods)//10] if len(zone_hoods) >= 10 else zone_hoods[0]
-            p90 = zone_hoods[int(len(zone_hoods)*0.9)] if len(zone_hoods) >= 10 else zone_hoods[-1]
-            print(f"     {z}: median ${med}/sf (P10=${p10}, P90=${p90}, n={len(zone_hoods)})")
+        zone_exits = [l["exitPsf"] for l in listings if l["zone"] == z and l.get("exitPsf")]
+        if zone_exits:
+            zone_exits.sort()
+            med = zone_exits[len(zone_exits)//2]
+            p10 = zone_exits[len(zone_exits)//10] if len(zone_exits) >= 10 else zone_exits[0]
+            p90 = zone_exits[int(len(zone_exits)*0.9)] if len(zone_exits) >= 10 else zone_exits[-1]
+            print(f"     {z}: P75=${med}/sf (P10=${p10}, P90=${p90}, n={len(zone_exits)})")
 
 # ── Write listings.js ──
 build_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
