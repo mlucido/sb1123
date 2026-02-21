@@ -1053,10 +1053,12 @@ function sharePin(lat,lng,event){
 }
 function toggleFavoritesFilter(){
   favoritesOnly=!favoritesOnly;
-  const favs = loadFavorites();
-  const favCount = Object.keys(favs).length;
-  console.log(`Favorites filter: ${favoritesOnly ? 'ON' : 'OFF'}, ${favCount} saved deals`);
-  document.getElementById('favToggle').classList.toggle('active',favoritesOnly);
+  const btn = document.getElementById('favToggle');
+  if(favoritesOnly){
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
   applyFilters();
 }
 
@@ -2715,6 +2717,9 @@ window.addEventListener('DOMContentLoaded', function(){
       updateFavCount();
       updateHeroStats();
       updatePinLegend();
+      
+      // Ensure Saved Deals button starts in correct visual state
+      document.getElementById('favToggle').classList.remove('active');
 
       // Fit bounds
       const allLats=[...COMPS.map(c=>c.lat),...LISTINGS.map(l=>l.lat)];
