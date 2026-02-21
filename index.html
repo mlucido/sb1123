@@ -447,6 +447,15 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       max-height: 50vh; overflow-y: auto !important;
       max-width: calc(100vw - 40px) !important;
     }
+    .popup-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 2px 8px; }
+    .popup-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+    .popup-section-label { font-size: 10px; }
+
+    /* Pin legend: above bottom sheet */
+    .pin-legend { bottom: 70px; }
+
+    /* Onboarding tip: constrain to viewport */
+    .onboarding-tip { max-width: calc(100vw - 24px); }
 
     /* Listings panel: full-screen overlay */
     .listings-panel {
