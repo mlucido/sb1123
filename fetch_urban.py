@@ -2,73 +2,60 @@
 """
 fetch_urban.py
 Checks whether each listing falls within a Census-designated Urban Area
-using the TIGERweb REST API.
+using a local TIGER/Line shapefile + geopandas spatial join.
 
-SB 1123 applies only to parcels in urbanized areas. This script queries
-the Census Bureau's TIGERweb service for each listing location.
+Downloads the 2020 Urban Areas shapefile once, then runs a bulk spatial
+join against all listing lat/lngs in a single operation (~30s).
+
+SB 1123 applies only to parcels in urbanized areas.
 
 Reads:  redfin_merged.csv (lat/lng of active listings)
 Writes: urban.json — keyed by "lat,lng" → true/false
 
-Supports incremental runs (skips already-checked listings).
-Checkpoints every 500 lookups.
-
 Usage:
-  python3 fetch_urban.py          # All listings
-  python3 fetch_urban.py --test   # First 20 only
+  python3 fetch_urban.py          # All listings (full rebuild)
+  python3 fetch_urban.py --test   # First 100 only
+
+Requires: geopandas, shapely, fiona
+  pip3 install geopandas shapely fiona
 """
 
-import csv, json, os, re, sys, time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import requests
+import csv, json, os, sys, time, zipfile, urllib.request
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Config ──
-TIGERWEB_URL = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Urban/MapServer/2/query"
+SHAPEFILE_URL = "https://www2.census.gov/geo/tiger/TIGER2020/UAC/tl_2020_us_uac20.zip"
+SHAPEFILE_DIR = "tiger_urban"
+SHAPEFILE_ZIP = os.path.join(SHAPEFILE_DIR, "tl_2020_us_uac20.zip")
+SHAPEFILE_PATH = os.path.join(SHAPEFILE_DIR, "tl_2020_us_uac20.shp")
 OUTPUT_FILE = "urban.json"
-CHECKPOINT_EVERY = 500
-MAX_WORKERS = 10
-RATE_LIMIT_DELAY = 0.5  # Conservative — Census API is slow
 
 # LA County bounding box
 LA_LAT_MIN, LA_LAT_MAX = 33.70, 34.85
 LA_LNG_MIN, LA_LNG_MAX = -118.95, -117.55
 
 
-def query_urban(lat, lng, retries=2):
-    """Query TIGERweb Urban Area layer for a point. Returns True/False/None."""
-    params = {
-        "geometry": f"{lng},{lat}",
-        "geometryType": "esriGeometryPoint",
-        "inSR": 4326,
-        "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "NAME,GEOID",
-        "returnGeometry": "false",
-        "f": "json",
-    }
-    for attempt in range(retries + 1):
-        try:
-            resp = requests.get(TIGERWEB_URL, params=params, timeout=30)
-            if resp.status_code == 200:
-                data = resp.json()
-                features = data.get("features", [])
-                if features:
-                    return True  # Inside an urban area
-                return False  # Not in an urban area
-            elif resp.status_code in (429, 503):
-                wait = 5 + attempt * 10
-                print(f"    Rate limited ({resp.status_code}), waiting {wait}s...")
-                time.sleep(wait)
-                continue
-        except requests.exceptions.Timeout:
-            if attempt < retries:
-                print(f"    Timeout, retry {attempt+1}...")
-                time.sleep(3)
-        except Exception as e:
-            if attempt < retries:
-                time.sleep(3)
-    return None  # All retries failed
+def download_shapefile():
+    """Download and extract the TIGER Urban Areas shapefile if not present."""
+    if os.path.exists(SHAPEFILE_PATH):
+        print(f"  Shapefile already exists: {SHAPEFILE_PATH}")
+        return
+
+    os.makedirs(SHAPEFILE_DIR, exist_ok=True)
+
+    if not os.path.exists(SHAPEFILE_ZIP):
+        print(f"  Downloading Urban Areas shapefile (~120 MB)...")
+        t0 = time.time()
+        urllib.request.urlretrieve(SHAPEFILE_URL, SHAPEFILE_ZIP)
+        print(f"  Downloaded in {time.time()-t0:.1f}s")
+    else:
+        print(f"  Zip already downloaded: {SHAPEFILE_ZIP}")
+
+    print(f"  Extracting...")
+    with zipfile.ZipFile(SHAPEFILE_ZIP, "r") as zf:
+        zf.extractall(SHAPEFILE_DIR)
+    print(f"  Extracted to {SHAPEFILE_DIR}/")
 
 
 def load_listings_from_csv():
@@ -92,80 +79,62 @@ def load_listings_from_csv():
     return listings
 
 
-def save_cache(cache):
-    """Write cache to disk."""
+def main():
+    import geopandas as gpd
+    from shapely.geometry import Point
+
+    test_mode = "--test" in sys.argv
+    t_start = time.time()
+
+    # Step 1: Download shapefile
+    print("Step 1: Ensuring Urban Areas shapefile is available...")
+    download_shapefile()
+
+    # Step 2: Load listings
+    print("\nStep 2: Loading listings from redfin_merged.csv...")
+    listings = load_listings_from_csv()
+    if test_mode:
+        listings = listings[:100]
+    print(f"  {len(listings):,} listings loaded")
+
+    # Step 3: Load shapefile and clip to LA County bbox
+    print("\nStep 3: Loading Urban Areas shapefile...")
+    t0 = time.time()
+    urban_areas = gpd.read_file(SHAPEFILE_PATH, bbox=(LA_LNG_MIN, LA_LAT_MIN, LA_LNG_MAX, LA_LAT_MAX))
+    print(f"  Loaded {len(urban_areas)} urban area polygons in LA County bbox ({time.time()-t0:.1f}s)")
+
+    # Step 4: Build listing GeoDataFrame
+    print("\nStep 4: Building listing points...")
+    keys = [f"{l['lat']},{l['lng']}" for l in listings]
+    points = [Point(l["lng"], l["lat"]) for l in listings]
+    listings_gdf = gpd.GeoDataFrame({"key": keys}, geometry=points, crs=urban_areas.crs)
+    print(f"  {len(listings_gdf):,} points created")
+
+    # Step 5: Spatial join
+    print("\nStep 5: Running spatial join...")
+    t0 = time.time()
+    joined = gpd.sjoin(listings_gdf, urban_areas, how="left", predicate="within")
+    elapsed = time.time() - t0
+    print(f"  Spatial join completed in {elapsed:.1f}s")
+
+    # Step 6: Build output — deduplicate (sjoin can produce multiple matches)
+    print("\nStep 6: Building urban.json...")
+    cache = {}
+    in_urban = set(joined.dropna(subset=["index_right"])["key"].unique())
+
+    for key in keys:
+        cache[key] = key in in_urban
+
+    urban_count = sum(1 for v in cache.values() if v)
+    non_urban_count = sum(1 for v in cache.values() if not v)
+
     with open(OUTPUT_FILE, "w") as f:
         json.dump(cache, f, separators=(",", ":"))
 
-
-def main():
-    test_mode = "--test" in sys.argv
-
-    print("Loading listings from redfin_merged.csv...")
-    listings = load_listings_from_csv()
-    print(f"  {len(listings):,} listings loaded")
-
-    # Load existing cache
-    cache = {}
-    if os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE) as f:
-            cache = json.load(f)
-        print(f"  {len(cache):,} cached urban lookups")
-
-    # Build work list
-    work = []
-    for item in listings:
-        key = f"{item['lat']},{item['lng']}"
-        if key not in cache:
-            work.append(item)
-
-    limit = 20 if test_mode else len(work)
-    work = work[:limit]
-
-    total = len(work)
-    if total == 0:
-        print("  All listings already cached!")
-    else:
-        print(f"  Checking urban area status for {total:,} listings ({MAX_WORKERS} workers)...")
-        urban_count = 0
-        non_urban_count = 0
-        failed = 0
-        done = 0
-
-        def process(item):
-            return (f"{item['lat']},{item['lng']}", query_urban(item["lat"], item["lng"]))
-
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
-            futures = {pool.submit(process, item): item for item in work}
-            for future in as_completed(futures):
-                key, result = future.result()
-                done += 1
-
-                if result is True:
-                    cache[key] = True
-                    urban_count += 1
-                elif result is False:
-                    cache[key] = False
-                    non_urban_count += 1
-                else:
-                    failed += 1
-
-                if done % 200 == 0 or done == total:
-                    print(f"  [{done}/{total}] urban={urban_count} non-urban={non_urban_count} failed={failed}")
-
-                if done % CHECKPOINT_EVERY == 0:
-                    save_cache(cache)
-                    print(f"  Checkpoint: {len(cache):,} entries saved")
-
-        save_cache(cache)
-        print(f"\nDone! urban={urban_count} non-urban={non_urban_count} failed={failed}")
-        print(f"Total cached: {len(cache):,} entries -> {OUTPUT_FILE}")
-
-    # Stats
-    total_cached = len(cache)
-    urban_total = sum(1 for v in cache.values() if v is True)
-    non_urban_total = sum(1 for v in cache.values() if v is False)
-    print(f"\nOverall: {urban_total:,} urban, {non_urban_total:,} non-urban out of {total_cached:,}")
+    total_time = time.time() - t_start
+    print(f"\n  Done in {total_time:.1f}s total")
+    print(f"  Urban: {urban_count:,} | Non-urban: {non_urban_count:,} | Total: {len(cache):,}")
+    print(f"  Written to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

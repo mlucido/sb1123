@@ -11,6 +11,9 @@ comps_r1r4.csv
 # GeoJSON data (fire zones stamped into listings.js already)
 fire_zones_vhfhsz.geojson
 
+# TIGER shapefile cache (~120 MB)
+tiger_urban/
+
 # OS files
 .DS_Store
 .claude/
