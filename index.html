@@ -581,7 +581,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <div class="loading-banner" id="loadingBanner">Rendering data...</div>
 
   <!-- Deal Pipeline Stats -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Deal Pipeline <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="stats-grid">
@@ -601,7 +601,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- SB9 Mode -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="preset-row" style="margin-top:8px">
       <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">12-18K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
@@ -632,7 +632,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- $/SF Filter -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">$/SF Filter <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
@@ -652,7 +652,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Lot Size Filter -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Lot Size (SF) <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
@@ -692,7 +692,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Lot Slope -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Lot Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
@@ -726,13 +726,13 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Zone Filters -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Zone Filters <span class="chevron">▼</span></div>
     <div class="section-content" id="zoneToggles"></div>
   </div>
 
   <!-- Base Map -->
-  <div class="section">
+  <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Base Map <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="basemap-group">
