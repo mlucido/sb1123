@@ -39,6 +39,18 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   .app-row{display:flex;flex:1;overflow:hidden}
 
+  /* ── Hero Stat Bar ── */
+  .hero-stats{
+    background:rgba(96,165,250,0.06);border-bottom:1px solid var(--border);
+    padding:8px 20px;display:flex;align-items:center;justify-content:center;
+    gap:20px;font-size:12px;font-weight:500;white-space:nowrap;
+    overflow-x:auto;z-index:900;
+  }
+  .hero-stats .stat-item{display:flex;align-items:center;gap:6px}
+  .hero-stats .stat-value{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
+  .hero-stats .stat-value.green{color:var(--green)}
+  .hero-stats .separator{color:var(--border);font-weight:300}
+
   /* ── Sidebar ── */
   .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
   .sidebar-header{padding:20px 20px 14px;border-bottom:1px solid var(--border)}
@@ -187,8 +199,21 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .popup-profit-positive{color:var(--green)}
   .popup-profit-negative{color:var(--red)}
 
-  /* Legend */
-  .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+  /* Pin Color Legend */
+  .pin-legend{
+    position:absolute;bottom:10px;left:10px;
+    background:rgba(26,29,39,0.92);border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;z-index:850;font-size:10px;box-shadow:0 2px 12px rgba(0,0,0,0.4);
+  }
+  body.light-mode .pin-legend{background:rgba(255,255,255,0.92)}
+  .pin-legend-item{display:flex;align-items:center;gap:6px;margin-bottom:2px;line-height:1.4}
+  .pin-legend-item:last-child{margin-bottom:0}
+  .pin-legend-marker{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .pin-legend-marker.diamond{border-radius:0;transform:rotate(45deg);border:1.5px dashed #d97706;background:rgba(245,158,11,0.85)}
+  .pin-legend-marker.circle{border:2px solid #666;background:transparent}
+
+  /* Old Legend (keep for desktop reference) */
+  .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none}
   .legend-item{display:flex;align-items:center;gap:8px;margin-bottom:3px}
   .legend-item:last-child{margin-bottom:0}
   .legend-dot{width:10px;height:10px;border-radius:2px}
@@ -554,9 +579,52 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .btr-tooltip .gap-negative {
     color: #f87171;
   }
+
+  /* ── Deal Assumptions Modal ── */
+  .modal-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.7);z-index:2000;display:none;
+    align-items:center;justify-content:center;
+  }
+  .modal-overlay.active{display:flex}
+  .modal-panel{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    width:90%;max-width:500px;max-height:80vh;overflow-y:auto;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  }
+  .modal-header{
+    padding:16px 20px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .modal-header h3{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+  .modal-close{
+    background:none;border:none;color:var(--text-dim);cursor:pointer;
+    font-size:24px;padding:0;width:28px;height:28px;border-radius:4px;
+    transition:all 0.15s;display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close:hover{color:var(--text);background:var(--surface2)}
+  .modal-body{padding:20px}
+  .gear-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:6px;cursor:pointer;
+    color:var(--text-dim);transition:all 0.15s;margin-left:4px;
+    background:var(--surface2);border:1px solid var(--border);
+  }
+  .gear-icon:hover{color:var(--text);background:var(--surface);border-color:var(--accent)}
 </style>
 </head>
 <body class="light-mode">
+
+<!-- Hero Stat Bar -->
+<div class="hero-stats">
+  <div class="stat-item"><span class="stat-value green" id="heroForSale">0</span> For Sale</div>
+  <span class="separator">|</span>
+  <div class="stat-item"><span class="stat-value" id="heroOffMarket">0</span> Off-Market Targets</div>
+  <span class="separator">|</span>
+  <div class="stat-item"><span class="stat-value green" id="heroHighMargin">0</span> Deals Above 30% Margin</div>
+  <span class="separator">|</span>
+  <div class="stat-item">Avg Margin: <span class="stat-value" id="heroAvgMargin">0%</span></div>
+</div>
 
 <div class="app-row">
 <aside class="sidebar">
@@ -580,36 +648,71 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <div class="loading-banner" id="loadingBanner">Rendering data...</div>
 
-  <!-- Deal Pipeline Stats -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Deal Pipeline <span class="chevron">▼</span></div>
+  <!-- ═══ QUICK ACTIONS ═══ -->
+  <div class="section">
+    <div class="section-title">Quick Actions</div>
     <div class="section-content">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value green" id="sb1123Count">0</div><div class="stat-label">1123 Eligible</div></div>
-        <div class="stat-card"><div class="stat-value yellow" id="avgMargin">0%</div><div class="stat-label">Avg Margin</div></div>
-        <div class="stat-card"><div class="stat-value" id="totalListings">0</div><div class="stat-label">Total Listed</div></div>
-      </div>
-      <div class="stats-grid two-col" style="margin-top:6px">
-        <div class="stat-card"><div class="stat-value" id="medPpu">$0</div><div class="stat-label">Med $/Unit</div></div>
-        <div class="stat-card"><div class="stat-value" id="medPpsf">$0</div><div class="stat-label">Med $/SF</div></div>
-      </div>
-      <div class="stats-grid two-col" style="margin-top:6px">
-        <div class="stat-card"><div class="stat-value green" id="newCount">0</div><div class="stat-label">New (≤3 days)</div></div>
-        <div class="stat-card"><div class="stat-value" style="color:var(--accent)" id="newWeekCount">0</div><div class="stat-label">New This Week</div></div>
+      <div class="preset-row">
+        <button class="preset-btn" onclick="applyPreset('newThisWeek')">New This Week</button>
+        <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings</button>
+        <button class="preset-btn" onclick="applyPreset('offMarket')">Off-Market</button>
       </div>
     </div>
   </div>
 
-  <!-- SB9 Mode -->
-  <div class="section collapsed">
-    <div class="preset-row" style="margin-top:8px">
-      <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">12-18K lot, 10 units</span></button>
-      <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
-      <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
-      <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ days on market</span></button>
-      <button class="preset-btn" onclick="applyPreset('newThisWeek')">🆕 New This Week<br><span style="font-size:9px;color:var(--text-dim)">Listed in last 7 days</span></button>
+  <!-- ═══ LAYERS ═══ -->
+  <div class="section">
+    <div class="section-title">Layers</div>
+    <div class="section-content">
+      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)">
+        <span class="icon">●</span> For Sale <span class="layer-count" id="listingCount">0</span>
+      </button>
+      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
+        <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
+      </button>
+      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)">
+        <span class="icon">○</span> Recent Sales <span class="layer-count" id="compCount">0</span>
+      </button>
+      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)">
+        <span class="icon" style="color:#f0641e">▪</span> Sale Price Heatmap
+      </button>
+      <button class="layer-btn" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
+        <span class="icon" style="color:#22c55e">▪</span> Profit Margin Heatmap
+      </button>
+      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
+        <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores
+      </button>
+      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)">
+        <span class="icon" style="color:#f59e0b">◆</span> Rental Fallback <span class="layer-count" id="btrCount">0</span>
+      </button>
+      
+      <!-- Risk Overlays (collapsible group) -->
+      <div class="section collapsed" style="margin:8px 0 0;padding:0;border:none">
+        <div class="section-title" onclick="toggleSection(this)" style="margin-bottom:4px;cursor:pointer">
+          Risk Overlays <span class="chevron">▼</span>
+        </div>
+        <div class="section-content">
+          <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">
+            <span class="icon" style="color:#ef4444">!</span> Fire Risk
+          </button>
+          <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)">
+            <span class="icon" style="color:#3b82f6">~</span> Flood Risk
+          </button>
+          <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">
+            <span class="icon" style="color:#a855f7">▪</span> Earthquake Risk
+          </button>
+          <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)">
+            <span class="icon">◻</span> Parcel Boundaries
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- ═══ FILTERS ═══ (collapsed by default) -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Filters <span class="chevron">▼</span></div>
+    <div class="section-content">
 
   <!-- List Price Filter -->
   <div class="section collapsed">
@@ -711,60 +814,74 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     </div>
   </div>
 
-  <!-- Filter summary -->
-  <div class="section">
-    <div class="filter-count" id="filterCount">Showing all</div>
-    <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
+      <!-- Zoning -->
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Zoning</div>
+        <div id="zoneToggles"></div>
+      </div>
+
+      <!-- Filter summary -->
+      <div class="filter-count" id="filterCount">Showing all</div>
+      <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
+    </div>
   </div>
 
-  <!-- Favorites -->
+  <!-- ═══ SAVED DEALS ═══ -->
   <div class="section">
     <button class="fav-toggle" id="favToggle" onclick="toggleFavoritesFilter()">
-      <span style="font-size:14px">&#9733;</span> Favorites Only
+      <span style="font-size:14px">★</span> Saved Deals
       <span class="fav-count" id="favCount">0</span>
     </button>
   </div>
 
-  <!-- Zone Filters -->
+  <!-- ═══ DEAL ASSUMPTIONS ═══ -->
+  <div class="section" style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:12px;color:var(--text-dim)">Deal Assumptions</span>
+    <button class="gear-icon" onclick="openAssumptionsModal()" title="Edit deal assumptions">⚙</button>
+  </div>
+
+  <!-- ═══ EXPORT ═══ -->
   <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Zoning <span class="chevron">▼</span></div>
-    <div class="section-content" id="zoneToggles"></div>
+    <button class="export-btn" onclick="exportCSV()">📊 Export CSV</button>
   </div>
+</aside>
 
-  <!-- Base Map -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Base Map <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="basemap-group">
-        <button class="basemap-btn" data-base="dark" onclick="setBaseMap('dark')">Dark</button>
-        <button class="basemap-btn active" data-base="light" onclick="setBaseMap('light')">Light</button>
-        <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
-      </div>
+<button class="mobile-filter-btn" id="mobileFilterBtn" onclick="openMobileSheet()">
+  <span class="filter-icon">&#9776;</span> Filters
+</button>
+
+<div id="map"></div>
+
+<!-- Pin Color Legend (bottom-left, always visible, dynamic) -->
+<div class="pin-legend" id="pinLegend">
+  <!-- Dynamically populated based on active layers -->
+</div>
+
+<div class="map-legend">
+  <div class="legend-section">Comps (Market Data)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r1)"></div> R1 Single Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r2)"></div> R2 Two Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r3)"></div> R3 Multi-Family</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
+  <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> &lt;$600/SF</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $600-700</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $700-800</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800-900</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900-1,000</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $1,000+</div>
+</div>
+</div><!-- /app-row -->
+
+<!-- Deal Assumptions Modal -->
+<div class="modal-overlay" id="assumptionsModal" onclick="if(event.target===this) closeAssumptionsModal()">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3>Deal Assumptions</h3>
+      <button class="modal-close" onclick="closeAssumptionsModal()">×</button>
     </div>
-  </div>
-
-  <!-- Map Layers -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Recent Sales <span class="layer-count" id="compCount"></span></button>
-      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> Sale Price Heatmap <span class="layer-count" id="heatCount"></span></button>
-      <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)"><span class="icon" style="color:#22c55e">&#9608;</span> Profit Margin Heatmap <span class="layer-count" id="spreadCount"></span></button>
-      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)"><span class="icon" style="color:#8b5cf6">&#9632;</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount"></span></button>
-      <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> Rental Fallback <span class="layer-count" id="btrCount"></span></button>
-      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> For Sale <span class="layer-count" id="listingCount"></span></button>
-      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)"><span class="icon" style="color:#a0a0a0">&#9678;</span> Off-Market Targets <span class="layer-count" id="offMarketCount"></span></button>
-      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Risk</button>
-      <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Risk</button>
-      <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)"><span class="icon" style="color:#a855f7">&#9632;</span> Earthquake Risk</button>
-      <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)"><span class="icon">&#9633;</span> Parcel Boundaries <small style="color:var(--text-dim)">(zoom 15+)</small></button>
-    </div>
-  </div>
-
-  <!-- Pro Forma Assumptions -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Deal Assumptions <span class="chevron">▼</span></div>
-    <div class="section-content">
+    <div class="modal-body">
       <div class="proforma-inputs">
         <div class="proforma-group">
           <label>Build $/SF</label>
@@ -795,45 +912,13 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           <input type="number" id="pfCarryRate" value="9" step="0.5" onchange="onProformaChange()">
         </div>
       </div>
-      <p style="font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+      <p style="font-size:10px;color:var(--text-dim);margin-top:12px;line-height:1.4">
         SB 1123 ground-up: demolish existing, build all new townhome units.
         Max avg unit size: 1,200 SF (R1). Guaranteed FAR: 1.0x (3-7 units) / 1.25x (8-10).
       </p>
     </div>
   </div>
-
-  <!-- Listings Table Toggle -->
-  <div class="section">
-    <button class="panel-toggle" onclick="toggleListingsPanel()">
-      <span>Deal Pipeline Table</span>
-      <span class="toggle-count" id="listingPanelCount">0 deals</span>
-    </button>
-    <button class="export-btn" onclick="exportCSV()">Export Filtered Deals to CSV</button>
-  </div>
-</aside>
-
-<button class="mobile-filter-btn" id="mobileFilterBtn" onclick="openMobileSheet()">
-  <span class="filter-icon">&#9776;</span> Filters
-</button>
-
-<div id="map"></div>
-
-<div class="map-legend">
-  <div class="legend-section">Comps (Market Data)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r1)"></div> R1 Single Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r2)"></div> R2 Two Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r3)"></div> R3 Multi-Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
-  <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> &lt;$600/SF</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $600-700</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $700-800</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800-900</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900-1,000</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $1,000+</div>
 </div>
-</div><!-- /app-row -->
 
 <!-- Listings Panel -->
 <div class="listings-panel" id="listingsPanel">
@@ -905,7 +990,7 @@ const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:true,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
 const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
@@ -1413,9 +1498,20 @@ function rebuildListings(){
   const filtered = getFilteredListings();
 
   filtered.forEach(l => {
-    const exitPpsf = l.newconPpsf || l.hoodPpsf;
-    const color = hoodPpsfColor(exitPpsf);
-    const borderColor = getPinBorder(exitPpsf);
+    // Color by margin, not exit $/SF
+    const margin = l.estMargin || 0;
+    let color, borderColor;
+    if(margin >= 30){
+      color = '#22c55e'; // Green - 30%+ margin
+      borderColor = '#16a34a';
+    } else if(margin >= 20){
+      color = '#facc15'; // Yellow - 20-29% margin
+      borderColor = '#ca8a04';
+    } else {
+      color = '#ef4444'; // Red - under 20% margin
+      borderColor = '#dc2626';
+    }
+    
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
@@ -2051,6 +2147,84 @@ function refreshVisibility(){
     if(layerState.parcels) parcelLayer.addTo(map);
     else map.removeLayer(parcelLayer);
   }
+  updatePinLegend();
+}
+
+// ══════════════════════════════════════════
+//  PIN LEGEND (dynamic, updates with layers)
+// ══════════════════════════════════════════
+
+function updatePinLegend(){
+  const legend = document.getElementById('pinLegend');
+  if(!legend) return;
+  
+  let html = '';
+  
+  // Show For Sale legend if listings layer is on
+  if(layerState.listings){
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e"></div> 30%+ margin</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#facc15"></div> 20-29% margin</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444"></div> Under 20% margin</div>';
+  }
+  
+  // Show BTR legend if rental fallback layer is on
+  if(layerState.btr){
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker diamond"></div> Rental opportunity</div>';
+  }
+  
+  // Show Off-Market legend if off-market layer is on
+  if(layerState.offMarket){
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker circle"></div> Off-market target</div>';
+  }
+  
+  legend.innerHTML = html;
+  legend.style.display = html ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════
+//  DEAL ASSUMPTIONS MODAL
+// ══════════════════════════════════════════
+
+function openAssumptionsModal(){
+  document.getElementById('assumptionsModal').classList.add('active');
+}
+
+function closeAssumptionsModal(){
+  document.getElementById('assumptionsModal').classList.remove('active');
+}
+
+// ══════════════════════════════════════════
+//  HERO STAT BAR (updates with filters)
+// ══════════════════════════════════════════
+
+function updateHeroStats(){
+  const filtered = getFilteredListings();
+  const forSale = filtered.filter(l=>l.sb1123Eligible);
+  
+  // Count off-market opportunities (simulated from filtered listings)
+  const offMarket = LISTINGS.filter(l => {
+    if(!l.sb1123Eligible) return false;
+    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
+    const structure_sf = l.sqft || 0;
+    const maxUnits = getMaxUnits(l);
+    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
+    const est_market_value = hood_psf * structure_sf;
+    const est_offer = est_market_value * 0.95;
+    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
+    const spread = hood_psf - land_basis_psf - adjBuildCostPerSf;
+    const lotEff = l.lotEfficiency || 0;
+    const slope = l.slope || 0;
+    return spread > 150 && lotEff > 70 && !l.fireZone && slope < 15;
+  }).length;
+  
+  const highMargin = forSale.filter(l => l.estMargin >= 30).length;
+  const avgMargin = forSale.length ? Math.round(forSale.reduce((sum,l)=>sum+(l.estMargin||0),0)/forSale.length) : 0;
+  
+  document.getElementById('heroForSale').textContent = forSale.length.toLocaleString();
+  document.getElementById('heroOffMarket').textContent = offMarket.toLocaleString();
+  document.getElementById('heroHighMargin').textContent = highMargin.toLocaleString();
+  document.getElementById('heroAvgMargin').textContent = avgMargin + '%';
 }
 
 // ══════════════════════════════════════════
@@ -2066,11 +2240,13 @@ function toggleLayer(layer,btn){
   // Priority 2: Make compHeat and spreadHeat mutually exclusive
   if(layer === 'compHeat' && layerState.spreadHeat){
     layerState.spreadHeat = false;
-    document.querySelector('[data-layer="spreadHeat"]').classList.remove('active');
+    const spreadBtn = document.querySelector('[data-layer="spreadHeat"]');
+    if(spreadBtn) spreadBtn.classList.remove('active');
   }
   if(layer === 'spreadHeat' && layerState.compHeat){
     layerState.compHeat = false;
-    document.querySelector('[data-layer="compHeat"]').classList.remove('active');
+    const compBtn = document.querySelector('[data-layer="compHeat"]');
+    if(compBtn) compBtn.classList.remove('active');
   }
   
   layerState[layer]=!layerState[layer];
@@ -2135,7 +2311,7 @@ function applyPreset(name){
   newThisWeekFilter = false;
 
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  event.target.closest('.preset-btn').classList.add('active');
+  if(event && event.target) event.target.closest('.preset-btn').classList.add('active');
 
   if(name === 'sweet'){
     // Sweet spot: 12-18K SF lots = 10 townhomes, efficient build
@@ -2153,6 +2329,14 @@ function applyPreset(name){
     // New listings this week — DOM <= 7
     newThisWeekFilter = true;
     currentSort = {key:'dom', dir:'asc'};
+  } else if(name === 'offMarket'){
+    // Toggle Off-Market layer on, zoom to show opportunities
+    if(!layerState.offMarket){
+      layerState.offMarket = true;
+      const btn = document.querySelector('[data-layer="offMarket"]');
+      if(btn) btn.classList.add('active');
+      refreshVisibility();
+    }
   }
   applyFilters();
 }
@@ -2389,6 +2573,7 @@ function applyFilters(){
   rebuildZoneToggles();
   updateStats();
   updateFilterCount();
+  updateHeroStats();
 }
 
 function resetFilter(key){
@@ -2520,6 +2705,8 @@ window.addEventListener('DOMContentLoaded', function(){
       updateStats();
       updateFilterCount();
       updateFavCount();
+      updateHeroStats();
+      updatePinLegend();
 
       // Fit bounds
       const allLats=[...COMPS.map(c=>c.lat),...LISTINGS.map(l=>l.lat)];
