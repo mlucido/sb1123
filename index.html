@@ -2391,6 +2391,7 @@ function updateFilterCount(){
 
 function rebuildZoneToggles(){
   const el=document.getElementById('zoneToggles');
+  if(!el){ console.error('zoneToggles element not found!'); return; }
   el.innerHTML='';
   const filtered = getFilteredComps();
   const fListings = getFilteredListings();
