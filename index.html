@@ -1035,6 +1035,13 @@ function getFavNote(lat,lng){ const f=loadFavorites()[lat+','+lng]; return f?f.n
 function updateFavCount(){
   const n=Object.keys(loadFavorites()).length;
   document.getElementById('favCount').textContent=n;
+  const btn = document.getElementById('favToggle');
+  btn.disabled = n === 0;
+  if(n === 0 && favoritesOnly){
+    favoritesOnly = false;
+    btn.classList.remove('active');
+    applyFilters();
+  }
 }
 function copyRefreshCmd(){
   const cmd='./refresh.sh';
