@@ -50,6 +50,10 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .hero-stats .stat-value{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
   .hero-stats .stat-value.green{color:var(--green)}
   .hero-stats .separator{color:var(--border);font-weight:300}
+  .onboarding-tip{position:absolute;top:140px;left:50%;transform:translateX(-50%);max-width:500px;background:#fff;border:2px solid var(--green);border-radius:8px;padding:12px 40px 12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:13px;line-height:1.5;animation:slideIn 0.3s ease-out}
+  .onboarding-tip .close-btn{position:absolute;top:8px;right:8px;background:none;border:none;font-size:20px;color:var(--text-dim);cursor:pointer;padding:4px 8px;line-height:1}
+  .onboarding-tip .close-btn:hover{color:var(--text)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
   /* ── Sidebar ── */
   .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
@@ -617,13 +621,13 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
 <!-- Hero Stat Bar -->
 <div class="hero-stats">
-  <div class="stat-item"><span class="stat-value green" id="heroForSale">0</span> For Sale</div>
+  <div class="stat-item"><span class="stat-value green" id="heroForSale">—</span> For Sale</div>
   <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value" id="heroOffMarket">0</span> Off-Market Targets</div>
+  <div class="stat-item"><span class="stat-value" id="heroOffMarket">—</span> Off-Market Targets</div>
   <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value green" id="heroHighMargin">0</span> Deals Above 30% Margin</div>
+  <div class="stat-item"><span class="stat-value green" id="heroHighMargin">—</span> Deals Above 30% Margin</div>
   <span class="separator">|</span>
-  <div class="stat-item">Avg Margin: <span class="stat-value" id="heroAvgMargin">0%</span></div>
+  <div class="stat-item">Avg Margin: <span class="stat-value" id="heroAvgMargin">—</span></div>
 </div>
 
 <div class="app-row">
@@ -653,9 +657,9 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     <div class="section-title">Quick Actions</div>
     <div class="section-content">
       <div class="preset-row">
-        <button class="preset-btn" onclick="applyPreset('newThisWeek')">New This Week</button>
-        <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings</button>
-        <button class="preset-btn" onclick="applyPreset('offMarket')">Off-Market</button>
+        <button class="preset-btn" onclick="applyPreset('newThisWeek')" title="Listed in last 7 days">New This Week</button>
+        <button class="preset-btn" onclick="applyPreset('stale')" title="60+ days on market">Stale Listings</button>
+        <button class="preset-btn" onclick="applyPreset('offMarket')" title="Show off-market acquisition targets">Off-Market</button>
       </div>
     </div>
   </div>
@@ -683,7 +687,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
       <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)">
-        <span class="icon" style="color:#f59e0b">◆</span> BTR Strategy <span class="layer-count" id="btrCount">0</span>
+        <span class="icon" style="color:#f59e0b">◆</span> Build to Rent <span class="layer-count" id="btrCount">0</span>
       </button>
       
       <!-- Risk Overlays (collapsible group) -->
@@ -850,6 +854,10 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <span class="filter-icon">&#9776;</span> Filters
 </button>
 
+<div id="onboarding-tip" class="onboarding-tip" style="display:none">
+  <button class="close-btn" onclick="dismissOnboarding()">×</button>
+  👋 <strong>First time here?</strong> Click any <span style="color:var(--green);font-weight:700">green pin</span> to see a profitable deal. Yellow = moderate margin, Red = tight margin.
+</div>
 <div id="map"></div>
 
 <!-- Pin Color Legend (bottom-left, always visible, dynamic) -->
@@ -2172,9 +2180,9 @@ function updatePinLegend(){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444"></div> Under 20% margin</div>';
   }
   
-  // Show BTR legend if BTR strategy layer is on
+  // Show BTR legend if Build to Rent layer is on
   if(layerState.btr){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker diamond"></div> Rental opportunity</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker diamond"></div> Build-to-rent</div>';
   }
   
   // Show Off-Market legend if off-market layer is on
@@ -2717,6 +2725,7 @@ window.addEventListener('DOMContentLoaded', function(){
       updateFavCount();
       updateHeroStats();
       updatePinLegend();
+      showOnboardingIfNeeded();
       
       // Ensure Saved Deals button starts in correct visual state
       document.getElementById('favToggle').classList.remove('active');
