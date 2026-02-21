@@ -1053,6 +1053,9 @@ function sharePin(lat,lng,event){
 }
 function toggleFavoritesFilter(){
   favoritesOnly=!favoritesOnly;
+  const favs = loadFavorites();
+  const favCount = Object.keys(favs).length;
+  console.log(`Favorites filter: ${favoritesOnly ? 'ON' : 'OFF'}, ${favCount} saved deals`);
   document.getElementById('favToggle').classList.toggle('active',favoritesOnly);
   applyFilters();
 }
