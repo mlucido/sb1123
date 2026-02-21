@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SB 1123 Deal Finder — LA County</title>
+<title>Yardsworth Deal Finder — LA County</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
@@ -573,8 +573,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <a href="analytics.html" class="analytics-btn" title="Market Analytics Dashboard">&#9632; Analytics</a>
       <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard">&#8635; Refresh</button>
     </div>
-    <p>Find townhome subdivision sites in LA County<br>12K-40K SF lots that split into up to 10 contiguous units</p>
-    <div class="law-ref">CA SB 1123 (eff. Jul 2025) · Up to 10 parcels · No owner-occupancy · 60-day approval · CEQA exempt</div>
+    <p>Townhome development sites in Los Angeles</p>
+    <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
   </div>
 
@@ -606,14 +606,14 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">12-18K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
       <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
-      <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ DOM</span></button>
-      <button class="preset-btn" onclick="applyPreset('newThisWeek')">🆕 New This Week<br><span style="font-size:9px;color:var(--text-dim)">DOM ≤ 7</span></button>
+      <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ days on market</span></button>
+      <button class="preset-btn" onclick="applyPreset('newThisWeek')">🆕 New This Week<br><span style="font-size:9px;color:var(--text-dim)">Listed in last 7 days</span></button>
     </div>
   </div>
 
   <!-- List Price Filter -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">List Price <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -633,7 +633,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- $/SF Filter -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">$/SF Filter <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Price per Sq Ft <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -653,7 +653,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- Lot Size Filter -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Lot Size (SF) <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -673,7 +673,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- Structure Size -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Structure Size (SF) <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -693,7 +693,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- Lot Slope -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Lot Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Terrain Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -727,7 +727,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- Zone Filters -->
   <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Zone Filters <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Zoning <span class="chevron">▼</span></div>
     <div class="section-content" id="zoneToggles"></div>
   </div>
 
@@ -747,23 +747,23 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
     <div class="section-content">
-      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
-      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> Exit $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
-      <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)"><span class="icon" style="color:#22c55e">&#9608;</span> Spread Heatmap <span class="layer-count" id="spreadCount"></span></button>
-      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)"><span class="icon" style="color:#8b5cf6">&#9632;</span> Neighborhoods <span class="layer-count" id="neighborhoodCount"></span></button>
-      <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> BTR Opportunities <span class="layer-count" id="btrCount"></span></button>
-      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
-      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)"><span class="icon" style="color:#a0a0a0">&#9678;</span> Off-Market <span class="layer-count" id="offMarketCount"></span></button>
-      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
-      <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Zones (FEMA)</button>
-      <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)"><span class="icon" style="color:#a855f7">&#9632;</span> Liquefaction Zones</button>
-      <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)"><span class="icon">&#9633;</span> Parcel Outlines <small style="color:var(--text-dim)">(zoom 15+)</small></button>
+      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Recent Sales <span class="layer-count" id="compCount"></span></button>
+      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> Sale Price Heatmap <span class="layer-count" id="heatCount"></span></button>
+      <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)"><span class="icon" style="color:#22c55e">&#9608;</span> Profit Margin Heatmap <span class="layer-count" id="spreadCount"></span></button>
+      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)"><span class="icon" style="color:#8b5cf6">&#9632;</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount"></span></button>
+      <button class="layer-btn active" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> Rental Fallback <span class="layer-count" id="btrCount"></span></button>
+      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> For Sale <span class="layer-count" id="listingCount"></span></button>
+      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)"><span class="icon" style="color:#a0a0a0">&#9678;</span> Off-Market Targets <span class="layer-count" id="offMarketCount"></span></button>
+      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Risk</button>
+      <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Risk</button>
+      <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)"><span class="icon" style="color:#a855f7">&#9632;</span> Earthquake Risk</button>
+      <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)"><span class="icon">&#9633;</span> Parcel Boundaries <small style="color:var(--text-dim)">(zoom 15+)</small></button>
     </div>
   </div>
 
   <!-- Pro Forma Assumptions -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Pro Forma Assumptions <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Deal Assumptions <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="proforma-inputs">
         <div class="proforma-group">
@@ -839,7 +839,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 <div class="listings-panel" id="listingsPanel">
   <div class="listings-panel-resize" id="panelResize"></div>
   <div class="listings-panel-header">
-    <h2><span>SB 1123</span> Deal Pipeline</h2>
+    <h2><span>Deal Pipeline</span></h2>
     <span class="listings-panel-count" id="tablePanelCount">0</span>
     <button class="listings-panel-close" onclick="toggleListingsPanel()">x</button>
   </div>
@@ -851,15 +851,15 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           <th class="col-addr" data-sort="address" onclick="sortTable('address')">Address <span class="sort-arrow">▲</span></th>
           <th class="col-zone" data-sort="zone" onclick="sortTable('zone')">Zone <span class="sort-arrow">▲</span></th>
           <th class="col-price" data-sort="price" onclick="sortTable('price')">Price <span class="sort-arrow">▲</span></th>
-          <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot SF <span class="sort-arrow">▲</span></th>
+          <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot Size <span class="sort-arrow">▲</span></th>
           <th class="col-units" data-sort="maxUnits" onclick="sortTable('maxUnits')">Units <span class="sort-arrow">▲</span></th>
-          <th class="col-hood" data-sort="hoodPpsf" onclick="sortTable('hoodPpsf')">Exit $/SF <span class="sort-arrow">▲</span></th>
-          <th class="col-sale" data-sort="salePerUnit" onclick="sortTable('salePerUnit')">Sale/Unit <span class="sort-arrow">▲</span></th>
-          <th class="col-ppu" data-sort="pricePerUnit" onclick="sortTable('pricePerUnit')">Buy/Unit <span class="sort-arrow">▲</span></th>
+          <th class="col-hood" data-sort="hoodPpsf" onclick="sortTable('hoodPpsf')">Area $/SF <span class="sort-arrow">▲</span></th>
+          <th class="col-sale" data-sort="salePerUnit" onclick="sortTable('salePerUnit')">Revenue/Unit <span class="sort-arrow">▲</span></th>
+          <th class="col-ppu" data-sort="pricePerUnit" onclick="sortTable('pricePerUnit')">Cost/Unit <span class="sort-arrow">▲</span></th>
           <th class="col-profit" data-sort="estProfit" onclick="sortTable('estProfit')">Profit <span class="sort-arrow">▲</span></th>
           <th class="col-margin" data-sort="estMargin" onclick="sortTable('estMargin')">Margin <span class="sort-arrow">▲</span></th>
           <th class="col-slope" data-sort="slope" onclick="sortTable('slope')">Slope <span class="sort-arrow">▲</span></th>
-          <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">DOM <span class="sort-arrow">▲</span></th>
+          <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">Days Listed <span class="sort-arrow">▲</span></th>
           <th class="col-new" data-sort="isNew" onclick="sortTable('isNew')">New <span class="sort-arrow">▲</span></th>
           <th class="col-link">Link</th>
         </tr>
@@ -1441,21 +1441,21 @@ function rebuildListings(){
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
-        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        ${l.hoodPpsf?`<div><div class="popup-label">Area $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
+        ${delta!==null?`<div><div class="popup-label">vs Area</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
         
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% efficient)</small></div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         
-        <div><div class="popup-label">Zone ${l.track?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Lot Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
-        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Zone?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">SB 1123 Pro Forma — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
       </div>
       
       <div class="popup-grid-2">
@@ -1480,7 +1480,7 @@ function rebuildListings(){
         <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.buildCostPerSf?' <span style="color:var(--orange)">(slope adj)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.buildCostPerSf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
         <div><div class="popup-label">Carry (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.totalCarry.toLocaleString()}</div></div>
 
-        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${Math.round(pf.totalBuildCost/pf.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${Math.round(pf.totalBuildCost/pf.maxUnits).toLocaleString()}</div></div>
         <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
         
         <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(pf.netRevenue/pf.maxUnits).toLocaleString()}</div></div>
@@ -1577,18 +1577,18 @@ function buildBTRLayer(){
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
-        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        ${l.hoodPpsf?`<div><div class="popup-label">Area $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
+        ${delta!==null?`<div><div class="popup-label">vs Area</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
         
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         
-        <div><div class="popup-label">Zone ${l.track?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Lot Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
-        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Zone?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
         <div class="popup-section-label">BTR PRO FORMA — ${btrPF.maxUnits} UNITS • ${btrPF.guaranteedFAR}x FAR (${btrPF.buildableSf.toLocaleString()} SF) • $${btrPF.rentPerUnit.toLocaleString()}/MO/UNIT</div>
@@ -1598,7 +1598,7 @@ function buildBTRLayer(){
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${btrPF.buyPerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btrPF.totalCost).toLocaleString()}</div></div>
         
-        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${btrPF.buildPerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${btrPF.buildPerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btrPF.grossAnnualRent).toLocaleString()}</div></div>
         
         <div><div class="popup-label">All-In / Unit</div><div class="popup-value">$${btrPF.allInPerUnit.toLocaleString()}</div></div>
@@ -1621,14 +1621,14 @@ function buildBTRLayer(){
     if (l.sb1123Eligible) {
       popupHTML += `
         <div class="popup-divider"></div>
-        <div class="popup-section-label">SB 1123 PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
       </div>
       
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${salePF.pricePerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(salePF.totalCost).toLocaleString()}</div></div>
         
-        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${Math.round(salePF.totalBuildCost/salePF.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${Math.round(salePF.totalBuildCost/salePF.maxUnits).toLocaleString()}</div></div>
         <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(salePF.netRevenue).toLocaleString()}</div></div>
         
         <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(salePF.netRevenue/salePF.maxUnits).toLocaleString()}</div></div>
