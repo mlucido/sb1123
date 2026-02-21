@@ -709,6 +709,12 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     </div>
   </div>
 
+  <!-- ═══ ZONING ═══ (always visible) -->
+  <div class="section">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Zoning</div>
+    <div id="zoneToggles" style="padding:0 12px"></div>
+  </div>
+
   <!-- ═══ FILTERS ═══ (collapsed by default) -->
   <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Filters <span class="chevron">▼</span></div>
@@ -813,12 +819,6 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       </div>
     </div>
   </div>
-
-      <!-- Zoning -->
-      <div style="margin-bottom:12px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Zoning</div>
-        <div id="zoneToggles"></div>
-      </div>
 
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
