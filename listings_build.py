@@ -42,6 +42,8 @@ TYPE_TO_ZONE = {
 GRID_SIZE = 0.01          # ~0.7 miles per cell
 MIN_COMPS = 5             # Minimum comps needed for a reliable median
 DEG_PER_MILE = 1 / 69.0  # Approximate degrees latitude per mile
+COMP_SQFT_MIN = 1000      # Min comp SF — exclude tiny units (studios, ADUs)
+COMP_SQFT_MAX = 3500      # Max comp SF — exclude mega-homes that drag down $/SF
 # Expanding search radii in degrees (~miles): 0.25mi, 0.5mi, 1mi, 2mi, 4mi
 SEARCH_RADII_DEG = [0.004, 0.007, 0.015, 0.029, 0.058]
 
@@ -76,6 +78,7 @@ for c in comps:
     clng = c.get("lng", 0)
     czone = c.get("zone", "")
     cppsf = c.get("ppsf") or (round(c["price"] / c["sqft"]) if c.get("sqft", 0) > 0 else 0)
+    csqft = c.get("sqft", 0)
     czip = c.get("zip", "")
     if cppsf <= 0 or clat == 0 or clng == 0:
         continue
@@ -83,7 +86,7 @@ for c in comps:
     # Grid cell
     grow = math.floor(clat / GRID_SIZE)
     gcol = math.floor(clng / GRID_SIZE)
-    entry = (clat, clng, cppsf)
+    entry = (clat, clng, cppsf, csqft)
 
     # Zone-specific grid
     if czone:
@@ -127,11 +130,16 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
     Uses 75th percentile — new-construction townhomes with roof decks
     compete with the top quartile of neighborhood sales.
 
+    Size-band filtering: prefer comps 1000-3500 SF (matches townhome product).
+    Falls back to all sizes at widest radius if insufficient band comps.
+
     Priority:
-      1. Same-zone comps within expanding radius (hyperlocal)
-      2. All-zone comps within expanding radius (if <MIN_COMPS same-zone)
-      3. Same zip + same zone P75 (fallback)
-      4. Same zip all-zone P75 (last resort)
+      1. Same-zone, size-band comps within expanding radius
+      2. Same-zone, all-size comps within expanding radius
+      3. All-zone, size-band comps within expanding radius
+      4. All-zone, all-size comps within expanding radius
+      5. Same zip + same zone P75 (fallback)
+      6. Same zip all-zone P75 (last resort)
     """
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
@@ -140,33 +148,48 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
         vals.sort()
         return round(vals[int(len(vals) * 0.75)])
 
+    def in_band(sqft):
+        return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
+
     # Try same-zone spatial search at expanding radii
     zg = zone_grid.get(zone, {})
     if zg:
         for radius in SEARCH_RADII_DEG:
             cells = int(radius / GRID_SIZE) + 1
-            nearby = []
+            nearby_band = []
+            nearby_all = []
             for dr in range(-cells, cells + 1):
                 for dc in range(-cells, cells + 1):
-                    for clat, clng, cppsf in zg.get((grow + dr, gcol + dc), []):
+                    for clat, clng, cppsf, csqft in zg.get((grow + dr, gcol + dc), []):
                         if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                            nearby.append(cppsf)
-            if len(nearby) >= MIN_COMPS:
+                            nearby_all.append(cppsf)
+                            if in_band(csqft):
+                                nearby_band.append(cppsf)
+            if len(nearby_band) >= MIN_COMPS:
                 miles = round(radius * 69, 2)
-                return p75(nearby), len(nearby), miles, "zone"
+                return p75(nearby_band), len(nearby_band), miles, "zone"
+            if len(nearby_all) >= MIN_COMPS and radius == SEARCH_RADII_DEG[-1]:
+                miles = round(radius * 69, 2)
+                return p75(nearby_all), len(nearby_all), miles, "zone"
 
     # Fallback: all-zone spatial search at expanding radii
     for radius in SEARCH_RADII_DEG:
         cells = int(radius / GRID_SIZE) + 1
-        nearby = []
+        nearby_band = []
+        nearby_all = []
         for dr in range(-cells, cells + 1):
             for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf in all_grid.get((grow + dr, gcol + dc), []):
+                for clat, clng, cppsf, csqft in all_grid.get((grow + dr, gcol + dc), []):
                     if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        nearby.append(cppsf)
-        if len(nearby) >= MIN_COMPS:
+                        nearby_all.append(cppsf)
+                        if in_band(csqft):
+                            nearby_band.append(cppsf)
+        if len(nearby_band) >= MIN_COMPS:
             miles = round(radius * 69, 2)
-            return p75(nearby), len(nearby), miles, "all"
+            return p75(nearby_band), len(nearby_band), miles, "all"
+        if len(nearby_all) >= MIN_COMPS and radius == SEARCH_RADII_DEG[-1]:
+            miles = round(radius * 69, 2)
+            return p75(nearby_all), len(nearby_all), miles, "all"
 
     # Fallback: zip + same zone
     zz_key = (zipcode, zone)
@@ -184,23 +207,33 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
 
 def find_newcon_ppsf(lat, lng, zone):
     """Find zone-matched new/remodeled (2015+) median $/SF.
+    Size-band filtering: prefer comps 1000-3500 SF, fall back to all sizes.
     Returns median or None if fewer than MIN_COMPS comps found."""
     zg = newcon_zone_grid.get(zone, {})
     if not zg:
         return None
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
+
+    def in_band(sqft):
+        return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
+
     # Use wider radii since new construction is sparser
     for radius in [0.007, 0.015, 0.029, 0.058, 0.087]:
         cells = int(radius / GRID_SIZE) + 1
-        nearby = []
+        nearby_band = []
+        nearby_all = []
         for dr in range(-cells, cells + 1):
             for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf in zg.get((grow + dr, gcol + dc), []):
+                for clat, clng, cppsf, csqft in zg.get((grow + dr, gcol + dc), []):
                     if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        nearby.append(cppsf)
-        if len(nearby) >= MIN_COMPS:
-            return round(statistics.median(nearby))
+                        nearby_all.append(cppsf)
+                        if in_band(csqft):
+                            nearby_band.append(cppsf)
+        if len(nearby_band) >= MIN_COMPS:
+            return round(statistics.median(nearby_band))
+        if len(nearby_all) >= MIN_COMPS and radius == 0.087:
+            return round(statistics.median(nearby_all))
     return None
 
 
@@ -292,6 +325,7 @@ with open(src, encoding="utf-8", errors="replace") as f:
                 "dom": int(dom) if dom.isdigit() else None,
                 "hoa": int(hoa) if hoa > 0 else None,
                 "url": url,
+                "hasStructure": True if (sqft > 0 and prop_type != "Vacant Land") else False,
             })
         except Exception as e:
             skipped_data += 1
@@ -397,6 +431,32 @@ if os.path.exists(ZONING_FILE):
     print(f"   Zone downgrades (R2+→R1/LAND): {zimas_downgraded:,}")
 else:
     print(f"\n⚠️  {ZONING_FILE} not found — run: python3 fetch_zoning.py")
+
+# ── Step 2.7: Stamp urban area status from urban.json ──
+URBAN_FILE = "urban.json"
+if os.path.exists(URBAN_FILE):
+    print(f"\n🏙️  Step 2.7: Stamping urban area status from {URBAN_FILE}...")
+    with open(URBAN_FILE) as f:
+        urban_data = json.load(f)
+    print(f"   Loaded {len(urban_data):,} urban area records")
+
+    urban_stamped = 0
+    urban_true = 0
+    urban_false = 0
+    for l in listings:
+        key = f"{l['lat']},{l['lng']}"
+        if key in urban_data:
+            l["urbanArea"] = urban_data[key]
+            urban_stamped += 1
+            if urban_data[key]:
+                urban_true += 1
+            else:
+                urban_false += 1
+
+    print(f"   Stamped: {urban_stamped:,}/{len(listings):,}")
+    print(f"   In urban area: {urban_true:,} | Not urban: {urban_false:,}")
+else:
+    print(f"\n⚠️  {URBAN_FILE} not found — run: python3 fetch_urban.py")
 
 # ── Step 3: Fire zone check (fallback for listings not stamped from parcels.json) ──
 FIRE_ZONE_FILE = "fire_zones_vhfhsz.geojson"

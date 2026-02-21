@@ -937,7 +937,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <div class="proforma-inputs">
         <div class="proforma-group">
           <label>All-In Build $/SF</label>
-          <input type="number" id="pfBuildCost" value="350" step="25" onchange="onProformaChange()">
+          <input type="number" id="pfBuildCost" value="360" step="25" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Unit SF (avg)</label>
@@ -947,6 +947,14 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         <div class="proforma-group">
           <label>Sale Discount %</label>
           <input type="number" id="pfDiscount" value="10" step="1" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Txn Costs %</label>
+          <input type="number" id="pfTxnCost" value="6.7" step="0.5" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Fixed Disp $</label>
+          <input type="number" id="pfFixedDisp" value="40000" step="5000" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Demo Cost $</label>
@@ -1128,9 +1136,11 @@ function toggleFavoritesFilter(){
 
 // Pro forma defaults — SB 1123 townhome development
 let proforma = {
-  allInBuildPsf: 350,    // All-in construction $/SF (hard + soft combined)
+  allInBuildPsf: 360,    // All-in construction $/SF (hard + soft combined)
   avgUnitSf: 1750,       // Avg townhome unit size
-  saleDiscountPct: 10,   // Broker fees + closing costs
+  saleDiscountPct: 10,   // Bulk discount / absorption haircut
+  txnCostPct: 6.7,       // Transaction costs: broker (5%) + transfer tax + title + escrow
+  fixedDispositionCosts: 40000, // Fixed per-project: legal, marketing, staging
   demoCost: 55000,       // Demolition of existing structure
   holdMonths: 24,        // Construction + sale hold period
   carryRatePct: 9,       // Annual carry rate on outstanding capital
@@ -1303,7 +1313,10 @@ function isSB1123Eligible(l){
   const notHighHoa = !(l.hoa && l.hoa >= 1000);  // High HOA = shared land/CC&Rs
   const notFireZone = !l.fireZone;
   const validLot = l.lotSf && l.lotSf >= 12000;  // Min 12K for economic viability
-  return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && validLot;
+  const maxLotSf = ['R1','LAND'].includes(l.zone) ? 65340 : 217800;
+  const underAcreageCap = !l.lotSf || l.lotSf <= maxLotSf;
+  const inUrbanArea = l.urbanArea !== false;  // true or undefined (not yet checked) = OK
+  return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && validLot && underAcreageCap && inUrbanArea;
 }
 
 function getMinLotPerUnit(zone){
@@ -1343,7 +1356,9 @@ function calculateProForma(l){
 
   const grossPerUnit = valuePerSf * pf.avgUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
-  const netRevenue = grossRevenue * (1 - pf.saleDiscountPct / 100);
+  const salePrice = grossRevenue * (1 - pf.saleDiscountPct / 100);
+  const txnCosts = salePrice * (pf.txnCostPct / 100);
+  const netRevenue = salePrice - txnCosts - pf.fixedDispositionCosts;
 
   const acquisition = l.price;
   const demo = l.sqft > 0 ? pf.demoCost : 0;
@@ -1592,8 +1607,10 @@ function rebuildListings(){
     cm.bindPopup(`
       <div class="popup-badge" style="background:${ZONE_COLORS[l.zone]||'#666'}22;color:${ZONE_COLORS[l.zone]||'#666'}">${l.zone} — ${ZONE_LABELS[l.zone]||l.zone||'Unknown'}</div>
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
+      ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
+      ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
-      
+
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
@@ -1833,8 +1850,8 @@ function buildBTRLayer(){
 function buildSpreadHeatmap(){
   if(!LISTINGS.length || typeof L.heatLayer !== 'function') return;
 
-  const BUILD_COST_PSF = proforma.allInBuildPsf || 350;
-  
+  const BUILD_COST_PSF = proforma.allInBuildPsf || 360;
+
   // Calculate spread for each eligible listing
   const heatPts = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
@@ -1891,7 +1908,7 @@ function buildNeighborhoodLayer(){
     cells[key].listings.push(l);
   });
   
-  const BUILD_COST_PSF = proforma.allInBuildPsf || 350;
+  const BUILD_COST_PSF = proforma.allInBuildPsf || 360;
 
   // Calculate scores for each cell
   Object.values(cells).forEach(cell => {
@@ -2007,7 +2024,9 @@ function buildOffMarketLayer(){
     // Margin at Offer - full pro forma using est_offer as acquisition
     const exit_psf = hood_psf;
     const gross_revenue = exit_psf * effective_buildable_sf;
-    const net_revenue = gross_revenue * 0.95;
+    const salePriceF = gross_revenue * (1 - proforma.saleDiscountPct / 100);
+    const txnCostsF = salePriceF * (proforma.txnCostPct / 100);
+    const net_revenue = salePriceF - txnCostsF - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const avg_outstanding = est_offer + total_build * 0.5;
     const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2016,34 +2035,36 @@ function buildOffMarketLayer(){
     const total_cost = est_offer + total_build + total_carry;
     const est_profit = net_revenue - total_cost;
     const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-    
+
     const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
     const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
-    
+
     const lotEff = l.lotEfficiency || 0;
     const slope = l.slope || 0;
-    
+
     return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
   });
-  
+
   offMarketListings.forEach(l => {
     const hood_psf = l.exitPsf || l.newconPpsf || l.ppsf || 0;
     const structure_sf = l.sqft || 0;
-    
+
     // FIX 1: Est. Market Value = hood_psf × structure_sf
     const est_market_value = hood_psf * structure_sf;
-    
+
     // FIX 2: Est. Offer = est_market_value × 0.95
     const est_offer = est_market_value * 0.95;
-    
+
     // Calculate pro forma metrics
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
-    
+
     const exit_psf = hood_psf;
     const gross_revenue = exit_psf * effective_buildable_sf;
-    const net_revenue = gross_revenue * 0.95;
+    const salePriceOM = gross_revenue * (1 - proforma.saleDiscountPct / 100);
+    const txnCostsOM = salePriceOM * (proforma.txnCostPct / 100);
+    const net_revenue = salePriceOM - txnCostsOM - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const avg_outstanding = est_offer + total_build * 0.5;
     const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2268,7 +2289,10 @@ function updateHeroStats(){
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
     const exit_psf = hood_psf;
-    const net_revenue = exit_psf * effective_buildable_sf * (1 - proforma.saleDiscountPct/100);
+    const gross_revenue_h = exit_psf * effective_buildable_sf;
+    const salePriceH = gross_revenue_h * (1 - proforma.saleDiscountPct/100);
+    const txnCostsH = salePriceH * (proforma.txnCostPct / 100);
+    const net_revenue = salePriceH - txnCostsH - proforma.fixedDispositionCosts;
     const demo = l.sqft > 0 ? proforma.demoCost : 0;
     const total_build = adjBuildCostPerSf * effective_buildable_sf + demo;
     const total_cost = est_offer + total_build;
@@ -2663,9 +2687,11 @@ function resetFilter(key){
 }
 
 function onProformaChange(){
-  proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||350;
+  proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
   proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
   proforma.saleDiscountPct = parseInt(document.getElementById('pfDiscount').value)||10;
+  proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||6.7;
+  proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
   proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
   proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
   proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;

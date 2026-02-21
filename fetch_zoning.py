@@ -25,6 +25,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Config ──
 ZIMAS_URL = "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/Zoning/FeatureServer/15/query"
+COUNTY_ZONING_URL = "https://arcgis.lacounty.gov/arcgis/rest/services/DRP/Zoning/MapServer/0/query"
 OUTPUT_FILE = "zoning.json"
 CHECKPOINT_EVERY = 100
 RATE_LIMIT_DELAY = 0.5  # ~2 req/sec
@@ -113,6 +114,82 @@ def query_zoning(lat, lng, retries=2):
             if attempt < retries:
                 time.sleep(2)
     return None  # All retries failed
+
+
+def classify_county_zoning(zone_code):
+    """Convert an LA County zoning code to an SB 1123 category.
+
+    County codes differ from LA City ZIMAS codes.
+    Maps: R-1/R-A/RE → R1, R-2 → R2, R-3 → R3, R-4/R-5 → R4
+    """
+    if not zone_code:
+        return None
+    prefix = zone_code.strip().upper().split("-")[0]
+    # Handle common county prefixes
+    if prefix in ("R", "RA", "RE", "RS"):
+        # Check full code for R-1, R-A, RE-9, etc.
+        upper = zone_code.strip().upper()
+        if upper.startswith(("R-1", "R1", "RA", "RE", "RS")):
+            return "R1"
+        if upper.startswith(("R-2", "R2")):
+            return "R2"
+        if upper.startswith(("R-3", "R3")):
+            return "R3"
+        if upper.startswith(("R-4", "R4", "R-5", "R5")):
+            return "R4"
+        return "R1"  # Default single-family for R- prefix
+    if prefix in ("A", "A1", "A2"):
+        return None  # Agricultural — not SB 1123 eligible
+    if prefix in ("OS", "O"):
+        return None  # Open space
+    if prefix.startswith("C"):
+        return "R4"  # Commercial zones allow multifamily under SB 1123
+    return None
+
+
+def query_county_zoning(lat, lng, retries=2):
+    """Query LA County DRP Zoning service for zoning at a lat/lng point."""
+    params = {
+        "geometry": f"{lng},{lat}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "*",
+        "returnGeometry": "false",
+        "f": "json",
+    }
+    for attempt in range(retries + 1):
+        try:
+            resp = requests.get(COUNTY_ZONING_URL, params=params, timeout=30)
+            if resp.status_code == 200:
+                data = resp.json()
+                features = data.get("features", [])
+                if features:
+                    attrs = features[0].get("attributes", {})
+                    # Try common field names — county services vary
+                    zone = (attrs.get("ZONE_CMPLT") or attrs.get("ZONING") or
+                            attrs.get("Zone") or attrs.get("ZONE") or
+                            attrs.get("ZONE_CLASS") or "")
+                    category = attrs.get("CATEGORY", "") or attrs.get("GEN_PLAN", "") or ""
+                    return {
+                        "zoning": zone,
+                        "category": category,
+                        "source": "county",
+                    }
+                return None  # No zoning found
+            elif resp.status_code in (429, 503):
+                wait = 3 + attempt * 5
+                print(f"    Rate limited ({resp.status_code}), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+        except requests.exceptions.Timeout:
+            if attempt < retries:
+                print(f"    Timeout, retry {attempt+1}...")
+                time.sleep(2)
+        except Exception as e:
+            if attempt < retries:
+                time.sleep(2)
+    return None
 
 
 def load_listings_from_js():
@@ -217,6 +294,51 @@ def main():
         save_cache(cache)
         print(f"\nDone! {found}/{total} lookups returned zoning data.")
         print(f"Total cached: {len(cache):,} entries → {OUTPUT_FILE}")
+
+    # ── Pass 2: LA County GIS for listings where ZIMAS returned null ──
+    if not (test_mode or analyze_mode):
+        null_zoning = []
+        for item in listings:
+            key = f"{item['lat']},{item['lng']}"
+            if key in cache:
+                cached = cache[key]
+                if cached.get("zoning") is None and cached.get("source") != "county":
+                    null_zoning.append(item)
+
+        if null_zoning:
+            print(f"\n── Pass 2: LA County GIS for {len(null_zoning):,} listings outside LA City ──")
+            county_found = 0
+            county_fetched = 0
+            for i, item in enumerate(null_zoning):
+                key = f"{item['lat']},{item['lng']}"
+                result = query_county_zoning(item["lat"], item["lng"])
+
+                if result:
+                    zone_code = result.get("zoning", "")
+                    sb_zone = classify_county_zoning(zone_code)
+                    result["sb1123"] = sb_zone
+                    cache[key] = result
+                    if sb_zone:
+                        county_found += 1
+                else:
+                    cache[key] = {"zoning": None, "category": None, "sb1123": None, "source": "county"}
+
+                county_fetched += 1
+
+                if (i + 1) % 10 == 0 or i == len(null_zoning) - 1:
+                    zone_str = result.get("zoning", "?") if result else "—"
+                    print(f"  [{i+1}/{len(null_zoning)}] county_found={county_found} | {item.get('address','')[:40]} → {zone_str}")
+
+                if county_fetched % CHECKPOINT_EVERY == 0:
+                    save_cache(cache)
+                    print(f"  Checkpoint: {len(cache):,} entries saved")
+
+                time.sleep(RATE_LIMIT_DELAY)
+
+            save_cache(cache)
+            print(f"\nCounty pass done! {county_found}/{len(null_zoning)} returned zoning data.")
+        else:
+            print("\n  No null-zoning listings to check with county GIS.")
 
     # Analysis mode: compare ZIMAS vs Redfin-guessed zoning
     if analyze_mode:
