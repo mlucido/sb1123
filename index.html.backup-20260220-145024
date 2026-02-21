@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yardsworth Deal Finder — LA County</title>
+<title>SB 1123 Deal Finder — LA County</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
@@ -38,18 +38,6 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .mono{font-family:'JetBrains Mono',monospace}
 
   .app-row{display:flex;flex:1;overflow:hidden}
-
-  /* ── Hero Stat Bar ── */
-  .hero-stats{
-    background:rgba(96,165,250,0.06);border-bottom:1px solid var(--border);
-    padding:8px 20px;display:flex;align-items:center;justify-content:center;
-    gap:20px;font-size:12px;font-weight:500;white-space:nowrap;
-    overflow-x:auto;z-index:900;
-  }
-  .hero-stats .stat-item{display:flex;align-items:center;gap:6px}
-  .hero-stats .stat-value{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
-  .hero-stats .stat-value.green{color:var(--green)}
-  .hero-stats .separator{color:var(--border);font-weight:300}
 
   /* ── Sidebar ── */
   .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
@@ -199,21 +187,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .popup-profit-positive{color:var(--green)}
   .popup-profit-negative{color:var(--red)}
 
-  /* Pin Color Legend */
-  .pin-legend{
-    position:absolute;bottom:10px;left:10px;
-    background:rgba(26,29,39,0.92);border:1px solid var(--border);border-radius:8px;
-    padding:8px 10px;z-index:850;font-size:10px;box-shadow:0 2px 12px rgba(0,0,0,0.4);
-  }
-  body.light-mode .pin-legend{background:rgba(255,255,255,0.92)}
-  .pin-legend-item{display:flex;align-items:center;gap:6px;margin-bottom:2px;line-height:1.4}
-  .pin-legend-item:last-child{margin-bottom:0}
-  .pin-legend-marker{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .pin-legend-marker.diamond{border-radius:0;transform:rotate(45deg);border:1.5px dashed #d97706;background:rgba(245,158,11,0.85)}
-  .pin-legend-marker.circle{border:2px solid #666;background:transparent}
-
-  /* Old Legend (keep for desktop reference) */
-  .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none}
+  /* Legend */
+  .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
   .legend-item{display:flex;align-items:center;gap:8px;margin-bottom:3px}
   .legend-item:last-child{margin-bottom:0}
   .legend-dot{width:10px;height:10px;border-radius:2px}
@@ -579,52 +554,9 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   .btr-tooltip .gap-negative {
     color: #f87171;
   }
-
-  /* ── Deal Assumptions Modal ── */
-  .modal-overlay{
-    position:fixed;top:0;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,0.7);z-index:2000;display:none;
-    align-items:center;justify-content:center;
-  }
-  .modal-overlay.active{display:flex}
-  .modal-panel{
-    background:var(--surface);border:1px solid var(--border);border-radius:12px;
-    width:90%;max-width:500px;max-height:80vh;overflow-y:auto;
-    box-shadow:0 8px 32px rgba(0,0,0,0.5);
-  }
-  .modal-header{
-    padding:16px 20px;border-bottom:1px solid var(--border);
-    display:flex;align-items:center;justify-content:space-between;
-  }
-  .modal-header h3{font-size:15px;font-weight:700;letter-spacing:-0.01em}
-  .modal-close{
-    background:none;border:none;color:var(--text-dim);cursor:pointer;
-    font-size:24px;padding:0;width:28px;height:28px;border-radius:4px;
-    transition:all 0.15s;display:flex;align-items:center;justify-content:center;
-  }
-  .modal-close:hover{color:var(--text);background:var(--surface2)}
-  .modal-body{padding:20px}
-  .gear-icon{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:28px;height:28px;border-radius:6px;cursor:pointer;
-    color:var(--text-dim);transition:all 0.15s;margin-left:4px;
-    background:var(--surface2);border:1px solid var(--border);
-  }
-  .gear-icon:hover{color:var(--text);background:var(--surface);border-color:var(--accent)}
 </style>
 </head>
 <body class="light-mode">
-
-<!-- Hero Stat Bar -->
-<div class="hero-stats">
-  <div class="stat-item"><span class="stat-value green" id="heroForSale">0</span> For Sale</div>
-  <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value" id="heroOffMarket">0</span> Off-Market Targets</div>
-  <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value green" id="heroHighMargin">0</span> Deals Above 30% Margin</div>
-  <span class="separator">|</span>
-  <div class="stat-item">Avg Margin: <span class="stat-value" id="heroAvgMargin">0%</span></div>
-</div>
 
 <div class="app-row">
 <aside class="sidebar">
@@ -641,88 +573,52 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <a href="analytics.html" class="analytics-btn" title="Market Analytics Dashboard">&#9632; Analytics</a>
       <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard">&#8635; Refresh</button>
     </div>
-    <p>Townhome development sites in Los Angeles</p>
-    <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
+    <p>Find townhome subdivision sites in LA County<br>12K-40K SF lots that split into up to 10 contiguous units</p>
+    <div class="law-ref">CA SB 1123 (eff. Jul 2025) · Up to 10 parcels · No owner-occupancy · 60-day approval · CEQA exempt</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
   </div>
 
   <div class="loading-banner" id="loadingBanner">Rendering data...</div>
 
-  <!-- ═══ QUICK ACTIONS ═══ -->
+  <!-- Deal Pipeline Stats -->
   <div class="section">
-    <div class="section-title">Quick Actions</div>
+    <div class="section-title" onclick="toggleSection(this)">Deal Pipeline <span class="chevron">▼</span></div>
     <div class="section-content">
-      <div class="preset-row">
-        <button class="preset-btn" onclick="applyPreset('newThisWeek')">New This Week</button>
-        <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings</button>
-        <button class="preset-btn" onclick="applyPreset('offMarket')">Off-Market</button>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value green" id="sb1123Count">0</div><div class="stat-label">1123 Eligible</div></div>
+        <div class="stat-card"><div class="stat-value yellow" id="avgMargin">0%</div><div class="stat-label">Avg Margin</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalListings">0</div><div class="stat-label">Total Listed</div></div>
+      </div>
+      <div class="stats-grid two-col" style="margin-top:6px">
+        <div class="stat-card"><div class="stat-value" id="medPpu">$0</div><div class="stat-label">Med $/Unit</div></div>
+        <div class="stat-card"><div class="stat-value" id="medPpsf">$0</div><div class="stat-label">Med $/SF</div></div>
+      </div>
+      <div class="stats-grid two-col" style="margin-top:6px">
+        <div class="stat-card"><div class="stat-value green" id="newCount">0</div><div class="stat-label">New (≤3 days)</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--accent)" id="newWeekCount">0</div><div class="stat-label">New This Week</div></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ LAYERS ═══ -->
+  <!-- SB9 Mode -->
   <div class="section">
-    <div class="section-title">Layers</div>
-    <div class="section-content">
-      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)">
-        <span class="icon">●</span> For Sale <span class="layer-count" id="listingCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
-        <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)">
-        <span class="icon">○</span> Recent Sales <span class="layer-count" id="compCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)">
-        <span class="icon" style="color:#f0641e">▪</span> Sale Price Heatmap <span class="layer-count" id="heatCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
-        <span class="icon" style="color:#22c55e">▪</span> Profit Margin Heatmap <span class="layer-count" id="spreadCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
-        <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)">
-        <span class="icon" style="color:#f59e0b">◆</span> Rental Fallback <span class="layer-count" id="btrCount">0</span>
-      </button>
-      
-      <!-- Risk Overlays (collapsible group) -->
-      <div class="section collapsed" style="margin:8px 0 0;padding:0;border:none">
-        <div class="section-title" onclick="toggleSection(this)" style="margin-bottom:4px;cursor:pointer">
-          Risk Overlays <span class="chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">
-            <span class="icon" style="color:#ef4444">!</span> Fire Risk
-          </button>
-          <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)">
-            <span class="icon" style="color:#3b82f6">~</span> Flood Risk
-          </button>
-          <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">
-            <span class="icon" style="color:#a855f7">▪</span> Earthquake Risk
-          </button>
-          <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)">
-            <span class="icon">◻</span> Parcel Boundaries
-          </button>
-        </div>
-      </div>
+    <button class="mode-toggle active" id="sb1123Toggle" onclick="toggle1123Mode()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">SB 1123 Eligible Only</span>
+      <span class="toggle-count" id="sb1123ToggleCount">0</span>
+    </button>
+    <div class="preset-row" style="margin-top:8px">
+      <button class="preset-btn" onclick="applyPreset('sweet')">Sweet Spot<br><span style="font-size:9px;color:var(--text-dim)">12-18K lot, 10 units</span></button>
+      <button class="preset-btn" onclick="applyPreset('maxDensity')">Max Density<br><span style="font-size:9px;color:var(--text-dim)">15-25K lot, 10 units</span></button>
+      <button class="preset-btn" onclick="applyPreset('value')">Below Market<br><span style="font-size:9px;color:var(--text-dim)">Low $/lot-SF, negotiate</span></button>
+      <button class="preset-btn" onclick="applyPreset('stale')">Stale Listings<br><span style="font-size:9px;color:var(--text-dim)">60+ DOM</span></button>
+      <button class="preset-btn" onclick="applyPreset('newThisWeek')">🆕 New This Week<br><span style="font-size:9px;color:var(--text-dim)">DOM ≤ 7</span></button>
     </div>
   </div>
-
-  <!-- ═══ ZONING ═══ (always visible) -->
-  <div class="section">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Zoning</div>
-    <div id="zoneToggles" style="padding:0 12px"></div>
-  </div>
-
-  <!-- ═══ FILTERS ═══ (collapsed by default) -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Filters <span class="chevron">▼</span></div>
-    <div class="section-content">
 
   <!-- List Price Filter -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">List Price <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -741,8 +637,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- $/SF Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Price per Sq Ft <span class="chevron">▼</span></div>
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">$/SF Filter <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -761,8 +657,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Lot Size Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Lot Size (SF) <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -782,7 +678,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 
   <!-- Structure Size -->
   <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
+    <div class="section-title" onclick="toggleSection(this)">Structure Size (SF) <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -801,8 +697,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   </div>
 
   <!-- Lot Slope -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Terrain Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Lot Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
         <div class="range-inputs">
@@ -820,29 +716,93 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     </div>
   </div>
 
-      <!-- Filter summary -->
-      <div class="filter-count" id="filterCount">Showing all</div>
-      <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
-    </div>
+  <!-- Filter summary -->
+  <div class="section">
+    <div class="filter-count" id="filterCount">Showing all</div>
+    <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
   </div>
 
-  <!-- ═══ SAVED DEALS ═══ -->
+  <!-- Favorites -->
   <div class="section">
     <button class="fav-toggle" id="favToggle" onclick="toggleFavoritesFilter()">
-      <span style="font-size:14px">★</span> Saved Deals
+      <span style="font-size:14px">&#9733;</span> Favorites Only
       <span class="fav-count" id="favCount">0</span>
     </button>
   </div>
 
-  <!-- ═══ DEAL ASSUMPTIONS ═══ -->
-  <div class="section" style="display:flex;align-items:center;gap:8px">
-    <span style="font-size:12px;color:var(--text-dim)">Deal Assumptions</span>
-    <button class="gear-icon" onclick="openAssumptionsModal()" title="Edit deal assumptions">⚙</button>
+  <!-- Zone Filters -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Zone Filters <span class="chevron">▼</span></div>
+    <div class="section-content" id="zoneToggles"></div>
   </div>
 
-  <!-- ═══ EXPORT ═══ -->
+  <!-- Base Map -->
   <div class="section">
-    <button class="export-btn" onclick="exportCSV()">📊 Export CSV</button>
+    <div class="section-title" onclick="toggleSection(this)">Base Map <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="basemap-group">
+        <button class="basemap-btn" data-base="dark" onclick="setBaseMap('dark')">Dark</button>
+        <button class="basemap-btn active" data-base="light" onclick="setBaseMap('light')">Light</button>
+        <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map Layers -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Map Layers <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)"><span class="icon">o</span> Comp Pins <span class="layer-count" id="compCount"></span></button>
+      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)"><span class="icon" style="color:#f0641e">&#9608;</span> $/SF Heatmap <span class="layer-count" id="heatCount"></span></button>
+      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)"><span class="icon" style="color:#f59e0b">&#9670;</span> BTR Opportunities <span class="layer-count" id="btrCount"></span></button>
+      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)"><span class="icon">*</span> Active Listings <span class="layer-count" id="listingCount"></span></button>
+      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)"><span class="icon" style="color:#ef4444">!</span> Fire Hazard Zones</button>
+      <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)"><span class="icon" style="color:#3b82f6">~</span> Flood Zones (FEMA)</button>
+      <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)"><span class="icon" style="color:#a855f7">&#9632;</span> Liquefaction Zones</button>
+      <button class="layer-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)"><span class="icon">&#9633;</span> Parcel Outlines <small style="color:var(--text-dim)">(zoom 15+)</small></button>
+    </div>
+  </div>
+
+  <!-- Pro Forma Assumptions -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Pro Forma Assumptions <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="proforma-inputs">
+        <div class="proforma-group">
+          <label>Build $/SF</label>
+          <input type="number" id="pfBuildCost" value="350" step="25" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Unit SF (avg)</label>
+          <input type="number" id="pfUnitSize" value="1200" step="50" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Soft Cost %</label>
+          <input type="number" id="pfSoftCost" value="25" step="5" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Sale Discount %</label>
+          <input type="number" id="pfDiscount" value="5" step="1" onchange="onProformaChange()">
+        </div>
+        <div class="proforma-group">
+          <label>Demo Cost $</label>
+          <input type="number" id="pfDemoCost" value="25000" step="5000" onchange="onProformaChange()">
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+        SB 1123 ground-up: demolish existing, build all new townhome units.
+        Max avg unit size: 1,200 SF (R1). Guaranteed FAR: 1.0x (3-7 units) / 1.25x (8-10).
+      </p>
+    </div>
+  </div>
+
+  <!-- Listings Table Toggle -->
+  <div class="section">
+    <button class="panel-toggle" onclick="toggleListingsPanel()">
+      <span>Deal Pipeline Table</span>
+      <span class="toggle-count" id="listingPanelCount">0 deals</span>
+    </button>
+    <button class="export-btn" onclick="exportCSV()">Export Filtered Deals to CSV</button>
   </div>
 </aside>
 
@@ -851,11 +811,6 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 </button>
 
 <div id="map"></div>
-
-<!-- Pin Color Legend (bottom-left, always visible, dynamic) -->
-<div class="pin-legend" id="pinLegend">
-  <!-- Dynamically populated based on active layers -->
-</div>
 
 <div class="map-legend">
   <div class="legend-section">Comps (Market Data)</div>
@@ -874,57 +829,11 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 </div>
 </div><!-- /app-row -->
 
-<!-- Deal Assumptions Modal -->
-<div class="modal-overlay" id="assumptionsModal" onclick="if(event.target===this) closeAssumptionsModal()">
-  <div class="modal-panel">
-    <div class="modal-header">
-      <h3>Deal Assumptions</h3>
-      <button class="modal-close" onclick="closeAssumptionsModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="proforma-inputs">
-        <div class="proforma-group">
-          <label>Build $/SF</label>
-          <input type="number" id="pfBuildCost" value="300" step="25" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Unit SF (avg)</label>
-          <input type="number" id="pfUnitSize" value="1750" step="50" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Soft Cost %</label>
-          <input type="number" id="pfSoftCost" value="50" step="5" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Sale Discount %</label>
-          <input type="number" id="pfDiscount" value="10" step="1" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Demo Cost $</label>
-          <input type="number" id="pfDemoCost" value="55000" step="5000" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Hold Months</label>
-          <input type="number" id="pfHoldMonths" value="24" step="3" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Carry Rate %</label>
-          <input type="number" id="pfCarryRate" value="9" step="0.5" onchange="onProformaChange()">
-        </div>
-      </div>
-      <p style="font-size:10px;color:var(--text-dim);margin-top:12px;line-height:1.4">
-        SB 1123 ground-up: demolish existing, build all new townhome units.
-        Max avg unit size: 1,200 SF (R1). Guaranteed FAR: 1.0x (3-7 units) / 1.25x (8-10).
-      </p>
-    </div>
-  </div>
-</div>
-
 <!-- Listings Panel -->
 <div class="listings-panel" id="listingsPanel">
   <div class="listings-panel-resize" id="panelResize"></div>
   <div class="listings-panel-header">
-    <h2><span>Deal Pipeline</span></h2>
+    <h2><span>SB 1123</span> Deal Pipeline</h2>
     <span class="listings-panel-count" id="tablePanelCount">0</span>
     <button class="listings-panel-close" onclick="toggleListingsPanel()">x</button>
   </div>
@@ -936,15 +845,15 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           <th class="col-addr" data-sort="address" onclick="sortTable('address')">Address <span class="sort-arrow">▲</span></th>
           <th class="col-zone" data-sort="zone" onclick="sortTable('zone')">Zone <span class="sort-arrow">▲</span></th>
           <th class="col-price" data-sort="price" onclick="sortTable('price')">Price <span class="sort-arrow">▲</span></th>
-          <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot Size <span class="sort-arrow">▲</span></th>
+          <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot SF <span class="sort-arrow">▲</span></th>
           <th class="col-units" data-sort="maxUnits" onclick="sortTable('maxUnits')">Units <span class="sort-arrow">▲</span></th>
-          <th class="col-hood" data-sort="hoodPpsf" onclick="sortTable('hoodPpsf')">Area $/SF <span class="sort-arrow">▲</span></th>
-          <th class="col-sale" data-sort="salePerUnit" onclick="sortTable('salePerUnit')">Revenue/Unit <span class="sort-arrow">▲</span></th>
-          <th class="col-ppu" data-sort="pricePerUnit" onclick="sortTable('pricePerUnit')">Cost/Unit <span class="sort-arrow">▲</span></th>
+          <th class="col-hood" data-sort="hoodPpsf" onclick="sortTable('hoodPpsf')">Exit $/SF <span class="sort-arrow">▲</span></th>
+          <th class="col-sale" data-sort="salePerUnit" onclick="sortTable('salePerUnit')">Sale/Unit <span class="sort-arrow">▲</span></th>
+          <th class="col-ppu" data-sort="pricePerUnit" onclick="sortTable('pricePerUnit')">Buy/Unit <span class="sort-arrow">▲</span></th>
           <th class="col-profit" data-sort="estProfit" onclick="sortTable('estProfit')">Profit <span class="sort-arrow">▲</span></th>
           <th class="col-margin" data-sort="estMargin" onclick="sortTable('estMargin')">Margin <span class="sort-arrow">▲</span></th>
           <th class="col-slope" data-sort="slope" onclick="sortTable('slope')">Slope <span class="sort-arrow">▲</span></th>
-          <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">Days Listed <span class="sort-arrow">▲</span></th>
+          <th class="col-dom" data-sort="dom" onclick="sortTable('dom')">DOM <span class="sort-arrow">▲</span></th>
           <th class="col-new" data-sort="isNew" onclick="sortTable('isNew')">New <span class="sort-arrow">▲</span></th>
           <th class="col-link">Link</th>
         </tr>
@@ -987,11 +896,8 @@ let LISTINGS = [];
 const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L.layerGroup(),LAND:L.layerGroup()};
 const listingsLayer = L.layerGroup();
 const btrLayer = L.layerGroup();  // BTR opportunity layer
-const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
-const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
-let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
-const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
+const layerState = {markers:false,compHeat:false,listings:true,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
+const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
 const filters = {
@@ -1039,18 +945,6 @@ function copyRefreshCmd(){
     prompt('Run this in your terminal to refresh data:',cmd);
   });
 }
-function sharePin(lat,lng,event){
-  const url=window.location.origin+window.location.pathname+'?pin='+lat+','+lng;
-  navigator.clipboard.writeText(url).then(()=>{
-    const btn=event.target;
-    const orig=btn.innerHTML;
-    btn.innerHTML='Link Copied!';
-    btn.style.background='var(--green)';
-    setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';},2000);
-  }).catch(()=>{
-    prompt('Share this link:',url);
-  });
-}
 function toggleFavoritesFilter(){
   favoritesOnly=!favoritesOnly;
   document.getElementById('favToggle').classList.toggle('active',favoritesOnly);
@@ -1059,13 +953,11 @@ function toggleFavoritesFilter(){
 
 // Pro forma defaults — SB 1123 townhome development
 let proforma = {
-  buildCostPerSf: 300,   // Hard construction $/SF for townhome
-  avgUnitSf: 1750,       // Avg townhome unit size (SB1123 max avg 1,200 SF in R1)
-  softCostPct: 50,       // Permits, architecture, engineering
-  saleDiscountPct: 10,   // Broker fees + closing costs
-  demoCost: 55000,       // Demolition of existing structure
-  holdMonths: 24,        // Construction + sale hold period
-  carryRatePct: 9,       // Annual carry rate on outstanding capital
+  buildCostPerSf: 350,   // Hard construction $/SF for townhome
+  avgUnitSf: 1200,       // Avg townhome unit size (SB1123 max avg 1,200 SF in R1)
+  softCostPct: 25,       // Permits, architecture, engineering
+  saleDiscountPct: 5,    // Broker fees + closing costs
+  demoCost: 25000,       // Demolition of existing structure
 };
 
 // ── Map ──
@@ -1107,6 +999,7 @@ function setBaseMap(name){
 }
 
 Object.values(markerLayers).forEach(l=>l.addTo(map));
+listingsLayer.addTo(map);
 
 // Overlay layers (server-rendered from LA County / FEMA / CGS ArcGIS)
 let fireZoneLayer = null;
@@ -1259,51 +1152,52 @@ function getGuaranteedFAR(units){
   return 0.5;  // Below 3 units, use base zoning
 }
 
-function getSlopeAdjBuildCost(slope,base){
-  if(!slope||slope<=5) return base;
-  return base + Math.ceil((slope-5)/5)*15;
-}
-
 function calculateProForma(l){
   const maxUnits = getMaxUnits(l);
   const pf = proforma;
+  // Prefer new-construction comps (what we're actually selling), fall back to existing
   const valuePerSf = l.newconPpsf || l.hoodPpsf || l.ppsf;
-  const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.buildCostPerSf);
 
+  // ── CRITICAL: Effective Buildable SF (v2 spec 1a) ──
+  // SB1123 caps at 10 units × 1,750 SF = 17,500 SF max product
+  // Even if lot FAR allows more, you can only build 17,500 SF
   const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
 
+  // Revenue: sell townhome units at local $/SF (new-con preferred)
   const grossPerUnit = valuePerSf * pf.avgUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
   const netRevenue = grossRevenue * (1 - pf.saleDiscountPct / 100);
 
+  // Costs — SB 1123 is ground-up development (demolish existing, build all new)
   const acquisition = l.price;
-  const demo = l.sqft > 0 ? pf.demoCost : 0;
-  const hardCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
+  const demo = l.sqft > 0 ? pf.demoCost : 0;  // Demo existing structure
+  const hardCost = maxUnits * pf.avgUnitSf * pf.buildCostPerSf;
   const softCost = hardCost * (pf.softCostPct / 100);
   const totalBuildCost = hardCost + softCost + demo;
-
-  // Carry costs: loan interest on avg outstanding + prop tax during hold
-  const avgOutstanding = acquisition + totalBuildCost * 0.5;
-  const carryInterest = avgOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  const carryPropTax = acquisition * 0.011 * (pf.holdMonths / 12);
-  const totalCarry = carryInterest + carryPropTax;
-
-  const totalCost = acquisition + totalBuildCost + totalCarry;
+  const totalCost = acquisition + totalBuildCost;
+  
   const profit = netRevenue - totalCost;
   const margin_on_revenue = netRevenue > 0 ? ((profit / netRevenue) * 100) : 0;
 
+  // ── NEW METRICS (v2 spec Priority 1) ──
+  
+  // 1a. Land Basis per Product SF
   const land_basis_psf = effective_buildable_sf > 0 ? (l.price / effective_buildable_sf) : 0;
-
+  
+  // 1b. Target Buy Price (30% margin)
   const target_margin = 0.30;
   const exit_psf = valuePerSf;
   const target_all_in_psf = exit_psf * (1 - target_margin);
-  const build_psf = adjBuildCostPerSf;
+  const build_psf = pf.buildCostPerSf;
   const target_land_basis_psf = target_all_in_psf - build_psf;
   const target_buy_price = target_land_basis_psf * effective_buildable_sf;
   const headroom = target_buy_price - l.price;
   const headroom_pct = l.price > 0 ? ((headroom / l.price) * 100) : 0;
-
+  
+  // 1c. Lot Efficiency Score
   const lot_efficiency = (l.lotSf * 1.25) > 0 ? (effective_buildable_sf / (l.lotSf * 1.25)) : 0;
+  
+  // 1d. Return on Cost
   const return_on_cost = totalCost > 0 ? ((profit / totalCost) * 100) : 0;
 
   return {
@@ -1328,11 +1222,6 @@ function calculateProForma(l){
     headroom: Math.round(headroom),
     headroom_pct,
     lot_efficiency,
-    // v3: carry + slope
-    adjBuildCostPerSf,
-    totalCarry: Math.round(totalCarry),
-    carryInterest: Math.round(carryInterest),
-    carryPropTax: Math.round(carryPropTax),
   };
 }
 
@@ -1340,21 +1229,15 @@ function calculateProForma(l){
 function calculateBTRProForma(l){
   const maxUnits = getMaxUnits(l);
   const pf = proforma;
-
-  // BTR uses same build assumptions as SB1123 (with slope adjustment)
-  const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.buildCostPerSf);
-  const buildPerUnit = pf.avgUnitSf * adjBuildCostPerSf + (pf.avgUnitSf * adjBuildCostPerSf * pf.softCostPct / 100) / maxUnits;
+  
+  // BTR uses same build assumptions as SB1123
+  const buildPerUnit = pf.avgUnitSf * pf.buildCostPerSf + (pf.avgUnitSf * pf.buildCostPerSf * pf.softCostPct / 100) / maxUnits;
   const acquisition = l.price;
   const demo = l.sqft > 0 ? pf.demoCost : 0;
-  const hardCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
+  const hardCost = maxUnits * pf.avgUnitSf * pf.buildCostPerSf;
   const softCost = hardCost * (pf.softCostPct / 100);
   const totalBuildCost = hardCost + softCost + demo;
-  // Carry costs
-  const avgOutstanding = acquisition + totalBuildCost * 0.5;
-  const carryInterest = avgOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  const carryPropTax = acquisition * 0.011 * (pf.holdMonths / 12);
-  const totalCarry = carryInterest + carryPropTax;
-  const totalCost = acquisition + totalBuildCost + totalCarry;
+  const totalCost = acquisition + totalBuildCost;
   
   // BTR-specific assumptions (from spec)
   const rentPerUnit = l.estRent || 0;  // Monthly rent per unit from ZORI
@@ -1421,7 +1304,6 @@ function enrichListings(){
     l.guaranteedFAR = pf.guaranteedFAR;
     l.buildableSf = pf.buildableSf;
     l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
-    l.lotEfficiency = pf.lot_efficiency ? Math.round(pf.lot_efficiency * 100) : 0; // Store as percentage
     // NEW listing detection: DOM <= 3 = NEW, DOM <= 7 = new this week
     l.isNew = (l.dom !== null && l.dom !== undefined && l.dom <= 3) ? 1 : 0;
     l.isNewThisWeek = (l.dom !== null && l.dom !== undefined && l.dom <= 7) ? 1 : 0;
@@ -1498,20 +1380,9 @@ function rebuildListings(){
   const filtered = getFilteredListings();
 
   filtered.forEach(l => {
-    // Color by margin, not exit $/SF
-    const margin = l.estMargin || 0;
-    let color, borderColor;
-    if(margin >= 30){
-      color = '#22c55e'; // Green - 30%+ margin
-      borderColor = '#16a34a';
-    } else if(margin >= 20){
-      color = '#facc15'; // Yellow - 20-29% margin
-      borderColor = '#ca8a04';
-    } else {
-      color = '#ef4444'; // Red - under 20% margin
-      borderColor = '#dc2626';
-    }
-    
+    const exitPpsf = l.newconPpsf || l.hoodPpsf;
+    const color = hoodPpsfColor(exitPpsf);
+    const borderColor = getPinBorder(exitPpsf);
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
@@ -1537,21 +1408,21 @@ function rebuildListings(){
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.hoodPpsf?`<div><div class="popup-label">Area $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
-        ${delta!==null?`<div><div class="popup-label">vs Area</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
+        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
         
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% efficient)</small></div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         
-        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
-        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Zone ${l.track?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Lot Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">SB 1123 Pro Forma — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
       </div>
       
       <div class="popup-grid-2">
@@ -1572,11 +1443,8 @@ function rebuildListings(){
         
         <div class="popup-divider"></div>
         <div class="popup-section-label">Economics</div>
-
-        <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.buildCostPerSf?' <span style="color:var(--orange)">(slope adj)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.buildCostPerSf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
-        <div><div class="popup-label">Carry (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.totalCarry.toLocaleString()}</div></div>
-
-        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${Math.round(pf.totalBuildCost/pf.maxUnits).toLocaleString()}</div></div>
+        
+        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${Math.round(pf.totalBuildCost/pf.maxUnits).toLocaleString()}</div></div>
         <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
         
         <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(pf.netRevenue/pf.maxUnits).toLocaleString()}</div></div>
@@ -1594,7 +1462,7 @@ function rebuildListings(){
           <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning • 
           <span style="color:var(--green)">✓</span> Not Hillside Area • 
           <span style="color:var(--green)">✓</span> No Historic Overlay • 
-          ${l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} • 
+          <span style="color:var(--red)">✗</span> NOT VHFHSZ (hard exclusion) • 
           <span style="color:var(--green)">✓</span> No Specific Plan restrictions • 
           <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • 
           <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
@@ -1604,7 +1472,6 @@ function rebuildListings(){
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
-        <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `,{maxWidth:580});
@@ -1673,18 +1540,18 @@ function buildBTRLayer(){
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.hoodPpsf?`<div><div class="popup-label">Area $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
-        ${delta!==null?`<div><div class="popup-label">vs Area</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        ${l.hoodPpsf?`<div><div class="popup-label">Hood $/SF</div><div class="popup-value">$${l.hoodPpsf}</div></div>`:'<div></div>'}
+        ${delta!==null?`<div><div class="popup-label">vs Hood</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
         
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         
-        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
-        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Zone ${l.track?`(${l.track})`:''}</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Lot Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current FAR</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
         <div class="popup-section-label">BTR PRO FORMA — ${btrPF.maxUnits} UNITS • ${btrPF.guaranteedFAR}x FAR (${btrPF.buildableSf.toLocaleString()} SF) • $${btrPF.rentPerUnit.toLocaleString()}/MO/UNIT</div>
@@ -1694,7 +1561,7 @@ function buildBTRLayer(){
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${btrPF.buyPerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btrPF.totalCost).toLocaleString()}</div></div>
         
-        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${btrPF.buildPerUnit.toLocaleString()}</div></div>
+        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${btrPF.buildPerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btrPF.grossAnnualRent).toLocaleString()}</div></div>
         
         <div><div class="popup-label">All-In / Unit</div><div class="popup-value">$${btrPF.allInPerUnit.toLocaleString()}</div></div>
@@ -1717,14 +1584,14 @@ function buildBTRLayer(){
     if (l.sb1123Eligible) {
       popupHTML += `
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">SB 1123 PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.hoodPpsf||l.ppsf)}/sf</div>
       </div>
       
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${salePF.pricePerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(salePF.totalCost).toLocaleString()}</div></div>
         
-        <div><div class="popup-label">Construction / Unit</div><div class="popup-value">$${Math.round(salePF.totalBuildCost/salePF.maxUnits).toLocaleString()}</div></div>
+        <div><div class="popup-label">Build / Unit</div><div class="popup-value">$${Math.round(salePF.totalBuildCost/salePF.maxUnits).toLocaleString()}</div></div>
         <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(salePF.netRevenue).toLocaleString()}</div></div>
         
         <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(salePF.netRevenue/salePF.maxUnits).toLocaleString()}</div></div>
@@ -1742,7 +1609,7 @@ function buildBTRLayer(){
           <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning • 
           <span style="color:var(--green)">✓</span> Not Hillside Area • 
           <span style="color:var(--green)">✓</span> No Historic Overlay • 
-          ${l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} • 
+          <span style="color:var(--red)">✗</span> NOT VHFHSZ (hard exclusion) • 
           <span style="color:var(--green)">✓</span> No Specific Plan restrictions • 
           <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • 
           <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
@@ -1752,7 +1619,6 @@ function buildBTRLayer(){
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
-        <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `;
@@ -1764,327 +1630,6 @@ function buildBTRLayer(){
   // Update BTR count in UI if toggle exists
   const btrCountEl = document.getElementById('btrCount');
   if (btrCountEl) btrCountEl.textContent = btrListings.length.toLocaleString();
-}
-
-// ══════════════════════════════════════════
-//  PRIORITY 2: SPREAD HEATMAP
-// ══════════════════════════════════════════
-
-function buildSpreadHeatmap(){
-  if(!LISTINGS.length || typeof L.heatLayer !== 'function') return;
-  
-  const BUILD_COST_PSF = proforma.buildCostPerSf || 300;
-  
-  // Calculate spread for each eligible listing
-  const heatPts = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    const exitPsf = l.newconPpsf || l.hoodPpsf || l.ppsf || 0;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    return exitPsf > 0 && landBasisPsf > 0;
-  }).map(l => {
-    const exitPsf = l.newconPpsf || l.hoodPpsf || l.ppsf;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
-    
-    // Normalize to 0-1 intensity: ≥$300=1.0, <$0=0.0
-    const intensity = Math.max(0, Math.min(1, (spread + 100) / 400)); // -100 to 300 range
-    return [l.lat, l.lng, intensity];
-  });
-  
-  spreadHeatLayer = L.heatLayer(heatPts, {
-    radius: 25,
-    blur: 15,
-    maxZoom: 17,
-    max: 1.0,
-    minOpacity: 0.25,
-    pane: 'heatmapPane',
-    gradient: {
-      0.0:  '#ef4444',  // <$0 — red (negative spread)
-      0.25: '#f97316',  // $0-100 — orange
-      0.50: '#eab308',  // $100-200 — yellow
-      0.75: '#22c55e',  // $200-300 — green
-      1.0:  '#059669'   // ≥$300 — deep green (maximum spread)
-    }
-  });
-  
-  document.getElementById('spreadCount').textContent = heatPts.length.toLocaleString();
-}
-
-// ══════════════════════════════════════════
-//  PRIORITY 3: NEIGHBORHOOD OPPORTUNITY SCORER
-// ══════════════════════════════════════════
-
-function buildNeighborhoodLayer(){
-  neighborhoodLayer.clearLayers();
-  
-  // Grid cell size (0.01° ≈ 1km)
-  const CELL_SIZE = 0.01;
-  
-  // Group listings by neighborhood grid cell
-  const cells = {};
-  LISTINGS.forEach(l => {
-    if(!l.sb1123Eligible) return;
-    const cellLat = Math.floor(l.lat / CELL_SIZE) * CELL_SIZE;
-    const cellLng = Math.floor(l.lng / CELL_SIZE) * CELL_SIZE;
-    const key = `${cellLat},${cellLng}`;
-    if(!cells[key]) cells[key] = {lat:cellLat, lng:cellLng, listings:[]};
-    cells[key].listings.push(l);
-  });
-  
-  const BUILD_COST_PSF = proforma.buildCostPerSf || 300;
-  
-  // Calculate scores for each cell
-  Object.values(cells).forEach(cell => {
-    const listings = cell.listings;
-    
-    // Calculate metrics
-    const avgExitPsf = listings.reduce((sum,l)=> sum + (l.newconPpsf || l.hoodPpsf || l.ppsf || 0), 0) / listings.length;
-    const avgLandBasis = listings.reduce((sum,l)=> sum + (l.lotSf ? l.price / l.lotSf : 0), 0) / listings.length;
-    const avgSpread = avgExitPsf - avgLandBasis - BUILD_COST_PSF;
-    const dealFlowDepth = listings.length;
-    const avgLotSize = listings.reduce((sum,l)=> sum + (l.lotSf||0), 0) / listings.length;
-    const avgEfficiency = listings.reduce((sum,l)=> sum + (l.lotEfficiency||0), 0) / listings.length;
-    const avgDOM = listings.reduce((sum,l)=> sum + (l.dom||0), 0) / listings.length;
-    const avgSlope = listings.reduce((sum,l)=> sum + (l.slope||0), 0) / listings.length;
-    
-    // Normalize and weight factors (0-100 scale)
-    const spreadScore = Math.max(0, Math.min(100, (avgSpread / 300) * 100));
-    const flowScore = Math.max(0, Math.min(100, (dealFlowDepth / 20) * 100));
-    const effScore = Math.max(0, Math.min(100, avgEfficiency));
-    const domScore = Math.max(0, Math.min(100, Math.min(avgDOM, 120) / 120 * 100));
-    const slopeScore = Math.max(0, Math.min(100, (1 - Math.min(avgSlope, 25) / 25) * 100));
-    
-    // Composite score
-    const compositeScore = 
-      spreadScore * 0.35 + 
-      flowScore * 0.25 + 
-      effScore * 0.20 + 
-      domScore * 0.10 + 
-      slopeScore * 0.10;
-    
-    // Letter grade
-    let grade = 'F';
-    if(compositeScore >= 80) grade = 'A';
-    else if(compositeScore >= 60) grade = 'B';
-    else if(compositeScore >= 40) grade = 'C';
-    else if(compositeScore >= 20) grade = 'D';
-    
-    // Color
-    let color, fillOpacity;
-    if(compositeScore >= 80) { color = '#059669'; fillOpacity = 0.4; }
-    else if(compositeScore >= 60) { color = '#22c55e'; fillOpacity = 0.35; }
-    else if(compositeScore >= 40) { color = '#eab308'; fillOpacity = 0.3; }
-    else if(compositeScore >= 20) { color = '#f97316'; fillOpacity = 0.25; }
-    else { color = '#ef4444'; fillOpacity = 0.2; }
-    
-    // Create polygon for cell
-    const bounds = [
-      [cell.lat, cell.lng],
-      [cell.lat + CELL_SIZE, cell.lng],
-      [cell.lat + CELL_SIZE, cell.lng + CELL_SIZE],
-      [cell.lat, cell.lng + CELL_SIZE]
-    ];
-    
-    const polygon = L.polygon(bounds, {
-      color: color,
-      fillColor: color,
-      fillOpacity: fillOpacity,
-      weight: 1,
-      opacity: 0.7
-    });
-    
-    // Tooltip with breakdown
-    polygon.bindTooltip(`
-      <div style="font-size:12px;font-weight:700;margin-bottom:4px;color:${color}">Grade ${grade} (${compositeScore.toFixed(0)}/100)</div>
-      <div style="font-size:10px;line-height:1.5">
-        <div><strong>Exit $/SF:</strong> $${avgExitPsf.toFixed(0)}</div>
-        <div><strong>Land Basis:</strong> $${avgLandBasis.toFixed(0)}/SF</div>
-        <div><strong>Spread:</strong> $${avgSpread.toFixed(0)}/SF</div>
-        <div><strong>Eligible Parcels:</strong> ${dealFlowDepth}</div>
-        <div><strong>Avg Lot Size:</strong> ${avgLotSize.toLocaleString()} SF</div>
-        <div><strong>Lot Efficiency:</strong> ${avgEfficiency.toFixed(0)}%</div>
-        <div><strong>Avg DOM:</strong> ${avgDOM.toFixed(0)} days</div>
-        <div><strong>Avg Slope:</strong> ${avgSlope.toFixed(1)}%</div>
-      </div>
-    `, {permanent: false, direction: 'top'});
-    
-    polygon.addTo(neighborhoodLayer);
-  });
-  
-  document.getElementById('neighborhoodCount').textContent = Object.keys(cells).length.toLocaleString();
-}
-
-// ══════════════════════════════════════════
-//  PRIORITY 4: OFF-MARKET TARGETS
-// ══════════════════════════════════════════
-
-function buildOffMarketLayer(){
-  offMarketLayer.clearLayers();
-  
-  // In a real implementation, this would load a separate parcel dataset
-  // For now, we'll simulate "off-market" by filtering existing data
-  // that meets SB1123 criteria but isn't in active listings
-  
-  // Simulate off-market parcels (in practice, load from separate dataset)
-  // For demo purposes, let's create a hypothetical off-market filter
-  const offMarketListings = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    
-    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
-    const structure_sf = l.sqft || 0;
-    
-    // FIX 1: Est. Market Value = hood_psf × structure_sf
-    const est_market_value = hood_psf * structure_sf;
-    
-    // FIX 2: Est. Offer = est_market_value × 0.95 (5% below market)
-    const est_offer = est_market_value * 0.95;
-    
-    // Calculate pro forma metrics for margin calculation
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
-    
-    // FIX 3: Margin at Offer - full pro forma using est_offer as acquisition
-    const exit_psf = hood_psf;
-    const gross_revenue = exit_psf * effective_buildable_sf;
-    const net_revenue = gross_revenue * 0.95; // 5% closing costs
-    const build_cost = adjBuildCostPerSf * effective_buildable_sf;
-    const demo = l.sqft > 0 ? proforma.demoCost : 0;
-    const soft_cost = build_cost * (proforma.softCostPct / 100);
-    const total_build = build_cost + soft_cost + demo;
-    const avg_outstanding = est_offer + total_build * 0.5;
-    const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
-    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
-    const total_carry = carry_interest + carry_prop_tax;
-    const total_cost = est_offer + total_build + total_carry;
-    const est_profit = net_revenue - total_cost;
-    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-    
-    // FIX 4: Land basis per product SF
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    
-    // Calculate spread
-    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
-    
-    const lotEff = l.lotEfficiency || 0;
-    const slope = l.slope || 0;
-    
-    // FIX 8: Updated filter - add margin_at_offer >= 0.25 requirement
-    return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
-  });
-  
-  offMarketListings.forEach(l => {
-    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
-    const structure_sf = l.sqft || 0;
-    
-    // FIX 1: Est. Market Value = hood_psf × structure_sf
-    const est_market_value = hood_psf * structure_sf;
-    
-    // FIX 2: Est. Offer = est_market_value × 0.95
-    const est_offer = est_market_value * 0.95;
-    
-    // Calculate pro forma metrics
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
-    
-    // FIX 3: Margin at Offer
-    const exit_psf = hood_psf;
-    const gross_revenue = exit_psf * effective_buildable_sf;
-    const net_revenue = gross_revenue * 0.95;
-    const build_cost = adjBuildCostPerSf * effective_buildable_sf;
-    const demo = l.sqft > 0 ? proforma.demoCost : 0;
-    const soft_cost = build_cost * (proforma.softCostPct / 100);
-    const total_build = build_cost + soft_cost + demo;
-    const avg_outstanding = est_offer + total_build * 0.5;
-    const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
-    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
-    const total_carry = carry_interest + carry_prop_tax;
-    const total_cost = est_offer + total_build + total_carry;
-    const est_profit = net_revenue - total_cost;
-    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-    
-    // FIX 4: Land basis per product SF
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    
-    // Calculate target max buy (from existing pro forma)
-    const target_margin = 0.30;
-    const target_all_in_psf = exit_psf * (1 - target_margin);
-    const target_land_basis_psf = target_all_in_psf - adjBuildCostPerSf;
-    const target_max_buy = target_land_basis_psf * effective_buildable_sf;
-    
-    // FIX 5: Headroom
-    const headroom = target_max_buy - est_offer;
-    
-    // Calculate spread
-    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
-    
-    // Color coding for margin_at_offer
-    let marginColor = '#ef4444'; // red
-    if(margin_at_offer >= 0.30) marginColor = '#22c55e'; // green
-    else if(margin_at_offer >= 0.20) marginColor = '#facc15'; // yellow
-    
-    // Color coding for land_basis_psf
-    let landBasisColor = '#ef4444'; // red
-    if(land_basis_psf < 120) landBasisColor = '#22c55e'; // green
-    else if(land_basis_psf >= 120 && land_basis_psf <= 160) landBasisColor = '#facc15'; // yellow
-    
-    // Color coding for headroom
-    const headroomColor = headroom > 0 ? '#22c55e' : '#ef4444';
-    
-    // Color by spread for pin
-    let pinColor = '#ef4444'; // red
-    if(spread >= 300) pinColor = '#059669'; // deep green
-    else if(spread >= 200) pinColor = '#22c55e'; // green
-    else if(spread >= 100) pinColor = '#eab308'; // yellow
-    else if(spread >= 0) pinColor = '#f97316'; // orange
-    
-    const offMarketIcon = L.divIcon({
-      className: '',
-      html: `<div style="width:10px;height:10px;border:2px solid ${pinColor};border-radius:50%;background:transparent;position:relative">
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:8px;background:${pinColor}"></div>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:1px;background:${pinColor}"></div>
-      </div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
-    });
-    
-    const marker = L.marker([l.lat, l.lng], { icon: offMarketIcon });
-    
-    // FIX 6 & 7 & 9 & 10: Reordered card layout with proper formatting and renamed labels
-    marker.bindPopup(`
-      <div class="popup-badge" style="background:#666;color:#fff">OFF-MARKET</div>
-      ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : ''}
-      <div class="popup-title">${l.address || 'N/A'}, ${l.city || ''}</div>
-      
-      <div class="popup-grid">
-        <div><div class="popup-label">Est. Offer</div><div class="popup-value" style="color:var(--green)">$${Math.round(est_offer).toLocaleString()}</div></div>
-        <div><div class="popup-label">Margin at Offer</div><div class="popup-value" style="color:${marginColor}">${Math.round(margin_at_offer * 100)}%</div></div>
-        <div><div class="popup-label">Est. Spread</div><div class="popup-value" style="color:${spread >= 200 ? 'var(--green)' : spread >= 100 ? 'var(--yellow)' : 'var(--red)'}">$${Math.round(spread).toLocaleString()}/sf</div></div>
-        
-        <div><div class="popup-label">Est. Market Value</div><div class="popup-value">$${Math.round(est_market_value).toLocaleString()}</div></div>
-        <div><div class="popup-label">Target Max Buy</div><div class="popup-value">$${Math.round(target_max_buy).toLocaleString()}</div></div>
-        <div><div class="popup-label">Headroom</div><div class="popup-value" style="color:${headroomColor}">${headroom > 0 ? '+' : ''}$${Math.round(headroom).toLocaleString()}</div></div>
-        
-        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}</div></div>
-        <div><div class="popup-label">Lot Size</div><div class="popup-value">${Math.round(l.lotSf||0).toLocaleString()} sf</div></div>
-        <div><div class="popup-label">Lot Efficiency</div><div class="popup-value">${Math.round((l.lotEfficiency||0)*100)}%</div></div>
-        <div><div class="popup-label">Slope</div><div class="popup-value">${(l.slope||0).toFixed(1)}%</div></div>
-        
-        <div><div class="popup-label">Max Units</div><div class="popup-value">${maxUnits}</div></div>
-        <div><div class="popup-label">Land Basis/Product SF</div><div class="popup-value" style="color:${landBasisColor}">$${Math.round(land_basis_psf).toLocaleString()}/sf</div></div>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
-        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
-        <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
-        <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
-      </div>
-    `, {maxWidth: 580});
-    
-    marker.addTo(offMarketLayer);
-  });
-  
-  document.getElementById('offMarketCount').textContent = offMarketListings.length.toLocaleString();
 }
 
 function refreshVisibility(){
@@ -2104,27 +1649,8 @@ function refreshVisibility(){
     map.removeLayer(compPointsLayer);
     map.removeLayer(compLabelsLayer);
   }
-  // Priority 2: Spread heatmap
-  if(spreadHeatLayer){
-    if(layerState.spreadHeat) spreadHeatLayer.addTo(map);
-    else map.removeLayer(spreadHeatLayer);
-  }
-  // Priority 3: Neighborhood opportunity scorer
-  if(layerState.neighborhoods){
-    if(neighborhoodLayer.getLayers().length === 0) buildNeighborhoodLayer();
-    neighborhoodLayer.addTo(map);
-  } else {
-    map.removeLayer(neighborhoodLayer);
-  }
   if(layerState.listings) listingsLayer.addTo(map);
   else map.removeLayer(listingsLayer);
-  // Priority 4: Off-market targets
-  if(layerState.offMarket){
-    if(offMarketLayer.getLayers().length === 0) buildOffMarketLayer();
-    offMarketLayer.addTo(map);
-  } else {
-    map.removeLayer(offMarketLayer);
-  }
   if(layerState.btr) {
     if(btrLayer.getLayers().length === 0) buildBTRLayer();
     btrLayer.addTo(map);
@@ -2147,89 +1673,17 @@ function refreshVisibility(){
     if(layerState.parcels) parcelLayer.addTo(map);
     else map.removeLayer(parcelLayer);
   }
-  updatePinLegend();
-}
-
-// ══════════════════════════════════════════
-//  PIN LEGEND (dynamic, updates with layers)
-// ══════════════════════════════════════════
-
-function updatePinLegend(){
-  const legend = document.getElementById('pinLegend');
-  if(!legend) return;
-  
-  let html = '';
-  
-  // Show For Sale legend if listings layer is on
-  if(layerState.listings){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e"></div> 30%+ margin</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#facc15"></div> 20-29% margin</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444"></div> Under 20% margin</div>';
-  }
-  
-  // Show BTR legend if rental fallback layer is on
-  if(layerState.btr){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker diamond"></div> Rental opportunity</div>';
-  }
-  
-  // Show Off-Market legend if off-market layer is on
-  if(layerState.offMarket){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker circle"></div> Off-market target</div>';
-  }
-  
-  legend.innerHTML = html;
-  legend.style.display = html ? 'block' : 'none';
-}
-
-// ══════════════════════════════════════════
-//  DEAL ASSUMPTIONS MODAL
-// ══════════════════════════════════════════
-
-function openAssumptionsModal(){
-  document.getElementById('assumptionsModal').classList.add('active');
-}
-
-function closeAssumptionsModal(){
-  document.getElementById('assumptionsModal').classList.remove('active');
-}
-
-// ══════════════════════════════════════════
-//  HERO STAT BAR (updates with filters)
-// ══════════════════════════════════════════
-
-function updateHeroStats(){
-  const filtered = getFilteredListings();
-  const forSale = filtered.filter(l=>l.sb1123Eligible);
-  
-  // Count off-market opportunities (simulated from filtered listings)
-  const offMarket = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    const hood_psf = l.hoodPpsf || l.newconPpsf || l.ppsf || 0;
-    const structure_sf = l.sqft || 0;
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.buildCostPerSf);
-    const est_market_value = hood_psf * structure_sf;
-    const est_offer = est_market_value * 0.95;
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    const spread = hood_psf - land_basis_psf - adjBuildCostPerSf;
-    const lotEff = l.lotEfficiency || 0;
-    const slope = l.slope || 0;
-    return spread > 150 && lotEff > 70 && !l.fireZone && slope < 15;
-  }).length;
-  
-  const highMargin = forSale.filter(l => l.estMargin >= 30).length;
-  const avgMargin = forSale.length ? Math.round(forSale.reduce((sum,l)=>sum+(l.estMargin||0),0)/forSale.length) : 0;
-  
-  document.getElementById('heroForSale').textContent = forSale.length.toLocaleString();
-  document.getElementById('heroOffMarket').textContent = offMarket.toLocaleString();
-  document.getElementById('heroHighMargin').textContent = highMargin.toLocaleString();
-  document.getElementById('heroAvgMargin').textContent = avgMargin + '%';
 }
 
 // ══════════════════════════════════════════
 //  UI CONTROLS
 // ══════════════════════════════════════════
+
+function toggle1123Mode(){
+  sb1123Mode = !sb1123Mode;
+  document.getElementById('sb1123Toggle').classList.toggle('active', sb1123Mode);
+  applyFilters();
+}
 
 function toggleZone(zone,enabled){
   zoneState[zone]=enabled;
@@ -2237,18 +1691,6 @@ function toggleZone(zone,enabled){
 }
 
 function toggleLayer(layer,btn){
-  // Priority 2: Make compHeat and spreadHeat mutually exclusive
-  if(layer === 'compHeat' && layerState.spreadHeat){
-    layerState.spreadHeat = false;
-    const spreadBtn = document.querySelector('[data-layer="spreadHeat"]');
-    if(spreadBtn) spreadBtn.classList.remove('active');
-  }
-  if(layer === 'spreadHeat' && layerState.compHeat){
-    layerState.compHeat = false;
-    const compBtn = document.querySelector('[data-layer="compHeat"]');
-    if(compBtn) compBtn.classList.remove('active');
-  }
-  
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
   refreshVisibility();
@@ -2309,9 +1751,10 @@ function applyPreset(name){
   resetFilter('all');
   sb1123Mode = true;
   newThisWeekFilter = false;
+  document.getElementById('sb1123Toggle').classList.add('active');
 
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  if(event && event.target) event.target.closest('.preset-btn').classList.add('active');
+  event.target.closest('.preset-btn').classList.add('active');
 
   if(name === 'sweet'){
     // Sweet spot: 12-18K SF lots = 10 townhomes, efficient build
@@ -2329,14 +1772,6 @@ function applyPreset(name){
     // New listings this week — DOM <= 7
     newThisWeekFilter = true;
     currentSort = {key:'dom', dir:'asc'};
-  } else if(name === 'offMarket'){
-    // Toggle Off-Market layer on, zoom to show opportunities
-    if(!layerState.offMarket){
-      layerState.offMarket = true;
-      const btn = document.querySelector('[data-layer="offMarket"]');
-      if(btn) btn.classList.add('active');
-      refreshVisibility();
-    }
   }
   applyFilters();
 }
@@ -2369,6 +1804,8 @@ function updateStats(){
   document.getElementById('totalListings').textContent = filtered.length.toLocaleString();
   document.getElementById('medPpu').textContent = ppus.length ? '$'+(ppus[Math.floor(ppus.length/2)]).toLocaleString() : '$0';
   document.getElementById('medPpsf').textContent = ppsfs.length ? '$'+ppsfs[Math.floor(ppsfs.length/2)] : '$0';
+
+  document.getElementById('sb1123ToggleCount').textContent = LISTINGS.filter(l=>l.sb1123Eligible).length;
 
   // New listing counts
   const newListings = filtered.filter(l=>l.isNew);
@@ -2435,33 +1872,23 @@ function sortTable(key){
   }
   document.querySelectorAll('.listings-table th').forEach(th=>{
     th.classList.remove('sorted');
-    const arrow = th.querySelector('.sort-arrow');
-    if(arrow) arrow.textContent='▲';
+    th.querySelector('.sort-arrow').textContent='▲';
   });
   const th=document.querySelector(`.listings-table th[data-sort="${key}"]`);
-  if(th){
-    th.classList.add('sorted');
-    const arrow = th.querySelector('.sort-arrow');
-    if(arrow) arrow.textContent=currentSort.dir==='asc'?'▲':'▼';
-  }
+  if(th){th.classList.add('sorted');th.querySelector('.sort-arrow').textContent=currentSort.dir==='asc'?'▲':'▼';}
   rebuildTable(getFilteredListings());
 }
 
 function rebuildTable(filtered){
   const tbody = document.getElementById('listingsTableBody');
-  
-  // Only sort if we have a valid sort key
-  let sorted = filtered;
-  if (currentSort && currentSort.key) {
-    sorted = [...filtered].sort((a,b) => {
-      let va=getSortValue(a,currentSort.key), vb=getSortValue(b,currentSort.key);
-      if(typeof va==='string') va=va.toLowerCase();
-      if(typeof vb==='string') vb=vb.toLowerCase();
-      if(va<vb) return currentSort.dir==='asc'?-1:1;
-      if(va>vb) return currentSort.dir==='asc'?1:-1;
-      return 0;
-    });
-  }
+  const sorted = [...filtered].sort((a,b) => {
+    let va=getSortValue(a,currentSort.key), vb=getSortValue(b,currentSort.key);
+    if(typeof va==='string') va=va.toLowerCase();
+    if(typeof vb==='string') vb=vb.toLowerCase();
+    if(va<vb) return currentSort.dir==='asc'?-1:1;
+    if(va>vb) return currentSort.dir==='asc'?1:-1;
+    return 0;
+  });
 
   // Cap table rows for performance
   const display = sorted.slice(0, 500);
@@ -2568,19 +1995,17 @@ function applyFilters(){
   rebuildMarkers();
   rebuildListings();
   if(layerState.btr) buildBTRLayer();
-  if(layerState.neighborhoods) buildNeighborhoodLayer();
-  if(layerState.offMarket) buildOffMarketLayer();
   rebuildZoneToggles();
   updateStats();
   updateFilterCount();
-  updateHeroStats();
-  refreshVisibility();
 }
 
 function resetFilter(key){
   if(key==='all'){
     ['price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
+    sb1123Mode=false;
     newThisWeekFilter=false;
+    document.getElementById('sb1123Toggle').classList.remove('active');
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     return;
   }
@@ -2596,20 +2021,12 @@ function resetFilter(key){
 }
 
 function onProformaChange(){
-  proforma.buildCostPerSf = parseInt(document.getElementById('pfBuildCost').value)||300;
-  proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
-  proforma.softCostPct = parseInt(document.getElementById('pfSoftCost').value)||50;
-  proforma.saleDiscountPct = parseInt(document.getElementById('pfDiscount').value)||10;
-  proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
-  proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
-  proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;
+  proforma.buildCostPerSf = parseInt(document.getElementById('pfBuildCost').value)||350;
+  proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1200;
+  proforma.softCostPct = parseInt(document.getElementById('pfSoftCost').value)||25;
+  proforma.saleDiscountPct = parseInt(document.getElementById('pfDiscount').value)||5;
+  proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||25000;
   enrichListings();
-  // Rebuild spread heatmap since it depends on build cost
-  if(spreadHeatLayer) {
-    map.removeLayer(spreadHeatLayer);
-    buildSpreadHeatmap();
-    if(layerState.spreadHeat) spreadHeatLayer.addTo(map);
-  }
   applyFilters();
 }
 
@@ -2693,22 +2110,13 @@ window.addEventListener('DOMContentLoaded', function(){
         map.on('moveend', updateCompPoints);
         map.on('zoomend', updateCompPoints);
       }
-      
-      // Priority 2: Build spread heatmap
-      buildSpreadHeatmap();
 
-      // Set sort BEFORE building table
-      currentSort = { key: 'estMargin', dir: 'desc' };
-      
       rebuildMarkers();
       rebuildListings();
       rebuildZoneToggles();
-      refreshVisibility();
       updateStats();
       updateFilterCount();
       updateFavCount();
-      updateHeroStats();
-      updatePinLegend();
 
       // Fit bounds
       const allLats=[...COMPS.map(c=>c.lat),...LISTINGS.map(l=>l.lat)];
@@ -2725,12 +2133,8 @@ window.addEventListener('DOMContentLoaded', function(){
       // Auto-open the table panel (desktop only)
       if(!isMobile()) toggleListingsPanel();
 
-      // Update visual sort indicators to match current sort
-      const th=document.querySelector('.listings-table th[data-sort="estMargin"]');
-      if(th){
-        th.classList.add('sorted');
-        th.querySelector('.sort-arrow').textContent='▼';
-      }
+      // Set default sort to margin desc and explicitly trigger sort
+      sortTable('estMargin');
 
       // Data freshness indicator
       if(typeof LISTINGS_META !== 'undefined' && LISTINGS_META.builtAt){
@@ -2743,37 +2147,6 @@ window.addEventListener('DOMContentLoaded', function(){
       }
 
       document.getElementById('loadingBanner').classList.remove('active');
-      
-      // Check for shared pin URL parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      const pinParam = urlParams.get('pin');
-      if(pinParam){
-        const coords = pinParam.split(',');
-        if(coords.length === 2){
-          const lat = parseFloat(coords[0]);
-          const lng = parseFloat(coords[1]);
-          if(!isNaN(lat) && !isNaN(lng)){
-            // Pan to the shared pin location
-            map.setView([lat, lng], 17);
-            // Find and open the popup for this pin
-            setTimeout(function(){
-              // Check all layers for a marker at this location
-              const layers = [listingsLayer, btrLayer, offMarketLayer];
-              layers.forEach(layer => {
-                if(layer){
-                  layer.eachLayer(marker => {
-                    const pos = marker.getLatLng();
-                    // Match within ~1 meter tolerance
-                    if(Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001){
-                      marker.openPopup();
-                    }
-                  });
-                }
-              });
-            }, 500);
-          }
-        }
-      }
     }, 100);
   } else {
     rebuildZoneToggles();
