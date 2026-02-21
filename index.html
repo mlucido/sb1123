@@ -345,7 +345,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     background:var(--surface2);border:1px solid var(--border);border-radius:6px;
     color:var(--text);font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;
   }
-  .fav-toggle:hover{border-color:var(--accent)}
+  .fav-toggle:hover:not(:disabled){border-color:var(--accent)}
+  .fav-toggle:disabled{opacity:0.4;cursor:not-allowed;border-color:transparent}
   .fav-toggle.active{border-color:#facc15;background:rgba(250,204,21,0.08)}
   .fav-toggle .fav-count{margin-left:auto;font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px}
   .popup-notes{width:100%;margin-top:8px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;resize:vertical;min-height:40px;max-height:100px}
