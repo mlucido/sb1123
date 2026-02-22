@@ -1485,7 +1485,7 @@ function calculateProForma(l){
   // For max offer, we solve: profit/netRevenue = 0.30 → totalCost = netRevenue * 0.70
   // Simplified: max_acq = netRevenue*0.70 - build - carry_on_build - propTax_factor*max_acq - insurance - origination
   // Since propTax depends on acq, iterate or approximate
-  const nr = exit_psf * effective_buildable_sf * (1 - pf.txnCostPct/100) - pf.fixedDispositionCosts;
+  const nr = netRevenue;  // Reuse same revenue as economics block
   const target_total_cost = nr * (1 - target_margin);
   const build_carry = avgLoanOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
   const build_plus_soft = totalBuildCost + build_carry + insurance + originationFee;
@@ -2108,7 +2108,7 @@ function buildOffMarketLayer(){
 
     // Margin at Offer - retail exit model
     const exit_psf = hood_psf;
-    const gross_revenue = exit_psf * effective_buildable_sf;
+    const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2145,7 +2145,7 @@ function buildOffMarketLayer(){
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
 
     const exit_psf = hood_psf;
-    const gross_revenue = exit_psf * effective_buildable_sf;
+    const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2456,7 +2456,7 @@ function updateHeroStats(){
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
     const exit_psf = hood_psf;
-    const gross_revenue_h = exit_psf * effective_buildable_sf;
+    const gross_revenue_h = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue_h * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const demo = l.sqft > 0 ? proforma.demoCost : 0;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + demo;
