@@ -66,8 +66,18 @@
   .section-sub { font-size:11px; color:#94a3b8; }
 
   /* Map */
-  #analyticsMap { width:100%; height:480px; border-radius:12px; z-index:1; }
+  #analyticsMap { width:100%; height:calc(100vh - 300px); min-height:400px; border-radius:12px; z-index:1; }
   .map-wrap { position:relative; border-radius:12px; overflow:hidden; }
+  .map-wrap.fullscreen { position:fixed; inset:0; z-index:9999; border-radius:0; }
+  .map-wrap.fullscreen #analyticsMap { height:100vh; min-height:unset; border-radius:0; }
+  .map-fullscreen-btn {
+    position:absolute; top:12px; left:12px; z-index:1000;
+    background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);
+    border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;
+    font-size:16px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    line-height:1; transition:background 0.15s;
+  }
+  .map-fullscreen-btn:hover { background:#f1f5f9; }
   .map-legend-overlay {
     position:absolute; bottom:12px; left:12px; z-index:1000;
     background:rgba(255,255,255,0.92); backdrop-filter:blur(6px);
@@ -137,7 +147,7 @@
     .container { padding:16px; }
     .filter-bar { flex-direction:column; align-items:stretch; }
     .nav-inner { padding:0 16px; }
-    #analyticsMap { height:350px; }
+    #analyticsMap { height:calc(100vh - 280px); min-height:300px; }
   }
 </style>
 </head>
@@ -251,8 +261,9 @@
 
     <!-- Map -->
     <div class="span-2 card">
-      <div class="map-wrap">
+      <div class="map-wrap" id="mapWrap">
         <div id="analyticsMap"></div>
+        <button class="map-fullscreen-btn" id="mapFullscreenBtn" onclick="toggleMapFullscreen()" title="Toggle fullscreen">&#x26F6;</button>
         <div class="map-legend-overlay">
           <div style="font-weight:700;color:#1e293b;margin-bottom:4px">Avg $/SF by Zip</div>
           <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> < $600</div>
@@ -453,6 +464,17 @@ let zoneChartInstance = null;
 // ─── Leaflet ───
 let map = null;
 let bubbleLayer = null;
+
+// ─── Fullscreen ───
+function toggleMapFullscreen() {
+  const wrap = document.getElementById('mapWrap');
+  const btn = document.getElementById('mapFullscreenBtn');
+  wrap.classList.toggle('fullscreen');
+  const isFs = wrap.classList.contains('fullscreen');
+  btn.innerHTML = isFs ? '&#x2716;' : '&#x26F6;';
+  btn.title = isFs ? 'Exit fullscreen' : 'Toggle fullscreen';
+  setTimeout(() => { if (map) map.invalidateSize(); }, 100);
+}
 
 // ─── Init ───
 function init() {
