@@ -169,7 +169,7 @@
       <div class="nav-logo">SB 1123</div>
       <div>
         <div class="nav-title">Market Analytics</div>
-        <div class="nav-subtitle" id="navSubtitle">Trailing 12-Month Sold Comps · LA County R1-R4</div>
+        <div class="nav-subtitle" id="navSubtitle">Trailing 12-Month Sold Comps · LA + San Diego R1-R4</div>
       </div>
     </div>
     <a href="index.html" class="nav-back">← Back to Deal Finder</a>
@@ -212,9 +212,9 @@
     <div class="filter-group">
       <label>Region</label>
       <select id="filterRegion">
+        <option value="both">All Markets</option>
         <option value="la">LA County</option>
         <option value="sd">San Diego County</option>
-        <option value="both">Both Markets</option>
       </select>
     </div>
     <div class="filter-group">
@@ -232,9 +232,9 @@
       <label>Min $/SF</label>
       <select id="filterMinPpsf">
         <option value="0">No minimum</option>
-        <option value="400">$400 / SF</option>
+        <option value="400" selected>$400 / SF</option>
         <option value="500">$500 / SF</option>
-        <option value="600" selected>$600 / SF</option>
+        <option value="600">$600 / SF</option>
         <option value="700">$700 / SF</option>
         <option value="800">$800 / SF</option>
         <option value="1000">$1,000 / SF</option>
@@ -528,7 +528,7 @@ function getActiveComps(region) {
 
 // ─── State ───
 let allComps = [];
-let state = { region:'la', zone:'all', minPpsf:600, maxPpsf:99999, search:'', selectedArea:null, dateMonths:12 };
+let state = { region:'both', zone:'all', minPpsf:400, maxPpsf:99999, search:'', selectedArea:null, dateMonths:12 };
 let tableSort = { key:'ppsf', dir:'desc' };
 let tableLimit = 100;
 
@@ -610,9 +610,10 @@ function init() {
 }
 
 function resetAll() {
-  state = { region:state.region, zone:'all', minPpsf:600, maxPpsf:99999, search:'', selectedArea:null, dateMonths:12 };
+  const defaultMin = state.region === 'la' ? 600 : 400;
+  state = { region:state.region, zone:'all', minPpsf:defaultMin, maxPpsf:99999, search:'', selectedArea:null, dateMonths:12 };
   document.getElementById('filterZone').value = 'all';
-  document.getElementById('filterMinPpsf').value = '600';
+  document.getElementById('filterMinPpsf').value = String(defaultMin);
   document.getElementById('filterMaxPpsf').value = '99999';
   document.getElementById('filterDateRange').value = '12';
   document.getElementById('filterSearch').value = '';
@@ -912,10 +913,10 @@ window.addEventListener('load', () => {
   }
   // Update dropdown labels with comp counts
   const sel = document.getElementById('filterRegion');
-  sel.options[0].textContent = `LA County (${laRaw.length.toLocaleString()})`;
-  sel.options[1].textContent = hasSD ? `San Diego County (${sdRaw.length.toLocaleString()})` : 'San Diego County (no data)';
-  sel.options[2].textContent = `Both Markets (${(laRaw.length + sdRaw.length).toLocaleString()})`;
-  if (!hasSD) sel.options[1].disabled = true;
+  sel.options[0].textContent = `All Markets (${(laRaw.length + sdRaw.length).toLocaleString()})`;
+  sel.options[1].textContent = `LA County (${laRaw.length.toLocaleString()})`;
+  sel.options[2].textContent = hasSD ? `San Diego County (${sdRaw.length.toLocaleString()})` : 'San Diego County (no data)';
+  if (!hasSD) sel.options[2].disabled = true;
   // Update loading text
   const sdLabel = hasSD ? ` + ${sdRaw.length.toLocaleString()} SD` : '';
   document.querySelector('.loading-text').textContent = `Loaded ${laRaw.length.toLocaleString()} LA${sdLabel} comps`;
