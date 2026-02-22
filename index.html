@@ -199,7 +199,12 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   /* Popups */
   .leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border-radius:10px!important;border:1px solid var(--border)!important;box-shadow:0 8px 32px rgba(0,0,0,0.5)!important}
   .leaflet-popup-tip{background:var(--surface)!important}
-  .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:12px 14px!important;min-width:540px;max-width:640px}
+  .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:12px 14px!important;min-width:540px;max-width:750px}
+  .popup-two-col{display:flex;gap:14px;max-height:75vh}
+  .popup-col-left,.popup-col-right{flex:1;min-width:0;overflow-y:auto;padding-right:4px}
+  .popup-col-left::-webkit-scrollbar,.popup-col-right::-webkit-scrollbar{width:4px}
+  .popup-col-left::-webkit-scrollbar-thumb,.popup-col-right::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .popup-col-left::-webkit-scrollbar-track,.popup-col-right::-webkit-scrollbar-track{background:transparent}
   .popup-title{font-weight:700;font-size:14px;margin-bottom:8px;line-height:1.3}
   .popup-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-right:4px}
   .popup-badge.comp{background:rgba(96,165,250,0.15);color:var(--accent)}
@@ -456,11 +461,13 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     .listings-panel-tab { display: none !important; }
 
     /* Popup: mobile-friendly */
-    .leaflet-popup-content { min-width: unset !important; }
+    .leaflet-popup-content { min-width: unset !important; max-width: unset !important; }
     .leaflet-popup-content-wrapper {
       max-height: 50vh; overflow-y: auto !important;
       max-width: calc(100vw - 40px) !important;
     }
+    .popup-two-col { flex-direction: column; max-height: none; }
+    .popup-col-left,.popup-col-right { overflow-y: visible; padding-right: 0; }
     .popup-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 2px 8px; }
     .popup-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
     .popup-section-label { font-size: 10px; }
@@ -1036,7 +1043,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           </div>
           <div class="proforma-group">
             <label>Min YOC</label>
-            <input type="number" id="btrMinYOC" value="0.06" step="0.005" onchange="onProformaChange()">
+            <input type="number" id="btrMinYOC" value="0.04" step="0.005" min="0.03" max="0.08" onchange="onProformaChange()">
           </div>
         </div>
       </div>
@@ -1535,7 +1542,7 @@ function calculateBTRProForma(l){
   const capRate = parseFloat((document.getElementById('btrCapRate')||{}).value) || 0.05;
   const refiLTV = parseFloat((document.getElementById('btrLTV')||{}).value) || 0.70;
   const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.0625;
-  const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.06;
+  const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
 
   const baseRent = l.fmr3br || 0;
   const rentPerUnit = Math.round(baseRent * newConPremium);
@@ -1580,6 +1587,11 @@ function calculateBTRProForma(l){
     cashFlow,
     cashOnCash,
     btrPencils,
+    minYOC,
+    vacancyRate,
+    opexRatio,
+    capRate,
+    refiLTV,
     units,
   };
 }
@@ -1733,97 +1745,102 @@ function rebuildListings(){
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
+      <div class="popup-two-col">
+      <div class="popup-col-left">
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% efficient)</small></div></div>`:'<div></div>'}
+        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% eff)</small></div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">DOM</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
       </div>
-
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(pf.totalCost).toLocaleString()}</div></div>
-
-        <div><div class="popup-label">Land Basis / Product SF</div><div class="popup-value" style="color:${pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)'}">$${pf.land_basis_psf}/sf</div></div>
-        <div><div class="popup-label">Effective Buildable SF</div><div class="popup-value">${pf.effective_buildable_sf.toLocaleString()} sf</div></div>
-
-        <div class="popup-divider"></div>
-        <div class="popup-span-2" style="font-size:11px;font-weight:600;color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">Max Offer @ 30% Margin: $${pf.max_offer.toLocaleString()}</div>
-        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${pf.max_offer>=l.price?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">${pf.max_offer>=l.price?'&#9989; Asking price is $'+Math.round((pf.max_offer-l.price)/1000).toLocaleString()+'k below max offer':'&#10060; Asking price is $'+Math.round((l.price-pf.max_offer)/1000).toLocaleString()+'k above max offer'}</div>
+        <div><div class="popup-label">Land Basis</div><div class="popup-value" style="color:${pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)'}">$${pf.land_basis_psf}/sf</div></div>
+        <div><div class="popup-label">Buildable SF</div><div class="popup-value">${pf.effective_buildable_sf.toLocaleString()} sf</div></div>
 
         <div class="popup-divider"></div>
+        <div class="popup-span-2" style="font-size:11px;font-weight:600;color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">Max Offer @ 30%: $${pf.max_offer.toLocaleString()}</div>
+        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${pf.max_offer>=l.price?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">${pf.max_offer>=l.price?'&#9989; $'+Math.round((pf.max_offer-l.price)/1000).toLocaleString()+'k below max':'&#10060; $'+Math.round((l.price-pf.max_offer)/1000).toLocaleString()+'k above max'}</div>
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">Due Diligence</div>
+        <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
+          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning •
+          <span style="color:var(--green)">✓</span> Not Hillside Area •
+          <span style="color:var(--green)">✓</span> No Historic Overlay •
+          ${l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone' : '<span style="color:var(--green)">✓</span> Not VHFHSZ'} •
+          <span style="color:var(--yellow)">★</span> TPA = 0 parking •
+          <span style="color:var(--green)">✓</span> No rent-control
+        </div>
+      </div>
+      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
+        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
+        <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
+      </div>
+      </div><!-- end col-left -->
+
+      <div class="popup-col-right">
+      <div class="popup-grid-2">
         <div class="popup-section-label">Economics</div>
-
-        <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope adj)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
+        <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
         <div><div class="popup-label">Construction</div><div class="popup-value">$${Math.round(pf.constructionCost).toLocaleString()}</div></div>
         ${pf.demo>0?`<div><div class="popup-label">Demo</div><div class="popup-value">$${pf.demo.toLocaleString()}</div></div>`:''}
         ${pf.demo>0?'<div></div>':''}
         <div><div class="popup-label">Insurance</div><div class="popup-value">$${pf.insurance.toLocaleString()}</div></div>
-        <div><div class="popup-label">Loan Origination (${proforma.originationPct}%)</div><div class="popup-value">$${pf.originationFee.toLocaleString()}</div></div>
+        <div><div class="popup-label">Origination (${proforma.originationPct}%)</div><div class="popup-value">$${pf.originationFee.toLocaleString()}</div></div>
         <div><div class="popup-label">Carry Interest (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryInterest.toLocaleString()}</div></div>
-        <div><div class="popup-label">Property Tax (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryPropTax.toLocaleString()}</div></div>
+        <div><div class="popup-label">Prop Tax (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryPropTax.toLocaleString()}</div></div>
 
         <div class="popup-divider"></div>
         <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
         <div><div class="popup-label">Est Profit</div><div class="popup-value ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit).toLocaleString()}</div></div>
-
         <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(pf.netRevenue/pf.maxUnits).toLocaleString()}</div></div>
         <div><div class="popup-label">Profit / Unit</div><div class="popup-value ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit/pf.maxUnits).toLocaleString()}</div></div>
-
         <div><div class="popup-label">Return on Cost</div><div class="popup-value ${pf.return_on_cost>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.return_on_cost.toFixed(1)}%</div></div>
-        <div><div class="popup-label">Net Margin on Sale</div><div class="popup-value ${pf.margin>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.margin.toFixed(1)}%<br><small style="color:var(--text-dim);font-weight:400">(Revenue−Cost)/Revenue</small></div></div>
+        <div><div class="popup-label">Net Margin</div><div class="popup-value ${pf.margin>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.margin.toFixed(1)}%</div></div>
 
         <div class="popup-divider"></div>
         <div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>
         ${btr.btrPencils
           ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
           : btr.baseRent > 0
-            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min 6.0%)</div>'
-            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
+            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min '+(btr.minYOC*100).toFixed(1)+'%)</div>'
+            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; No rent data</div>'
         }
-        ${btr.btrPencils ? `
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
-        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
-        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
-        <div><div class="popup-label">Refi (70% LTV, 6.25%)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M loan → DSCR ${btr.dscr.toFixed(2)}</div></div>
-        <div><div class="popup-label">Annual Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}</div></div>
-        <div><div class="popup-label">Cash-on-Cash Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Cash-out at Refi</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+') shortfall'}</div></div>
+        ${btr.baseRent > 0 ? `
+        <div><div class="popup-label">Rent Source</div><div class="popup-value">SAFMR <small style="color:var(--text-dim)">ZIP ${l.zip||'—'}</small></div></div>
+        <div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(×${btr.newConPremium})</small></div></div>
+        <div><div class="popup-label">Gross Annual</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units}u)</small></div></div>
+        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
+        <div><div class="popup-label">YOC</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         ` : ''}
-
-        <div class="popup-divider"></div>
-        <div class="popup-section-label">ZIMAS Due Diligence</div>
-        <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
-          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning •
-          <span style="color:var(--green)">✓</span> Not Hillside Area •
-          <span style="color:var(--green)">✓</span> No Historic Overlay •
-          ${l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} •
-          <span style="color:var(--green)">✓</span> No Specific Plan restrictions •
-          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking •
-          <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
-        </div>
+        ${btr.btrPencils ? `
+        <div><div class="popup-label">Stabilized Val</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M</div></div>
+        <div><div class="popup-label">Refi</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → ${btr.dscr.toFixed(2)}x</div></div>
+        <div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}/yr</div></div>
+        <div><div class="popup-label">CoC Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
+        <div><div class="popup-label">Cash-out</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+')'}</div></div>
+        ` : ''}
       </div>
-      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
-        ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
-        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
-        <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
-        <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
-      </div>
+      </div><!-- end col-right -->
+      </div><!-- end two-col -->
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
-    `,{maxWidth:580});
+    `,{maxWidth:750});
     cm.addTo(listingsLayer);
   });
 
@@ -1892,13 +1909,15 @@ function buildBTRLayer(){
       <div class="popup-grid-2">
         <div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — ${(btr.yieldOnCost*100).toFixed(1)}% YOC</div>
 
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
-        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
-        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
+        <div><div class="popup-label">Rent Source</div><div class="popup-value">HUD SAFMR <small style="color:var(--text-dim)">ZIP ${l.zip||'—'}</small></div></div>
+        <div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(FMR × ${btr.newConPremium})</small></div></div>
+        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
+        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
+        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
+        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ ${(btr.capRate*100).toFixed(0)}% cap</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btr.totalCost).toLocaleString()}</div></div>
-        <div><div class="popup-label">Refi (70% LTV, 6.25%)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M loan → DSCR ${btr.dscr.toFixed(2)}</div></div>
+        <div><div class="popup-label">Refi (${Math.round(btr.refiLTV*100)}% LTV)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → DSCR ${btr.dscr.toFixed(2)}</div></div>
         <div><div class="popup-label">Annual Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}</div></div>
         <div><div class="popup-label">Cash-on-Cash Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Cash-out at Refi</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+') shortfall'}</div></div>
@@ -2268,16 +2287,20 @@ function buildOffMarketLayer(){
         ${btr.btrPencils
           ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
           : btr.baseRent > 0
-            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min 6.0%)</div>'
+            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min '+(btr.minYOC*100).toFixed(1)+'%)</div>'
             : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
         }
+        ${btr.baseRent > 0 ? `
+        <div><div class="popup-label">Rent Source</div><div class="popup-value">HUD SAFMR <small style="color:var(--text-dim)">ZIP ${l.zip||'—'}</small></div></div>
+        <div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(FMR × ${btr.newConPremium})</small></div></div>
+        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
+        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
+        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
+        ` : ''}
         ${btr.btrPencils ? `
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
-        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
-        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
-        <div><div class="popup-label">Refi (70% LTV, 6.25%)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M loan → DSCR ${btr.dscr.toFixed(2)}</div></div>
+        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ ${(btr.capRate*100).toFixed(0)}% cap</div></div>
+        <div><div class="popup-label">Refi (${Math.round(btr.refiLTV*100)}% LTV)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → DSCR ${btr.dscr.toFixed(2)}</div></div>
         <div><div class="popup-label">Annual Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}</div></div>
         <div><div class="popup-label">Cash-on-Cash Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Cash-out at Refi</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+') shortfall'}</div></div>
