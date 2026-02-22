@@ -199,8 +199,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   /* Popups */
   .leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border-radius:10px!important;border:1px solid var(--border)!important;box-shadow:0 8px 32px rgba(0,0,0,0.5)!important}
   .leaflet-popup-tip{background:var(--surface)!important}
-  .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:12px 14px!important;min-width:540px;max-width:750px}
-  .popup-two-col{display:flex;gap:14px;max-height:75vh}
+  .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:12px 14px!important;min-width:340px;max-width:750px}
+  .popup-two-col{display:flex;gap:14px;max-height:75vh;width:710px}
   .popup-col-left,.popup-col-right{flex:1;min-width:0;overflow-y:auto;padding-right:4px}
   .popup-col-left::-webkit-scrollbar,.popup-col-right::-webkit-scrollbar{width:4px}
   .popup-col-left::-webkit-scrollbar-thumb,.popup-col-right::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -466,7 +466,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       max-height: 50vh; overflow-y: auto !important;
       max-width: calc(100vw - 40px) !important;
     }
-    .popup-two-col { flex-direction: column; max-height: none; }
+    .popup-two-col { flex-direction: column; max-height: none; width: auto !important; }
     .popup-col-left,.popup-col-right { overflow-y: visible; padding-right: 0; }
     .popup-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 2px 8px; }
     .popup-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
