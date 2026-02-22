@@ -1125,7 +1125,7 @@ let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
 const filters = {
   price:{ min:0, max:2000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:2000000 },
-  psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:800, defaultMax:3000 },
+  psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
   lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:40000 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
@@ -1452,7 +1452,7 @@ function calculateProForma(l){
   const valuePerSf = l.newconPpsf || l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
-  const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+  const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
 
   const grossPerUnit = valuePerSf * pf.avgUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
@@ -2103,7 +2103,7 @@ function buildOffMarketLayer(){
 
     // Calculate pro forma metrics for margin calculation
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
 
     // Margin at Offer - retail exit model
@@ -2141,7 +2141,7 @@ function buildOffMarketLayer(){
 
     // Calculate pro forma metrics
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
 
     const exit_psf = hood_psf;
@@ -2451,7 +2451,7 @@ function updateHeroStats(){
     const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
