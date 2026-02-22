@@ -14,6 +14,9 @@ fire_zones_vhfhsz.geojson
 # TIGER shapefile cache (~120 MB)
 tiger_urban/
 
+# Local backup (pre-commit hook)
+index.html.backup
+
 # OS files
 .DS_Store
 .claude/

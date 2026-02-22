@@ -42,10 +42,10 @@ TYPE_TO_ZONE = {
 GRID_SIZE = 0.01          # ~0.7 miles per cell
 MIN_COMPS = 5             # Minimum comps needed for a reliable median
 DEG_PER_MILE = 1 / 69.0  # Approximate degrees latitude per mile
-COMP_SQFT_MIN = 1000      # Min comp SF — exclude tiny units (studios, ADUs)
+COMP_SQFT_MIN = 1300      # Min comp SF — 75% of 1,750 SF product size
 COMP_SQFT_MAX = 3500      # Max comp SF — exclude mega-homes that drag down $/SF
-# Expanding search radii in degrees (~miles): 0.25mi, 0.5mi, 1mi, 2mi, 4mi
-SEARCH_RADII_DEG = [0.004, 0.007, 0.015, 0.029, 0.058]
+# Search radii in degrees: 0.5mi and 1.0mi only — wider radii cross LA neighborhoods
+SEARCH_RADII_DEG = [0.007, 0.015]
 
 # ── Step 1: Load comps and build spatial index ──
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
@@ -127,19 +127,17 @@ print(f"   Zip+zone fallbacks: {len(zip_zone_ppsfs)} combos")
 def find_exit_ppsf(lat, lng, zone, zipcode):
     """Find zone-matched exit $/SF (P75) using radius-based search.
 
-    Uses 75th percentile — new-construction townhomes with roof decks
-    compete with the top quartile of neighborhood sales.
-
-    Size-band filtering: prefer comps 1000-3500 SF (matches townhome product).
-    Falls back to all sizes at widest radius if insufficient band comps.
+    Two radii only (0.5mi, 1mi) — wider searches cross LA neighborhoods.
+    Size-band 1300-3500 SF preferred; thin-comp fallback if 1-4 comps found.
 
     Priority:
-      1. Same-zone, size-band comps within expanding radius
-      2. Same-zone, all-size comps within expanding radius
-      3. All-zone, size-band comps within expanding radius
-      4. All-zone, all-size comps within expanding radius
-      5. Same zip + same zone P75 (fallback)
-      6. Same zip all-zone P75 (last resort)
+      1. Same-zone, size-band comps (≥5) → "zone"
+      2. Same-zone, all-size comps (≥5 at widest) → "zone"
+      3. Same-zone, any comps at widest (1-4) → "zone-thin"
+      4. All-zone, size-band comps (≥5) → "all"
+      5. All-zone, all-size comps (≥5 at widest) → "all"
+      6. All-zone, any comps at widest (1-4) → "all-thin"
+      7. Zip+zone / zip fallback
     """
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
@@ -151,8 +149,11 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
     def in_band(sqft):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
-    # Try same-zone spatial search at expanding radii
+    # Try same-zone spatial search
     zg = zone_grid.get(zone, {})
+    last_zone_band = []
+    last_zone_all = []
+    last_zone_miles = 0
     if zg:
         for radius in SEARCH_RADII_DEG:
             cells = int(radius / GRID_SIZE) + 1
@@ -168,11 +169,21 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
             if len(nearby_band) >= MIN_COMPS:
                 miles = round(radius * 69, 2)
                 return p75(nearby_band), len(nearby_band), miles, "zone"
-            if len(nearby_all) >= MIN_COMPS and radius == SEARCH_RADII_DEG[-1]:
-                miles = round(radius * 69, 2)
-                return p75(nearby_all), len(nearby_all), miles, "zone"
+            last_zone_band = nearby_band
+            last_zone_all = nearby_all
+            last_zone_miles = round(radius * 69, 2)
+        # At widest radius: try all-size fallback, then thin-comp
+        if len(last_zone_all) >= MIN_COMPS:
+            return p75(last_zone_all), len(last_zone_all), last_zone_miles, "zone"
+        if len(last_zone_band) > 0:
+            return p75(last_zone_band), len(last_zone_band), last_zone_miles, "zone-thin"
+        if len(last_zone_all) > 0:
+            return p75(last_zone_all), len(last_zone_all), last_zone_miles, "zone-thin"
 
-    # Fallback: all-zone spatial search at expanding radii
+    # Fallback: all-zone spatial search
+    last_all_band = []
+    last_all_all = []
+    last_all_miles = 0
     for radius in SEARCH_RADII_DEG:
         cells = int(radius / GRID_SIZE) + 1
         nearby_band = []
@@ -187,11 +198,18 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
         if len(nearby_band) >= MIN_COMPS:
             miles = round(radius * 69, 2)
             return p75(nearby_band), len(nearby_band), miles, "all"
-        if len(nearby_all) >= MIN_COMPS and radius == SEARCH_RADII_DEG[-1]:
-            miles = round(radius * 69, 2)
-            return p75(nearby_all), len(nearby_all), miles, "all"
+        last_all_band = nearby_band
+        last_all_all = nearby_all
+        last_all_miles = round(radius * 69, 2)
+    # At widest radius: try all-size fallback, then thin-comp
+    if len(last_all_all) >= MIN_COMPS:
+        return p75(last_all_all), len(last_all_all), last_all_miles, "all"
+    if len(last_all_band) > 0:
+        return p75(last_all_band), len(last_all_band), last_all_miles, "all-thin"
+    if len(last_all_all) > 0:
+        return p75(last_all_all), len(last_all_all), last_all_miles, "all-thin"
 
-    # Fallback: zip + same zone
+    # Fallback: zip + same zone (only if zero spatial comps)
     zz_key = (zipcode, zone)
     if zz_key in zip_zone_ppsfs and len(zip_zone_ppsfs[zz_key]) >= 3:
         vals = list(zip_zone_ppsfs[zz_key])
@@ -207,7 +225,7 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
 
 def find_newcon_ppsf(lat, lng, zone):
     """Find zone-matched new/remodeled (2015+) median $/SF.
-    Size-band filtering: prefer comps 1000-3500 SF, fall back to all sizes.
+    Size-band 1300-3500 SF preferred. Radii: 0.5mi/1mi/1.5mi/2mi (capped).
     Returns median or None if fewer than MIN_COMPS comps found."""
     zg = newcon_zone_grid.get(zone, {})
     if not zg:
@@ -218,8 +236,8 @@ def find_newcon_ppsf(lat, lng, zone):
     def in_band(sqft):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
-    # Use wider radii since new construction is sparser
-    for radius in [0.007, 0.015, 0.029, 0.058, 0.087]:
+    # 0.5mi / 1mi / 1.5mi / 2mi — sparser data so wider than general comps
+    for radius in [0.007, 0.015, 0.022, 0.029]:
         cells = int(radius / GRID_SIZE) + 1
         nearby_band = []
         nearby_all = []
@@ -232,7 +250,7 @@ def find_newcon_ppsf(lat, lng, zone):
                             nearby_band.append(cppsf)
         if len(nearby_band) >= MIN_COMPS:
             return round(statistics.median(nearby_band))
-        if len(nearby_all) >= MIN_COMPS and radius == 0.087:
+        if len(nearby_all) >= MIN_COMPS and radius == 0.029:
             return round(statistics.median(nearby_all))
     return None
 
@@ -538,7 +556,7 @@ else:
 if comps:
     print(f"\n📍 Step 4: Computing zone-matched exit $/SF (P75)...")
     t0 = time.time()
-    method_counts = {"zone": 0, "all": 0, "zip+zone": 0, "zip": 0, "none": 0}
+    method_counts = {"zone": 0, "zone-thin": 0, "all": 0, "all-thin": 0, "zip+zone": 0, "zip": 0, "none": 0}
     radius_sum = 0
     comp_count_sum = 0
 
@@ -547,8 +565,11 @@ if comps:
             l["lat"], l["lng"], l["zone"], l["zip"]
         )
         l["exitPsf"] = exit_ppsf if exit_ppsf > 0 else None
+        l["compMethod"] = method
+        l["compCount"] = n_comps
+        l["compRadius"] = radius_mi
         method_counts[method] += 1
-        if method in ("zone", "all"):
+        if method in ("zone", "all", "zone-thin", "all-thin"):
             radius_sum += radius_mi
             comp_count_sum += n_comps
 
@@ -557,14 +578,16 @@ if comps:
             print(f"   {i+1:,}/{len(listings):,} ({elapsed:.1f}s)")
 
     elapsed = time.time() - t0
-    spatial_hits = method_counts["zone"] + method_counts["all"]
+    spatial_hits = sum(method_counts[m] for m in ("zone", "all", "zone-thin", "all-thin"))
     avg_radius = (radius_sum / spatial_hits) if spatial_hits else 0
     avg_comps = (comp_count_sum / spatial_hits) if spatial_hits else 0
 
     print(f"   Done in {elapsed:.1f}s")
     print(f"   Method breakdown:")
     print(f"     Zone-matched spatial: {method_counts['zone']:,} ({method_counts['zone']/len(listings)*100:.1f}%)")
+    print(f"     Zone-thin (1-4 comps): {method_counts['zone-thin']:,}")
     print(f"     All-zone spatial:     {method_counts['all']:,} ({method_counts['all']/len(listings)*100:.1f}%)")
+    print(f"     All-thin (1-4 comps): {method_counts['all-thin']:,}")
     print(f"     Zip+zone fallback:    {method_counts['zip+zone']:,}")
     print(f"     Zip all-zone:         {method_counts['zip']:,}")
     print(f"     No data:              {method_counts['none']:,}")

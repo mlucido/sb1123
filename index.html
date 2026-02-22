@@ -945,12 +945,8 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         </div>
         <!-- Soft cost removed: allInBuildPsf includes hard + soft -->
         <div class="proforma-group">
-          <label>Sale Discount %</label>
-          <input type="number" id="pfDiscount" value="10" step="1" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
           <label>Txn Costs %</label>
-          <input type="number" id="pfTxnCost" value="6.7" step="0.5" onchange="onProformaChange()">
+          <input type="number" id="pfTxnCost" value="4.7" step="0.5" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Fixed Disp $</label>
@@ -1138,8 +1134,7 @@ function toggleFavoritesFilter(){
 let proforma = {
   allInBuildPsf: 360,    // All-in construction $/SF (hard + soft combined)
   avgUnitSf: 1750,       // Avg townhome unit size
-  saleDiscountPct: 10,   // Bulk discount / absorption haircut
-  txnCostPct: 6.7,       // Transaction costs: broker (5%) + transfer tax + title + escrow
+  txnCostPct: 4.7,       // Retail exit: broker (3%) + transfer tax + title + escrow
   fixedDispositionCosts: 40000, // Fixed per-project: legal, marketing, staging
   demoCost: 55000,       // Demolition of existing structure
   holdMonths: 24,        // Construction + sale hold period
@@ -1349,16 +1344,14 @@ function getSlopeAdjBuildCost(slope,base){
 function calculateProForma(l){
   const maxUnits = getMaxUnits(l);
   const pf = proforma;
-  const valuePerSf = l.newconPpsf || l.exitPsf || l.ppsf;
+  const valuePerSf = l.newconPpsf || l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
   const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
 
   const grossPerUnit = valuePerSf * pf.avgUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
-  const salePrice = grossRevenue * (1 - pf.saleDiscountPct / 100);
-  const txnCosts = salePrice * (pf.txnCostPct / 100);
-  const netRevenue = salePrice - txnCosts - pf.fixedDispositionCosts;
+  const netRevenue = grossRevenue * (1 - pf.txnCostPct / 100) - pf.fixedDispositionCosts;
 
   const acquisition = l.price;
   const demo = l.sqft > 0 ? pf.demoCost : 0;
@@ -1378,7 +1371,8 @@ function calculateProForma(l){
 
   const target_margin = 0.30;
   const exit_psf = valuePerSf;
-  const target_all_in_psf = exit_psf * (1 - target_margin);
+  const net_revenue_psf = exit_psf * (1 - pf.txnCostPct/100) - pf.fixedDispositionCosts / effective_buildable_sf;
+  const target_all_in_psf = net_revenue_psf * (1 - target_margin);
   const target_land_basis_psf = target_all_in_psf - adjBuildCostPerSf;
   const target_buy_price = target_land_basis_psf * effective_buildable_sf;
   const headroom = target_buy_price - l.price;
@@ -1609,14 +1603,15 @@ function rebuildListings(){
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
+      ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.exitPsf?`<div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${l.exitPsf}</div></div>`:'<div></div>'}
+        ${(l.newconPpsf||l.exitPsf)?`<div><div class="popup-label">Exit $/SF ${l.newconPpsf?'<small style="color:var(--accent)">(new-con)</small>':'<small style="color:var(--text-dim)">(all sales)</small>'}</div><div class="popup-value">$${l.newconPpsf||l.exitPsf}${l.compCount?' <small style="color:var(--text-dim)">('+l.compCount+' comps, '+l.compRadius+')</small>':''}</div></div>`:'<div></div>'}
         ${delta!==null?`<div><div class="popup-label">vs Exit</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
-        
+
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% efficient)</small></div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
@@ -1628,9 +1623,9 @@ function rebuildListings(){
         ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.exitPsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.exitPsf||0)}/sf ${l.newconPpsf?'<span style="color:var(--accent)">(new-con)</span>':'<span style="color:var(--text-dim)">(all sales)</span>'}</div>
       </div>
-      
+
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(pf.totalCost).toLocaleString()}</div></div>
@@ -1746,13 +1741,13 @@ function buildBTRLayer(){
       <div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">◆ BTR OPPORTUNITY</div>
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}, ${l.city || ''}, ${l.zip || ''}</div>
-      
+
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value">$${l.price.toLocaleString()}</div></div>
         <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${l.exitPsf?`<div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${l.exitPsf}</div></div>`:'<div></div>'}
+        ${(l.newconPpsf||l.exitPsf)?`<div><div class="popup-label">Exit $/SF ${l.newconPpsf?'<small style="color:var(--accent)">(new-con)</small>':'<small style="color:var(--text-dim)">(all sales)</small>'}</div><div class="popup-value">$${l.newconPpsf||l.exitPsf}${l.compCount?' <small style="color:var(--text-dim)">('+l.compCount+' comps, '+l.compRadius+')</small>':''}</div></div>`:'<div></div>'}
         ${delta!==null?`<div><div class="popup-label">vs Exit</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
-        
+
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
@@ -1794,7 +1789,7 @@ function buildBTRLayer(){
     if (l.sb1123Eligible) {
       popupHTML += `
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.exitPsf||l.ppsf)}/sf</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${salePF.maxUnits} Townhomes • ${salePF.guaranteedFAR}x FAR (${salePF.buildableSf.toLocaleString()} sf) • Exit $${(l.newconPpsf||l.exitPsf||0)}/sf ${l.newconPpsf?'<span style="color:var(--accent)">(new-con)</span>':'<span style="color:var(--text-dim)">(all sales)</span>'}</div>
       </div>
       
       <div class="popup-grid-2">
@@ -1855,11 +1850,11 @@ function buildSpreadHeatmap(){
   // Calculate spread for each eligible listing
   const heatPts = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
-    const exitPsf = l.newconPpsf || l.exitPsf || l.ppsf || 0;
+    const exitPsf = l.newconPpsf || l.exitPsf || 0;
     const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
     return exitPsf > 0 && landBasisPsf > 0;
   }).map(l => {
-    const exitPsf = l.newconPpsf || l.exitPsf || l.ppsf;
+    const exitPsf = l.newconPpsf || l.exitPsf || 0;
     const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
     const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
     
@@ -1915,7 +1910,7 @@ function buildNeighborhoodLayer(){
     const listings = cell.listings;
     
     // Calculate metrics
-    const avgExitPsf = listings.reduce((sum,l)=> sum + (l.newconPpsf || l.exitPsf || l.ppsf || 0), 0) / listings.length;
+    const avgExitPsf = listings.reduce((sum,l)=> sum + (l.newconPpsf || l.exitPsf || 0), 0) / listings.length;
     const avgLandBasis = listings.reduce((sum,l)=> sum + (l.lotSf ? l.price / l.lotSf : 0), 0) / listings.length;
     const avgSpread = avgExitPsf - avgLandBasis - BUILD_COST_PSF;
     const dealFlowDepth = listings.length;
@@ -2007,26 +2002,24 @@ function buildOffMarketLayer(){
   const offMarketListings = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
     
-    const hood_psf = l.exitPsf || l.newconPpsf || l.ppsf || 0;
+    const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
-    
-    // FIX 1: Est. Market Value = hood_psf × structure_sf
+
+    // Est. Market Value = hood_psf × structure_sf
     const est_market_value = hood_psf * structure_sf;
-    
-    // FIX 2: Est. Offer = est_market_value × 0.95 (5% below market)
+
+    // Est. Offer = est_market_value × 0.95 (5% below market)
     const est_offer = est_market_value * 0.95;
-    
+
     // Calculate pro forma metrics for margin calculation
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
-    
-    // Margin at Offer - full pro forma using est_offer as acquisition
+
+    // Margin at Offer - retail exit model
     const exit_psf = hood_psf;
     const gross_revenue = exit_psf * effective_buildable_sf;
-    const salePriceF = gross_revenue * (1 - proforma.saleDiscountPct / 100);
-    const txnCostsF = salePriceF * (proforma.txnCostPct / 100);
-    const net_revenue = salePriceF - txnCostsF - proforma.fixedDispositionCosts;
+    const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const avg_outstanding = est_offer + total_build * 0.5;
     const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2046,13 +2039,13 @@ function buildOffMarketLayer(){
   });
 
   offMarketListings.forEach(l => {
-    const hood_psf = l.exitPsf || l.newconPpsf || l.ppsf || 0;
+    const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
-    // FIX 1: Est. Market Value = hood_psf × structure_sf
+    // Est. Market Value = hood_psf × structure_sf
     const est_market_value = hood_psf * structure_sf;
 
-    // FIX 2: Est. Offer = est_market_value × 0.95
+    // Est. Offer = est_market_value × 0.95
     const est_offer = est_market_value * 0.95;
 
     // Calculate pro forma metrics
@@ -2062,9 +2055,7 @@ function buildOffMarketLayer(){
 
     const exit_psf = hood_psf;
     const gross_revenue = exit_psf * effective_buildable_sf;
-    const salePriceOM = gross_revenue * (1 - proforma.saleDiscountPct / 100);
-    const txnCostsOM = salePriceOM * (proforma.txnCostPct / 100);
-    const net_revenue = salePriceOM - txnCostsOM - proforma.fixedDispositionCosts;
+    const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
     const avg_outstanding = est_offer + total_build * 0.5;
     const carry_interest = avg_outstanding * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
@@ -2118,7 +2109,7 @@ function buildOffMarketLayer(){
     // Build full pro forma using est_offer as acquisition price
     const omProxy = Object.assign({}, l, {price: Math.round(est_offer)});
     const pf = calculateProForma(omProxy);
-    const omExitPsf = l.newconPpsf || l.exitPsf || l.ppsf || 0;
+    const omExitPsf = l.newconPpsf || l.exitPsf || 0;
     const omEstMvPsf = (est_market_value && l.lotSf) ? Math.round(est_market_value / l.lotSf) : null;
 
     marker.bindPopup(`
@@ -2133,7 +2124,7 @@ function buildOffMarketLayer(){
       <div class="popup-grid">
         <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
         <div><div class="popup-label">$/Lot SF</div><div class="popup-value">${omEstMvPsf ? '$'+omEstMvPsf : '—'}</div></div>
-        ${omExitPsf?'<div><div class="popup-label">Exit $/SF</div><div class="popup-value">$'+omExitPsf+'</div></div>':'<div></div>'}
+        ${omExitPsf?'<div><div class="popup-label">Exit $/SF '+(l.newconPpsf?'<small style="color:var(--accent)">(new-con)</small>':'<small style="color:var(--text-dim)">(all sales)</small>')+'</div><div class="popup-value">$'+omExitPsf+(l.compCount?' <small style="color:var(--text-dim)">('+l.compCount+' comps, '+l.compRadius+')</small>':'')+'</div></div>':'<div></div>'}
         ${omExitPsf && omEstMvPsf?'<div><div class="popup-label">vs Exit</div><div class="popup-value" style="color:'+(omEstMvPsf>omExitPsf?'var(--red)':'var(--green)')+'">'+((omEstMvPsf-omExitPsf)>0?'+':'')+'$'+(omEstMvPsf-omExitPsf)+'/sf</div></div>':'<div></div>'}
 
         <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft ? l.sqft.toLocaleString()+' sf' : '0 sf'}</div></div>
@@ -2145,7 +2136,7 @@ function buildOffMarketLayer(){
         ${l.lotSf&&l.sqft?'<div><div class="popup-label">Current Density</div><div class="popup-value">'+(l.sqft/l.lotSf).toFixed(2)+'</div></div>':'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${omExitPsf}/sf</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.guaranteedFAR}x FAR (${pf.buildableSf.toLocaleString()} sf) • Exit $${omExitPsf}/sf ${l.newconPpsf?'<span style="color:var(--accent)">(new-con)</span>':'<span style="color:var(--text-dim)">(all sales)</span>'}</div>
       </div>
 
       <div class="popup-grid-2">
@@ -2341,7 +2332,7 @@ function updateHeroStats(){
   // Count off-market opportunities (must match buildOffMarketLayer filter)
   const offMarket = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
-    const hood_psf = l.exitPsf || l.newconPpsf || l.ppsf || 0;
+    const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = Math.min(l.lotSf * 1.25, maxUnits * 1750);
@@ -2350,9 +2341,7 @@ function updateHeroStats(){
     const est_offer = est_market_value * 0.95;
     const exit_psf = hood_psf;
     const gross_revenue_h = exit_psf * effective_buildable_sf;
-    const salePriceH = gross_revenue_h * (1 - proforma.saleDiscountPct/100);
-    const txnCostsH = salePriceH * (proforma.txnCostPct / 100);
-    const net_revenue = salePriceH - txnCostsH - proforma.fixedDispositionCosts;
+    const net_revenue = gross_revenue_h * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
     const demo = l.sqft > 0 ? proforma.demoCost : 0;
     const total_build = adjBuildCostPerSf * effective_buildable_sf + demo;
     const total_cost = est_offer + total_build;
@@ -2749,8 +2738,7 @@ function resetFilter(key){
 function onProformaChange(){
   proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
   proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
-  proforma.saleDiscountPct = parseInt(document.getElementById('pfDiscount').value)||10;
-  proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||6.7;
+  proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
   proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
   proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
   proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
@@ -2773,7 +2761,7 @@ function exportCSV(){
   const favs = loadFavorites();
   const rows = filtered.map(l=>[
     favs[listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.maxUnits, l.newconPpsf||l.exitPsf||l.ppsf,
+    l.lotSf||'', l.maxUnits, l.newconPpsf||l.exitPsf||0,
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',
