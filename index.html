@@ -1006,7 +1006,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
           </div>
           <div class="proforma-group">
             <label>OpEx Ratio</label>
-            <input type="number" id="btrOpex" value="0.35" step="0.05" onchange="onProformaChange()">
+            <input type="number" id="btrOpex" value="0.30" step="0.05" onchange="onProformaChange()">
           </div>
           <div class="proforma-group">
             <label>Cap Rate</label>
@@ -1516,7 +1516,7 @@ function calculateBTRProForma(l){
   // BTR-specific assumptions (configurable via modal)
   const newConPremium = parseFloat((document.getElementById('btrPremium')||{}).value) || 1.25;
   const vacancyRate = parseFloat((document.getElementById('btrVacancy')||{}).value) || 0.04;
-  const opexRatio = parseFloat((document.getElementById('btrOpex')||{}).value) || 0.35;
+  const opexRatio = parseFloat((document.getElementById('btrOpex')||{}).value) || 0.30;
   const capRate = parseFloat((document.getElementById('btrCapRate')||{}).value) || 0.05;
   const refiLTV = parseFloat((document.getElementById('btrLTV')||{}).value) || 0.70;
   const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.0625;
@@ -1780,7 +1780,7 @@ function rebuildListings(){
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 35% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
+        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
         <div><div class="popup-label">Refi (70% LTV, 6.25%)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M loan → DSCR ${btr.dscr.toFixed(2)}</div></div>
@@ -1880,7 +1880,7 @@ function buildBTRLayer(){
 
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 35% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
+        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
         <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btr.totalCost).toLocaleString()}</div></div>
@@ -2261,7 +2261,7 @@ function buildOffMarketLayer(){
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
-        <div><div class="popup-label">NOI (4% vac, 35% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
+        <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.06?'var(--green)':btr.yieldOnCost>=0.05?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ 5% cap</div></div>
         <div><div class="popup-label">Refi (70% LTV, 6.25%)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M loan → DSCR ${btr.dscr.toFixed(2)}</div></div>
