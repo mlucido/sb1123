@@ -692,7 +692,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)">
         <span class="icon">●</span> For Sale <span class="layer-count" id="listingCount">0</span>
       </button>
-      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
+      <button class="layer-btn active" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
         <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
       </button>
       <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
@@ -1065,7 +1065,7 @@ const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:true,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:true,btr:true,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
 const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
