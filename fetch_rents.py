@@ -209,12 +209,12 @@ if unmatched:
     print(f"   Unmatched: {len(unmatched)} zips (no SAFMR data): {sorted(list(unmatched))[:20]}...")
 
 # ── Step 5: Write rents.json ──
-print("\n📦 Step 5: Writing rents.json...")
-with open("rents.json", "w") as f:
+print(f"\n📦 Step 5: Writing {output_file}...")
+with open(output_file, "w") as f:
     json.dump(rents, f, separators=(",", ":"))
 
-size_kb = os.path.getsize("rents.json") / 1024
-print(f"   Created rents.json ({size_kb:.1f} KB, {len(rents)} zip codes)")
+size_kb = os.path.getsize(output_file) / 1024
+print(f"   Created {output_file} ({size_kb:.1f} KB, {len(rents)} zip codes)")
 
 # ── Summary ──
 if rents:
