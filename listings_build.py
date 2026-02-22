@@ -667,6 +667,44 @@ else:
     for l in listings:
         l["newconPpsf"] = None
 
+# ── Step 4c: Stamp HUD Fair Market Rents from rents.json ──
+RENTS_FILE = "rents.json"
+if os.path.exists(RENTS_FILE):
+    print(f"\n🏠 Step 4c: Stamping HUD Fair Market Rents from {RENTS_FILE}...")
+    with open(RENTS_FILE) as f:
+        rent_data = json.load(f)
+    print(f"   Loaded {len(rent_data):,} zip-level rent records")
+
+    rent_stamped = 0
+    est_rents = []
+    for l in listings:
+        zipcode = str(l.get("zip", "")).strip()
+        if zipcode in rent_data:
+            r = rent_data[zipcode]
+            l["fmr3br"] = r.get("fmr3br")
+            l["fmr4br"] = r.get("fmr4br")
+            # New-construction premium: 1.25x HUD FMR for modern townhomes
+            if l["fmr3br"]:
+                l["estRentMonth"] = round(l["fmr3br"] * 1.25)
+                est_rents.append(l["estRentMonth"])
+                rent_stamped += 1
+        else:
+            l["fmr3br"] = None
+            l["fmr4br"] = None
+            l["estRentMonth"] = None
+
+    print(f"   Rent data stamped: {rent_stamped:,}/{len(listings):,}")
+    if est_rents:
+        est_rents.sort()
+        med = est_rents[len(est_rents)//2]
+        print(f"   Est. Rent/Month (FMR×1.25): Median ${med:,} | Min ${min(est_rents):,} | Max ${max(est_rents):,}")
+else:
+    print(f"\n⚠️  {RENTS_FILE} not found — run: python3 fetch_rents.py")
+    for l in listings:
+        l["fmr3br"] = None
+        l["fmr4br"] = None
+        l["estRentMonth"] = None
+
 # ── Step 5: Stamp lot slope from slopes.json ──
 SLOPE_FILE = "slopes.json"
 if os.path.exists(SLOPE_FILE):
