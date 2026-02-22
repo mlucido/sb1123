@@ -1818,7 +1818,6 @@ function rebuildListings(){
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
-        ${l.url?`<button class="popup-fav-btn" onclick="window.open('${l.url}','_blank')">&#128203; Details</button>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
@@ -1912,7 +1911,6 @@ function buildBTRLayer(){
 
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
-        ${l.url?`<button class="popup-fav-btn" onclick="window.open('${l.url}','_blank')">&#128203; Details</button>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
@@ -2300,7 +2298,7 @@ function buildOffMarketLayer(){
         </div>
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
-        ${l.url?`<button class="popup-fav-btn" onclick="window.open('${l.url}','_blank')">&#128203; Details</button>`:''}
+        ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
