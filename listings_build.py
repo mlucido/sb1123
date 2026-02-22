@@ -803,6 +803,205 @@ else:
         l["fmr4br"] = None
         l["estRentMonth"] = None
 
+# ── Step 4d: Spatial rental comp pipeline ──
+# 4d-a: Load rental comps CSV into spatial grid
+RENTAL_COMPS_FILE = market_file("rental_comps.csv", market)
+rental_grid = {}  # { (row, col): [(lat, lng, rent, beds, sqft, prop_type), ...] }
+RENTAL_GRID_SIZE = 0.01  # ~0.7 mi cells, matches sale comp grid
+
+rental_comp_count = 0
+if os.path.exists(RENTAL_COMPS_FILE):
+    print(f"\n🏠 Step 4d: Loading rental comps from {RENTAL_COMPS_FILE}...")
+    with open(RENTAL_COMPS_FILE, encoding="utf-8", errors="replace") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                rent = float(re.sub(r"[^0-9.]", "", row.get("PRICE") or "0") or 0)
+                clat = float(row.get("LATITUDE") or 0)
+                clng = float(row.get("LONGITUDE") or 0)
+                if rent < 500 or rent > 20000 or clat == 0 or clng == 0:
+                    continue
+                beds_str = row.get("BEDS", "").strip()
+                beds = int(float(beds_str)) if beds_str else 0
+                sqft_str = re.sub(r"[^0-9.]", "", row.get("SQUARE FEET") or "0") or "0"
+                sqft = float(sqft_str)
+                prop_type = row.get("PROPERTY TYPE", "").strip()
+
+                grow = math.floor(clat / RENTAL_GRID_SIZE)
+                gcol = math.floor(clng / RENTAL_GRID_SIZE)
+                rental_grid.setdefault((grow, gcol), []).append(
+                    (clat, clng, rent, beds, sqft, prop_type)
+                )
+                rental_comp_count += 1
+            except (ValueError, TypeError):
+                continue
+    print(f"   Loaded {rental_comp_count:,} rental comps in {len(rental_grid):,} grid cells")
+else:
+    print(f"\n⚠️  {RENTAL_COMPS_FILE} not found — run: python3 fetch_rental_comps.py")
+
+# 4d-b: Load ZORI zip-level rents from zori_data.csv
+zori_by_zip = {}  # zip → most recent monthly rent value
+ZORI_FILE = "zori_data.csv"
+if os.path.exists(ZORI_FILE):
+    print(f"   Loading ZORI data from {ZORI_FILE}...")
+    with open(ZORI_FILE, encoding="utf-8", errors="replace") as f:
+        reader = csv.DictReader(f)
+        cols = reader.fieldnames or []
+        # Monthly columns are date-formatted: 2015-01-31, ..., 2026-01-31
+        date_cols = [c for c in cols if re.match(r"\d{4}-\d{2}-\d{2}", c)]
+        date_cols.sort()  # chronological order
+        for row in reader:
+            state = row.get("State", "").strip()
+            if state != "CA":
+                continue
+            zipcode = str(row.get("RegionName", "")).strip()
+            if not zipcode:
+                continue
+            # Find most recent non-empty value
+            for col in reversed(date_cols):
+                val = row.get(col, "").strip()
+                if val:
+                    try:
+                        zori_by_zip[zipcode] = round(float(val))
+                        break
+                    except ValueError:
+                        continue
+    print(f"   ZORI: {len(zori_by_zip):,} CA zips with rent data")
+else:
+    print(f"   ⚠️  {ZORI_FILE} not found — ZORI tier unavailable")
+
+# 4d-c: 5-tier rental estimate function
+SFR_TH_TYPES = {"Single Family Residential", "Townhouse", "Condo/Co-op", "Multi-Family (2-4 Unit)"}
+
+def find_rental_estimate(lat, lng, zipcode, safmr_3br):
+    """Find best rental estimate using 5-tier priority.
+
+    Returns: (est_rent, method, comp_count, radius_mi, median_beds)
+    """
+    grow = math.floor(lat / RENTAL_GRID_SIZE)
+    gcol = math.floor(lng / RENTAL_GRID_SIZE)
+
+    def p75(vals):
+        vals.sort()
+        return round(vals[int(len(vals) * 0.75)])
+
+    def median_val(vals):
+        vals.sort()
+        return vals[len(vals) // 2]
+
+    def collect_comps(radius, min_beds, min_sqft, types_filter):
+        """Collect rental comps within radius matching criteria."""
+        cells = int(radius / RENTAL_GRID_SIZE) + 1
+        matches = []
+        for dr in range(-cells, cells + 1):
+            for dc in range(-cells, cells + 1):
+                for clat, clng, rent, beds, sqft, ptype in rental_grid.get((grow + dr, gcol + dc), []):
+                    if abs(clat - lat) > radius or abs(clng - lng) > radius:
+                        continue
+                    if beds < min_beds:
+                        continue
+                    if min_sqft > 0 and sqft > 0 and sqft < min_sqft:
+                        continue
+                    if types_filter and ptype not in types_filter:
+                        continue
+                    matches.append((rent, beds))
+        return matches
+
+    # Tier 1: rental-comp — 0.5mi→1mi, 3+ BR, 1200+ SF, SFR/TH/Condo/MF2-4
+    for radius in [0.007, 0.015]:
+        comps = collect_comps(radius, 3, 1200, SFR_TH_TYPES)
+        if len(comps) >= 3:
+            rents = [r for r, _ in comps]
+            beds_list = [b for _, b in comps]
+            miles = round(radius * 69, 2)
+            return p75(rents), "rental-comp", len(comps), miles, median_val(beds_list)
+
+    # Tier 2: rental-comp-wide — 2mi, 3+ BR, 1200+ SF, SFR/TH/Condo/MF2-4
+    comps = collect_comps(0.029, 3, 1200, SFR_TH_TYPES)
+    if len(comps) >= 3:
+        rents = [r for r, _ in comps]
+        beds_list = [b for _, b in comps]
+        return p75(rents), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list)
+
+    # Tier 3: rental-adj — 1mi, 2+ BR, 900+ SF, ALL types, adj for 2BR
+    comps = collect_comps(0.015, 2, 900, None)
+    if len(comps) >= 3:
+        rents = [r for r, _ in comps]
+        beds_list = [b for _, b in comps]
+        med_beds = median_val(list(beds_list))
+        rent_p75 = p75(rents)
+        # If median beds is 2, adjust up 20% to approximate 3BR
+        if med_beds < 3:
+            rent_p75 = round(rent_p75 * 1.20)
+        return rent_p75, "rental-adj", len(comps), round(0.015 * 69, 2), med_beds
+
+    # Tier 4: ZORI zip-level × 1.20 premium
+    if zipcode in zori_by_zip:
+        zori_rent = round(zori_by_zip[zipcode] * 1.20)
+        return zori_rent, "zori", 0, 0, 0
+
+    # Tier 5: SAFMR fallback — fmr3br × 1.25
+    if safmr_3br and safmr_3br > 0:
+        safmr_rent = round(safmr_3br * 1.25)
+        return safmr_rent, "safmr", 0, 0, 0
+
+    return 0, "none", 0, 0, 0
+
+# 4d-d: Stamp rental estimates per listing
+if rental_comp_count > 0 or zori_by_zip:
+    print(f"\n   Computing 5-tier rental estimates...")
+    t0 = time.time()
+    tier_counts = {"rental-comp": 0, "rental-comp-wide": 0, "rental-adj": 0, "zori": 0, "safmr": 0, "none": 0}
+    tier_rents = {"rental-comp": [], "rental-comp-wide": [], "rental-adj": [], "zori": [], "safmr": []}
+
+    for i, l in enumerate(listings):
+        safmr = l.get("fmr3br") or 0
+        est_rent, method, comp_count, radius_mi, med_beds = find_rental_estimate(
+            l["lat"], l["lng"], l.get("zip", ""), safmr
+        )
+        if est_rent > 0:
+            l["estRentMonth"] = est_rent  # Override Step 4c SAFMR-based value
+        l["rentMethod"] = method
+        l["rentCompCount"] = comp_count
+        l["rentCompRadius"] = radius_mi
+        l["rentCompMedianBeds"] = med_beds
+        tier_counts[method] += 1
+        if method in tier_rents and est_rent > 0:
+            tier_rents[method].append(est_rent)
+
+        if (i + 1) % 5000 == 0:
+            elapsed = time.time() - t0
+            print(f"   {i+1:,}/{len(listings):,} ({elapsed:.1f}s)")
+
+    elapsed = time.time() - t0
+
+    # 4d-e: Summary
+    print(f"\n   Rental estimate tiers (done in {elapsed:.1f}s):")
+    total = len(listings)
+    spatial_count = tier_counts["rental-comp"] + tier_counts["rental-comp-wide"] + tier_counts["rental-adj"]
+    for method in ["rental-comp", "rental-comp-wide", "rental-adj", "zori", "safmr", "none"]:
+        cnt = tier_counts[method]
+        pct = cnt / total * 100 if total else 0
+        med_str = ""
+        if tier_rents.get(method):
+            vals = sorted(tier_rents[method])
+            med_str = f" (median ${vals[len(vals)//2]:,}/mo)"
+        print(f"     {method:20s}: {cnt:>6,} ({pct:5.1f}%){med_str}")
+
+    with_rent = sum(1 for l in listings if l.get("estRentMonth") and l["estRentMonth"] > 0)
+    safmr_only = tier_counts["safmr"]
+    print(f"\n   Coverage: {with_rent:,}/{total:,} listings have rent estimates")
+    print(f"   Spatial rental comps: {spatial_count:,} ({spatial_count/total*100:.1f}%)")
+    if safmr_only > 0:
+        print(f"   Improvement vs SAFMR-only: {total - safmr_only - tier_counts['none']:,} listings upgraded")
+else:
+    print(f"\n   No rental comp data or ZORI — keeping Step 4c SAFMR estimates")
+    for l in listings:
+        l["rentMethod"] = "safmr" if l.get("estRentMonth") else "none"
+        l["rentCompCount"] = 0
+        l["rentCompRadius"] = 0
+        l["rentCompMedianBeds"] = 0
+
 # ── Step 5: Stamp lot slope from slopes.json ──
 SLOPE_FILE = market_file("slopes.json", market)
 if os.path.exists(SLOPE_FILE):

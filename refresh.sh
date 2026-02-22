@@ -59,8 +59,13 @@ echo "📥 Step 1: Fetching active listings from Redfin..."
 python3 fetch_listings.py $MARKET_ARG
 echo ""
 
-# Step 1b: Fetch parcel data + fire zones from ArcGIS
-echo "📦 Step 1b: Fetching parcel data from ArcGIS..."
+# Step 1b: Fetch rental comps from Redfin
+echo "📥 Step 1b: Fetching rental comps from Redfin..."
+python3 fetch_rental_comps.py $MARKET_ARG
+echo ""
+
+# Step 1c: Fetch parcel data + fire zones from ArcGIS
+echo "📦 Step 1c: Fetching parcel data from ArcGIS..."
 python3 fetch_parcels.py $MARKET_ARG
 echo ""
 
@@ -82,7 +87,7 @@ echo ""
 
 # Step 4: Push to GitHub Pages
 echo "🚀 Pushing to GitHub Pages..."
-git add ${PREFIX}data.js ${PREFIX}listings.js ${PREFIX}slopes.json ${PREFIX}parcels.json
+git add ${PREFIX}data.js ${PREFIX}listings.js ${PREFIX}slopes.json ${PREFIX}parcels.json ${PREFIX}rental_comps.csv
 git commit -m "Refresh ${MARKET_SLUG} listing data $(date +%Y-%m-%d)" --allow-empty
 git push
 echo ""
