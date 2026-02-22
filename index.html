@@ -868,6 +868,15 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     </div>
   </div>
 
+  <!-- Burn Zone Toggle -->
+  <div class="section" style="padding:6px 14px">
+    <label class="zone-toggle" style="margin:0">
+      <input type="checkbox" id="hideBurnZones" onchange="toggleBurnZoneFilter(this.checked)">
+      <span class="check-box"></span>
+      <span class="zone-label" style="color:var(--red)">Hide Burn Zones <small>(Palisades + Eaton)</small></span>
+    </label>
+  </div>
+
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
       <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
@@ -1065,6 +1074,7 @@ let currentSort = { key:null, dir:'desc' };
 let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
+let hideBurnZones = false;
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
@@ -1127,6 +1137,10 @@ function toggleFavoritesFilter(){
   } else {
     btn.classList.remove('active');
   }
+  applyFilters();
+}
+function toggleBurnZoneFilter(checked){
+  hideBurnZones = checked;
   applyFilters();
 }
 
@@ -1521,6 +1535,7 @@ function getFilteredListings(){
     if(favoritesOnly && !favs[listingKey(l)]) return false;
     if(sb1123Mode && !l.sb1123Eligible) return false;
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
+    if(hideBurnZones && l.burnZone) return false;
     const zoneOk = !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
@@ -1599,6 +1614,7 @@ function rebuildListings(){
     const pf = calculateProForma(l);
 
     cm.bindPopup(`
+      ${l.burnZone ? '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:4px 10px">&#128293; BURN ZONE — '+l.burnZone+' Fire (Jan 2025)</div>' : ''}
       <div class="popup-badge" style="background:${ZONE_COLORS[l.zone]||'#666'}22;color:${ZONE_COLORS[l.zone]||'#666'}">${l.zone} — ${ZONE_LABELS[l.zone]||l.zone||'Unknown'}</div>
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
@@ -1663,12 +1679,12 @@ function rebuildListings(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">ZIMAS Due Diligence</div>
         <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
-          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning • 
-          <span style="color:var(--green)">✓</span> Not Hillside Area • 
-          <span style="color:var(--green)">✓</span> No Historic Overlay • 
-          ${l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} • 
-          <span style="color:var(--green)">✓</span> No Specific Plan restrictions • 
-          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • 
+          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning •
+          <span style="color:var(--green)">✓</span> Not Hillside Area •
+          <span style="color:var(--green)">✓</span> No Historic Overlay •
+          ${l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} •
+          <span style="color:var(--green)">✓</span> No Specific Plan restrictions •
+          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking •
           <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
         </div>
       </div>
@@ -1738,6 +1754,7 @@ function buildBTRLayer(){
     };
     
     let popupHTML = `
+      ${l.burnZone ? '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:4px 10px">&#128293; BURN ZONE — '+l.burnZone+' Fire (Jan 2025)</div>' : ''}
       <div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">◆ BTR OPPORTUNITY</div>
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}, ${l.city || ''}, ${l.zip || ''}</div>
@@ -1811,12 +1828,12 @@ function buildBTRLayer(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">ZIMAS Due Diligence</div>
         <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
-          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning • 
-          <span style="color:var(--green)">✓</span> Not Hillside Area • 
-          <span style="color:var(--green)">✓</span> No Historic Overlay • 
-          ${l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} • 
-          <span style="color:var(--green)">✓</span> No Specific Plan restrictions • 
-          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • 
+          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning •
+          <span style="color:var(--green)">✓</span> Not Hillside Area •
+          <span style="color:var(--green)">✓</span> No Historic Overlay •
+          ${l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)'} •
+          <span style="color:var(--green)">✓</span> No Specific Plan restrictions •
+          <span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking •
           <span style="color:var(--green)">✓</span> No rent-control/Ellis Act
         </div>
       </div>
@@ -2113,6 +2130,7 @@ function buildOffMarketLayer(){
     const omEstMvPsf = (est_market_value && l.lotSf) ? Math.round(est_market_value / l.lotSf) : null;
 
     marker.bindPopup(`
+      ${l.burnZone ? '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:4px 10px">&#128293; BURN ZONE — '+l.burnZone+' Fire (Jan 2025)</div>' : ''}
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <div class="popup-badge" style="background:#666;color:#fff">OFF-MARKET</div>
         <div class="popup-badge" style="background:${ZONE_COLORS[l.zone]||'#666'}22;color:${ZONE_COLORS[l.zone]||'#666'}">${l.zone} — ${ZONE_LABELS[l.zone]||l.zone||'Unknown'}</div>
@@ -2180,7 +2198,7 @@ function buildOffMarketLayer(){
             '<span style="color:var(--green)">✓</span> ' + l.zimasZone + ' zoning confirmed • ' +
             '<span style="color:var(--green)">✓</span> Not Hillside Area • ' +
             '<span style="color:var(--green)">✓</span> No Historic Overlay • ' +
-            (l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)') + ' • ' +
+            (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)') + ' • ' +
             '<span style="color:var(--green)">✓</span> No Specific Plan restrictions • ' +
             '<span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • ' +
             '<span style="color:var(--green)">✓</span> No rent-control/Ellis Act'

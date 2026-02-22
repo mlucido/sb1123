@@ -552,6 +552,53 @@ elif need_fire_check:
 else:
     print(f"\n✅ Step 3: All {len(listings):,} listings already have fire zone data from parcels.json")
 
+# ── Step 3b: January 2025 burn zone flagging (Palisades + Eaton fires) ──
+# Approximate bounding polygons for the two major burn areas.
+# These are NOT exact perimeters — they flag the general fire-affected area.
+PALISADES_FIRE = [
+    (-118.62, 34.05),  # SW corner - near PCH/Sunset
+    (-118.62, 34.10),  # NW corner - Topanga area
+    (-118.52, 34.10),  # NE corner - Brentwood hills
+    (-118.52, 34.05),  # SE corner - Santa Monica Mtns
+    (-118.62, 34.05),  # close polygon
+]
+
+EATON_FIRE = [
+    (-118.18, 34.16),  # SW corner - near Pasadena border
+    (-118.18, 34.22),  # NW corner - Mt Wilson foothills
+    (-118.08, 34.22),  # NE corner - Sierra Madre
+    (-118.08, 34.16),  # SE corner - Altadena south
+    (-118.18, 34.16),  # close polygon
+]
+
+def point_in_polygon(px, py, polygon):
+    """Ray-casting point-in-polygon test. polygon = list of (x, y) tuples."""
+    n = len(polygon)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = polygon[i]
+        xj, yj = polygon[j]
+        if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+print(f"\n🔥 Step 3b: Flagging January 2025 burn zones (Palisades + Eaton fires)...")
+palisades_count = 0
+eaton_count = 0
+for l in listings:
+    lng, lat = l["lng"], l["lat"]
+    if point_in_polygon(lng, lat, PALISADES_FIRE):
+        l["burnZone"] = "Palisades"
+        l["fireZone"] = True
+        palisades_count += 1
+    elif point_in_polygon(lng, lat, EATON_FIRE):
+        l["burnZone"] = "Eaton"
+        l["fireZone"] = True
+        eaton_count += 1
+print(f"   Palisades burn zone: {palisades_count} listings | Eaton burn zone: {eaton_count} listings")
+
 # ── Step 4: Zone-matched spatial exit $/SF (P75) ──
 if comps:
     print(f"\n📍 Step 4: Computing zone-matched exit $/SF (P75)...")
