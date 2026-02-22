@@ -788,7 +788,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
         <div class="range-slider-track">
           <div class="range-slider-fill" id="priceSliderFill"></div>
           <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
-          <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="5000000">
+          <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="2000000">
         </div>
         <button class="reset-btn" onclick="resetFilter('price')">Reset Price Filter</button>
       </div>
@@ -1110,7 +1110,7 @@ const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
 const filters = {
-  price:{ min:0, max:5000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:null },
+  price:{ min:0, max:2000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:2000000 },
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:800, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
   lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:40000 },
