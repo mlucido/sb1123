@@ -67,7 +67,10 @@ else:
 # Key: (grid_row, grid_col) → list of (lat, lng, ppsf)
 zone_grid = {}   # { zone: { (row,col): [(lat,lng,ppsf), ...] } }
 all_grid = {}    # { (row,col): [(lat,lng,ppsf), ...] }
-newcon_zone_grid = {} # New/remodeled construction (year_built >= 2015) — zone-specific
+# New-con grids: tiered by vintage (2024-25 / 2023+ / 2021+)
+# Entries include year_built for tiered filtering: (lat, lng, ppsf, sqft, yb)
+newcon_zone_grid = {}  # { zone: { (row,col): [(lat,lng,ppsf,sqft,yb), ...] } }
+newcon_all_grid = {}   # { (row,col): [(lat,lng,ppsf,sqft,yb,zone), ...] } — for cross-zone fallback
 # Zip-level fallback: { (zip, zone): [ppsf], zip: [ppsf] }
 zip_zone_ppsfs = {}
 zip_all_ppsfs = {}
@@ -97,12 +100,14 @@ for c in comps:
     # All-zone grid
     all_grid.setdefault((grow, gcol), []).append(entry)
 
-    # New/remodeled construction grid (year_built >= 2015) — zone-specific
+    # New-con grid (year_built >= 2021) — zone-specific + all-zone for cross-zone fallback
     yb = c.get("yb")
-    if yb and yb >= 2015 and czone:
+    if yb and yb >= 2021 and czone:
+        nc_entry = (clat, clng, cppsf, csqft, yb)
         if czone not in newcon_zone_grid:
             newcon_zone_grid[czone] = {}
-        newcon_zone_grid[czone].setdefault((grow, gcol), []).append(entry)
+        newcon_zone_grid[czone].setdefault((grow, gcol), []).append(nc_entry)
+        newcon_all_grid.setdefault((grow, gcol), []).append((clat, clng, cppsf, csqft, yb, czone))
         newcon_count += 1
 
     # Zip-level fallbacks
@@ -117,7 +122,7 @@ for z in ["R1", "R2", "R3", "R4"]:
     print(f"     {z}: {zone_comp_counts.get(z, 0):,} comps")
 newcon_zone_counts = {z: sum(len(v) for v in g.values()) for z, g in newcon_zone_grid.items()}
 newcon_cells = sum(len(g) for g in newcon_zone_grid.values())
-print(f"   New/remodeled (2015+): {newcon_count:,} comps in {newcon_cells:,} cells")
+print(f"   New-con (2021+): {newcon_count:,} comps in {newcon_cells:,} cells")
 for z in ["R1", "R2", "R3", "R4"]:
     if z in newcon_zone_counts:
         print(f"     {z}: {newcon_zone_counts[z]:,} new-con comps")
@@ -223,36 +228,127 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
     return 0, 0, 0, "none"
 
 
-def find_newcon_ppsf(lat, lng, zone):
-    """Find zone-matched new/remodeled (2015+) median $/SF.
-    Size-band 1300-3500 SF preferred. Radii: 0.5mi/1mi/1.5mi/2mi (capped).
-    Returns median or None if fewer than MIN_COMPS comps found."""
-    zg = newcon_zone_grid.get(zone, {})
-    if not zg:
-        return None
+ADJACENT_ZONES = {
+    "R1": ["R2"],
+    "R2": ["R1", "R3"],
+    "R3": ["R2", "R4"],
+    "R4": ["R3"],
+    "LAND": ["R1"],
+}
+NEWCON_RADII = [0.007, 0.015, 0.022, 0.029]  # 0.5mi/1mi/1.5mi/2mi
+NEWCON_MIN = 3  # Absolute minimum comps to use new-con pricing
+
+def find_newcon_ppsf(lat, lng, zone, exit_psf):
+    """Find new-construction P75 $/SF with tiered vintage and zone-matching.
+
+    Tiers (searched in order, each tier accumulates):
+      1. Built 2024-2025 — same rate environment
+      2. Built 2023+ — post-rate-shock
+      3. Built 2021-2022 — apply -10% haircut per comp
+
+    Zone priority: same-zone first, then cross-zone (adjacent zones).
+    Minimum 3 comps required. Sanity check vs general P75.
+
+    Returns: (ppsf, count, tier_label, zone_matched, flag) or (None, 0, None, None, flag)
+    """
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
 
     def in_band(sqft):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
-    # 0.5mi / 1mi / 1.5mi / 2mi — sparser data so wider than general comps
-    for radius in [0.007, 0.015, 0.022, 0.029]:
+    def p75(vals):
+        vals.sort()
+        return round(vals[int(len(vals) * 0.75)])
+
+    def collect_from_grid(grid, radius):
+        """Collect comps from a zone-specific grid within radius."""
         cells = int(radius / GRID_SIZE) + 1
-        nearby_band = []
-        nearby_all = []
+        result = []
         for dr in range(-cells, cells + 1):
             for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf, csqft in zg.get((grow + dr, gcol + dc), []):
+                for entry in grid.get((grow + dr, gcol + dc), []):
+                    clat, clng = entry[0], entry[1]
                     if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        nearby_all.append(cppsf)
-                        if in_band(csqft):
-                            nearby_band.append(cppsf)
-        if len(nearby_band) >= MIN_COMPS:
-            return round(statistics.median(nearby_band))
-        if len(nearby_all) >= MIN_COMPS and radius == 0.029:
-            return round(statistics.median(nearby_all))
-    return None
+                        result.append(entry)
+        return result
+
+    def try_tiers(raw_comps):
+        """Apply tiered vintage filtering. Returns (adjusted_ppsf_list, tier_label, has_stale)."""
+        # Tier 1: 2024-2025 only
+        t1 = [(cppsf, csqft) for _, _, cppsf, csqft, yb in raw_comps
+               if yb >= 2024 and in_band(csqft)]
+        if len(t1) >= MIN_COMPS:
+            return [p for p, _ in t1], "2024-25", False
+
+        # Tier 2: 2023+ (includes tier 1)
+        t2 = [(cppsf, csqft) for _, _, cppsf, csqft, yb in raw_comps
+               if yb >= 2023 and in_band(csqft)]
+        if len(t2) >= MIN_COMPS:
+            return [p for p, _ in t2], "2023+", False
+
+        # Tier 3: 2021-2022 with -10% haircut, added to tier 2 comps
+        t3_adj = [round(cppsf * 0.90) for _, _, cppsf, csqft, yb in raw_comps
+                  if 2021 <= yb <= 2022 and in_band(csqft)]
+        combined = [p for p, _ in t2] + t3_adj
+        if len(combined) >= NEWCON_MIN:
+            tier = "2021-22 adj" if t3_adj else "2023+"
+            return combined, tier, bool(t3_adj)
+
+        return combined, None, bool(t3_adj)
+
+    # --- Phase 1: Same-zone search ---
+    zg = newcon_zone_grid.get(zone, {})
+    best_same = []
+    for radius in NEWCON_RADII:
+        raw = collect_from_grid(zg, radius) if zg else []
+        if not raw:
+            continue
+        ppsf_list, tier, has_stale = try_tiers(raw)
+        if tier and len(ppsf_list) >= MIN_COMPS:
+            val = p75(ppsf_list)
+            flag = "thin" if len(ppsf_list) < MIN_COMPS + 2 else ("stale" if has_stale else None)
+            # Sanity check vs general P75
+            if exit_psf and exit_psf > 0:
+                if val < exit_psf * 0.75:
+                    return None, len(ppsf_list), tier, True, "sanity-low"
+                if val > exit_psf * 1.50:
+                    flag = "sanity-high"
+            return val, len(ppsf_list), tier, True, flag
+        best_same = ppsf_list  # Keep widest radius result for fallback
+
+    # --- Phase 2: Cross-zone search (adjacent zones) ---
+    adj_zones = ADJACENT_ZONES.get(zone, [])
+    for radius in NEWCON_RADII:
+        raw_cross = []
+        for az in adj_zones:
+            azg = newcon_zone_grid.get(az, {})
+            if azg:
+                for entry in collect_from_grid(azg, radius):
+                    raw_cross.append(entry)
+        # Also include same-zone comps we already found
+        raw_same = collect_from_grid(zg, radius) if zg else []
+        raw_all = raw_same + raw_cross
+        if not raw_all:
+            continue
+        ppsf_list, tier, has_stale = try_tiers(raw_all)
+        if tier and len(ppsf_list) >= NEWCON_MIN:
+            val = p75(ppsf_list)
+            flag = "cross-zone"
+            if has_stale:
+                flag = "cross-zone"  # cross-zone takes priority as flag
+            if len(ppsf_list) < MIN_COMPS + 2:
+                flag = "cross-zone"
+            # Sanity check
+            if exit_psf and exit_psf > 0:
+                if val < exit_psf * 0.75:
+                    return None, len(ppsf_list), tier, False, "sanity-low"
+                if val > exit_psf * 1.50:
+                    flag = "sanity-high"
+            return val, len(ppsf_list), tier, False, flag
+
+    # Not enough comps even with cross-zone
+    return None, 0, None, None, None
 
 
 # ── Step 2: Find and read Redfin CSV ──
@@ -648,16 +744,38 @@ else:
 
 # ── Step 4b: New-construction sell-side $/SF ──
 if newcon_count > 0:
-    print(f"\n🏗️  Step 4b: Computing zone-matched new/remodeled $/SF (2015+ built)...")
+    print(f"\n🏗️  Step 4b: Computing tiered new-con exit $/SF (2021+ built)...")
     nc_found = 0
+    tier_counts = {"2024-25": 0, "2023+": 0, "2021-22 adj": 0}
+    zone_match_count = 0
+    cross_zone_count = 0
+    flag_counts = {"thin": 0, "stale": 0, "cross-zone": 0, "sanity-low": 0, "sanity-high": 0}
     for l in listings:
-        nc = find_newcon_ppsf(l["lat"], l["lng"], l["zone"])
-        if nc:
-            l["newconPpsf"] = nc
+        exit_psf = l.get("exitPsf") or 0
+        nc_val, nc_count, nc_tier, nc_zm, nc_flag = find_newcon_ppsf(
+            l["lat"], l["lng"], l["zone"], exit_psf
+        )
+        l["newconPpsf"] = nc_val
+        l["newconCount"] = nc_count
+        l["newconTier"] = nc_tier
+        l["newconZoneMatch"] = nc_zm
+        l["newconFlag"] = nc_flag
+        if nc_val:
             nc_found += 1
-        else:
-            l["newconPpsf"] = None
-    print(f"   Found new-con comps for {nc_found:,}/{len(listings):,} listings")
+            if nc_tier in tier_counts:
+                tier_counts[nc_tier] += 1
+            if nc_zm:
+                zone_match_count += 1
+            else:
+                cross_zone_count += 1
+        if nc_flag and nc_flag in flag_counts:
+            flag_counts[nc_flag] += 1
+
+    print(f"   New-con pricing used: {nc_found:,}/{len(listings):,} listings")
+    print(f"   Discarded (fell back to general P75): {len(listings) - nc_found:,}")
+    print(f"   Tiers: 2024-25={tier_counts['2024-25']:,} | 2023+={tier_counts['2023+']:,} | 2021-22 adj={tier_counts['2021-22 adj']:,}")
+    print(f"   Zone-matched: {zone_match_count:,} | Cross-zone: {cross_zone_count:,}")
+    print(f"   Flags: thin={flag_counts['thin']:,} stale={flag_counts['stale']:,} cross-zone={flag_counts['cross-zone']:,} sanity-low={flag_counts['sanity-low']:,} sanity-high={flag_counts['sanity-high']:,}")
     nc_vals = [l["newconPpsf"] for l in listings if l.get("newconPpsf")]
     if nc_vals:
         nc_vals.sort()
@@ -666,6 +784,10 @@ else:
     print(f"\n⚠️  No new-construction comps — add 'yb' field to data.js (run build_comps.py)")
     for l in listings:
         l["newconPpsf"] = None
+        l["newconCount"] = 0
+        l["newconTier"] = None
+        l["newconZoneMatch"] = None
+        l["newconFlag"] = None
 
 # ── Step 4c: Stamp HUD Fair Market Rents from rents.json ──
 RENTS_FILE = "rents.json"

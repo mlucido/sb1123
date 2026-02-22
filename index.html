@@ -1405,6 +1405,32 @@ function getSlopeAdjBuildCost(slope,base){
   return base + Math.ceil((slope-5)/5)*15;
 }
 
+// Build descriptive exit $/SF label for popup display
+function exitLabel(l){
+  const exitPsf = l.newconPpsf || l.exitPsf || 0;
+  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
+  if(l.newconPpsf){
+    const tier = l.newconTier || '';
+    const count = l.newconCount || 0;
+    const zm = l.newconZoneMatch !== false ? 'zone-matched' : 'cross-zone';
+    const flag = l.newconFlag;
+    let label = `NEW-CON — ${count} comps, ${tier}, ${zm}`;
+    let color = 'var(--accent)';
+    if(flag === 'thin'){ label += ' ⚠️ thin'; color = '#f59e0b'; }
+    else if(flag === 'cross-zone'){ color = '#f59e0b'; }
+    else if(flag === 'sanity-high'){ label += ' ⚠️ high'; color = '#f59e0b'; }
+    return {psf: exitPsf, label, color, short: 'new-con'};
+  }
+  // General P75 fallback
+  const count = l.compCount || 0;
+  const radius = l.compRadius || '';
+  let reason = '';
+  if(l.newconFlag === 'sanity-low') reason = ' — newcon failed sanity check';
+  else if(l.newconFlag === 'sanity-high') reason = ' — newcon flagged high';
+  const label = `ALL SALES — ${count} comps within ${radius}mi${reason}`;
+  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'all sales'};
+}
+
 function calculateProForma(l){
   const maxUnits = getMaxUnits(l);
   const pf = proforma;
@@ -1679,7 +1705,6 @@ function rebuildListings(){
       className: isNewListing ? 'listing-marker-new' : '',
     });
 
-    const delta = l.exitPsf ? l.ppsf - l.exitPsf : null;
     const pf = calculateProForma(l);
     const btr = calculateBTRProForma(l);
 
@@ -1695,22 +1720,20 @@ function rebuildListings(){
 
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
-        <div><div class="popup-label">$/SF</div><div class="popup-value">$${l.ppsf}</div></div>
-        ${(l.newconPpsf||l.exitPsf)?`<div><div class="popup-label">Exit $/SF ${l.newconPpsf?'<small style="color:var(--accent)">(new-con)</small>':'<small style="color:var(--text-dim)">(all sales)</small>'}</div><div class="popup-value">$${l.newconPpsf||l.exitPsf}${l.compCount?' <small style="color:var(--text-dim)">('+l.compCount+' comps, '+l.compRadius+')</small>':''}</div></div>`:'<div></div>'}
-        ${delta!==null?`<div><div class="popup-label">vs Exit</div><div class="popup-value" style="color:${delta>0?'var(--red)':'var(--green)'}">${delta>0?'+':''}$${delta}/sf</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
+        <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
+        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft.toLocaleString()} sf</div></div>
         ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% efficient)</small></div></div>`:'<div></div>'}
-        ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
-        
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
         ${l.slope!=null?`<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
         ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days Listed</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
-        ${l.lotSf&&l.sqft?`<div><div class="popup-label">Current Density</div><div class="popup-value">${(l.sqft/l.lotSf).toFixed(2)}</div></div>`:'<div></div>'}
+        ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF • Exit $${(l.newconPpsf||l.exitPsf||0)}/sf ${l.newconPpsf?'<span style="color:var(--accent)">(new-con)</span>':'<span style="color:var(--text-dim)">(all sales)</span>'}</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
       </div>
 
       <div class="popup-grid-2">
@@ -2181,20 +2204,18 @@ function buildOffMarketLayer(){
 
       <div class="popup-grid">
         <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
-        <div><div class="popup-label">$/Lot SF</div><div class="popup-value">${omEstMvPsf ? '$'+omEstMvPsf : '—'}</div></div>
-        ${omExitPsf?'<div><div class="popup-label">Exit $/SF '+(l.newconPpsf?'<small style="color:var(--accent)">(new-con)</small>':'<small style="color:var(--text-dim)">(all sales)</small>')+'</div><div class="popup-value">$'+omExitPsf+(l.compCount?' <small style="color:var(--text-dim)">('+l.compCount+' comps, '+l.compRadius+')</small>':'')+'</div></div>':'<div></div>'}
-        ${omExitPsf && omEstMvPsf?'<div><div class="popup-label">vs Exit</div><div class="popup-value" style="color:'+(omEstMvPsf>omExitPsf?'var(--red)':'var(--green)')+'">'+((omEstMvPsf-omExitPsf)>0?'+':'')+'$'+(omEstMvPsf-omExitPsf)+'/sf</div></div>':'<div></div>'}
+        <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
+        <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
+        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        <div><div class="popup-label">Structure</div><div class="popup-value">${l.sqft ? l.sqft.toLocaleString()+' sf' : '0 sf'}</div></div>
         ${l.lotSf?'<div><div class="popup-label">Lot Size</div><div class="popup-value">'+l.lotSf.toLocaleString()+' sf <small style="color:'+(pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)')+'">('+((pf.lot_efficiency*100).toFixed(0))+'% efficient)</small></div></div>':'<div></div>'}
         ${l.city?'<div><div class="popup-label">City</div><div class="popup-value">'+l.city+'</div></div>':'<div></div>'}
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?' <small style="color:var(--text-dim)">'+l.zimasZone+'</small>':''}</div></div>
-
         ${l.slope!=null?'<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</div></div>':'<div></div>'}
-        ${l.lotSf&&l.sqft?'<div><div class="popup-label">Current Density</div><div class="popup-value">'+(l.sqft/l.lotSf).toFixed(2)+'</div></div>':'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF • Exit $${omExitPsf}/sf ${l.newconPpsf?'<span style="color:var(--accent)">(new-con)</span>':'<span style="color:var(--text-dim)">(all sales)</span>'}</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
       </div>
 
       <div class="popup-grid-2">
