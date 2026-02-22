@@ -1774,10 +1774,10 @@ function rebuildListings(){
         ${btr.btrPencils
           ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
           : btr.baseRent > 0
-            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
-            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:11px">&#9888;&#65039; No rent data for this zip</div>'
+            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min 6.0%)</div>'
+            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
         }
-        ${btr.baseRent > 0 ? `
+        ${btr.btrPencils ? `
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
         <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
@@ -2255,10 +2255,10 @@ function buildOffMarketLayer(){
         ${btr.btrPencils
           ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
           : btr.baseRent > 0
-            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
-            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:11px">&#9888;&#65039; No rent data for this zip</div>'
+            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR DOES NOT PENCIL — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min 6.0%)</div>'
+            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
         }
-        ${btr.baseRent > 0 ? `
+        ${btr.btrPencils ? `
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(HUD FMR × ${btr.newConPremium})</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()}</div></div>
         <div><div class="popup-label">NOI (4% vac, 30% opex)</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
