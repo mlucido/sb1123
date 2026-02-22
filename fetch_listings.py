@@ -26,35 +26,11 @@ import sys
 import random
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market, market_file, REDFIN_GIS_CSV_URL, REDFIN_HEADERS, REDFIN_NUM_HOMES, REDFIN_DELAY_MIN, REDFIN_DELAY_MAX
 
 # ── Config ──
-DELAY_MIN = 1.5
-DELAY_MAX = 2.5
-NUM_HOMES = 350
-OUTPUT_FILE = "redfin_merged.csv"
 MAX_RETRIES = 2
 MAX_SUBDIVIDE_DEPTH = 6  # Max times a tile can be quartered (0.12° → ~0.002°)
-
-# ── LA County bounding box ──
-LA_LAT_MIN = 33.70
-LA_LAT_MAX = 34.85
-LA_LNG_MIN = -118.95
-LA_LNG_MAX = -117.55
-
-# Starting tile size in degrees (~8mi × ~8mi)
-TILE_LAT = 0.12
-TILE_LNG = 0.15
-
-# Redfin endpoint
-GIS_CSV_URL = "https://www.redfin.com/stingray/api/gis-csv"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/csv,text/plain,*/*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.redfin.com/",
-}
 
 # ── Counters (global for easy access in recursive flow) ──
 header_row = None
@@ -67,15 +43,18 @@ tiles_subdivided = 0
 dupes_skipped = 0
 
 
-def build_grid():
-    """Build initial coarse grid of tiles covering LA County."""
+def build_grid(market):
+    """Build initial coarse grid of tiles covering the market area."""
+    lat_min, lat_max = market["lat_min"], market["lat_max"]
+    lng_min, lng_max = market["lng_min"], market["lng_max"]
+    tile_lat, tile_lng = market["tile_lat"], market["tile_lng"]
     tiles = []
-    lat = LA_LAT_MIN
-    while lat < LA_LAT_MAX:
-        lng = LA_LNG_MIN
-        while lng < LA_LNG_MAX:
-            lat2 = round(min(lat + TILE_LAT, LA_LAT_MAX), 4)
-            lng2 = round(min(lng + TILE_LNG, LA_LNG_MAX), 4)
+    lat = lat_min
+    while lat < lat_max:
+        lng = lng_min
+        while lng < lng_max:
+            lat2 = round(min(lat + tile_lat, lat_max), 4)
+            lng2 = round(min(lng + tile_lng, lng_max), 4)
             tiles.append({
                 "lat_min": round(lat, 4),
                 "lat_max": lat2,
@@ -83,8 +62,8 @@ def build_grid():
                 "lng_max": lng2,
                 "depth": 0,
             })
-            lng += TILE_LNG
-        lat += TILE_LAT
+            lng += tile_lng
+        lat += tile_lat
     return tiles
 
 
@@ -119,21 +98,21 @@ def tile_label(t):
     return f"({mid_lat:.3f}, {mid_lng:.3f}) d{depth}"
 
 
-def fetch_tile(tile, retries=0):
+def fetch_tile(tile, market, retries=0):
     """Fetch active listings for a geographic tile.
     Uses a fresh session each call to avoid Redfin's cookie-based
     geographic restrictions that break reused sessions.
     """
     poly = tile_to_poly(tile)
     url = (
-        f"{GIS_CSV_URL}?al=1&market=socal&num_homes={NUM_HOMES}"
+        f"{REDFIN_GIS_CSV_URL}?al=1&market={market['redfin_market']}&num_homes={REDFIN_NUM_HOMES}"
         f"&page_number=1&status=9&uipt=1,2,3,4,5"
         f"&v=8&user_poly={poly}"
     )
 
     try:
         session = requests.Session()
-        resp = session.get(url, headers=HEADERS, timeout=30)
+        resp = session.get(url, headers=REDFIN_HEADERS, timeout=30)
         session.close()
 
         if resp.status_code == 200:
@@ -150,7 +129,7 @@ def fetch_tile(tile, retries=0):
                 wait = 15 + random.uniform(0, 10)
                 print(f"\n      {resp.status_code} on tile {tile_label(tile)} — waiting {wait:.0f}s...")
                 time.sleep(wait)
-                return fetch_tile(tile, retries + 1)
+                return fetch_tile(tile, market, retries + 1)
             else:
                 print(f"\n      Blocked on tile {tile_label(tile)}, skipping")
                 return []
@@ -160,7 +139,7 @@ def fetch_tile(tile, retries=0):
     except requests.exceptions.Timeout:
         if retries < MAX_RETRIES:
             time.sleep(5)
-            return fetch_tile(tile, retries + 1)
+            return fetch_tile(tile, market, retries + 1)
         return []
     except Exception as e:
         print(f"\n      Error: {e}")
@@ -200,7 +179,7 @@ def ingest_rows(rows):
     return new_count
 
 
-def process_tile(tile):
+def process_tile(tile, market):
     """Fetch a tile. If it hits the cap, subdivide and recurse."""
     global tiles_fetched, tiles_with_data, tiles_empty, tiles_subdivided
 
@@ -216,24 +195,24 @@ def process_tile(tile):
     )
     sys.stdout.flush()
 
-    rows = fetch_tile(tile)
+    rows = fetch_tile(tile, market)
 
     if not rows:
         tiles_empty += 1
-        time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
+        time.sleep(random.uniform(REDFIN_DELAY_MIN, REDFIN_DELAY_MAX))
         return
 
     data_count = len(rows) - 1  # minus header
-    hit_cap = data_count >= NUM_HOMES - 5
+    hit_cap = data_count >= REDFIN_NUM_HOMES - 5
 
     if hit_cap and depth < MAX_SUBDIVIDE_DEPTH:
         # This tile is too dense — subdivide into 4 and recurse
         tiles_subdivided += 1
         sub_tiles = subdivide_tile(tile)
         print(f"\n      Cap hit ({data_count}) on {tile_label(tile)} — splitting into 4 sub-tiles")
-        time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
+        time.sleep(random.uniform(REDFIN_DELAY_MIN, REDFIN_DELAY_MAX))
         for st in sub_tiles:
-            process_tile(st)
+            process_tile(st, market)
         return
 
     # Under cap or max depth — ingest the data
@@ -246,17 +225,22 @@ def process_tile(tile):
     if hit_cap and depth >= MAX_SUBDIVIDE_DEPTH:
         print(f"\n      Warning: {tile_label(tile)} still at cap after max depth — some listings missed")
 
-    time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
+    time.sleep(random.uniform(REDFIN_DELAY_MIN, REDFIN_DELAY_MAX))
 
 
 def main():
     test_mode = "--test" in sys.argv
-    tiles = build_grid()
+    market = get_market()
+    tiles = build_grid(market)
+    output_file = market_file("redfin_merged.csv", market)
 
     if test_mode:
+        # Pick a tile near the market center for testing
+        center_lat = (market["lat_min"] + market["lat_max"]) / 2
+        center_lng = (market["lng_min"] + market["lng_max"]) / 2
         test_tile = None
         for t in tiles:
-            if t['lat_min'] <= 34.05 <= t['lat_max'] and t['lng_min'] <= -118.35 <= t['lng_max']:
+            if t['lat_min'] <= center_lat <= t['lat_max'] and t['lng_min'] <= center_lng <= t['lng_max']:
                 test_tile = t
                 break
         if not test_tile:
@@ -264,20 +248,20 @@ def main():
         tiles = [test_tile]
 
     print("\n" + "=" * 60)
-    print("  Redfin LA County — Adaptive Full-Coverage Fetcher")
+    print(f"  Redfin {market['name']} — Adaptive Full-Coverage Fetcher")
     if test_mode:
         print("  ** TEST MODE — single tile **")
     print("=" * 60)
-    print(f"\n  Starting grid: {TILE_LAT}° x {TILE_LNG}° ({len(tiles)} tiles)")
-    print(f"  Cap per tile: {NUM_HOMES} (auto-subdivides if hit)")
+    print(f"\n  Starting grid: {market['tile_lat']}° x {market['tile_lng']}° ({len(tiles)} tiles)")
+    print(f"  Cap per tile: {REDFIN_NUM_HOMES} (auto-subdivides if hit)")
     print(f"  Max subdivision depth: {MAX_SUBDIVIDE_DEPTH}")
-    print(f"  Rate limit: {DELAY_MIN}-{DELAY_MAX}s between requests")
-    print(f"  Output: {OUTPUT_FILE}\n")
+    print(f"  Rate limit: {REDFIN_DELAY_MIN}-{REDFIN_DELAY_MAX}s between requests")
+    print(f"  Output: {output_file}\n")
 
     start_time = time.time()
 
     for tile in tiles:
-        process_tile(tile)
+        process_tile(tile, market)
 
     elapsed_total = time.time() - start_time
 
@@ -294,13 +278,13 @@ def main():
         sys.exit(1)
 
     # ── Write CSV ──
-    with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
+    with open(output_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(header_row)
         writer.writerows(all_data_rows)
 
-    size_kb = os.path.getsize(OUTPUT_FILE) / 1024
-    print(f"\n  Written: {OUTPUT_FILE}")
+    size_kb = os.path.getsize(output_file) / 1024
+    print(f"\n  Written: {output_file}")
     print(f"     Size: {size_kb:.0f} KB ({size_kb/1024:.1f} MB)")
     print(f"     Rows: {len(all_data_rows):,}")
     print(f"\n  Next: python3 listings_build.py")

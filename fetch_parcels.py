@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 fetch_parcels.py
-Fetches parcel lot area + fire zone status from LA County ArcGIS for each listing.
+Fetches parcel lot area + fire zone status from ArcGIS for each listing.
 
 For each listing, queries two ArcGIS services:
-  1. Parcel service — lot area (Shape.STArea() in sq ft), AIN, assessed values
-  2. Hazards service — VHFHSZ fire zone status
+  1. Parcel service — lot area, APN, assessed values (market-specific endpoint)
+  2. Fire zone service — VHFHSZ status (statewide CAL FIRE or market-specific)
 
 Reads:  redfin_merged.csv (directly, to avoid chicken-and-egg with listings.js)
 Writes: parcels.json — keyed by "lat,lng"
@@ -13,8 +13,9 @@ Writes: parcels.json — keyed by "lat,lng"
 Supports incremental runs (skips already-computed listings).
 
 Usage:
-  python3 fetch_parcels.py          # All listings (~1-3 min)
-  python3 fetch_parcels.py --test   # First 10 only
+  python3 fetch_parcels.py                     # All LA listings (~1-3 min)
+  python3 fetch_parcels.py --market sd          # All SD listings
+  python3 fetch_parcels.py --market sd --test   # First 10 only
 """
 
 import csv, json, os, sys, time, re
@@ -22,51 +23,82 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market, market_file, CALFIRE_LRA_URL
 
 # ── Config ──
-PARCEL_URL = "https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer/0/query"
-FIRE_URL = "https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer/2/query"
 MAX_WORKERS = 25
-OUTPUT_FILE = "parcels.json"
 ENVELOPE_OFFSET = 0.00002  # ~2m envelope around point for parcel query
 
-# LA County bounding box (same as listings_build.py)
-LA_LAT_MIN, LA_LAT_MAX = 33.70, 34.85
-LA_LNG_MIN, LA_LNG_MAX = -118.95, -117.55
 
+def query_parcel(lat, lng, market, retries=2):
+    """Query parcel service with market-appropriate geometry (envelope or point)."""
+    parcel_url = market["parcel_url"]
+    field_map = market["parcel_field_map"]
 
-def query_parcel(lat, lng, retries=2):
-    """Query LA County parcel service with small envelope to get containing parcel."""
-    env = {
-        "xmin": lng - ENVELOPE_OFFSET,
-        "ymin": lat - ENVELOPE_OFFSET,
-        "xmax": lng + ENVELOPE_OFFSET,
-        "ymax": lat + ENVELOPE_OFFSET,
-        "spatialReference": {"wkid": 4326}
-    }
-    params = {
-        "geometry": json.dumps(env),
-        "geometryType": "esriGeometryEnvelope",
-        "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "AIN,Roll_LandValue,Roll_ImpValue,SitusAddress,Shape.STArea()",
-        "returnGeometry": "false",
-        "f": "json",
-    }
+    if market.get("parcel_query_type") == "envelope":
+        # LA-style: small envelope around point
+        offset = market.get("parcel_envelope_offset", ENVELOPE_OFFSET)
+        env = {
+            "xmin": lng - offset, "ymin": lat - offset,
+            "xmax": lng + offset, "ymax": lat + offset,
+            "spatialReference": {"wkid": 4326}
+        }
+        params = {
+            "geometry": json.dumps(env),
+            "geometryType": "esriGeometryEnvelope",
+            "spatialRel": "esriSpatialRelIntersects",
+            "outFields": market.get("parcel_out_fields", "*"),
+            "returnGeometry": "false",
+            "f": "json",
+        }
+    else:
+        # SD-style: point query with coordinate system projection
+        params = {
+            "geometry": f"{lng},{lat}",
+            "geometryType": "esriGeometryPoint",
+            "inSR": market.get("parcel_in_sr", 4326),
+            "outSR": market.get("parcel_out_sr", 4326),
+            "spatialRel": "esriSpatialRelIntersects",
+            "outFields": market.get("parcel_out_fields", "*"),
+            "returnGeometry": "false",
+            "f": "json",
+        }
+
     for attempt in range(retries + 1):
         try:
-            resp = requests.get(PARCEL_URL, params=params, timeout=30)
+            resp = requests.get(parcel_url, params=params, timeout=30)
             if resp.status_code == 200:
                 data = resp.json()
                 features = data.get("features", [])
                 if features:
-                    attrs = features[0].get("attributes", {})
-                    area = attrs.get("Shape.STArea()")
+                    if len(features) > 1:
+                        # Pick smallest lot (most specific parcel) — avoids HOA/assessment overlays
+                        best = None
+                        best_lot = None
+                        for feat in features:
+                            a = feat.get("attributes", {})
+                            lot_raw = a.get(field_map["lot_sf"])
+                            if lot_raw and lot_raw > 0:
+                                if best is None or lot_raw < best_lot:
+                                    best = a
+                                    best_lot = lot_raw
+                        attrs = best if best else features[0].get("attributes", {})
+                    else:
+                        attrs = features[0].get("attributes", {})
+                    # Map response fields using market config
+                    lot_raw = attrs.get(field_map["lot_sf"])
+                    multiplier = field_map.get("lot_sf_multiplier", 1)
+                    lot_sf = round(lot_raw * multiplier) if lot_raw else None
+
+                    situs_field = field_map.get("situs_address")
+                    situs = attrs.get(situs_field, "") if situs_field else ""
+
                     return {
-                        "lotSf": round(area) if area else None,
-                        "ain": attrs.get("AIN", ""),
-                        "landValue": attrs.get("Roll_LandValue"),
-                        "impValue": attrs.get("Roll_ImpValue"),
-                        "situsAddress": attrs.get("SitusAddress", ""),
+                        "lotSf": lot_sf,
+                        "ain": attrs.get(field_map["ain"], ""),
+                        "landValue": attrs.get(field_map["land_value"]),
+                        "impValue": attrs.get(field_map["imp_value"]),
+                        "situsAddress": situs,
                     }
                 return None  # No parcel found at this location
             elif resp.status_code in (429, 503):
@@ -78,26 +110,33 @@ def query_parcel(lat, lng, retries=2):
     return None
 
 
-def query_fire_zone(lat, lng, retries=2):
-    """Query LA County Hazards service for VHFHSZ fire zone status."""
+def query_fire_zone(lat, lng, market, retries=2):
+    """Query fire zone service for VHFHSZ status.
+    
+    Uses market-specific endpoint if available, otherwise statewide CAL FIRE.
+    """
+    fire_url = market.get("fire_url") or CALFIRE_LRA_URL
+    fire_field = market.get("fire_field", "HAZ_CLASS")
+    fire_value = market.get("fire_vhfhsz_value", "Very High")
+
     params = {
         "geometry": f"{lng},{lat}",
         "geometryType": "esriGeometryPoint",
         "inSR": 4326,
         "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "HAZ_CLASS",
+        "outFields": fire_field,
         "returnGeometry": "false",
         "f": "json",
     }
     for attempt in range(retries + 1):
         try:
-            resp = requests.get(FIRE_URL, params=params, timeout=30)
+            resp = requests.get(fire_url, params=params, timeout=30)
             if resp.status_code == 200:
                 data = resp.json()
                 features = data.get("features", [])
                 if features:
-                    haz = features[0].get("attributes", {}).get("HAZ_CLASS", "")
-                    return haz == "Very High"
+                    haz = features[0].get("attributes", {}).get(fire_field, "")
+                    return haz == fire_value
                 return False  # No fire zone feature at this point
             elif resp.status_code in (429, 503):
                 time.sleep(3 + attempt * 3)
@@ -108,10 +147,10 @@ def query_fire_zone(lat, lng, retries=2):
     return None  # Query failed
 
 
-def fetch_parcel_data(lat, lng):
+def fetch_parcel_data(lat, lng, market):
     """Fetch both parcel info and fire zone status for a single listing."""
-    parcel = query_parcel(lat, lng)
-    fire = query_fire_zone(lat, lng)
+    parcel = query_parcel(lat, lng, market)
+    fire = query_fire_zone(lat, lng, market)
 
     if parcel is None and fire is None:
         return None
@@ -130,12 +169,15 @@ def fetch_parcel_data(lat, lng):
     return result if result else None
 
 
-def load_listings_from_csv():
-    """Load listing lat/lng from redfin_merged.csv (same logic as listings_build.py)."""
-    csv_file = "redfin_merged.csv"
+def load_listings_from_csv(market):
+    """Load listing lat/lng from redfin_merged.csv."""
+    csv_file = market_file("redfin_merged.csv", market)
     if not os.path.exists(csv_file):
         print(f"  No {csv_file} found.")
         sys.exit(1)
+
+    lat_min, lat_max = market["lat_min"], market["lat_max"]
+    lng_min, lng_max = market["lng_min"], market["lng_max"]
 
     listings = []
     with open(csv_file, encoding="utf-8", errors="replace") as f:
@@ -144,7 +186,7 @@ def load_listings_from_csv():
             try:
                 lat = float(row.get("LATITUDE") or 0)
                 lng = float(row.get("LONGITUDE") or 0)
-                if not (LA_LAT_MIN <= lat <= LA_LAT_MAX and LA_LNG_MIN <= lng <= LA_LNG_MAX):
+                if not (lat_min <= lat <= lat_max and lng_min <= lng <= lng_max):
                     continue
                 status = row.get("STATUS", "").strip()
                 if status != "Active":
@@ -160,13 +202,15 @@ def load_listings_from_csv():
 
 def main():
     test_mode = "--test" in sys.argv
+    market = get_market()
+    output_file = market_file("parcels.json", market)
 
-    listings = load_listings_from_csv()
+    listings = load_listings_from_csv(market)
 
     # Load existing (incremental — skip already computed)
     existing = {}
-    if os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE) as f:
+    if os.path.exists(output_file):
+        with open(output_file) as f:
             existing = json.load(f)
         print(f"  Loaded {len(existing):,} cached parcels")
 
@@ -181,8 +225,9 @@ def main():
         work = work[:10]
 
     total = len(work)
+    fire_source = "CAL FIRE statewide" if not market.get("fire_url") else "local"
     print(f"\n{'='*60}")
-    print(f"  LA County ArcGIS — Parcel + Fire Zone Fetcher")
+    print(f"  {market['name']} ArcGIS — Parcel + Fire Zone Fetcher")
     if test_mode:
         print(f"  ** TEST MODE — 10 listings **")
     print(f"{'='*60}")
@@ -190,6 +235,7 @@ def main():
     print(f"  Already cached: {len(existing):,}")
     print(f"  To process: {total:,}")
     print(f"  Workers: {MAX_WORKERS}")
+    print(f"  Fire zone source: {fire_source}")
     est_min = total * 2 / MAX_WORKERS * 0.5 / 60
     print(f"  Est. time: {est_min:.1f} minutes\n")
 
@@ -205,7 +251,7 @@ def main():
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = {}
         for lat, lng, key in work:
-            fut = pool.submit(fetch_parcel_data, lat, lng)
+            fut = pool.submit(fetch_parcel_data, lat, lng, market)
             futures[fut] = key
 
         for fut in as_completed(futures):
@@ -234,13 +280,13 @@ def main():
 
                 # Checkpoint every 500
                 if completed % 500 == 0:
-                    with open(OUTPUT_FILE, "w") as f:
+                    with open(output_file, "w") as f:
                         json.dump(results, f)
 
     elapsed = time.time() - start
 
     # Final save
-    with open(OUTPUT_FILE, "w") as f:
+    with open(output_file, "w") as f:
         json.dump(results, f)
 
     print(f"\n\n  Done in {elapsed / 60:.1f} minutes")
@@ -257,7 +303,7 @@ def main():
         lots.sort()
         print(f"  Lot SF: median {lots[len(lots)//2]:,}, min {lots[0]:,}, max {lots[-1]:,}")
 
-    print(f"\n  Written: {OUTPUT_FILE}")
+    print(f"\n  Written: {output_file}")
     print(f"  Next: python3 listings_build.py\n")
 
 

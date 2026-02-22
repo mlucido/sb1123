@@ -14,14 +14,19 @@ import json, os, re, statistics, sys
 import requests
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market, market_file
+
+market = get_market()
+listings_file = market_file("listings.js", market)
+output_file = market_file("rents.json", market)
 
 # ── Step 1: Extract unique zip codes from listings.js ──
-print("\n📋 Step 1: Loading zip codes from listings.js...")
-if not os.path.exists("listings.js"):
-    print("   ❌ listings.js not found — run: python3 listings_build.py")
+print(f"\n📋 Step 1: Loading zip codes from {listings_file}...")
+if not os.path.exists(listings_file):
+    print(f"   ❌ {listings_file} not found — run: python3 listings_build.py")
     sys.exit(1)
 
-with open("listings.js", "r") as f:
+with open(listings_file, "r") as f:
     raw = f.read()
 start = raw.index("[")
 end = raw.rindex("]") + 1

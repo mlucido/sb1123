@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**SB 1123 Deal Finder** — a static single-page map app that identifies townhome subdivision opportunities in LA County under California SB 1123. Python scripts fetch and enrich Redfin listings, then the browser app renders a filterable interactive map with real-time pro forma analysis.
+**SB 1123 Deal Finder** — a static single-page map app that identifies townhome subdivision opportunities under California SB 1123. Python scripts fetch and enrich Redfin listings, then the browser app renders a filterable interactive map with real-time pro forma analysis.
+
+**Multi-market architecture**: All scripts accept `--market <slug>` (default: `la`). Market configs live in `market_config.py`. Current markets: `la` (Los Angeles), `sd` (San Diego).
 
 Deployed via GitHub Pages: `https://mlucido.github.io/la-comps-map/`
 
@@ -15,22 +17,35 @@ Deployed via GitHub Pages: `https://mlucido.github.io/la-comps-map/`
 python3 -m http.server 8080    # → http://localhost:8080
 
 # Full data refresh (fetches listings + sold comps, rebuilds, pushes)
-./refresh.sh
+./refresh.sh                       # LA (default)
+./refresh.sh --market sd           # San Diego
+./refresh.sh --quick               # LA, listings only
+./refresh.sh --market sd --quick   # SD, listings only
 
-# Quick refresh (listings only, skip sold comps rebuild)
-./refresh.sh --quick
-
-# Individual pipeline steps
-python3 fetch_listings.py           # → redfin_merged.csv
+# Individual pipeline steps (all accept --market sd)
+python3 fetch_listings.py           # → redfin_merged.csv (or sd_redfin_merged.csv)
 python3 fetch_listings.py --test    # single tile test
 python3 fetch_parcels.py            # → parcels.json (incremental)
-python3 fetch_sold_comps.py         # → redfin_sold.csv (slow, full LA County)
+python3 fetch_sold_comps.py         # → redfin_sold.csv (slow, full county)
 python3 build_comps.py              # redfin_sold.csv → data.js
 python3 listings_build.py           # all enrichment → listings.js
 python3 fetch_slopes.py             # → slopes.json (~35 min, incremental)
+python3 fetch_zoning.py             # → zoning.json (cascade through endpoints)
+python3 fetch_rents.py              # → rents.json (HUD SAFMR by zip)
+python3 fetch_urban.py              # → urban.json (Census urban areas)
 ```
 
 No build step, no bundler, no test suite. Only Python dependency: `requests`.
+
+## Multi-Market File Naming
+
+LA (default market) uses unprefixed filenames for backward compatibility:
+- `data.js`, `listings.js`, `parcels.json`, `redfin_merged.csv`, etc.
+
+All other markets use `{slug}_` prefix:
+- `sd_data.js`, `sd_listings.js`, `sd_parcels.json`, `sd_redfin_merged.csv`, etc.
+
+Controlled by `market_file()` in `market_config.py`.
 
 ## Data Pipeline
 
@@ -53,9 +68,10 @@ listings_build.py → listings.js (enriched active listings with zone $/SF, new-
 | `listings.js` | `const LOADED_LISTINGS = [...]` + `LISTINGS_META` — enriched active listings (~11MB) |
 | `parcels.json` | Parcel cache keyed by `"lat,lng"` → `{lotSf, ain, landValue, impValue, fireZone}` |
 | `slopes.json` | Slope cache keyed by `"lat,lng"` → slope percent |
+| `market_config.py` | Central config: market bounds, ArcGIS endpoints, zoning classify functions, pro forma defaults |
 | `listings_build.py` | Main enrichment: stamps parcels, fire zones, zone-matched $/SF (expanding radius search), new-con $/SF, slopes |
 | `fetch_listings.py` | Adaptive geographic tiling of Redfin API (auto-subdivides tiles hitting 350-listing cap) |
-| `refresh.sh` | Full pipeline orchestration + git push |
+| `refresh.sh` | Full pipeline orchestration + git push (accepts --market flag) |
 
 ## Architecture Notes
 

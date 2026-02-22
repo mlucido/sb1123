@@ -16,27 +16,15 @@ What it does:
   5. Assigns an approximate zone from Redfin property type
   6. Outputs a clean listings.js
 """
-import csv, json, re, os, glob, statistics, time, math
+import csv, json, re, os, glob, statistics, time, math, sys
 from datetime import datetime, timezone
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market, market_file, TYPE_TO_ZONE
 
-# ── LA County bounding box ──
-LA_LAT_MIN, LA_LAT_MAX = 33.70, 34.85
-LA_LNG_MIN, LA_LNG_MAX = -118.95, -117.55
-
-# ── Property-type → approximate zone mapping ──
-TYPE_TO_ZONE = {
-    "Single Family Residential": "R1",
-    "Townhouse":                 "R2",
-    "Condo/Co-op":               "R2",
-    "Multi-Family (2-4 Unit)":   "R3",
-    "Multi-Family (5+ Unit)":    "R4",
-    "Mobile/Manufactured Home":  "R1",
-    "Ranch":                     "R1",
-    "Vacant Land":               "LAND",
-    "Other":                     "LAND",
-}
+market = get_market()
+LAT_MIN, LAT_MAX = market["lat_min"], market["lat_max"]
+LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
 
 # ── Spatial comp index config ──
 GRID_SIZE = 0.01          # ~0.7 miles per cell
@@ -51,17 +39,18 @@ SEARCH_RADII_DEG = [0.007, 0.015]
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
 comps = []
 
-if os.path.exists("data.js"):
-    with open("data.js", "r") as f:
+comps_file = market_file("data.js", market)
+if os.path.exists(comps_file):
+    with open(comps_file, "r") as f:
         raw = f.read()
     match = re.search(r"=\s*(\[.*\])\s*;?\s*$", raw, re.DOTALL)
     if match:
         comps = json.loads(match.group(1))
         print(f"   Loaded {len(comps):,} sold comps")
     else:
-        print("   ⚠️  Could not parse data.js — neighborhood $/SF will be unavailable")
+        print(f"   ⚠️  Could not parse {comps_file} — neighborhood $/SF will be unavailable")
 else:
-    print("   ⚠️  data.js not found — neighborhood $/SF will be unavailable")
+    print(f"   ⚠️  {comps_file} not found — neighborhood $/SF will be unavailable")
 
 # Build spatial grid: zone-specific and all-zone indexes
 # Key: (grid_row, grid_col) → list of (lat, lng, ppsf)
@@ -353,7 +342,8 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
 
 # ── Step 2: Find and read Redfin CSV ──
 print("\n📄 Step 2: Reading Redfin listings CSV...")
-redfin_csvs = glob.glob("redfin_merged.csv") or glob.glob("redfin_*.csv")
+merged_name = market_file("redfin_merged.csv", market)
+redfin_csvs = glob.glob(merged_name) or glob.glob("redfin_*.csv")
 if not redfin_csvs:
     print("   ❌ No redfin_*.csv found in this folder.")
     exit(1)
@@ -374,8 +364,8 @@ with open(src, encoding="utf-8", errors="replace") as f:
             lat = float(row.get("LATITUDE") or 0)
             lng = float(row.get("LONGITUDE") or 0)
 
-            # Filter to LA County
-            if not (LA_LAT_MIN <= lat <= LA_LAT_MAX and LA_LNG_MIN <= lng <= LA_LNG_MAX):
+            # Filter to market bounding box
+            if not (LAT_MIN <= lat <= LAT_MAX and LNG_MIN <= lng <= LNG_MAX):
                 skipped_location += 1
                 continue
 
@@ -446,8 +436,8 @@ with open(src, encoding="utf-8", errors="replace") as f:
             continue
 
 print(f"   Total rows: {total}")
-print(f"   ✅ LA County listings: {len(listings)}")
-print(f"   ⚠️  Outside LA County: {skipped_location}")
+print(f"   ✅ {market['name']} listings: {len(listings)}")
+print(f"   ⚠️  Outside {market['name']}: {skipped_location}")
 print(f"   ⚠️  Bad/missing data: {skipped_data}")
 
 if len(listings) == 0:
@@ -455,7 +445,7 @@ if len(listings) == 0:
     exit(1)
 
 # ── Step 2.5: Stamp parcel data from parcels.json ──
-PARCEL_FILE = "parcels.json"
+PARCEL_FILE = market_file("parcels.json", market)
 parcel_stamped = 0
 parcel_fire_count = 0
 if os.path.exists(PARCEL_FILE):
@@ -511,7 +501,7 @@ else:
     print(f"\n⚠️  {PARCEL_FILE} not found — run: python3 fetch_parcels.py")
 
 # ── Step 2.6: Stamp ZIMAS real zoning from zoning.json ──
-ZONING_FILE = "zoning.json"
+ZONING_FILE = market_file("zoning.json", market)
 zimas_stamped = 0
 zimas_upgraded = 0
 zimas_downgraded = 0
@@ -547,7 +537,7 @@ else:
     print(f"\n⚠️  {ZONING_FILE} not found — run: python3 fetch_zoning.py")
 
 # ── Step 2.7: Stamp urban area status from urban.json ──
-URBAN_FILE = "urban.json"
+URBAN_FILE = market_file("urban.json", market)
 if os.path.exists(URBAN_FILE):
     print(f"\n🏙️  Step 2.7: Stamping urban area status from {URBAN_FILE}...")
     with open(URBAN_FILE) as f:
@@ -573,7 +563,7 @@ else:
     print(f"\n⚠️  {URBAN_FILE} not found — run: python3 fetch_urban.py")
 
 # ── Step 3: Fire zone check (fallback for listings not stamped from parcels.json) ──
-FIRE_ZONE_FILE = "fire_zones_vhfhsz.geojson"
+FIRE_ZONE_FILE = market_file("fire_zones_vhfhsz.geojson", market)
 already_stamped_fire = sum(1 for l in listings if "fireZone" in l)
 need_fire_check = [l for l in listings if "fireZone" not in l]
 
@@ -648,26 +638,8 @@ elif need_fire_check:
 else:
     print(f"\n✅ Step 3: All {len(listings):,} listings already have fire zone data from parcels.json")
 
-# ── Step 3b: January 2025 burn zone flagging (Palisades + Eaton fires) ──
-# Approximate bounding polygons for the two major burn areas.
-# These are NOT exact perimeters — they flag the general fire-affected area.
-PALISADES_FIRE = [
-    (-118.62, 34.05),  # SW corner - near PCH/Sunset
-    (-118.62, 34.10),  # NW corner - Topanga area
-    (-118.52, 34.10),  # NE corner - Brentwood hills
-    (-118.52, 34.05),  # SE corner - Santa Monica Mtns
-    (-118.62, 34.05),  # close polygon
-]
-
-EATON_FIRE = [
-    (-118.18, 34.16),  # SW corner - near Pasadena border
-    (-118.18, 34.22),  # NW corner - Mt Wilson foothills
-    (-118.08, 34.22),  # NE corner - Sierra Madre
-    (-118.08, 34.16),  # SE corner - Altadena south
-    (-118.18, 34.16),  # close polygon
-]
-
-def point_in_polygon(px, py, polygon):
+# ── Step 3b: Market-specific burn zone flagging ──
+def point_in_polygon_simple(px, py, polygon):
     """Ray-casting point-in-polygon test. polygon = list of (x, y) tuples."""
     n = len(polygon)
     inside = False
@@ -680,20 +652,24 @@ def point_in_polygon(px, py, polygon):
         j = i
     return inside
 
-print(f"\n🔥 Step 3b: Flagging January 2025 burn zones (Palisades + Eaton fires)...")
-palisades_count = 0
-eaton_count = 0
-for l in listings:
-    lng, lat = l["lng"], l["lat"]
-    if point_in_polygon(lng, lat, PALISADES_FIRE):
-        l["burnZone"] = "Palisades"
-        l["fireZone"] = True
-        palisades_count += 1
-    elif point_in_polygon(lng, lat, EATON_FIRE):
-        l["burnZone"] = "Eaton"
-        l["fireZone"] = True
-        eaton_count += 1
-print(f"   Palisades burn zone: {palisades_count} listings | Eaton burn zone: {eaton_count} listings")
+burn_zones = market.get("burn_zones", [])
+if burn_zones:
+    print(f"\n🔥 Step 3b: Flagging burn zones ({len(burn_zones)} zones)...")
+    burn_counts = {}
+    for l in listings:
+        lng, lat = l["lng"], l["lat"]
+        for bz in burn_zones:
+            if point_in_polygon_simple(lng, lat, bz["polygon"]):
+                l["burnZone"] = bz["name"]
+                l["fireZone"] = True
+                burn_counts[bz["name"]] = burn_counts.get(bz["name"], 0) + 1
+                break
+    for name, count in burn_counts.items():
+        print(f"   {name} burn zone: {count} listings")
+    if not burn_counts:
+        print("   No listings in burn zones")
+else:
+    print(f"\n✅ Step 3b: No burn zones configured for {market['name']}")
 
 # ── Step 4: Zone-matched spatial exit $/SF (P75) ──
 if comps:
@@ -790,7 +766,7 @@ else:
         l["newconFlag"] = None
 
 # ── Step 4c: Stamp HUD Fair Market Rents from rents.json ──
-RENTS_FILE = "rents.json"
+RENTS_FILE = market_file("rents.json", market)
 if os.path.exists(RENTS_FILE):
     print(f"\n🏠 Step 4c: Stamping HUD Fair Market Rents from {RENTS_FILE}...")
     with open(RENTS_FILE) as f:
@@ -828,7 +804,7 @@ else:
         l["estRentMonth"] = None
 
 # ── Step 5: Stamp lot slope from slopes.json ──
-SLOPE_FILE = "slopes.json"
+SLOPE_FILE = market_file("slopes.json", market)
 if os.path.exists(SLOPE_FILE):
     print(f"\n⛰️  Step 5: Stamping lot slopes...")
     with open(SLOPE_FILE) as f:
@@ -880,11 +856,12 @@ if with_exit:
             print(f"     {z}: P75=${med}/sf (P10=${p10}, P90=${p90}, n={len(zone_exits)})")
 
 # ── Write listings.js ──
+output_file = market_file("listings.js", market)
 build_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 js = f"const LISTINGS_META = {{builtAt:\"{build_ts}\",count:{len(listings)}}};\n"
 js += "const LOADED_LISTINGS = " + json.dumps(listings, separators=(",", ":")) + ";"
-with open("listings.js", "w") as f:
+with open(output_file, "w") as f:
     f.write(js)
 size_kb = len(js) / 1024
-print(f"\n📦 Created listings.js ({size_kb:.1f} KB, {len(listings)} listings)")
+print(f"\n📦 Created {output_file} ({size_kb:.1f} KB, {len(listings)} listings)")
 print("   Done! ✅\n")

@@ -23,17 +23,18 @@ Requires: geopandas, shapely, fiona
 import csv, json, os, sys, time, zipfile, urllib.request
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market, market_file
+
+market = get_market()
+LAT_MIN, LAT_MAX = market["lat_min"], market["lat_max"]
+LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
 
 # ── Config ──
 SHAPEFILE_URL = "https://www2.census.gov/geo/tiger/TIGER2020/UAC/tl_2020_us_uac20.zip"
 SHAPEFILE_DIR = "tiger_urban"
 SHAPEFILE_ZIP = os.path.join(SHAPEFILE_DIR, "tl_2020_us_uac20.zip")
 SHAPEFILE_PATH = os.path.join(SHAPEFILE_DIR, "tl_2020_us_uac20.shp")
-OUTPUT_FILE = "urban.json"
-
-# LA County bounding box
-LA_LAT_MIN, LA_LAT_MAX = 33.70, 34.85
-LA_LNG_MIN, LA_LNG_MAX = -118.95, -117.55
+OUTPUT_FILE = market_file("urban.json", market)
 
 
 def download_shapefile():
@@ -60,7 +61,7 @@ def download_shapefile():
 
 def load_listings_from_csv():
     """Load lat/lng from redfin_merged.csv."""
-    csv_file = "redfin_merged.csv"
+    csv_file = market_file("redfin_merged.csv", market)
     if not os.path.exists(csv_file):
         print(f"  No {csv_file} found.")
         sys.exit(1)
@@ -72,7 +73,7 @@ def load_listings_from_csv():
             try:
                 lat = float(row.get("LATITUDE") or 0)
                 lng = float(row.get("LONGITUDE") or 0)
-                if LA_LAT_MIN <= lat <= LA_LAT_MAX and LA_LNG_MIN <= lng <= LA_LNG_MAX:
+                if LAT_MIN <= lat <= LAT_MAX and LNG_MIN <= lng <= LNG_MAX:
                     listings.append({"lat": round(lat, 6), "lng": round(lng, 6)})
             except (ValueError, TypeError):
                 continue
@@ -100,8 +101,8 @@ def main():
     # Step 3: Load shapefile and clip to LA County bbox
     print("\nStep 3: Loading Urban Areas shapefile...")
     t0 = time.time()
-    urban_areas = gpd.read_file(SHAPEFILE_PATH, bbox=(LA_LNG_MIN, LA_LAT_MIN, LA_LNG_MAX, LA_LAT_MAX))
-    print(f"  Loaded {len(urban_areas)} urban area polygons in LA County bbox ({time.time()-t0:.1f}s)")
+    urban_areas = gpd.read_file(SHAPEFILE_PATH, bbox=(LNG_MIN, LAT_MIN, LNG_MAX, LAT_MAX))
+    print(f"  Loaded {len(urban_areas)} urban area polygons in {market['name']} bbox ({time.time()-t0:.1f}s)")
 
     # Step 4: Build listing GeoDataFrame
     print("\nStep 4: Building listing points...")
