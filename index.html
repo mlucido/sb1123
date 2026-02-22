@@ -1651,9 +1651,12 @@ function rebuildMarkers(){
 
 function rebuildListings(){
   listingsLayer.clearLayers();
+  // Clear for-sale flags so off-market layer can exclude visible for-sale listings
+  LISTINGS.forEach(l => { l._onForSaleLayer = false; });
   const filtered = getFilteredListings();
 
   filtered.forEach(l => {
+    l._onForSaleLayer = true;
     // Color by margin
     const margin = l.estMargin || 0;
     let color;
@@ -2051,7 +2054,8 @@ function buildOffMarketLayer(){
   // For demo purposes, let's create a hypothetical off-market filter
   const offMarketListings = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
-    
+    if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
+
     const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
@@ -2409,6 +2413,7 @@ function updateHeroStats(){
   // Count off-market opportunities (must match buildOffMarketLayer filter)
   const offMarket = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
+    if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
     const hood_psf = l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const maxUnits = getMaxUnits(l);
