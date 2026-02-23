@@ -1614,6 +1614,32 @@ function calculateProForma(l){
   };
 }
 
+// Lot size display with source + mismatch warning
+function lotLabel(l, effPct){
+  if(!l.lotSf) return '';
+  const src = l.lotSource === 'parcel' ? 'Parcel' : 'MLS';
+  const srcColor = l.lotSfParcel ? 'var(--orange)' : 'var(--text-dim)';
+  const mismatch = l.lotSfParcel ? ` <small style="color:var(--orange)">&#9888; Parcel: ${l.lotSfParcel.toLocaleString()}</small>` : '';
+  const eff = effPct != null ? ` <small style="color:${effPct>=85?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)'}">(${effPct}% eff)</small>` : '';
+  return `<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${srcColor}">(${src})</small>${mismatch}${eff}</div></div>`;
+}
+
+// Remainder parcel analysis section for R2-R4
+function remainderAnalysis(l){
+  if(!l.remainderUnits || l.remainderUnits <= 0) return '';
+  const viable = l.remainderViable;
+  const color = viable && l.remainderUnits >= 8 ? '#22c55e' : viable && l.remainderUnits >= 4 ? '#eab308' : '#ef4444';
+  const icon = viable ? '&#9989;' : '&#10060;';
+  return `<div class="popup-span-2" style="font-size:10px;line-height:1.6;padding:4px 8px;border-radius:4px;background:${color}15;color:${color}">
+    <b>REMAINDER PARCEL ANALYSIS</b><br>
+    Total Lot: ${l.lotSf?l.lotSf.toLocaleString():'?'} SF |
+    Footprint: -${(l.estFootprint||0).toLocaleString()} SF |
+    Driveway: -${(l.drivewayDeduction||2000).toLocaleString()} SF<br>
+    <b>Available: ${l.remainderSf.toLocaleString()} SF &#8594; ${l.remainderUnits} units ${icon}</b>
+    ${viable ? ' (keep existing structure, develop remainder)' : ' (insufficient for viable development)'}
+  </div>`;
+}
+
 // BTR (Build-to-Rent) Pro Forma Calculator
 function getRentSourceLabel(l) {
   const m = l.rentMethod;
@@ -1844,7 +1870,7 @@ function rebuildListings(){
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
       ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
       ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
-      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
+      ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-two-col">
@@ -1855,7 +1881,7 @@ function rebuildListings(){
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% eff)</small></div></div>`:'<div></div>'}
+        ${l.lotSf?lotLabel(l,Math.round(pf.lot_efficiency*100)):'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
         ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
@@ -1866,7 +1892,7 @@ function rebuildListings(){
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
-        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
+        ${remainderAnalysis(l)}
       </div>
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
@@ -1995,7 +2021,7 @@ function buildBTRLayer(){
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
       ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
       ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
-      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
+      ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-two-col">
@@ -2006,7 +2032,7 @@ function buildBTRLayer(){
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% eff)</small></div></div>`:'<div></div>'}
+        ${l.lotSf?lotLabel(l,Math.round(pf.lot_efficiency*100)):'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
         ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
@@ -2017,7 +2043,7 @@ function buildBTRLayer(){
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
-        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
+        ${remainderAnalysis(l)}
 
         <div class="popup-divider"></div>
         <div class="popup-section-label">Due Diligence</div>
@@ -2378,7 +2404,7 @@ function buildOffMarketLayer(){
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
       ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
       ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
-      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
+      ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-grid">
@@ -2387,7 +2413,7 @@ function buildOffMarketLayer(){
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
-        ${l.lotSf?'<div><div class="popup-label">Lot Size</div><div class="popup-value">'+l.lotSf.toLocaleString()+' sf <small style="color:'+(pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)')+'">('+((pf.lot_efficiency*100).toFixed(0))+'% efficient)</small></div></div>':'<div></div>'}
+        ${l.lotSf?lotLabel(l,Math.round(pf.lot_efficiency*100)):'<div></div>'}
         ${l.city?'<div><div class="popup-label">City</div><div class="popup-value">'+l.city+'</div></div>':'<div></div>'}
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?' <small style="color:var(--text-dim)">'+l.zimasZone+'</small>':''}</div></div>
         ${l.slope!=null?'<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</div></div>':'<div></div>'}
@@ -2469,7 +2495,7 @@ function buildOffMarketLayer(){
           ) : '<span style="color:var(--yellow)">&#9888;&#65039;</span> No ZIMAS data — zoning unverified (outside LA City)'}
         </div>
         ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
-        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
+        ${remainderAnalysis(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>

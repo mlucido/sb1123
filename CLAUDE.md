@@ -107,22 +107,34 @@ Townhouse / Condo/Co-op   → R2    Multi-Family (5+ Unit)  → R4
 Mobile/Ranch               → R1    Vacant Land / Other     → LAND
 ```
 
-## Cross-Market Mandate
+## Cross-Market Consistency Mandate
 
-All code changes MUST apply to every market unless explicitly market-specific (e.g., RSO is LA-only).
-- Python scripts: Always use `get_market()` + `market_file()` from `market_config.py`
-- Frontend (index.html): Market-agnostic — serves all markets from one codebase
-- Test both `./refresh.sh` and `./refresh.sh --market sd` after pipeline changes
-- New data files: Add to `refresh.sh` git add for both prefixed and unprefixed variants
+When implementing ANY fix, feature, or data pipeline change for one market (LA or SD), ALWAYS:
+
+1. Check if the same change should apply to the other market
+2. If the fix is in `listings_build.py` — apply to both markets unless the logic is market-specific (e.g., ZIMAS is LA-only, RSO is LA-only)
+3. If the fix is in `index.html` — ensure both `?market=la` and `?market=sd` are handled correctly
+4. If adding a new data field — add it for both markets in `listings_build.py` (even if the data source only exists for one market, set a null/default for the other)
+5. ASK the user before skipping a market — don't assume
+6. When running build scripts, always run for BOTH markets: `python3 script.py && python3 script.py --market sd`
+
+## Lot Size Data Source Priority
+
+Redfin MLS lot size is PRIMARY (listing agent sourced, most reliable). Parcel data from ArcGIS is FALLBACK only (spatial point-in-polygon can match wrong parcel on cul-de-sacs, irregular lots). If both exist and differ by >50%, prefer MLS and log mismatch. The `lotSource` field tracks provenance: `"mls"` or `"parcel"`.
 
 ## Listing Fields (stamped by listings_build.py)
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
+| lotSf | int | CSV + Step 2.5 | Lot size in SF (MLS primary, parcel fallback) |
+| lotSource | string | Step 2.5 | `"mls"` or `"parcel"` — lot data provenance |
+| lotSfParcel | int | Step 2.5 | Parcel lot SF when mismatched >50% from MLS |
 | tenantRisk | int 0-3 | Step 2.8 | Tenant risk level: 0=none, 1=low, 2=medium, 3=high |
 | tenantRiskFactors | string[] | Step 2.8 | Risk factor codes: improved, 3+beds, 5+beds, MF+struct, pre-2000, RSO |
 | rsoRisk | bool | Step 2.8 | LA RSO rent stabilization applies (LA only) |
 | rsoFactors | string[] | Step 2.8 | RSO factor codes |
-| remainderSf | int | Step 2.8 | R2-R4 remainder lot SF after existing footprint |
-| remainderUnits | int | Step 2.8 | SB 1123 units on remainder parcel |
+| remainderSf | int | Step 2.8 | R2-R4 available SF after footprint + driveway deduction |
+| remainderUnits | int | Step 2.8 | SB 1123 units on remainder (1,200 SF/unit, cap 10) |
+| remainderViable | bool | Step 2.8 | True if available >= 6,000 SF and >= 4 units |
 | estFootprint | int | Step 2.8 | Estimated existing building footprint SF |
+| drivewayDeduction | int | Step 2.8 | Driveway access deduction (2,000 SF) |

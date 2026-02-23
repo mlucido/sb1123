@@ -454,26 +454,38 @@ if os.path.exists(PARCEL_FILE):
         parcel_data = json.load(f)
     print(f"   Loaded {len(parcel_data):,} parcel records")
 
+    lot_source_counts = {"mls": 0, "parcel": 0, "none": 0}
+    lot_mismatches = []  # (address, redfin_lot, parcel_lot, ratio)
+
     for l in listings:
         key = f"{l['lat']},{l['lng']}"
         if key in parcel_data:
             p = parcel_data[key]
-            # Parcel lot size is PRIMARY (Redfin CSV is fallback)
-            # Exception: if parcel lot is >3x Redfin lot for vacant land,
-            # prefer Redfin — listing agent knows what's actually for sale
-            # (common with flag lots, sliver parcels sold from larger estates)
+            # Lot size priority: MLS (Redfin) is PRIMARY, parcel is FALLBACK
+            # Redfin lot size comes from listing agent / MLS — most reliable
+            # Parcel data from ArcGIS spatial lookup can match wrong parcel
+            # (geocoding offset on cul-de-sacs, irregular lots, etc.)
             redfin_lot = l.get("lotSf") or 0
             parcel_lot = p.get("lotSf") or 0
-            if parcel_lot > 0:
-                is_suspicious = (redfin_lot > 0 and parcel_lot > redfin_lot * 3
-                                 and l.get("zone") == "LAND")
-                if not is_suspicious:
-                    l["lotSf"] = parcel_lot
-                    parcel_stamped += 1
-                else:
-                    # Also flag assessed value vs price mismatch
-                    l["lotSfParcel"] = parcel_lot  # Keep for reference
-                    # Keep Redfin lot size
+
+            if redfin_lot > 0:
+                l["lotSf"] = redfin_lot
+                l["lotSource"] = "mls"
+                lot_source_counts["mls"] += 1
+                # Log mismatch if parcel differs by >50%
+                if parcel_lot > 0 and abs(parcel_lot - redfin_lot) / redfin_lot > 0.5:
+                    ratio = parcel_lot / redfin_lot
+                    l["lotSource"] = "mls"
+                    l["lotSfParcel"] = parcel_lot
+                    lot_mismatches.append((l.get("address", "?"), redfin_lot, parcel_lot, ratio))
+            elif parcel_lot > 0:
+                l["lotSf"] = parcel_lot
+                l["lotSource"] = "parcel"
+                lot_source_counts["parcel"] += 1
+            else:
+                l["lotSource"] = "none"
+                lot_source_counts["none"] += 1
+            parcel_stamped += 1
             # Override address with ArcGIS situs address when available
             # Redfin sometimes returns truncated/mangled addresses
             if p.get("situsAddress"):
@@ -494,11 +506,44 @@ if os.path.exists(PARCEL_FILE):
                 l["assessedLandValue"] = p["landValue"]
             if p.get("impValue") is not None:
                 l["assessedImpValue"] = p["impValue"]
+        else:
+            # No parcel data — keep Redfin MLS lot size
+            if l.get("lotSf"):
+                l["lotSource"] = "mls"
+                lot_source_counts["mls"] += 1
+            else:
+                l["lotSource"] = "none"
+                lot_source_counts["none"] += 1
 
-    print(f"   Lot size stamped: {parcel_stamped:,}/{len(listings):,}")
+    print(f"   Parcel records matched: {parcel_stamped:,}/{len(listings):,}")
     print(f"   Fire zone (VHFHSZ): {parcel_fire_count:,}")
+    print(f"\n   Lot Size Sources:")
+    total_l = len(listings)
+    for src, cnt in lot_source_counts.items():
+        pct = cnt / total_l * 100 if total_l else 0
+        label = {"mls": "MLS (Redfin)", "parcel": "Parcel (fallback)", "none": "None"}.get(src, src)
+        print(f"     {label}: {cnt:,} ({pct:.1f}%)")
+    # Listings without parcel data keep MLS lot or None
+    no_parcel = total_l - parcel_stamped
+    mls_only = sum(1 for l in listings if l.get("lotSource") != "mls" and l.get("lotSource") != "parcel" and l.get("lotSource") != "none" and l.get("lotSf"))
+    no_parcel_with_lot = sum(1 for l in listings if f"{l['lat']},{l['lng']}" not in parcel_data and l.get("lotSf"))
+    if no_parcel > 0:
+        print(f"     No parcel match (MLS kept): {no_parcel_with_lot:,}")
+    print(f"     Mismatches (>50%): {len(lot_mismatches):,}")
+    if lot_mismatches:
+        # Print top 10 biggest mismatches by ratio
+        lot_mismatches.sort(key=lambda x: x[3], reverse=True)
+        print(f"\n   Top {min(10, len(lot_mismatches))} lot size mismatches (MLS vs Parcel):")
+        for addr, mls, parcel, ratio in lot_mismatches[:10]:
+            print(f"     {addr}: MLS={mls:,} vs Parcel={parcel:,} ({ratio:.1f}x)")
 else:
     print(f"\n⚠️  {PARCEL_FILE} not found — run: python3 fetch_parcels.py")
+    # Tag all listings with lotSource even without parcel data
+    for l in listings:
+        if l.get("lotSf"):
+            l["lotSource"] = "mls"
+        else:
+            l["lotSource"] = "none"
 
 # ── Step 2.6: Stamp ZIMAS real zoning from zoning.json ──
 ZONING_FILE = market_file("zoning.json", market)
@@ -635,16 +680,25 @@ for l in listings:
     tenant_risk_counts[risk_level] += 1
 
     # Remainder parcel analysis (R2-R4 with structure)
+    # Strategy: keep existing building as remainder parcel, develop rest
+    # SB 1123 explicitly allows this — existing uses retained, new units on remainder
     if l.get("track") == "MF" and l.get("hasStructure") and l.get("lotSf"):
         sqft = l.get("sqft", 0) or 0
         lot_sf = l["lotSf"]
         est_stories = 1 if sqft < 1500 else 2
         est_footprint = sqft / est_stories if sqft > 0 else 0
-        remainder_sf = max(0, lot_sf - est_footprint)
-        remainder_units = min(10, int(remainder_sf / 600)) if remainder_sf >= 1200 else 0
-        l["remainderSf"] = round(remainder_sf)
+        # Driveway: 20' wide x ~100' depth for access to rear buildable area
+        driveway_sf = 2000
+        available_sf = max(0, lot_sf - est_footprint - driveway_sf)
+        # Need ~1,200 SF per townhome unit (footprint + setbacks)
+        remainder_units = min(10, int(available_sf / 1200)) if available_sf >= 1200 else 0
+        # Viable = at least 4 units feasible (enough to justify development)
+        remainder_viable = available_sf >= 6000 and remainder_units >= 4
+        l["remainderSf"] = round(available_sf)
         l["remainderUnits"] = remainder_units
+        l["remainderViable"] = remainder_viable
         l["estFootprint"] = round(est_footprint)
+        l["drivewayDeduction"] = driveway_sf
         if remainder_units > 0:
             remainder_count += 1
 
