@@ -106,3 +106,23 @@ Single Family Residential → R1    Multi-Family (2-4 Unit) → R3
 Townhouse / Condo/Co-op   → R2    Multi-Family (5+ Unit)  → R4
 Mobile/Ranch               → R1    Vacant Land / Other     → LAND
 ```
+
+## Cross-Market Mandate
+
+All code changes MUST apply to every market unless explicitly market-specific (e.g., RSO is LA-only).
+- Python scripts: Always use `get_market()` + `market_file()` from `market_config.py`
+- Frontend (index.html): Market-agnostic — serves all markets from one codebase
+- Test both `./refresh.sh` and `./refresh.sh --market sd` after pipeline changes
+- New data files: Add to `refresh.sh` git add for both prefixed and unprefixed variants
+
+## Listing Fields (stamped by listings_build.py)
+
+| Field | Type | Source | Description |
+|-------|------|--------|-------------|
+| tenantRisk | int 0-3 | Step 2.8 | Tenant risk level: 0=none, 1=low, 2=medium, 3=high |
+| tenantRiskFactors | string[] | Step 2.8 | Risk factor codes: improved, 3+beds, 5+beds, MF+struct, pre-2000, RSO |
+| rsoRisk | bool | Step 2.8 | LA RSO rent stabilization applies (LA only) |
+| rsoFactors | string[] | Step 2.8 | RSO factor codes |
+| remainderSf | int | Step 2.8 | R2-R4 remainder lot SF after existing footprint |
+| remainderUnits | int | Step 2.8 | SB 1123 units on remainder parcel |
+| estFootprint | int | Step 2.8 | Estimated existing building footprint SF |

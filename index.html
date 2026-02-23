@@ -914,6 +914,15 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
     </label>
   </div>
 
+  <!-- Tenant Risk Toggle -->
+  <div class="section" style="padding:6px 14px">
+    <label class="zone-toggle" style="margin:0">
+      <input type="checkbox" id="hideTenantRisk" onchange="toggleTenantRiskFilter(this.checked)">
+      <span class="check-box"></span>
+      <span class="zone-label" style="color:var(--orange)">Hide High Tenant Risk</span>
+    </label>
+  </div>
+
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
       <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
@@ -1153,6 +1162,8 @@ let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
+let hideTenantRisk = false;
+function toggleTenantRiskFilter(checked){ hideTenantRisk = checked; applyFilters(); }
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
@@ -1738,6 +1749,7 @@ function getFilteredListings(){
     if(sb1123Mode && !l.sb1123Eligible) return false;
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
+    if(hideTenantRisk && l.tenantRisk >= 3) return false;
     const zoneOk = !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
@@ -1830,6 +1842,9 @@ function rebuildListings(){
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
+      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
+      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-two-col">
@@ -1851,6 +1866,7 @@ function rebuildListings(){
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
+        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
       </div>
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
@@ -1865,13 +1881,14 @@ function rebuildListings(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">Due Diligence</div>
         <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
-          <span style="color:var(--green)">✓</span> R1-1 or R2+ zoning •
-          <span style="color:var(--green)">✓</span> Not Hillside Area •
-          <span style="color:var(--green)">✓</span> No Historic Overlay •
-          ${l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone' : '<span style="color:var(--green)">✓</span> Not VHFHSZ'} •
-          <span style="color:var(--yellow)">★</span> TPA = 0 parking •
-          <span style="color:var(--green)">✓</span> No rent-control
+          <span style="color:var(--green)">&#10003;</span> R1-1 or R2+ zoning •
+          <span style="color:var(--green)">&#10003;</span> Not Hillside Area •
+          <span style="color:var(--green)">&#10003;</span> No Historic Overlay •
+          ${l.burnZone ? '<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone' : '<span style="color:var(--green)">&#10003;</span> Not VHFHSZ'} •
+          <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
+          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}
         </div>
+        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
@@ -1946,21 +1963,11 @@ function buildBTRLayer(){
   // 2. btrPencils == true (YOC >= min threshold AND DSCR >= 1.25)
   // 3. Has rent data (baseRent > 0)
   // Deals that pencil for BOTH BTS (>=20%) and BTR get a badge on the BTS pin instead
-  const btrListings = LISTINGS.filter(l => {
+  const btrListings = getFilteredListings().filter(l => {
     if(!l.sb1123Eligible) return false;
     if(!(l.estRentMonth > 0 || l.fmr3br > 0)) return false;
-    const zoneOk = !l.zone || zoneState[l.zone];
-    const lotVal = l.lotSf || 0;
-    const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
-    const lotOk = lotAtDefault ? true : (lotVal >= filters.lot.min && lotVal <= filters.lot.max);
-    const slopeVal = l.slope != null ? l.slope : 0;
-    const slopeAtDefault = filters.slope.min === filters.slope.dataMin && filters.slope.max === filters.slope.dataMax;
-    const slopeOk = slopeAtDefault ? true : (slopeVal >= filters.slope.min && slopeVal <= filters.slope.max);
-    if(!zoneOk || !lotOk || !slopeOk) return false;
-
     const btrPF = calculateBTRProForma(l);
     const btsMargin = l.estMargin || 0;
-    // BTR-only: BTS doesn't pencil well (<20%) but BTR does
     return btsMargin < 20 && btrPF.btrPencils;
   });
 
@@ -1978,60 +1985,103 @@ function buildBTRLayer(){
 
     let popupHTML = `
       ${l.burnZone ? '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:4px 10px">&#128293; BURN ZONE — '+l.burnZone+' Fire (Jan 2025)</div>' : ''}
+      <div class="popup-badge" style="background:${ZONE_COLORS[l.zone]||'#666'}22;color:${ZONE_COLORS[l.zone]||'#666'}">${l.zone} — ${ZONE_LABELS[l.zone]||l.zone||'Unknown'}</div>
       ${(l.estMargin||0) <= 0
         ? '<div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">&#9670; BTR-ONLY OPPORTUNITY</div>'
         : '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">&#9670; BTR PREFERRED</div>'}
       ${l.isNew ? '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW LISTING</div>' : l.isNewThisWeek ? '<div class="popup-badge" style="background:rgba(14,165,233,0.2);color:#0ea5e9">NEW THIS WEEK</div>' : ''}
+      ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
+      ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
+      ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
+      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
+      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
+      <div class="popup-two-col">
+      <div class="popup-col-left">
       <div class="popup-grid">
         <div><div class="popup-label">List Price</div><div class="popup-value">$${l.price.toLocaleString()}</div></div>
-        <div><div class="popup-label">Max Units</div><div class="popup-value">${btr.units}</div></div>
-        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf</div></div>`:'<div></div>'}
-        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
-        ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
+        <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
+        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
+
+        ${l.lotSf?`<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${pf.lot_efficiency>=0.85?'var(--green)':pf.lot_efficiency>=0.60?'var(--yellow)':'var(--red)'};">(${(pf.lot_efficiency*100).toFixed(0)}% eff)</small></div></div>`:'<div></div>'}
         ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
-        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value">${l.dom}</div></div>`:'<div></div>'}
-        <div></div>
+        <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
+        ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
+        ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
+        ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">BUILD-TO-RENT ANALYSIS — ${btr.units} Units • $${btr.rentPerUnit.toLocaleString()}/mo/unit</div>
-      </div>
-
-      <div class="popup-grid-2">
-        <div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — ${(btr.yieldOnCost*100).toFixed(1)}% YOC</div>
-
-        <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
-        ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo${btr.hasEstRent ? '' : ` <small style="color:var(--text-dim)">(FMR × ${btr.newConPremium})</small>`}</div></div>
-        <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
-        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
-        <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
-        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ ${(btr.capRate*100).toFixed(1)}% cap</div></div>
-        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(btr.totalCost).toLocaleString()}</div></div>
-        <div><div class="popup-label">Refi (${Math.round(btr.refiLTV*100)}% LTV)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → <span style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">DSCR ${btr.dscr.toFixed(2)}</span></div></div>
-        <div><div class="popup-label">Annual Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}</div></div>
-        <div><div class="popup-label">Cash-on-Cash Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Cash-out at Refi</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+') shortfall'}</div></div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
+        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">BTS COMPARISON (for-sale doesn't pencil)</div>
-        <div><div class="popup-label">BTS Net Margin</div><div class="popup-value popup-profit-negative">${pf.margin.toFixed(1)}%</div></div>
-        <div><div class="popup-label">BTS Profit</div><div class="popup-value popup-profit-negative">$${Math.round(pf.profit).toLocaleString()}</div></div>
+        <div class="popup-section-label">Due Diligence</div>
+        <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
+          <span style="color:var(--green)">&#10003;</span> R1-1 or R2+ zoning •
+          <span style="color:var(--green)">&#10003;</span> Not Hillside Area •
+          <span style="color:var(--green)">&#10003;</span> No Historic Overlay •
+          ${l.burnZone ? '<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone' : '<span style="color:var(--green)">&#10003;</span> Not VHFHSZ'} •
+          <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
+          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}
+        </div>
+        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
-
-      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
+      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
+      </div><!-- end col-left -->
+
+      <div class="popup-col-right">
+      <div class="popup-grid-2">
+        <div class="popup-section-label">Economics</div>
+        <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
+        <div><div class="popup-label">Construction</div><div class="popup-value">$${Math.round(pf.constructionCost).toLocaleString()}</div></div>
+        ${pf.demo>0?`<div><div class="popup-label">Demo</div><div class="popup-value">$${pf.demo.toLocaleString()}</div></div>`:''}
+        ${pf.demo>0?'<div></div>':''}
+        <div><div class="popup-label">Insurance</div><div class="popup-value">$${pf.insurance.toLocaleString()}</div></div>
+        <div><div class="popup-label">Origination (${proforma.originationPct}%)</div><div class="popup-value">$${pf.originationFee.toLocaleString()}</div></div>
+        <div><div class="popup-label">Carry Interest (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryInterest.toLocaleString()}</div></div>
+        <div><div class="popup-label">Prop Tax (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryPropTax.toLocaleString()}</div></div>
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">BTS COMPARISON (for-sale doesn't pencil)</div>
+        <div><div class="popup-label">Net Revenue</div><div class="popup-value">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
+        <div><div class="popup-label">Est Profit</div><div class="popup-value popup-profit-negative">$${Math.round(pf.profit).toLocaleString()}</div></div>
+        <div><div class="popup-label">BTS Margin</div><div class="popup-value popup-profit-negative">${pf.margin.toFixed(1)}%</div></div>
+        <div></div>
+
+        <div class="popup-divider"></div>
+        <div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>
+        <div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — ${(btr.yieldOnCost*100).toFixed(1)}% YOC</div>
+
+        <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
+        ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo${btr.hasEstRent ? '' : ` <small style="color:var(--text-dim)">(FMR × ${btr.newConPremium})</small>`}</div></div>
+        <div><div class="popup-label">Gross Annual</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units}u)</small></div></div>
+        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
+        <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
+        <div><div class="popup-label">YOC</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
+        <div><div class="popup-label">Stabilized Val</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M</div></div>
+        <div><div class="popup-label">Refi</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M &#8594; <span style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x DSCR</span></div></div>
+        <div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}/yr</div></div>
+        <div><div class="popup-label">CoC Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
+        <div><div class="popup-label">Cash-out</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+')'}</div></div>
+      </div>
+      </div><!-- end col-right -->
+      </div><!-- end two-col -->
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `;
 
-    marker.bindPopup(popupHTML, {maxWidth: 580});
+    marker.bindPopup(popupHTML, {maxWidth: 750});
     marker.addTo(btrLayer);
   });
 
@@ -2326,6 +2376,9 @@ function buildOffMarketLayer(){
       </div>
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
+      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
+      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
       <div class="popup-grid">
@@ -2411,10 +2464,12 @@ function buildOffMarketLayer(){
             '<span style="color:var(--green)">✓</span> No Historic Overlay • ' +
             (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)') + ' • ' +
             '<span style="color:var(--green)">✓</span> No Specific Plan restrictions • ' +
-            '<span style="color:var(--yellow)">★</span> Transit Priority Area = 0 parking • ' +
-            '<span style="color:var(--green)">✓</span> No rent-control/Ellis Act'
-          ) : '<span style="color:var(--yellow)">⚠️</span> No ZIMAS data — zoning unverified (outside LA City)'}
+            '<span style="color:var(--yellow)">&#9733;</span> Transit Priority Area = 0 parking • ' +
+            (l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control/Ellis Act')
+          ) : '<span style="color:var(--yellow)">&#9888;&#65039;</span> No ZIMAS data — zoning unverified (outside LA City)'}
         </div>
+        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
+        ${l.remainderUnits > 0 ? '<div class="popup-span-2" style="font-size:10px;color:#3b82f6;line-height:1.4">ALT: Remainder parcel '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units (keep existing structure)</div>' : ''}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>

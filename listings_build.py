@@ -562,6 +562,96 @@ if os.path.exists(URBAN_FILE):
 else:
     print(f"\n⚠️  {URBAN_FILE} not found — run: python3 fetch_urban.py")
 
+# ── Step 2.8: Tenant risk + RSO + Remainder parcel assessment ──
+print("\n🏠 Step 2.8: Assessing tenant risk, RSO, and remainder parcels...")
+tenant_risk_counts = {0: 0, 1: 0, 2: 0, 3: 0}
+rso_count = 0
+remainder_count = 0
+
+for l in listings:
+    risk_score = 0
+    risk_factors = []
+
+    if not l.get("hasStructure"):
+        # Vacant land = no tenant risk
+        l["tenantRisk"] = 0
+        l["tenantRiskFactors"] = []
+        l["rsoRisk"] = False
+        tenant_risk_counts[0] += 1
+        continue
+
+    # Factor 1: Occupied structure (has improvement value from assessor)
+    imp_val = l.get("assessedImpValue", 0) or 0
+    if imp_val > 50000:
+        risk_score += 1
+        risk_factors.append("improved")
+
+    # Factor 2: Bedroom count (more beds = more likely occupied)
+    beds_str = l.get("beds", "")
+    beds_int = int(beds_str) if beds_str and str(beds_str).isdigit() else 0
+    if beds_int >= 5:
+        risk_score += 2
+        risk_factors.append("5+beds")
+    elif beds_int >= 3:
+        risk_score += 1
+        risk_factors.append("3+beds")
+
+    # Factor 3: Multi-family zone with structure (likely tenanted units)
+    if l.get("track") == "MF" and l.get("hasStructure"):
+        risk_score += 1
+        risk_factors.append("MF+struct")
+
+    # Factor 4: Year built suggests long-term occupancy
+    yb_str = l.get("yearBuilt", "")
+    yb_int = int(yb_str) if yb_str and str(yb_str).isdigit() else 0
+    if yb_int > 0 and yb_int < 2000:
+        risk_score += 1
+        risk_factors.append("pre-2000")
+
+    # RSO/Ellis Act assessment (LA market only)
+    if market["slug"] == "la" and l.get("hasStructure"):
+        is_pre_1978 = yb_int > 0 and yb_int < 1979
+        is_la_city = (l.get("city") or "").lower() in ("los angeles", "la", "")
+        is_multi = l.get("track") == "MF" or beds_int >= 3
+        if is_pre_1978 and is_la_city and is_multi:
+            l["rsoRisk"] = True
+            l["rsoFactors"] = []
+            if is_pre_1978:
+                l["rsoFactors"].append(f"built {yb_int}")
+            if is_multi:
+                l["rsoFactors"].append("multi-unit")
+            risk_score += 1
+            risk_factors.append("RSO")
+            rso_count += 1
+        else:
+            l["rsoRisk"] = False
+    else:
+        l["rsoRisk"] = False
+
+    # Cap at 3 (high)
+    risk_level = min(risk_score, 3)
+    l["tenantRisk"] = risk_level
+    l["tenantRiskFactors"] = risk_factors
+    tenant_risk_counts[risk_level] += 1
+
+    # Remainder parcel analysis (R2-R4 with structure)
+    if l.get("track") == "MF" and l.get("hasStructure") and l.get("lotSf"):
+        sqft = l.get("sqft", 0) or 0
+        lot_sf = l["lotSf"]
+        est_stories = 1 if sqft < 1500 else 2
+        est_footprint = sqft / est_stories if sqft > 0 else 0
+        remainder_sf = max(0, lot_sf - est_footprint)
+        remainder_units = min(10, int(remainder_sf / 600)) if remainder_sf >= 1200 else 0
+        l["remainderSf"] = round(remainder_sf)
+        l["remainderUnits"] = remainder_units
+        l["estFootprint"] = round(est_footprint)
+        if remainder_units > 0:
+            remainder_count += 1
+
+print(f"   Tenant risk — None: {tenant_risk_counts[0]:,} | Low: {tenant_risk_counts[1]:,} | Med: {tenant_risk_counts[2]:,} | High: {tenant_risk_counts[3]:,}")
+print(f"   RSO risk (LA only): {rso_count:,}")
+print(f"   Remainder parcels (R2-R4 viable): {remainder_count:,}")
+
 # ── Step 3: Fire zone check (fallback for listings not stamped from parcels.json) ──
 FIRE_ZONE_FILE = market_file("fire_zones_vhfhsz.geojson", market)
 already_stamped_fire = sum(1 for l in listings if "fireZone" in l)
