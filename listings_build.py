@@ -765,6 +765,111 @@ else:
         l["newconZoneMatch"] = None
         l["newconFlag"] = None
 
+# ── Step 4b2: Subdivision comp exit $/SF (Tier 0 — highest priority) ──
+SUBDIV_FILE = market_file("subdiv_comps.json", market)
+SUBDIV_GRID_SIZE = 0.01  # Same grid size as sale comp index
+SUBDIV_RADII = [0.007, 0.015, 0.029]  # 0.5mi, 1mi, 2mi
+SUBDIV_MIN_COMPS = 3
+
+subdiv_grid = {}   # { (row, col): [comp, ...] }
+subdiv_zone_grid = {}  # { zone: { (row, col): [comp, ...] } }
+subdiv_count = 0
+
+if os.path.exists(SUBDIV_FILE):
+    print(f"\n🏘️  Step 4b2: Loading subdivision comps from {SUBDIV_FILE}...")
+    with open(SUBDIV_FILE) as f:
+        subdiv_comps_raw = json.load(f)
+    print(f"   Loaded {len(subdiv_comps_raw):,} subdivision comps")
+
+    for sc in subdiv_comps_raw:
+        slat = sc.get("lat", 0)
+        slng = sc.get("lng", 0)
+        adj_ppsf = sc.get("adj_ppsf", 0)
+        szone = sc.get("zone", "")
+        if adj_ppsf <= 0 or slat == 0 or slng == 0:
+            continue
+
+        grow = math.floor(slat / SUBDIV_GRID_SIZE)
+        gcol = math.floor(slng / SUBDIV_GRID_SIZE)
+
+        subdiv_grid.setdefault((grow, gcol), []).append(sc)
+
+        if szone:
+            if szone not in subdiv_zone_grid:
+                subdiv_zone_grid[szone] = {}
+            subdiv_zone_grid[szone].setdefault((grow, gcol), []).append(sc)
+
+        subdiv_count += 1
+
+    print(f"   Indexed: {subdiv_count:,} comps in {len(subdiv_grid):,} grid cells")
+
+    def find_subdiv_exit_ppsf(lat, lng, zone):
+        """Find P75 of appreciation-adjusted subdivision comp $/SF."""
+        grow = math.floor(lat / SUBDIV_GRID_SIZE)
+        gcol = math.floor(lng / SUBDIV_GRID_SIZE)
+
+        def p75(vals):
+            vals.sort()
+            return round(vals[int(len(vals) * 0.75)])
+
+        def collect(grid, radius):
+            cells = int(radius / SUBDIV_GRID_SIZE) + 1
+            result = []
+            for dr in range(-cells, cells + 1):
+                for dc in range(-cells, cells + 1):
+                    for sc in grid.get((grow + dr, gcol + dc), []):
+                        if abs(sc["lat"] - lat) <= radius and abs(sc["lng"] - lng) <= radius:
+                            result.append(sc)
+            return result
+
+        # Try zone-matched first
+        zg = subdiv_zone_grid.get(zone, {})
+        for radius in SUBDIV_RADII:
+            comps = collect(zg, radius) if zg else []
+            if len(comps) >= SUBDIV_MIN_COMPS:
+                adj_vals = [c["adj_ppsf"] for c in comps]
+                avg_appr = round(sum(c.get("appr_pct", 0) for c in comps) / len(comps), 1)
+                avg_cluster = round(sum(c.get("cluster_size", 1) for c in comps) / len(comps), 1)
+                miles = round(radius * 69, 2)
+                return p75(adj_vals), len(comps), miles, avg_appr, avg_cluster
+
+        # Fall back to all-zone
+        for radius in SUBDIV_RADII:
+            comps = collect(subdiv_grid, radius)
+            if len(comps) >= SUBDIV_MIN_COMPS:
+                adj_vals = [c["adj_ppsf"] for c in comps]
+                avg_appr = round(sum(c.get("appr_pct", 0) for c in comps) / len(comps), 1)
+                avg_cluster = round(sum(c.get("cluster_size", 1) for c in comps) / len(comps), 1)
+                miles = round(radius * 69, 2)
+                return p75(adj_vals), len(comps), miles, avg_appr, avg_cluster
+
+        return None, 0, 0, 0, 0
+
+    # Stamp each listing
+    subdiv_found = 0
+    for l in listings:
+        val, count, radius_mi, avg_appr, avg_cluster = find_subdiv_exit_ppsf(
+            l["lat"], l["lng"], l["zone"]
+        )
+        if val:
+            l["subdivExitPsf"] = val
+            l["subdivCompCount"] = count
+            l["subdivCompRadius"] = radius_mi
+            l["subdivAvgAppr"] = avg_appr
+            l["subdivAvgCluster"] = avg_cluster
+            subdiv_found += 1
+
+    print(f"   Subdiv pricing used: {subdiv_found:,}/{len(listings):,} listings ({subdiv_found/len(listings)*100:.1f}%)")
+    if subdiv_found:
+        sv = sorted([l["subdivExitPsf"] for l in listings if l.get("subdivExitPsf")])
+        nc_comparable = [l.get("newconPpsf") for l in listings if l.get("subdivExitPsf") and l.get("newconPpsf")]
+        print(f"   Subdiv $/SF: median ${sv[len(sv)//2]:,}")
+        if nc_comparable:
+            nc_comparable.sort()
+            print(f"   vs New-con $/SF (where both exist): median ${nc_comparable[len(nc_comparable)//2]:,}")
+else:
+    print(f"\n⚠️  {SUBDIV_FILE} not found — run: python3 build_subdiv_comps.py")
+
 # ── Step 4c: Stamp HUD Fair Market Rents from rents.json ──
 RENTS_FILE = market_file("rents.json", market)
 if os.path.exists(RENTS_FILE):

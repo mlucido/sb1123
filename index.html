@@ -1429,6 +1429,12 @@ function getSlopeAdjBuildCost(slope,base){
 
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
+  if(l.subdivExitPsf){
+    const count = l.subdivCompCount || 0;
+    const radius = l.subdivCompRadius || '';
+    const appr = l.subdivAvgAppr ? ` (${l.subdivAvgAppr > 0 ? '+' : ''}${l.subdivAvgAppr.toFixed(1)}% adj)` : '';
+    return {psf: l.subdivExitPsf, label: `SUBDIV COMP — ${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv'};
+  }
   const exitPsf = l.newconPpsf || l.exitPsf || 0;
   if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
   if(l.newconPpsf){
@@ -1456,10 +1462,10 @@ function exitLabel(l){
 function calculateProForma(l){
   const maxUnits = getMaxUnits(l);
   const pf = proforma;
-  const valuePerSf = l.newconPpsf || l.exitPsf || 0;
+  const valuePerSf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
-  const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
+  const effective_buildable_sf = maxUnits * pf.avgUnitSf;
 
   const grossPerUnit = valuePerSf * pf.avgUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
@@ -1500,7 +1506,7 @@ function calculateProForma(l){
   const propTaxFactor = 0.011 * (pf.holdMonths / 12);
   const max_offer = (target_total_cost - build_plus_soft) / (1 + propTaxFactor);
 
-  const lot_efficiency = (l.lotSf * 1.25) > 0 ? (effective_buildable_sf / (l.lotSf * 1.25)) : 0;
+  const lot_efficiency = l.lotSf > 0 ? (effective_buildable_sf / l.lotSf) : 0;
   const return_on_cost = totalCost > 0 ? ((profit / totalCost) * 100) : 0;
 
   return {
@@ -2131,7 +2137,7 @@ function buildOffMarketLayer(){
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
-    const hood_psf = l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2142,7 +2148,7 @@ function buildOffMarketLayer(){
 
     // Calculate pro forma metrics for margin calculation
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
 
     // Margin at Offer - retail exit model
@@ -2169,7 +2175,7 @@ function buildOffMarketLayer(){
   });
 
   offMarketListings.forEach(l => {
-    const hood_psf = l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2180,7 +2186,7 @@ function buildOffMarketLayer(){
 
     // Calculate pro forma metrics
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
 
     const exit_psf = hood_psf;
@@ -2493,10 +2499,10 @@ function updateHeroStats(){
   const offMarket = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
-    const hood_psf = l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = Math.max(l.lotSf * 1.25, maxUnits * 1750);
+    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
     const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;

@@ -75,14 +75,24 @@ if [ "$QUICK" = false ]; then
   echo ""
 fi
 
+# Step 2b: Fetch ZHVI appreciation data
+echo "📈 Fetching ZHVI appreciation data..."
+python3 fetch_zhvi.py $MARKET_ARG
+echo ""
+
+# Step 2c: Build subdivision comps
+echo "🏘️ Building subdivision comps..."
+python3 build_subdiv_comps.py $MARKET_ARG
+echo ""
+
 # Step 3: Rebuild listings.js with all enrichment
-echo "🔨 Building ${PREFIX}listings.js (zone $/SF, new-con, slope, city)..."
+echo "🔨 Building ${PREFIX}listings.js (zone $/SF, new-con, subdiv, slope, city)..."
 python3 listings_build.py $MARKET_ARG
 echo ""
 
 # Step 4: Push to GitHub Pages
 echo "🚀 Pushing to GitHub Pages..."
-git add ${PREFIX}data.js ${PREFIX}listings.js ${PREFIX}slopes.json ${PREFIX}parcels.json
+git add ${PREFIX}data.js ${PREFIX}listings.js ${PREFIX}slopes.json ${PREFIX}parcels.json ${PREFIX}zhvi.json ${PREFIX}subdiv_comps.json
 git commit -m "Refresh ${MARKET_SLUG} listing data $(date +%Y-%m-%d)" --allow-empty
 git push
 echo ""
