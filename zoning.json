@@ -109033,5 +109033,443 @@
   "zoning": null,
   "category": null,
   "sb1123": null
+ },
+ "33.785099,-117.808394": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "33.86874,-117.565322": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.012252,-118.796457": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.048298,-118.541464": {
+  "zoning": "[Q]RD5-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.039786,-118.59514": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.034537,-118.51525": {
+  "zoning": "RE11-1",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.03916,-118.603619": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "33.982916,-118.465809": {
+  "zoning": "RW1-1-O",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "33.981836,-118.467821": {
+  "zoning": "RD1.5-1-O",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "33.990648,-118.453911": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "33.984715,-118.453837": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.025711,-118.487956": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.003592,-118.479709": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.015592,-118.427068": {
+  "zoning": "R1V2",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.009521,-118.458549": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.001616,-118.456497": {
+  "zoning": "[Q]RD1.5-1XL",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.054731,-118.424516": {
+  "zoning": "RD1.5-1-O",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.040712,-118.350272": {
+  "zoning": "C2-1VL-CPIO",
+  "category": "Commercial",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R4"
+ },
+ "33.98755,-118.33536": {
+  "zoning": "C2-1VL-SP",
+  "category": "Commercial",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R4"
+ },
+ "33.989979,-118.30861": {
+  "zoning": "C2-2D-CPIO",
+  "category": "Commercial",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R4"
+ },
+ "33.98003,-118.283981": {
+  "zoning": "R2-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "33.971364,-118.254223": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.045364,-118.340091": {
+  "zoning": "RD1.5-1-O",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.03496,-118.34394": {
+  "zoning": "RD2-1-O",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.043501,-118.341437": {
+  "zoning": "RD1.5-1-O",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.162831,-118.806781": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.108994,-118.696103": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.073602,-118.779845": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.095086,-118.791638": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.156647,-118.513142": {
+  "zoning": "RA-1",
+  "category": "Suburban",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.080829,-118.485225": {
+  "zoning": "RE15-1-H",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.069427,-118.475068": {
+  "zoning": "RE15-1",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.073882,-118.476223": {
+  "zoning": "RE15-1-H",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.081849,-118.447304": {
+  "zoning": "RE40-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.089596,-118.452185": {
+  "zoning": "RE40-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.09015,-118.453095": {
+  "zoning": "RE20-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.118502,-118.425693": {
+  "zoning": "RE40-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.095193,-118.443736": {
+  "zoning": "RE40-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.117903,-118.432862": {
+  "zoning": "RE20-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.084664,-118.387873": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.064569,-118.381781": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.079892,-118.370813": {
+  "zoning": "R1V3",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.082821,-118.364492": {
+  "zoning": "R1V3",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.085964,-118.387117": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.077792,-118.385514": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.091604,-118.393985": {
+  "zoning": "R1-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.103584,-118.402859": {
+  "zoning": "RE15-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.11777,-118.402353": {
+  "zoning": "RE40-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.096446,-118.393591": {
+  "zoning": "RE11-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.106808,-118.405249": {
+  "zoning": "RE15-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.11347,-118.397632": {
+  "zoning": "RE15-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.099498,-118.379187": {
+  "zoning": "R1-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.098025,-118.382537": {
+  "zoning": "RE11-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.105894,-118.38447": {
+  "zoning": "R1-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.123812,-118.404374": {
+  "zoning": "RE20-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.121233,-118.357087": {
+  "zoning": "R1-1-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.157369,-118.368611": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R3"
+ },
+ "34.113896,-118.345206": {
+  "zoning": "RE15-1-H-HCR",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.091341,-118.322037": {
+  "zoning": "[Q]C2-2D-CPIO",
+  "category": "Commercial",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R4"
+ },
+ "34.061798,-118.267178": {
+  "zoning": "R3-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R3"
+ },
+ "34.105406,-118.244017": {
+  "zoning": "[Q]CM-1XL-RIO",
+  "category": "Manufacturing",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R4"
+ },
+ "34.091478,-118.251673": {
+  "zoning": "R1-1VL",
+  "category": "Single Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R1"
+ },
+ "34.097996,-118.148871": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.073729,-118.100815": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.126817,-118.187408": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.15469,-117.999748": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.097136,-117.63648": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.238726,-118.641734": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.265872,-118.606621": {
+  "zoning": "(T)(Q)RA-1-K",
+  "category": "Suburban",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": null
+ },
+ "34.200464,-118.411721": {
+  "zoning": "RD1.5-1",
+  "category": "Multiple Family Residential",
+  "source": "City of LA (ZIMAS)",
+  "sb1123": "R2"
+ },
+ "34.40151,-118.928312": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.717866,-117.801058": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
+ },
+ "34.823517,-118.944859": {
+  "zoning": null,
+  "category": null,
+  "sb1123": null,
+  "source": null
  }
 }
