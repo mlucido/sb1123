@@ -952,6 +952,16 @@ window.CLUSTERS = window.CLUSTERS || [];
     </label>
   </div>
 
+  <!-- Structural Viability -->
+  <div class="section" style="padding:6px 14px">
+    <label class="zone-toggle" style="margin:0">
+      <input type="checkbox" id="hideUnviable" checked onchange="toggleUnviableFilter(this.checked)">
+      <span class="check-box"></span>
+      <span class="zone-label" style="color:var(--red)">Hide Unviable Deals</span>
+    </label>
+    <div id="viabilityFloor" style="font-size:10px;color:var(--text-dim);padding:4px 0 0 26px;font-family:'JetBrains Mono',monospace"></div>
+  </div>
+
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
       <button class="reset-btn" onclick="resetFilter('all')">Reset All Filters</button>
@@ -1193,6 +1203,34 @@ let newThisWeekFilter = false;
 let hideBurnZones = true;
 let hideTenantRisk = false;
 function toggleTenantRiskFilter(checked){ hideTenantRisk = checked; applyFilters(); }
+let hideUnviable = true;  // Default ON — hide deals where max_offer <= 0
+function toggleUnviableFilter(checked){ hideUnviable = checked; applyFilters(); }
+
+function computeViabilityFloor() {
+  const pf = proforma;
+  const units = 10, unitSf = pf.avgUnitSf;
+  const buildableSf = units * unitSf;
+  const construction = buildableSf * pf.allInBuildPsf;
+  const demo = pf.demoCost;
+  const totalBuild = construction + demo;
+  const avgLoan = totalBuild * 0.5;
+  const carryInterest = avgLoan * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
+  const insurance = pf.insurance || 40000;
+  const origination = totalBuild * ((pf.originationPct || 1) / 100);
+  const totalCarry = carryInterest + insurance + origination;
+  const totalNonLandCost = totalBuild + totalCarry;
+  const txnMult = 1 - pf.txnCostPct / 100;
+  const floor30 = Math.ceil((totalNonLandCost / 0.70 + pf.fixedDispositionCosts) / (units * unitSf * txnMult));
+  const floor20 = Math.ceil((totalNonLandCost / 0.80 + pf.fixedDispositionCosts) / (units * unitSf * txnMult));
+  return { floor30, floor20 };
+}
+
+function updateViabilityLabel() {
+  const floors = computeViabilityFloor();
+  const el = document.getElementById('viabilityFloor');
+  if (el) el.innerHTML = 'Min exit: <span style="color:var(--red)">$'+floors.floor30+'/SF</span> @ 30% · <span style="color:var(--yellow)">$'+floors.floor20+'/SF</span> @ 20%';
+}
+
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
 
@@ -1782,6 +1820,7 @@ function enrichListings(){
     l.buildPerUnit = pf.maxUnits > 0 ? Math.round(pf.totalBuildCost / pf.maxUnits) : 0;
     l.guaranteedFAR = pf.guaranteedFAR;
     l.buildableSf = pf.buildableSf;
+    l.maxOffer = pf.max_offer;
     l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
     l.lotEfficiency = pf.lot_efficiency ? Math.round(pf.lot_efficiency * 100) : 0; // Store as percentage
     // NEW listing detection: DOM <= 3 = NEW, DOM <= 7 = new this week
@@ -1819,6 +1858,10 @@ function getFilteredListings(){
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
     if(hideTenantRisk && l.tenantRisk >= 3) return false;
+    if(hideUnviable && (l.maxOffer || 0) <= 0) {
+      if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
+      else return false;
+    }
     const zoneOk = !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
@@ -3181,6 +3224,7 @@ function onProformaChange(){
   proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
   proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
   enrichListings();
+  updateViabilityLabel();
   // Rebuild spread heatmap since it depends on build cost
   if(spreadHeatLayer) {
     map.removeLayer(spreadHeatLayer);
@@ -3240,6 +3284,7 @@ window.addEventListener('DOMContentLoaded', function(){
     setTimeout(function(){
       // Enrich listings with deal scores
       enrichListings();
+      updateViabilityLabel();
 
       // Init filters (use comps if available, fall back to listings)
       var filterSource = COMPS.length ? COMPS : LISTINGS;
