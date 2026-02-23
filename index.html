@@ -764,7 +764,6 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <div class="section">
     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Base Map</div>
     <div class="basemap-group" style="padding:0 12px">
-      <button class="basemap-btn" data-base="dark" onclick="setBaseMap('dark')">Dark</button>
       <button class="basemap-btn active" data-base="light" onclick="setBaseMap('light')">Light</button>
       <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
     </div>
@@ -1272,7 +1271,7 @@ function setBaseMap(name){
     b.classList.toggle('active', b.dataset.base===name);
   });
   // Toggle body class for light mode adjustments
-  document.body.classList.toggle('light-mode', name==='light');
+  document.body.classList.toggle('light-mode', name==='light' || name==='satellite');
 }
 
 Object.values(markerLayers).forEach(l=>l.addTo(map));
