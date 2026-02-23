@@ -2224,9 +2224,6 @@ function buildBTRLayer(){
     marker.addTo(btrLayer);
   });
 
-  // Update BTR count in UI if toggle exists
-  const btrCountEl = document.getElementById('btrCount');
-  if (btrCountEl) btrCountEl.textContent = btrListings.length.toLocaleString();
 }
 
 // ══════════════════════════════════════════
@@ -2625,7 +2622,6 @@ function buildOffMarketLayer(){
     marker.addTo(offMarketLayer);
   });
   
-  document.getElementById('offMarketCount').textContent = offMarketListings.length.toLocaleString();
 }
 
 function refreshVisibility(){
@@ -3006,6 +3002,57 @@ function updateStats(){
   if(compCountEl) compCountEl.textContent = compFiltered.length.toLocaleString();
 
   updatePeekStats();
+  updateLayerCounts();
+}
+
+// Compute layer counts regardless of toggle state so sidebar shows what's available
+function updateLayerCounts(){
+  const filtered = getFilteredListings();
+
+  // Off-Market count — same predicate as buildOffMarketLayer()
+  let offMarketN = 0;
+  for(const l of LISTINGS){
+    if(!l.sb1123Eligible) continue;
+    if(l._onForSaleLayer) continue;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const structure_sf = l.sqft || 0;
+    const est_market_value = hood_psf * structure_sf;
+    const est_offer = est_market_value * 0.95;
+    const maxUnits = getMaxUnits(l);
+    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
+    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
+    const exit_psf = hood_psf;
+    const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
+    const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
+    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
+    const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
+    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
+    const f_insurance = proforma.insurance || 40000;
+    const f_origination = total_build * ((proforma.originationPct || 1) / 100);
+    const total_carry = carry_interest + carry_prop_tax + f_insurance + f_origination;
+    const total_cost = est_offer + total_build + total_carry;
+    const est_profit = net_revenue - total_cost;
+    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
+    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
+    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
+    const lotEff = l.lotEfficiency || 0;
+    const slope = l.slope || 0;
+    if(spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15) offMarketN++;
+  }
+  const omEl = document.getElementById('offMarketCount');
+  if(omEl) omEl.textContent = offMarketN.toLocaleString();
+
+  // BTR count — same predicate as buildBTRLayer()
+  let btrN = 0;
+  for(const l of filtered){
+    if(!l.sb1123Eligible) continue;
+    if(!(l.estRentMonth > 0 || l.fmr3br > 0)) continue;
+    const btrPF = calculateBTRProForma(l);
+    const btsMargin = l.estMargin || 0;
+    if(btsMargin < 20 && btrPF.btrPencils) btrN++;
+  }
+  const btrEl = document.getElementById('btrCount');
+  if(btrEl) btrEl.textContent = btrN.toLocaleString();
 }
 
 function updateFilterCount(){
