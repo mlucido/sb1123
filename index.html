@@ -32,6 +32,7 @@ if(!_isMob){
 document.write('<script src="'+MARKET.listingsFile+'?v=7"><\/script>');
 window.LOADED_COMPS = window.LOADED_COMPS || [];
 window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
+window.CLUSTERS = window.CLUSTERS || [];
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -742,6 +743,13 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
       <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)">
         <span class="icon" style="color:#f0641e">▪</span> Sale Price Heatmap <span class="layer-count" id="heatCount">0</span>
       </button>
+      <div id="heatmapModeToggle" style="display:none;padding:2px 12px 6px">
+        <div style="display:flex;gap:4px">
+          <button class="basemap-btn active" id="heatRaw" onclick="setHeatmapMode('raw')">Raw $/SF</button>
+          <button class="basemap-btn" id="heatNorm" onclick="setHeatmapMode('normalized')">Normalized</button>
+        </div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:3px" id="heatmapModeLabel">All sales, raw $/SF</div>
+      </div>
       <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
         <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
@@ -773,6 +781,27 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <div class="section">
     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Zoning</div>
     <div id="zoneToggles" style="padding:0 12px"></div>
+  </div>
+
+  <!-- ═══ CONDITION TIER ═══ (visible when comp layer active) -->
+  <div class="section" id="tierFilterSection" style="display:none">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Condition Tier</div>
+    <div style="padding:0 12px">
+      <label class="zone-toggle" style="margin:0 0 2px">
+        <input type="checkbox" checked onchange="tierState.t1=this.checked;updateCompPoints()">
+        <span class="check-box"></span>
+        <span class="zone-swatch" style="background:#14b8a6"></span>
+        <span class="zone-label">T1 — New / Remodel</span>
+        <span class="zone-stat" id="tierT1Count">0</span>
+      </label>
+      <label class="zone-toggle" style="margin:0">
+        <input type="checkbox" checked onchange="tierState.t2=this.checked;updateCompPoints()">
+        <span class="check-box"></span>
+        <span class="zone-swatch" style="background:#64748b"></span>
+        <span class="zone-label">T2 — Existing / As-Is</span>
+        <span class="zone-stat" id="tierT2Count">0</span>
+      </label>
+    </div>
   </div>
 
   <!-- ═══ FILTERS ═══ (expanded, but subsections collapsed) -->
@@ -1164,6 +1193,8 @@ let newThisWeekFilter = false;
 let hideBurnZones = true;
 let hideTenantRisk = false;
 function toggleTenantRiskFilter(checked){ hideTenantRisk = checked; applyFilters(); }
+const tierState = { t1: true, t2: true };
+let heatmapMode = 'raw';
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
@@ -1340,19 +1371,31 @@ function updateCompPoints(){
   const showLabels = zoom >= 15;
   // Cap markers to prevent browser freeze at mid-zoom with wide viewport
   const cap = showLabels ? 2000 : 5000;
-  const toRender = visible.length > cap ? visible.slice(0, cap) : visible;
+
+  // Filter by tier
+  const tierFiltered = visible.filter(c =>
+    (tierState.t1 && c.t === 1) || (tierState.t2 && c.t === 2) || (!c.t)
+  );
+  const toRender = tierFiltered.length > cap ? tierFiltered.slice(0, cap) : tierFiltered;
+
+  // Update tier counts
+  const t1El = document.getElementById('tierT1Count');
+  const t2El = document.getElementById('tierT2Count');
+  if(t1El) t1El.textContent = tierFiltered.filter(c => c.t === 1).length;
+  if(t2El) t2El.textContent = tierFiltered.filter(c => c.t === 2).length;
 
   toRender.forEach(c=>{
     const color = exitPsfColor(c.ppsf);
     const r = zoom >= 16 ? 6 : zoom >= 14 ? 4 : 3;
+    const isT1 = c.t === 1;
     const cm = L.circleMarker([c.lat,c.lng],{
-      radius:r, color:'rgba(255,255,255,0.3)', fillColor:color,
-      fillOpacity:0.85, weight:0.8, renderer:compCanvasRenderer,
+      radius:r, color: isT1 ? '#14b8a6' : 'rgba(255,255,255,0.3)', fillColor:color,
+      fillOpacity:0.85, weight: isT1 ? 2 : 0.8, renderer:compCanvasRenderer,
       pane:'compDotsPane'
     });
-    cm.bindPopup(`<div style="font-size:12px"><b>${c.address||'Sold Comp'}</b><br>
+    cm.bindPopup(`<div style="font-size:12px"><b>${c.address||'Sold Comp'}</b> <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;margin-left:4px;background:${isT1?'rgba(20,184,166,0.15)':'rgba(100,116,139,0.15)'};color:${isT1?'#14b8a6':'#64748b'}">${isT1?'T1 New/Remodel':'T2 Existing'}</span><br>
       <span style="font-family:monospace;font-size:14px;color:${color}">$${c.ppsf}/SF</span><br>
-      $${c.price.toLocaleString()} · ${c.sqft.toLocaleString()} sf${c.zone?' · '+c.zone:''}${c.date?' · '+c.date:''}</div>`,{maxWidth:250});
+      $${c.price.toLocaleString()} · ${c.sqft.toLocaleString()} sf${c.zone?' · '+c.zone:''}${c.date?' · '+c.date:''}${c.yb?' · Built '+c.yb:''}</div>`,{maxWidth:280});
     compPointsLayer.addLayer(cm);
 
     if(showLabels){
@@ -2607,7 +2650,13 @@ function updatePinLegend(){
   if(layerState.offMarket){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker circle"></div> Off-market target</div>';
   }
-  
+
+  // Show tier legend when comp layer is on
+  if(layerState.compHeat){
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6"></div> T1 New/Remodel</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#64748b"></div> T2 Existing</div>';
+  }
+
   legend.innerHTML = html;
   legend.style.display = html ? 'block' : 'none';
 }
@@ -2717,6 +2766,42 @@ function toggleZone(zone,enabled){
   applyFilters();
 }
 
+function setHeatmapMode(mode) {
+  heatmapMode = mode;
+  document.getElementById('heatRaw').classList.toggle('active', mode === 'raw');
+  document.getElementById('heatNorm').classList.toggle('active', mode === 'normalized');
+  document.getElementById('heatmapModeLabel').textContent =
+    mode === 'normalized' ? 'T1 (New/Remodel) at 1,750 SF' : 'All sales, raw $/SF';
+
+  if (compHeatLayer) map.removeLayer(compHeatLayer);
+
+  if (mode === 'normalized' && CLUSTERS.length > 0) {
+    const HEAT_MIN = 500, HEAT_MAX = 900;
+    const heatPts = CLUSTERS.filter(cl => cl.t1psf > 0).map(cl => {
+      const intensity = Math.max(0, Math.min(1, (cl.t1psf - HEAT_MIN) / (HEAT_MAX - HEAT_MIN)));
+      return [cl.lat, cl.lng, intensity];
+    });
+    compHeatLayer = L.heatLayer(heatPts, {
+      radius: 30, blur: 20, maxZoom: 17, max: 1.0, minOpacity: 0.25,
+      pane: 'heatmapPane',
+      gradient: { 0.0:'#3b82f6', 0.25:'#22d3ee', 0.50:'#22c55e', 0.75:'#eab308', 1.0:'#ef4444' }
+    });
+  } else {
+    const HEAT_MIN = 600, HEAT_MAX = 1000;
+    const heatPts = COMPS.filter(c => c.ppsf > 0).map(c => {
+      const intensity = Math.max(0, Math.min(1, (c.ppsf - HEAT_MIN) / (HEAT_MAX - HEAT_MIN)));
+      return [c.lat, c.lng, intensity];
+    });
+    compHeatLayer = L.heatLayer(heatPts, {
+      radius: 25, blur: 15, maxZoom: 17, max: 1.0, minOpacity: 0.25,
+      pane: 'heatmapPane',
+      gradient: { 0.0:'#3b82f6', 0.25:'#22d3ee', 0.50:'#22c55e', 0.75:'#eab308', 1.0:'#ef4444' }
+    });
+  }
+
+  if (layerState.compHeat) compHeatLayer.addTo(map);
+}
+
 function toggleLayer(layer,btn){
   // Priority 2: Make compHeat and spreadHeat mutually exclusive
   if(layer === 'compHeat' && layerState.spreadHeat){
@@ -2732,6 +2817,12 @@ function toggleLayer(layer,btn){
   
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
+  // Show/hide comp sub-controls when compHeat toggles
+  if(layer === 'compHeat' || layer === 'spreadHeat'){
+    const show = layerState.compHeat;
+    document.getElementById('heatmapModeToggle').style.display = show ? 'block' : 'none';
+    document.getElementById('tierFilterSection').style.display = show ? 'block' : 'none';
+  }
   refreshVisibility();
 }
 
@@ -3386,11 +3477,77 @@ function rebuildMobileCards(sorted) {
   });
 })();
 
-// Tap map to collapse sheet
-map.on('click', function() {
+// Tap map to collapse sheet + neighborhood pricing card
+map.on('click', function(e) {
+  // Mobile: collapse sheet first
   if (isMobile() && sheetState !== 'collapsed') {
     setSheetState('collapsed');
+    return;
   }
+
+  // Neighborhood pricing card at zoom >= 14
+  if (map.getZoom() < 14 || !CLUSTERS.length) return;
+
+  var lat = e.latlng.lat, lng = e.latlng.lng;
+  var nearest = null, minDist = Infinity;
+  CLUSTERS.forEach(function(cl) {
+    var d = Math.abs(cl.lat - lat) + Math.abs(cl.lng - lng);
+    if (d < minDist) { minDist = d; nearest = cl; }
+  });
+
+  if (!nearest || minDist > 0.01) return;
+
+  var TARGET = 1750;
+  var BUILD = proforma.allInBuildPsf || 360;
+  var UNITS = 10;
+  var MARGIN = 0.50;
+
+  var t1psf = nearest.t1psf || 0;
+  var t2psf = nearest.t2psf || 0;
+  var prem = nearest.prem || (t1psf - t2psf);
+  var premPct = t2psf > 0 ? ((t1psf / t2psf - 1) * 100).toFixed(1) : '—';
+
+  var grossRev = UNITS * t1psf * TARGET;
+  var landBudget = Math.round(grossRev * (1 - MARGIN) - (UNITS * TARGET * BUILD));
+
+  var n = nearest.n || 0;
+  var confLabel = 'Low', confColor = '#ef4444';
+  if (n >= 20) { confLabel = 'High'; confColor = '#22c55e'; }
+  else if (n >= 8) { confLabel = 'Medium'; confColor = '#eab308'; }
+
+  var fb = nearest.t1fb;
+  var fbLabel = fb === 0 ? 'Per-cell' : fb === 1 ? 'All-tier + premium' : fb === 3 ? 'Median' : '—';
+
+  var html = '<div style="min-width:300px">'
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;margin-bottom:4px">NEIGHBORHOOD PRICING</div>'
+    + '<div style="font-size:11px;color:#8b8fa3;margin-bottom:12px">' + nearest.n + ' comps · ' + fbLabel + ' · <span style="color:' + confColor + '">' + confLabel + ' confidence</span></div>'
+    + '<div style="margin-bottom:12px">'
+    + '  <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#14b8a6;padding-bottom:4px;border-bottom:2px solid #14b8a6;margin-bottom:8px">NEW / REMODEL (T1) — ' + (nearest.t1n || 0) + ' comps</div>'
+    + '  <div style="font-family:\'JetBrains Mono\',monospace">'
+    + '    <span style="font-size:20px;font-weight:700">$' + t1psf.toLocaleString() + '/SF</span>'
+    + '    <span style="font-size:14px;color:#8b8fa3"> → $' + (t1psf * TARGET).toLocaleString() + ' @ ' + TARGET.toLocaleString() + ' SF</span>'
+    + '  </div>'
+    + (nearest.t1std ? '<div style="font-size:10px;color:#8b8fa3;margin-top:2px">±$' + nearest.t1std + '/SF stdev</div>' : '')
+    + '</div>'
+    + '<div style="margin-bottom:12px">'
+    + '  <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#64748b;padding-bottom:4px;border-bottom:2px solid #64748b;margin-bottom:8px">EXISTING / AS-IS (T2) — ' + (nearest.t2n || 0) + ' comps</div>'
+    + '  <div style="font-family:\'JetBrains Mono\',monospace">'
+    + '    <span style="font-size:16px;font-weight:600;color:#8b8fa3">$' + t2psf.toLocaleString() + '/SF</span>'
+    + '    <span style="font-size:12px;color:#64748b"> → $' + (t2psf * TARGET).toLocaleString() + ' @ ' + TARGET.toLocaleString() + ' SF</span>'
+    + '  </div>'
+    + '</div>'
+    + (prem > 0 ? '<div style="background:rgba(20,184,166,0.08);border:1px solid rgba(20,184,166,0.2);border-radius:8px;padding:8px 12px;margin-bottom:12px">'
+      + '<div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:#14b8a6">+$' + prem + '/SF (+' + premPct + '%)</div>'
+      + '<div style="font-size:10px;color:#8b8fa3">Remodel premium</div>'
+      + '</div>' : '')
+    + '<div style="border-top:1px dashed #2e3140;padding-top:10px;margin-top:8px;font-size:11px;color:#8b8fa3">'
+    + '  <div style="font-weight:600;color:#60a5fa;margin-bottom:4px">SB 1123 QUICK MATH</div>'
+    + '  <div>Exit: <span style="font-family:\'JetBrains Mono\',monospace;color:#e4e6ed">$' + t1psf + '/SF × ' + TARGET.toLocaleString() + ' SF × ' + UNITS + ' units = $' + (grossRev/1000000).toFixed(2) + 'M</span></div>'
+    + '  <div>Build: <span style="font-family:\'JetBrains Mono\',monospace;color:#e4e6ed">$' + BUILD + '/SF all-in</span></div>'
+    + '  <div>Land budget (' + Math.round(MARGIN*100) + '% margin): <span style="font-family:\'JetBrains Mono\',monospace;color:' + (landBudget>0?'#22c55e':'#ef4444') + '">$' + (landBudget > 0 ? (landBudget/1000000).toFixed(2)+'M' : 'negative') + '</span></div>'
+    + '</div></div>';
+
+  L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
 });
 </script>
 </body>
