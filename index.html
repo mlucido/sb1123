@@ -327,6 +327,8 @@ window.CLUSTERS = window.CLUSTERS || [];
   .new-badge.week{background:#0ea5e9}
   .listing-marker-new{animation:newPulse 2s ease-in-out infinite}
   @keyframes newPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,0.6))}50%{filter:drop-shadow(0 0 10px rgba(34,197,94,0.9))}}
+  .marker-highlight{animation:markerPulse .5s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+  @keyframes markerPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px #fff)}50%{transform:scale(1.8);filter:drop-shadow(0 0 12px #fff)}}
 
   /* Panel toggle in sidebar */
   .panel-toggle{
@@ -3172,7 +3174,7 @@ function rebuildTable(filtered){
     const marginClass = (l.estMargin||0)>=0?'profit-pos':'profit-neg';
     const starred = isFavorite(l);
     const exitPpsf = l.newconPpsf || l.exitPsf;
-    return `<tr onclick="flyToListing(${l.lat},${l.lng})">
+    return `<tr onclick="flyToListing(${l.lat},${l.lng})" onmouseenter="highlightMarker(${l.lat},${l.lng})" onmouseleave="unhighlightMarker()">
       <td class="col-fav"><span class="fav-star ${starred?'active':''}" onclick="event.stopPropagation();toggleFavorite(${l.lat},${l.lng})">&#9733;</span></td>
       <td class="col-addr" title="${l.address}">${l.address}</td>
       <td class="col-zone"><span class="zone-pill" style="background:${zoneColor}22;color:${zoneColor}">${l.zone||'—'}</span></td>
@@ -3211,6 +3213,22 @@ function flyToListing(lat, lng){
       if(Math.abs(ll.lat-lat)<0.0001 && Math.abs(ll.lng-lng)<0.0001) layer.openPopup();
     }
   });
+}
+
+let _highlightedPath = null;
+function highlightMarker(lat, lng){
+  unhighlightMarker();
+  listingsLayer.eachLayer(layer => {
+    if(!layer.getLatLng || !layer._path) return;
+    const ll = layer.getLatLng();
+    if(Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001){
+      layer._path.classList.add('marker-highlight');
+      _highlightedPath = layer._path;
+    }
+  });
+}
+function unhighlightMarker(){
+  if(_highlightedPath){ _highlightedPath.classList.remove('marker-highlight'); _highlightedPath = null; }
 }
 
 // ══════════════════════════════════════════
