@@ -1190,9 +1190,9 @@ def find_rental_estimate(lat, lng, zipcode, safmr_3br):
             rent_p75 = round(rent_p75 * 1.20)
         return rent_p75, "rental-adj", len(comps), round(0.015 * 69, 2), med_beds
 
-    # Tier 4: ZORI zip-level × 1.40 premium (new-con townhomes = ~40% above median rent)
+    # Tier 4: ZORI zip-level × 1.15 premium (new-con townhomes = ~15% above median rent)
     if zipcode in zori_by_zip:
-        zori_rent = round(zori_by_zip[zipcode] * 1.40)
+        zori_rent = round(zori_by_zip[zipcode] * 1.15)
         return zori_rent, "zori", 0, 0, 0
 
     # Tier 5: SAFMR fallback — fmr3br × 1.25
