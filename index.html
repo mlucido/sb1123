@@ -1254,7 +1254,10 @@ function isFavorite(l){ return !!loadFavorites()[listingKey(l)]; }
 function toggleFavorite(lat,lng){
   const key=lat+','+lng, favs=loadFavorites();
   if(favs[key]) delete favs[key]; else favs[key]={starred:true,notes:'',addedAt:new Date().toISOString()};
-  saveFavorites(favs); updateFavCount(); applyFilters();
+  saveFavorites(favs); updateFavCount();
+  // Only rebuild markers when in favorites-only mode (un-star removes pin).
+  // Otherwise skip applyFilters() to keep the popup open.
+  if(favoritesOnly) applyFilters();
 }
 function saveFavNote(lat,lng,text){
   const key=lat+','+lng, favs=loadFavorites();
