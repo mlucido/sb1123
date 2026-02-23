@@ -1200,7 +1200,7 @@ const filters = {
   price:{ min:0, max:3000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:3000000 },
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
-  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:40000 },
+  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:0, defaultMax:45000 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
   margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:0, defaultMax:null },
 };
@@ -1217,9 +1217,10 @@ function toggleHighSlopeFilter(checked){ hideHighSlope = checked; applyFilters()
 let hideUnviable = true;  // Default ON — hide deals where max_offer <= 0
 function toggleUnviableFilter(checked){ hideUnviable = checked; applyFilters(); }
 
-function computeViabilityFloor() {
+function computeViabilityFloor(units) {
   const pf = proforma;
-  const units = 10, unitSf = pf.avgUnitSf;
+  if(!units) units = 6;  // Default: median unit count across eligible lots
+  const unitSf = pf.avgUnitSf;
   const buildableSf = units * unitSf;
   const construction = buildableSf * pf.allInBuildPsf;
   const demo = pf.demoCost;
@@ -1508,7 +1509,8 @@ function isSB1123Eligible(l){
   const notR1Hoa = !(l.zone === 'R1' && l.hoa > 0);
   const notHighHoa = !(l.hoa && l.hoa >= 1000);  // High HOA = shared land/CC&Rs
   const notFireZone = !l.fireZone;
-  const validLot = l.lotSf && l.lotSf >= 12000;  // Min 12K for economic viability
+  const minLot = ['R1','LAND'].includes(l.zone) ? 2400 : 1200;  // 2 units min: R1=2×1200, MF=2×600
+  const validLot = l.lotSf && l.lotSf >= minLot;
   const maxLotSf = ['R1','LAND'].includes(l.zone) ? 65340 : 217800;
   const underAcreageCap = !l.lotSf || l.lotSf <= maxLotSf;
   const inUrbanArea = l.urbanArea !== false;  // true or undefined (not yet checked) = OK

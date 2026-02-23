@@ -383,11 +383,7 @@ with open(src, encoding="utf-8", errors="replace") as f:
                 skipped_data += 1
                 continue
 
-            # Land listings may have sqft=0 — that's OK
-            if sqft <= 0 and zone != "LAND":
-                skipped_data += 1
-                continue
-
+            # sqft=0 is OK — MLS sometimes omits building SF for multi-family
             ppsf = round(price / sqft) if sqft > 0 else 0
             zipcode = str(row.get("ZIP OR POSTAL CODE", "")).strip()
             neighborhood = row.get("LOCATION", "").strip()
