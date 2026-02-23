@@ -899,7 +899,7 @@ window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
   <!-- Burn Zone Toggle -->
   <div class="section" style="padding:6px 14px" id="burnZoneSection">
     <label class="zone-toggle" style="margin:0">
-      <input type="checkbox" id="hideBurnZones" onchange="toggleBurnZoneFilter(this.checked)">
+      <input type="checkbox" id="hideBurnZones" checked onchange="toggleBurnZoneFilter(this.checked)">
       <span class="check-box"></span>
       <span class="zone-label" style="color:var(--red)">Hide Burn Zones <small>(Palisades + Eaton)</small></span>
     </label>
@@ -1143,7 +1143,7 @@ let currentSort = { key:null, dir:'desc' };
 let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
-let hideBurnZones = false;
+let hideBurnZones = true;
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
