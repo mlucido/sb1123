@@ -1436,6 +1436,64 @@ function getSlopeAdjBuildCost(slope,base){
   return base + Math.ceil((slope-5)/5)*15;
 }
 
+// Comp confidence indicator: how reliable is the exit $/SF?
+function compConfidence(l){
+  // Determine active comp source + count
+  let count = 0, method = '', radius = 0;
+  if(l.subdivExitPsf){
+    count = l.subdivCompCount || 0;
+    method = 'subdiv';
+    radius = l.subdivCompRadius || 0;
+  } else if(l.newconPpsf){
+    count = l.newconCount || 0;
+    method = l.newconFlag === 'cross-zone' ? 'newcon-xz' : 'newcon';
+    // newcon doesn't store radius, estimate from tier
+  } else if(l.exitPsf){
+    count = l.compCount || 0;
+    method = l.compMethod || 'none';
+    radius = l.compRadius || 0;
+  } else {
+    return {score: 0, label: 'No Data', color: '#ef4444', icon: '&#9711;', bar: 0};
+  }
+
+  // Score: 0-100 based on comp count + method quality
+  let score = 0;
+
+  // Count contribution (0-60 pts): 3=15, 5=25, 10=40, 20=50, 30+=60
+  if(count >= 30) score += 60;
+  else if(count >= 20) score += 50;
+  else if(count >= 10) score += 40;
+  else if(count >= 5) score += 25;
+  else if(count >= 3) score += 15;
+  else score += count * 3;
+
+  // Method quality (0-40 pts)
+  if(method === 'subdiv') score += 40;        // Best: actual subdivision sales
+  else if(method === 'newcon') score += 35;    // Great: zone-matched new construction
+  else if(method === 'newcon-xz') score += 25; // Good: cross-zone new construction
+  else if(method === 'zone') score += 30;      // Good: zone-matched all sales
+  else if(method === 'all') score += 20;       // OK: all-zone
+  else if(method === 'zone-thin') score += 15; // Weak: thin zone-matched
+  else if(method === 'all-thin') score += 10;  // Weak: thin all-zone
+  else if(method.includes('zip')) score += 8;  // Poor: zip fallback
+  else score += 5;
+
+  // Flags: penalize
+  if(l.newconFlag === 'sanity-high') score -= 10;
+  if(l.compMethod && l.compMethod.includes('thin')) score -= 10;
+
+  score = Math.max(0, Math.min(100, score));
+
+  // Map to label + color
+  let label, color, icon;
+  if(score >= 75){ label = 'High'; color = '#22c55e'; icon = '&#9679;&#9679;&#9679;'; }
+  else if(score >= 50){ label = 'Medium'; color = '#f59e0b'; icon = '&#9679;&#9679;&#9675;'; }
+  else if(score >= 25){ label = 'Low'; color = '#f97316'; icon = '&#9679;&#9675;&#9675;'; }
+  else { label = 'Very Low'; color = '#ef4444'; icon = '&#9675;&#9675;&#9675;'; }
+
+  return {score, label, color, icon, bar: Math.round(score), count, method};
+}
+
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
   if(l.subdivExitPsf){
@@ -1792,6 +1850,7 @@ function rebuildListings(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
       </div>
       <div class="popup-grid-2">
         <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
@@ -2283,6 +2342,7 @@ function buildOffMarketLayer(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
       </div>
 
       <div class="popup-grid-2">
