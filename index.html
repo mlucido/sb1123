@@ -952,6 +952,15 @@ window.CLUSTERS = window.CLUSTERS || [];
     </label>
   </div>
 
+  <!-- Steep Slope Toggle -->
+  <div class="section" style="padding:6px 14px">
+    <label class="zone-toggle" style="margin:0">
+      <input type="checkbox" id="hideHighSlope" onchange="toggleHighSlopeFilter(this.checked)">
+      <span class="check-box"></span>
+      <span class="zone-label" style="color:var(--orange)">Hide Steep Lots (score &ge; 60)</span>
+    </label>
+  </div>
+
   <!-- Structural Viability -->
   <div class="section" style="padding:6px 14px">
     <label class="zone-toggle" style="margin:0">
@@ -1203,6 +1212,8 @@ let newThisWeekFilter = false;
 let hideBurnZones = true;
 let hideTenantRisk = false;
 function toggleTenantRiskFilter(checked){ hideTenantRisk = checked; applyFilters(); }
+let hideHighSlope = false;
+function toggleHighSlopeFilter(checked){ hideHighSlope = checked; applyFilters(); }
 let hideUnviable = true;  // Default ON — hide deals where max_offer <= 0
 function toggleUnviableFilter(checked){ hideUnviable = checked; applyFilters(); }
 
@@ -1804,11 +1815,26 @@ function getZimasUrl(l){
   return 'https://zimas.lacity.org/search?address=' + encodeURIComponent(addr);
 }
 
+// Slope score badge for due diligence sections
+function slopeBadge(l){
+  if(l.slopeScore == null || l.slopeScore <= 30) return '';
+  const detail = 'Elev range: '+l.elevRange+'ft | Max slope: '+l.maxSlope+'% | Flat area: '+l.flatPct+'%';
+  if(l.slopeScore >= 76) return ' • <span style="color:var(--red)">&#10007; SEVERE SLOPE (score '+l.slopeScore+')</span><br><span style="color:var(--text-dim);font-size:9px">'+detail+'</span>';
+  if(l.slopeScore >= 51) return ' • <span style="color:var(--orange)">&#10007; STEEP TERRAIN (score '+l.slopeScore+')</span><br><span style="color:var(--text-dim);font-size:9px">'+detail+'</span>';
+  return ' • <span style="color:var(--yellow)">&#9888; Moderate slope (score '+l.slopeScore+')</span><br><span style="color:var(--text-dim);font-size:9px">'+detail+'</span>';
+}
+
 // Enrich listings with computed fields
 function enrichListings(){
   LISTINGS.forEach(l => {
     l.sb1123Eligible = isSB1123Eligible(l);
     l.maxUnits = getMaxUnits(l);
+    // Slope-adjusted unit warning (informational only — does not override pro forma)
+    if (l.flatPct != null && l.flatPct < 100 && l.lotSf) {
+      const usableFlatSf = Math.max(0, l.lotSf * (l.flatPct / 100) - 2000);
+      const slopeAdjUnits = Math.min(l.maxUnits, Math.max(1, Math.floor(usableFlatSf / 1400)));
+      if (slopeAdjUnits < l.maxUnits) l.slopeAdjUnits = slopeAdjUnits;
+    }
     const pf = calculateProForma(l);
     l.pricePerUnit = pf.pricePerUnit;
     l.estProfit = pf.profit;
@@ -1858,6 +1884,7 @@ function getFilteredListings(){
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
     if(hideTenantRisk && l.tenantRisk >= 3) return false;
+    if(hideHighSlope && l.slopeScore != null && l.slopeScore >= 60) return false;
     if(hideUnviable && (l.maxOffer || 0) <= 0) {
       if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
       else return false;
@@ -1975,7 +2002,7 @@ function rebuildListings(){
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
         ${remainderAnalysis(l)}
@@ -1998,7 +2025,7 @@ function rebuildListings(){
           <span style="color:var(--green)">&#10003;</span> No Historic Overlay •
           ${l.burnZone ? '<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone' : '<span style="color:var(--green)">&#10003;</span> Not VHFHSZ'} •
           <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
-          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}
+          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}${slopeBadge(l)}
         </div>
         ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
@@ -2126,7 +2153,7 @@ function buildBTRLayer(){
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
         ${remainderAnalysis(l)}
@@ -2139,7 +2166,7 @@ function buildBTRLayer(){
           <span style="color:var(--green)">&#10003;</span> No Historic Overlay •
           ${l.burnZone ? '<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone' : '<span style="color:var(--green)">&#10003;</span> Not VHFHSZ'} •
           <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
-          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}
+          ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}${slopeBadge(l)}
         </div>
         ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
@@ -2505,7 +2532,7 @@ function buildOffMarketLayer(){
         ${l.slope!=null?'<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</div></div>':'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
       </div>
@@ -2577,7 +2604,8 @@ function buildOffMarketLayer(){
             (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)') + ' • ' +
             '<span style="color:var(--green)">✓</span> No Specific Plan restrictions • ' +
             '<span style="color:var(--yellow)">&#9733;</span> Transit Priority Area = 0 parking • ' +
-            (l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control/Ellis Act')
+            (l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control/Ellis Act') +
+            slopeBadge(l)
           ) : '<span style="color:var(--yellow)">&#9888;&#65039;</span> No ZIMAS data — zoning unverified (outside LA City)'}
         </div>
         ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
@@ -3085,7 +3113,7 @@ function rebuildTable(filtered){
       <td class="col-ppu mono">$${(l.pricePerUnit||0).toLocaleString()}</td>
       <td class="col-profit mono ${profitClass}">$${Math.round(l.estProfit||0).toLocaleString()}</td>
       <td class="col-margin mono ${marginClass}">${(l.estMargin||0).toFixed(0)}%</td>
-      <td class="col-slope mono" style="color:${l.slope!=null?(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'):'var(--text-dim)'}">${l.slope!=null?l.slope+'%':'—'}</td>
+      <td class="col-slope mono" style="color:${l.slope!=null?(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'):'var(--text-dim)'}">${l.slope!=null?l.slope+'%':'—'}${l.slopeScore!=null?' <span style="font-size:9px;color:'+(l.slopeScore<=20?'var(--green)':l.slopeScore<=50?'var(--yellow)':l.slopeScore<=75?'var(--orange)':'var(--red)')+'">S'+l.slopeScore+'</span>':''}</td>
       <td class="col-dom mono">${l.dom!==null&&l.dom!==undefined?l.dom:'—'}</td>
       <td class="col-new">${l.isNew?'<span class="new-badge">NEW</span>':l.isNewThisWeek?'<span class="new-badge week">7d</span>':''}</td>
       <td class="col-link">${l.url?'<a class="redfin-link" href="'+l.url+'" target="_blank" onclick="event.stopPropagation()">View</a>':''}</td>

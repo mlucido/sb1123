@@ -1287,6 +1287,37 @@ if os.path.exists(SLOPE_FILE):
 else:
     print(f"\n⚠️  {SLOPE_FILE} not found — run: python3 fetch_slopes.py")
 
+# ── Step 5b: Stamp per-parcel elevation metrics from elevation_cache.json ──
+ELEV_FILE = market_file("elevation_cache.json", market)
+if os.path.exists(ELEV_FILE):
+    print(f"\n⛰️  Step 5b: Stamping per-parcel elevation metrics from {ELEV_FILE}...")
+    with open(ELEV_FILE) as f:
+        elev_data = json.load(f)
+    print(f"   Loaded {len(elev_data):,} elevation records")
+
+    elev_stamped = 0
+    for l in listings:
+        key = f"{l['lat']},{l['lng']}"
+        if key in elev_data:
+            e = elev_data[key]
+            if isinstance(e, dict) and "slopeScore" in e:
+                l["elevRange"] = e.get("elevRange")
+                l["maxSlope"] = e.get("maxSlope")
+                l["flatPct"] = e.get("flatPct")
+                l["slopeScore"] = e.get("slopeScore")
+                elev_stamped += 1
+
+    scores = [l["slopeScore"] for l in listings if l.get("slopeScore") is not None]
+    if scores:
+        flat_ct = sum(1 for s in scores if s <= 20)
+        mod_ct = sum(1 for s in scores if 21 <= s <= 50)
+        steep_ct = sum(1 for s in scores if 51 <= s <= 75)
+        severe_ct = sum(1 for s in scores if s >= 76)
+        print(f"   Stamped: {elev_stamped:,}/{len(listings):,}")
+        print(f"   Flat (0-20): {flat_ct:,} | Moderate (21-50): {mod_ct:,} | Steep (51-75): {steep_ct:,} | Severe (76+): {severe_ct:,}")
+else:
+    print(f"\n⚠️  {ELEV_FILE} not found — run: python3 fetch_elevation.py")
+
 print("\n📊 Summary:")
 zone_counts = {}
 for l in listings:
