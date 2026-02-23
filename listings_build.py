@@ -43,7 +43,7 @@ comps_file = market_file("data.js", market)
 if os.path.exists(comps_file):
     with open(comps_file, "r") as f:
         raw = f.read()
-    match = re.search(r"=\s*(\[.*\])\s*;?\s*$", raw, re.DOTALL)
+    match = re.search(r"LOADED_COMPS\s*=\s*(\[.*?\]);\s", raw, re.DOTALL)
     if match:
         comps = json.loads(match.group(1))
         print(f"   Loaded {len(comps):,} sold comps")
@@ -625,33 +625,42 @@ for l in listings:
         tenant_risk_counts[0] += 1
         continue
 
-    # Factor 1: Occupied structure (has improvement value from assessor)
-    imp_val = l.get("assessedImpValue", 0) or 0
-    if imp_val > 50000:
-        risk_score += 1
-        risk_factors.append("improved")
-
-    # Factor 2: Bedroom count (more beds = more likely occupied)
     beds_str = l.get("beds", "")
     beds_int = int(beds_str) if beds_str and str(beds_str).isdigit() else 0
-    if beds_int >= 5:
-        risk_score += 2
-        risk_factors.append("5+beds")
-    elif beds_int >= 3:
-        risk_score += 1
-        risk_factors.append("3+beds")
+    yb_str = l.get("yearBuilt", "")
+    yb_int = int(yb_str) if yb_str and str(yb_str).isdigit() else 0
+    is_sf = l.get("track") == "SF"  # R1/LAND = single-family (likely owner-occupied)
 
-    # Factor 3: Multi-family zone with structure (likely tenanted units)
-    if l.get("track") == "MF" and l.get("hasStructure"):
+    if is_sf:
+        # R1/LAND SFR: owner-occupied is the norm, tenant risk is low
+        # Only flag if 5+ beds (likely converted to rental units)
+        if beds_int >= 5:
+            risk_score += 2
+            risk_factors.append("5+beds")
+    else:
+        # MF (R2-R4): multi-family = likely tenanted
+        # Factor 1: Multi-family zone with structure
         risk_score += 1
         risk_factors.append("MF+struct")
 
-    # Factor 4: Year built suggests long-term occupancy
-    yb_str = l.get("yearBuilt", "")
-    yb_int = int(yb_str) if yb_str and str(yb_str).isdigit() else 0
-    if yb_int > 0 and yb_int < 2000:
-        risk_score += 1
-        risk_factors.append("pre-2000")
+        # Factor 2: Improvement value confirms occupied
+        imp_val = l.get("assessedImpValue", 0) or 0
+        if imp_val > 50000:
+            risk_score += 1
+            risk_factors.append("improved")
+
+        # Factor 3: Bedroom count signals more units
+        if beds_int >= 5:
+            risk_score += 1
+            risk_factors.append("5+beds")
+        elif beds_int >= 3:
+            risk_score += 1
+            risk_factors.append("3+beds")
+
+        # Factor 4: Pre-2000 = long-term tenants more likely
+        if yb_int > 0 and yb_int < 2000:
+            risk_score += 1
+            risk_factors.append("pre-2000")
 
     # RSO/Ellis Act assessment (LA market only)
     if market["slug"] == "la" and l.get("hasStructure"):
@@ -678,6 +687,7 @@ for l in listings:
     l["tenantRisk"] = risk_level
     l["tenantRiskFactors"] = risk_factors
     tenant_risk_counts[risk_level] += 1
+
 
     # Remainder parcel analysis (R2-R4 with structure)
     # Strategy: keep existing building as remainder parcel, develop rest
