@@ -894,6 +894,21 @@ window.CLUSTERS = window.CLUSTERS || [];
     </div>
   </div>
 
+  <!-- Min Units Filter -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Min Units <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range" id="minUnitsSlider" min="2" max="10" step="1" value="4" style="flex:1" oninput="onMinUnitsChange(this.value)">
+          <span id="minUnitsLabel" style="font-family:'JetBrains Mono',monospace;font-size:13px;min-width:32px;text-align:center;color:var(--accent)">4</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim);margin-top:2px"><span>2</span><span>10</span></div>
+        <button class="reset-btn" onclick="resetMinUnits()">Reset Min Units</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Structure Size -->
   <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
@@ -1216,6 +1231,9 @@ let hideHighSlope = false;
 function toggleHighSlopeFilter(checked){ hideHighSlope = checked; applyFilters(); }
 let hideUnviable = true;  // Default ON — hide deals where max_offer <= 0
 function toggleUnviableFilter(checked){ hideUnviable = checked; applyFilters(); }
+let minUnitsFilter = 4;  // Default: require at least 4 units
+function onMinUnitsChange(val){ minUnitsFilter = parseInt(val); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
+function resetMinUnits(){ minUnitsFilter = 4; document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
 
 function computeViabilityFloor(units) {
   const pf = proforma;
@@ -1890,6 +1908,7 @@ function getFilteredListings(){
     if(hideBurnZones && l.burnZone) return false;
     if(hideTenantRisk && l.tenantRisk >= 3) return false;
     if(hideHighSlope && l.slopeScore != null && l.slopeScore >= 60) return false;
+    if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
     if(hideUnviable && (l.maxOffer || 0) <= 0) {
       if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
       else return false;
@@ -3279,6 +3298,7 @@ function resetFilter(key){
   if(key==='all'){
     ['margin','price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
     newThisWeekFilter=false;
+    resetMinUnits();
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     return;
   }
