@@ -1834,8 +1834,8 @@ function calculateBTRProForma(l){
 
 // Generate ZIMAS lookup URL for LA City properties
 function getZimasUrl(l){
-  const addr = (l.address || '').split(',')[0].trim();
-  return 'https://zimas.lacity.org/search?address=' + encodeURIComponent(addr);
+  if(l.ain) return 'https://zimas.lacity.org/displayreport.aspx?apn=' + l.ain;
+  return 'https://zimas.lacity.org/';
 }
 
 // Slope score badge for due diligence sections
