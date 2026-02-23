@@ -305,6 +305,7 @@ window.CLUSTERS = window.CLUSTERS || [];
   .listings-table .col-zone{width:50px}
   .listings-table .col-price{width:95px}
   .listings-table .col-lot{width:75px}
+  .listings-table .col-lotw{width:50px;text-align:right}
   .listings-table .col-units{width:55px}
   .listings-table .col-hood{width:80px}
   .listings-table .col-sale{width:90px}
@@ -1156,6 +1157,7 @@ window.CLUSTERS = window.CLUSTERS || [];
           <th class="col-zone" data-sort="zone" onclick="sortTable('zone')">Zone <span class="sort-arrow">▲</span></th>
           <th class="col-price" data-sort="price" onclick="sortTable('price')">Price <span class="sort-arrow">▲</span></th>
           <th class="col-lot" data-sort="lotSf" onclick="sortTable('lotSf')">Lot Size <span class="sort-arrow">▲</span></th>
+          <th class="col-lotw" data-sort="lw" onclick="sortTable('lw')">Lot W <span class="sort-arrow">▲</span></th>
           <th class="col-units" data-sort="maxUnits" onclick="sortTable('maxUnits')">Units <span class="sort-arrow">▲</span></th>
           <th class="col-hood" data-sort="exitPsf" onclick="sortTable('exitPsf')">Exit $/SF <span class="sort-arrow">▲</span></th>
           <th class="col-sale" data-sort="salePerUnit" onclick="sortTable('salePerUnit')">Revenue/Unit <span class="sort-arrow">▲</span></th>
@@ -1655,7 +1657,25 @@ function exitLabel(l){
 }
 
 function calculateProForma(l){
-  const maxUnits = getMaxUnits(l);
+  const densityUnits = getMaxUnits(l);
+  let maxUnits = densityUnits;
+  let layoutMax = null, layoutNote = null;
+  if (l.lw && l.ld) {
+    const setback = 4, unitW = 20, unitD = 40;
+    const driveW = (MARKET.slug === 'sd' && densityUnits >= 9) ? 24 : 20;
+    const availW = l.lw - 2 * setback - driveW;
+    const availD = l.ld - 2 * setback;
+    let across = Math.max(0, Math.floor(availW / unitW));
+    const deep = Math.max(0, Math.floor(availD / unitD));
+    if (across === 0 && l.lw >= unitW + driveW + 2 * setback) across = 1;
+    layoutMax = across * deep;
+    if (layoutMax > 0 && layoutMax < maxUnits) {
+      layoutNote = across <= 1
+        ? "Lot width " + l.lw + "' limits to single-loaded layout"
+        : "Lot " + l.lw + "'\u00d7" + l.ld + "' fits " + across + "\u00d7" + deep + " layout";
+      maxUnits = Math.max(2, layoutMax);
+    }
+  }
   const pf = proforma;
   const valuePerSf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
@@ -1706,6 +1726,9 @@ function calculateProForma(l){
 
   return {
     maxUnits,
+    densityUnits,
+    layoutMax,
+    layoutNote,
     grossRevenue,
     netRevenue,
     acquisition,
@@ -1853,14 +1876,19 @@ function slopeBadge(l){
 function enrichListings(){
   LISTINGS.forEach(l => {
     l.sb1123Eligible = isSB1123Eligible(l);
-    l.maxUnits = getMaxUnits(l);
+    const pf = calculateProForma(l);
+    l.maxUnits = pf.maxUnits;
+    if (pf.densityUnits > pf.maxUnits) {
+      l.densityUnits = pf.densityUnits;
+      l.layoutMax = pf.layoutMax;
+      l.layoutNote = pf.layoutNote;
+    }
     // Slope-adjusted unit warning (informational only — does not override pro forma)
     if (l.flatPct != null && l.flatPct < 100 && l.lotSf) {
       const usableFlatSf = Math.max(0, l.lotSf * (l.flatPct / 100) - 2000);
       const slopeAdjUnits = Math.min(l.maxUnits, Math.max(1, Math.floor(usableFlatSf / 1400)));
       if (slopeAdjUnits < l.maxUnits) l.slopeAdjUnits = slopeAdjUnits;
     }
-    const pf = calculateProForma(l);
     l.pricePerUnit = pf.pricePerUnit;
     l.estProfit = pf.profit;
     l.estMargin = pf.margin;
@@ -2028,7 +2056,8 @@ function rebuildListings(){
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
         ${remainderAnalysis(l)}
@@ -2179,7 +2208,8 @@ function buildBTRLayer(){
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
         ${remainderAnalysis(l)}
@@ -2555,7 +2585,8 @@ function buildOffMarketLayer(){
         ${l.slope!=null?'<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</div></div>':'<div></div>'}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
+        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
         <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
       </div>
@@ -3121,6 +3152,7 @@ function rebuildZoneToggles(){
 function getSortValue(l, key){
   if(key==='fav') return isFavorite(l)?1:0;
   if(key==='isNew') return l.isNew ? 2 : l.isNewThisWeek ? 1 : 0;
+  if(key==='lw') return l.lw||0;
   if(key==='maxUnits') return l.maxUnits||1;
   if(key==='pricePerUnit') return l.pricePerUnit||Infinity;
   if(key==='salePerUnit') return l.salePerUnit||0;
@@ -3180,7 +3212,8 @@ function rebuildTable(filtered){
       <td class="col-zone"><span class="zone-pill" style="background:${zoneColor}22;color:${zoneColor}">${l.zone||'—'}</span></td>
       <td class="col-price mono">$${l.price.toLocaleString()}</td>
       <td class="col-lot mono">${l.lotSf?l.lotSf.toLocaleString():'—'}</td>
-      <td class="col-units mono" style="color:${l.maxUnits>=8?'var(--green)':l.maxUnits>=4?'var(--yellow)':'var(--text-dim)'}">${l.maxUnits}</td>
+      <td class="col-lotw mono">${l.lw?l.lw+"'":'\u2014'}</td>
+      <td class="col-units mono" style="color:${l.maxUnits>=8?'var(--green)':l.maxUnits>=4?'var(--yellow)':'var(--text-dim)'}">${l.maxUnits}${l.layoutNote?' <span style="font-size:9px;color:var(--orange)" title="'+l.layoutNote+'">&#9888;</span>':''}</td>
       <td class="col-hood mono">${exitPpsf?'$'+exitPpsf:'—'}</td>
       <td class="col-sale mono">${l.salePerUnit?'$'+(l.salePerUnit).toLocaleString():'—'}</td>
       <td class="col-ppu mono">$${(l.pricePerUnit||0).toLocaleString()}</td>
@@ -3356,11 +3389,11 @@ function onProformaChange(){
 function exportCSV(){
   const filtered = getFilteredListings();
   if(!filtered.length) return;
-  const headers = ['Fav','Address','Zone','Price','Lot SF','Units','Exit $/SF','Sale/Unit','Buy/Unit','Build/Unit','Profit','Margin %','Slope %','DOM','City','AIN','Notes','URL'];
+  const headers = ['Fav','Address','Zone','Price','Lot SF','Lot Width','Units','Exit $/SF','Sale/Unit','Buy/Unit','Build/Unit','Profit','Margin %','Slope %','DOM','City','AIN','Notes','URL'];
   const favs = loadFavorites();
   const rows = filtered.map(l=>[
     favs[listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.maxUnits, l.newconPpsf||l.exitPsf||0,
+    l.lotSf||'', l.lw||'', l.maxUnits, l.newconPpsf||l.exitPsf||0,
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',

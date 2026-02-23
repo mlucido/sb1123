@@ -29,6 +29,25 @@ from market_config import get_market, market_file, CALFIRE_LRA_URL
 MAX_WORKERS = 25
 ENVELOPE_OFFSET = 0.00002  # ~2m envelope around point for parcel query
 
+# Coordinate-to-feet conversion at ~34° latitude
+DEG_LAT_FT = 364000
+DEG_LNG_FT = 288000
+
+
+def compute_lot_dimensions(geometry):
+    """Extract lot width/depth from parcel polygon bounding box."""
+    rings = geometry.get("rings")
+    if not rings or not rings[0]:
+        return None, None
+    pts = rings[0]
+    lngs = [p[0] for p in pts]
+    lats = [p[1] for p in pts]
+    w_ft = round((max(lngs) - min(lngs)) * DEG_LNG_FT)
+    d_ft = round((max(lats) - min(lats)) * DEG_LAT_FT)
+    lot_w = min(w_ft, d_ft)  # Shorter = width
+    lot_d = max(w_ft, d_ft)  # Longer = depth
+    return (lot_w, lot_d) if lot_w >= 5 and lot_d >= 5 else (None, None)
+
 
 def query_parcel(lat, lng, market, retries=2):
     """Query parcel service with market-appropriate geometry (envelope or point)."""
@@ -48,7 +67,8 @@ def query_parcel(lat, lng, market, retries=2):
             "geometryType": "esriGeometryEnvelope",
             "spatialRel": "esriSpatialRelIntersects",
             "outFields": market.get("parcel_out_fields", "*"),
-            "returnGeometry": "false",
+            "returnGeometry": "true",
+            "outSR": 4326,
             "f": "json",
         }
     else:
@@ -57,10 +77,10 @@ def query_parcel(lat, lng, market, retries=2):
             "geometry": f"{lng},{lat}",
             "geometryType": "esriGeometryPoint",
             "inSR": market.get("parcel_in_sr", 4326),
-            "outSR": market.get("parcel_out_sr", 4326),
+            "outSR": 4326,
             "spatialRel": "esriSpatialRelIntersects",
             "outFields": market.get("parcel_out_fields", "*"),
-            "returnGeometry": "false",
+            "returnGeometry": "true",
             "f": "json",
         }
 
@@ -73,18 +93,20 @@ def query_parcel(lat, lng, market, retries=2):
                 if features:
                     if len(features) > 1:
                         # Pick smallest lot (most specific parcel) — avoids HOA/assessment overlays
-                        best = None
+                        best_feat = None
                         best_lot = None
                         for feat in features:
                             a = feat.get("attributes", {})
                             lot_raw = a.get(field_map["lot_sf"])
                             if lot_raw and lot_raw > 0:
-                                if best is None or lot_raw < best_lot:
-                                    best = a
+                                if best_feat is None or lot_raw < best_lot:
+                                    best_feat = feat
                                     best_lot = lot_raw
-                        attrs = best if best else features[0].get("attributes", {})
+                        chosen = best_feat if best_feat else features[0]
                     else:
-                        attrs = features[0].get("attributes", {})
+                        chosen = features[0]
+                    attrs = chosen.get("attributes", {})
+
                     # Map response fields using market config
                     lot_raw = attrs.get(field_map["lot_sf"])
                     multiplier = field_map.get("lot_sf_multiplier", 1)
@@ -93,12 +115,18 @@ def query_parcel(lat, lng, market, retries=2):
                     situs_field = field_map.get("situs_address")
                     situs = attrs.get(situs_field, "") if situs_field else ""
 
+                    # Extract lot dimensions from polygon geometry
+                    geom = chosen.get("geometry")
+                    lot_w, lot_d = compute_lot_dimensions(geom) if geom else (None, None)
+
                     return {
                         "lotSf": lot_sf,
                         "ain": attrs.get(field_map["ain"], ""),
                         "landValue": attrs.get(field_map["land_value"]),
                         "impValue": attrs.get(field_map["imp_value"]),
                         "situsAddress": situs,
+                        "lotWidth": lot_w,
+                        "lotDepth": lot_d,
                     }
                 return None  # No parcel found at this location
             elif resp.status_code in (429, 503):
@@ -163,6 +191,10 @@ def fetch_parcel_data(lat, lng, market):
         result["impValue"] = parcel["impValue"]
         if parcel.get("situsAddress"):
             result["situsAddress"] = parcel["situsAddress"]
+        if parcel.get("lotWidth"):
+            result["lotWidth"] = parcel["lotWidth"]
+        if parcel.get("lotDepth"):
+            result["lotDepth"] = parcel["lotDepth"]
     if fire is not None:
         result["fireZone"] = fire
 
@@ -218,7 +250,7 @@ def main():
     work = []
     for lat, lng in listings:
         key = f"{lat},{lng}"
-        if key not in existing:
+        if key not in existing or "lotWidth" not in existing[key]:
             work.append((lat, lng, key))
 
     if test_mode:
@@ -302,6 +334,19 @@ def main():
     if lots:
         lots.sort()
         print(f"  Lot SF: median {lots[len(lots)//2]:,}, min {lots[0]:,}, max {lots[-1]:,}")
+
+    # Lot width distribution
+    widths = [v["lotWidth"] for v in results.values() if v.get("lotWidth")]
+    with_dims = len(widths)
+    print(f"\n  With lot dimensions: {with_dims:,}/{len(results):,}")
+    if widths:
+        widths.sort()
+        narrow = sum(1 for w in widths if w < 40)
+        medium = sum(1 for w in widths if 40 <= w < 60)
+        wide = sum(1 for w in widths if 60 <= w < 100)
+        very_wide = sum(1 for w in widths if w >= 100)
+        print(f"  Lot width: median {widths[len(widths)//2]:,}', min {widths[0]:,}', max {widths[-1]:,}'")
+        print(f"  <40': {narrow:,} | 40-60': {medium:,} | 60-100': {wide:,} | 100'+: {very_wide:,}")
 
     print(f"\n  Written: {output_file}")
     print(f"  Next: python3 listings_build.py\n")

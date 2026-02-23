@@ -495,6 +495,11 @@ if os.path.exists(PARCEL_FILE):
                 l["fireZone"] = p["fireZone"]
                 if p["fireZone"]:
                     parcel_fire_count += 1
+            # Lot dimensions from parcel polygon geometry
+            if p.get("lotWidth"):
+                l["lw"] = p["lotWidth"]
+            if p.get("lotDepth"):
+                l["ld"] = p["lotDepth"]
             # Assessor data for popup display
             if p.get("ain"):
                 l["ain"] = p["ain"]
@@ -532,6 +537,8 @@ if os.path.exists(PARCEL_FILE):
         print(f"\n   Top {min(10, len(lot_mismatches))} lot size mismatches (MLS vs Parcel):")
         for addr, mls, parcel, ratio in lot_mismatches[:10]:
             print(f"     {addr}: MLS={mls:,} vs Parcel={parcel:,} ({ratio:.1f}x)")
+    with_dims = sum(1 for l in listings if l.get("lw"))
+    print(f"\n   With lot dimensions: {with_dims:,}/{len(listings):,}")
 else:
     print(f"\n⚠️  {PARCEL_FILE} not found — run: python3 fetch_parcels.py")
     # Tag all listings with lotSource even without parcel data
