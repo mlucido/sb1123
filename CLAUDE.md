@@ -138,3 +138,14 @@ Redfin MLS lot size is PRIMARY (listing agent sourced, most reliable). Parcel da
 | remainderViable | bool | Step 2.8 | True if available >= 6,000 SF and >= 4 units |
 | estFootprint | int | Step 2.8 | Estimated existing building footprint SF |
 | drivewayDeduction | int | Step 2.8 | Driveway access deduction (2,000 SF) |
+
+## ARV Model
+
+`build_comps.py` computes an After Repair Value model on sold comps:
+- **Tier classification**: T1 (New/Remodel) vs T2 (Existing) based on year_built + $/SF residual
+- **Size curves**: Per-grid-cell weighted linear regression (price ~ sqft) by tier
+- **Normalized $/SF**: Predicted $/SF at 1,750 SF (SB 1123 product size)
+- **Output**: `CLUSTERS` array in data.js alongside `LOADED_COMPS`
+
+Config constants at top of build_comps.py in `ARV_CONFIG` dict.
+No external dependencies (pure Python — no numpy/scipy).
