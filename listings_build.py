@@ -500,6 +500,8 @@ if os.path.exists(PARCEL_FILE):
                 l["lw"] = p["lotWidth"]
             if p.get("lotDepth"):
                 l["ld"] = p["lotDepth"]
+            if p.get("lotShape"):
+                l["lotShape"] = p["lotShape"]
             # Assessor data for popup display
             if p.get("ain"):
                 l["ain"] = p["ain"]

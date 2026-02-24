@@ -18,7 +18,7 @@ Usage:
   python3 fetch_parcels.py --market sd --test   # First 10 only
 """
 
-import csv, json, os, sys, time, re
+import csv, json, math, os, sys, time, re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
@@ -29,24 +29,89 @@ from market_config import get_market, market_file, CALFIRE_LRA_URL
 MAX_WORKERS = 25
 ENVELOPE_OFFSET = 0.00002  # ~2m envelope around point for parcel query
 
-# Coordinate-to-feet conversion at ~34° latitude
-DEG_LAT_FT = 364000
-DEG_LNG_FT = 288000
+# Coordinate-to-feet conversion
+DEG_LAT_FT = 364320  # ft per degree latitude (~111 km)
+
+
+def _deg_lng_ft(lat_deg):
+    """Feet per degree longitude at given latitude."""
+    return DEG_LAT_FT * math.cos(math.radians(lat_deg))
+
+
+def _edge_len(p1, p2, lng_ft):
+    """Distance between two [lng, lat] points in feet."""
+    dx = (p2[0] - p1[0]) * lng_ft
+    dy = (p2[1] - p1[1]) * DEG_LAT_FT
+    return math.sqrt(dx * dx + dy * dy)
+
+
+def _perp_dist(p, a, b, lng_ft):
+    """Perpendicular distance from point p to line a->b, in feet."""
+    bx = (b[0] - a[0]) * lng_ft
+    by = (b[1] - a[1]) * DEG_LAT_FT
+    px = (p[0] - a[0]) * lng_ft
+    py = (p[1] - a[1]) * DEG_LAT_FT
+    edge_len = math.sqrt(bx * bx + by * by)
+    if edge_len < 0.01:
+        return 0
+    return abs(bx * py - by * px) / edge_len
 
 
 def compute_lot_dimensions(geometry):
-    """Extract lot width/depth from parcel polygon bounding box."""
+    """Compute lot width/depth from actual polygon edge lengths.
+
+    4-vertex (rect/parallelogram): average of shorter opposite edge pair = width,
+    longer pair = depth. Shape = "rect".
+
+    5+ vertex (irregular): minimum caliper width = width (minimum perpendicular
+    distance across polygon), maximum caliper = depth. Shape = "irreg".
+
+    Returns (lot_w, lot_d, lot_shape) or (None, None, None).
+    """
     rings = geometry.get("rings")
     if not rings or not rings[0]:
-        return None, None
+        return None, None, None
     pts = rings[0]
-    lngs = [p[0] for p in pts]
-    lats = [p[1] for p in pts]
-    w_ft = round((max(lngs) - min(lngs)) * DEG_LNG_FT)
-    d_ft = round((max(lats) - min(lats)) * DEG_LAT_FT)
-    lot_w = min(w_ft, d_ft)  # Shorter = width
-    lot_d = max(w_ft, d_ft)  # Longer = depth
-    return (lot_w, lot_d) if lot_w >= 5 and lot_d >= 5 else (None, None)
+    # Remove closing vertex if duplicate of first
+    if len(pts) > 1 and pts[0][0] == pts[-1][0] and pts[0][1] == pts[-1][1]:
+        pts = pts[:-1]
+    n = len(pts)
+    if n < 3:
+        return None, None, None
+
+    # Longitude-to-ft at polygon centroid
+    avg_lat = sum(p[1] for p in pts) / n
+    lng_ft = _deg_lng_ft(avg_lat)
+
+    if n == 4:
+        # Measure actual edge lengths, pair opposite edges
+        edges = [_edge_len(pts[i], pts[(i + 1) % 4], lng_ft) for i in range(4)]
+        pair_a = (edges[0] + edges[2]) / 2  # opposite edges 0,2
+        pair_b = (edges[1] + edges[3]) / 2  # opposite edges 1,3
+        lot_w = round(min(pair_a, pair_b))
+        lot_d = round(max(pair_a, pair_b))
+        shape = "rect"
+    else:
+        # Minimum caliper width for irregular polygons
+        calipers = []
+        for i in range(n):
+            a, b = pts[i], pts[(i + 1) % n]
+            max_d = 0
+            for j in range(n):
+                if j == i or j == (i + 1) % n:
+                    continue
+                d = _perp_dist(pts[j], a, b, lng_ft)
+                if d > max_d:
+                    max_d = d
+            if max_d > 0:
+                calipers.append(max_d)
+        if not calipers:
+            return None, None, None
+        lot_w = round(min(calipers))
+        lot_d = round(max(calipers))
+        shape = "irreg"
+
+    return (lot_w, lot_d, shape) if lot_w >= 5 and lot_d >= 5 else (None, None, None)
 
 
 def query_parcel(lat, lng, market, retries=2):
@@ -117,7 +182,7 @@ def query_parcel(lat, lng, market, retries=2):
 
                     # Extract lot dimensions from polygon geometry
                     geom = chosen.get("geometry")
-                    lot_w, lot_d = compute_lot_dimensions(geom) if geom else (None, None)
+                    lot_w, lot_d, lot_shape = compute_lot_dimensions(geom) if geom else (None, None, None)
 
                     return {
                         "lotSf": lot_sf,
@@ -127,6 +192,7 @@ def query_parcel(lat, lng, market, retries=2):
                         "situsAddress": situs,
                         "lotWidth": lot_w,
                         "lotDepth": lot_d,
+                        "lotShape": lot_shape,
                     }
                 return None  # No parcel found at this location
             elif resp.status_code in (429, 503):
@@ -195,6 +261,8 @@ def fetch_parcel_data(lat, lng, market):
             result["lotWidth"] = parcel["lotWidth"]
         if parcel.get("lotDepth"):
             result["lotDepth"] = parcel["lotDepth"]
+        if parcel.get("lotShape"):
+            result["lotShape"] = parcel["lotShape"]
     if fire is not None:
         result["fireZone"] = fire
 
@@ -250,7 +318,7 @@ def main():
     work = []
     for lat, lng in listings:
         key = f"{lat},{lng}"
-        if key not in existing or "lotWidth" not in existing[key]:
+        if key not in existing or "lotWidth" not in existing[key] or "lotShape" not in existing[key]:
             work.append((lat, lng, key))
 
     if test_mode:
