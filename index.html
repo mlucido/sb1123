@@ -837,6 +837,26 @@ window.CLUSTERS = window.CLUSTERS || [];
     </div>
   </div>
 
+  <!-- Lot Size Filter -->
+  <div class="section">
+    <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotMin" step="500"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotMax" step="500"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="lotSliderFill"></div>
+          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="8000">
+          <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('lot')">Reset Lot Filter</button>
+      </div>
+    </div>
+  </div>
+
   <!-- List Price Filter -->
   <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
@@ -873,26 +893,6 @@ window.CLUSTERS = window.CLUSTERS || [];
           <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
         </div>
         <button class="reset-btn" onclick="resetFilter('psf')">Reset $/SF Filter</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lot Size Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotMin" step="500"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotMax" step="500"></div>
-        </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="lotSliderFill"></div>
-          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="8000">
-          <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('lot')">Reset Lot Filter</button>
       </div>
     </div>
   </div>
