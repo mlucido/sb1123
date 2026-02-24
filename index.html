@@ -857,6 +857,26 @@ window.CLUSTERS = window.CLUSTERS || [];
     </div>
   </div>
 
+  <!-- Lot Width Filter -->
+  <div class="section collapsed">
+    <div class="section-title" onclick="toggleSection(this)">Lot Width <span class="chevron">▼</span></div>
+    <div class="section-content">
+      <div class="range-filter">
+        <div class="range-inputs">
+          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
+          <span class="separator">—</span>
+          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="lotwSliderFill"></div>
+          <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
+          <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
+        </div>
+        <button class="reset-btn" onclick="resetFilter('lotw')">Reset Lot Width</button>
+      </div>
+    </div>
+  </div>
+
   <!-- List Price Filter -->
   <div class="section collapsed">
     <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
@@ -1220,6 +1240,7 @@ const filters = {
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
   lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:8000, defaultMax:45000 },
+  lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:200 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
   margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:null },
 };
@@ -1760,8 +1781,9 @@ function lotLabel(l, effPct){
   const src = l.lotSource === 'parcel' ? 'Parcel' : 'MLS';
   const srcColor = l.lotSfParcel ? 'var(--orange)' : 'var(--text-dim)';
   const mismatch = l.lotSfParcel ? ` <small style="color:var(--orange)">&#9888; Parcel: ${l.lotSfParcel.toLocaleString()}</small>` : '';
+  const dims = l.lw && l.ld ? ` <small style="color:var(--text-dim)">${l.lw}'\u00d7${l.ld}'</small>` : '';
   const eff = effPct != null ? ` <small style="color:${effPct>=85?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)'}">(${effPct}% eff)</small>` : '';
-  return `<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${srcColor}">(${src})</small>${mismatch}${eff}</div></div>`;
+  return `<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${srcColor}">(${src})</small>${dims}${mismatch}${eff}</div></div>`;
 }
 
 // Remainder parcel analysis section for R2-R4
@@ -1951,13 +1973,16 @@ function getFilteredListings(){
     const lotVal = l.lotSf || 0;
     const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
     const lotOk = lotAtDefault ? true : (lotVal >= filters.lot.min && lotVal <= filters.lot.max);
+    const lotwVal = l.lw || 0;
+    const lotwAtDefault = filters.lotw.min === filters.lotw.dataMin && filters.lotw.max === filters.lotw.dataMax;
+    const lotwOk = lotwAtDefault ? true : (lotwVal === 0 ? true : (lotwVal >= filters.lotw.min && lotwVal <= filters.lotw.max));
     const slopeVal = l.slope != null ? l.slope : 0;
     const slopeAtDefault = filters.slope.min === filters.slope.dataMin && filters.slope.max === filters.slope.dataMax;
     const slopeOk = slopeAtDefault ? true : (slopeVal >= filters.slope.min && slopeVal <= filters.slope.max);
     const marginVal = l.estMargin || 0;
     const marginAtDefault = filters.margin.min === filters.margin.dataMin && filters.margin.max === filters.margin.dataMax;
     const marginOk = marginAtDefault ? true : (marginVal >= filters.margin.min && marginVal <= filters.margin.max);
-    return zoneOk && priceOk && psfOk && sqftOk && lotOk && slopeOk && marginOk;
+    return zoneOk && priceOk && psfOk && sqftOk && lotOk && lotwOk && slopeOk && marginOk;
   });
 }
 
@@ -3347,7 +3372,7 @@ function applyFilters(){
 
 function resetFilter(key){
   if(key==='all'){
-    ['margin','price','psf','sqft','lot','slope'].forEach(k=>resetFilter(k));
+    ['margin','price','psf','sqft','lot','lotw','slope'].forEach(k=>resetFilter(k));
     newThisWeekFilter=false;
     resetMinUnits();
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
@@ -3444,6 +3469,8 @@ window.addEventListener('DOMContentLoaded', function(){
       initRangeFilter('sqft', c=>c.sqft, filterSource);
       const lotsWithData = LISTINGS.filter(l=>l.lotSf&&l.lotSf>0);
       if(lotsWithData.length) initRangeFilter('lot', l=>l.lotSf||0, lotsWithData);
+      const withLotW = LISTINGS.filter(l=>l.lw&&l.lw>0);
+      if(withLotW.length) initRangeFilter('lotw', l=>l.lw||0, withLotW);
       const withSlope = LISTINGS.filter(l=>l.slope!=null);
       if(withSlope.length) initRangeFilter('slope', l=>l.slope!=null?l.slope:0, withSlope);
       const withMargin = LISTINGS.filter(l=>l.estMargin!=null);

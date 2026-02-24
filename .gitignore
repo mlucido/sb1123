@@ -16,6 +16,13 @@ tiger_urban/
 
 # Local backup (pre-commit hook)
 index.html.backup
+*.backup-*
+
+# Logs
+*.log
+
+# Render images
+22651-*
 
 # Binary caches
 *.xlsx
