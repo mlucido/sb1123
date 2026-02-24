@@ -57,14 +57,15 @@ def _perp_dist(p, a, b, lng_ft):
     return abs(bx * py - by * px) / edge_len
 
 
-def compute_lot_dimensions(geometry):
-    """Compute lot width/depth from actual polygon edge lengths.
+def compute_lot_dimensions(geometry, lot_sf=None):
+    """Compute lot width from polygon edges, depth from area / width.
 
-    4-vertex (rect/parallelogram): average of shorter opposite edge pair = width,
-    longer pair = depth. Shape = "rect".
+    Width is measured from actual polygon geometry:
+      4-vertex: average of shorter opposite edge pair. Shape = "rect".
+      5+ vertex: minimum caliper width. Shape = "irreg".
 
-    5+ vertex (irregular): minimum caliper width = width (minimum perpendicular
-    distance across polygon), maximum caliper = depth. Shape = "irreg".
+    Depth is always derived as lotSf / width for consistency with actual
+    lot area (polygon-measured depth overstates for irregular/rotated lots).
 
     Returns (lot_w, lot_d, lot_shape) or (None, None, None).
     """
@@ -89,7 +90,6 @@ def compute_lot_dimensions(geometry):
         pair_a = (edges[0] + edges[2]) / 2  # opposite edges 0,2
         pair_b = (edges[1] + edges[3]) / 2  # opposite edges 1,3
         lot_w = round(min(pair_a, pair_b))
-        lot_d = round(max(pair_a, pair_b))
         shape = "rect"
     else:
         # Minimum caliper width for irregular polygons
@@ -108,10 +108,18 @@ def compute_lot_dimensions(geometry):
         if not calipers:
             return None, None, None
         lot_w = round(min(calipers))
-        lot_d = round(max(calipers))
         shape = "irreg"
 
-    return (lot_w, lot_d, shape) if lot_w >= 5 and lot_d >= 5 else (None, None, None)
+    if lot_w < 5:
+        return None, None, None
+
+    # Depth = area / width (effective rectangular depth)
+    lot_d = round(lot_sf / lot_w) if lot_sf and lot_w > 0 else None
+
+    if lot_d is not None and lot_d < 5:
+        return None, None, None
+
+    return (lot_w, lot_d, shape)
 
 
 def query_parcel(lat, lng, market, retries=2):
@@ -182,7 +190,7 @@ def query_parcel(lat, lng, market, retries=2):
 
                     # Extract lot dimensions from polygon geometry
                     geom = chosen.get("geometry")
-                    lot_w, lot_d, lot_shape = compute_lot_dimensions(geom) if geom else (None, None, None)
+                    lot_w, lot_d, lot_shape = compute_lot_dimensions(geom, lot_sf) if geom else (None, None, None)
 
                     return {
                         "lotSf": lot_sf,

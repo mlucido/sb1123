@@ -498,8 +498,12 @@ if os.path.exists(PARCEL_FILE):
             # Lot dimensions from parcel polygon geometry
             if p.get("lotWidth"):
                 l["lw"] = p["lotWidth"]
-            if p.get("lotDepth"):
-                l["ld"] = p["lotDepth"]
+                # Depth = lotSf / width (effective rectangular depth)
+                final_lot = l.get("lotSf") or p.get("lotSf")
+                if final_lot and final_lot > 0:
+                    l["ld"] = round(final_lot / p["lotWidth"])
+                elif p.get("lotDepth"):
+                    l["ld"] = p["lotDepth"]
             if p.get("lotShape"):
                 l["lotShape"] = p["lotShape"]
             # Assessor data for popup display
