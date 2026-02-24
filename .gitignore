@@ -17,6 +17,16 @@ tiger_urban/
 # Local backup (pre-commit hook)
 index.html.backup
 
+# Binary caches
+*.xlsx
+
+# Symlinks and workspace refs
+sb1123
+
+# Docs/specs (not needed for web app)
+MARKET_EXPANSION_RUBRIC.md
+REFACTOR_SPEC.md
+
 # OS files
 .DS_Store
 .claude/
