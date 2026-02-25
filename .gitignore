@@ -34,6 +34,9 @@ sb1123
 MARKET_EXPANSION_RUBRIC.md
 REFACTOR_SPEC.md
 
+# Stale duplicates
+data_sd.js
+
 # OS files
 .DS_Store
 .claude/

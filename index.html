@@ -1578,13 +1578,6 @@ function getMaxUnits(l){
   return Math.min(10, Math.max(1, byLot));  // SB 1123 caps at 10
 }
 
-function getGuaranteedFAR(units){
-  // SB 1123 guaranteed FAR minimums
-  if(units >= 8) return 1.25;
-  if(units >= 3) return 1.0;
-  return 0.5;  // Below 3 units, use base zoning
-}
-
 function getSlopeAdjBuildCost(slope,base){
   // base = all-in $/SF; add $15/SF per 5% slope above 5%
   if(!slope||slope<=5) return base;
@@ -1647,6 +1640,31 @@ function compConfidence(l){
   else { label = 'Very Low'; color = '#ef4444'; icon = '&#9675;&#9675;&#9675;'; }
 
   return {score, label, color, icon, bar: Math.round(score), count, method};
+}
+
+// ── Pro Forma Block (shared across all 3 pin card templates) ──
+function proFormaBlock(l, pf, opts){
+  opts = opts || {};
+  const buyLabel = opts.buyLabel || 'Buy/Unit';
+  const buyPerUnit = opts.buyPerUnit != null ? opts.buyPerUnit : pf.pricePerUnit;
+  const comparePrice = opts.comparePrice != null ? opts.comparePrice : l.price;
+  const cc = compConfidence(l);
+  const el = exitLabel(l);
+  const lbColor = pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)';
+  const moColor = pf.max_offer>=comparePrice?'var(--green)':'var(--red)';
+  let h = '<div class="popup-divider"></div>';
+  h += '<div class="popup-section-label">PRO FORMA &mdash; '+pf.maxUnits+' UNITS';
+  if(l.layoutNote) h += ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>';
+  else if(l.slopeAdjUnits) h += ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>';
+  h += ' &bull; '+pf.effective_buildable_sf.toLocaleString()+' SF</div>';
+  if(l.layoutNote) h += '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>';
+  h += '<div class="popup-span-2" style="font-size:10px;color:'+el.color+';line-height:1.4">EXIT $'+el.psf+'/SF &mdash; '+el.label+'</div>';
+  h += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><span style="color:'+cc.color+';letter-spacing:2px">'+cc.icon+'</span> <span style="color:'+cc.color+';font-weight:600">'+cc.label+'</span> <span style="color:var(--text-dim)">(score '+cc.bar+')</span> &mdash; <a href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+cc.count+' comps &#8599;</a></div>';
+  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b>$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b>$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
+  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b>'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
+  h += '<div class="popup-span-2" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: $'+pf.max_offer.toLocaleString()+'</div>';
+  h += remainderAnalysis(l);
+  return h;
 }
 
 // ── View Comps ──
@@ -1793,8 +1811,8 @@ function showCompsTable(lat,lng){
   header.innerHTML = `
     <button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
     <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; ${sourceLabel}</div>
-      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.address} &bull; ${used.length} used within ${radius.toFixed(1)}mi${ref.length?' + '+ref.length+' reference':''}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; ${l.address}</div>
+      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sourceLabel} &bull; ${used.length} used / ${used.length+ref.length} nearby within ${radius.toFixed(1)}mi</div>
     </div>
     <button class="listings-panel-close" onclick="hideCompsTable()">x</button>
   `;
@@ -2165,7 +2183,6 @@ function enrichListings(){
     l.totalBuildCost = pf.totalBuildCost;
     l.salePerUnit = pf.maxUnits > 0 ? Math.round(pf.netRevenue / pf.maxUnits) : 0;
     l.buildPerUnit = pf.maxUnits > 0 ? Math.round(pf.totalBuildCost / pf.maxUnits) : 0;
-    l.guaranteedFAR = pf.guaranteedFAR;
     l.buildableSf = pf.buildableSf;
     l.maxOffer = pf.max_offer;
     l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
@@ -2326,23 +2343,9 @@ function rebuildListings(){
         ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
-        <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
-        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
-        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
-        ${remainderAnalysis(l)}
+        ${proFormaBlock(l, pf)}
       </div>
       <div class="popup-grid-2">
-        <div><div class="popup-label">Buy / Unit</div><div class="popup-value">$${pf.pricePerUnit.toLocaleString()}</div></div>
-        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(pf.totalCost).toLocaleString()}</div></div>
-        <div><div class="popup-label">Land Basis</div><div class="popup-value" style="color:${pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)'}">$${pf.land_basis_psf}/sf</div></div>
-        <div><div class="popup-label">Buildable SF</div><div class="popup-value">${pf.effective_buildable_sf.toLocaleString()} sf</div></div>
-
-        <div class="popup-divider"></div>
-        <div class="popup-span-2" style="font-size:11px;font-weight:600;color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">Max Offer @ 30%: $${pf.max_offer.toLocaleString()}</div>
-        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${pf.max_offer>=l.price?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${pf.max_offer>=l.price?'var(--green)':'var(--red)'}">${pf.max_offer>=l.price?'&#9989; $'+Math.round((pf.max_offer-l.price)/1000).toLocaleString()+'k below max':'&#10060; $'+Math.round((l.price-pf.max_offer)/1000).toLocaleString()+'k above max'}</div>
-
         <div class="popup-divider"></div>
         <div class="popup-section-label">Due Diligence</div>
         <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
@@ -2478,12 +2481,7 @@ function buildBTRLayer(){
         ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
         ${l.beds?`<div><div class="popup-label">Beds/Baths</div><div class="popup-value">${l.beds}/${l.baths}</div></div>`:'<div></div>'}
 
-        <div class="popup-divider"></div>
-        <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
-        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
-        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
-        ${remainderAnalysis(l)}
+        ${proFormaBlock(l, pf)}
 
         <div class="popup-divider"></div>
         <div class="popup-section-label">Due Diligence</div>
@@ -2855,25 +2853,10 @@ function buildOffMarketLayer(){
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?' <small style="color:var(--text-dim)">'+l.zimasZone+'</small>':''}</div></div>
         ${l.slope!=null?'<div><div class="popup-label">Terrain Slope</div><div class="popup-value" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</div></div>':'<div></div>'}
 
-        <div class="popup-divider"></div>
-        <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
-        ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
-        <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
+        ${proFormaBlock(l, pf, {buyLabel:'Est. Offer/Unit', buyPerUnit:Math.round(est_offer/pf.maxUnits), comparePrice:Math.round(est_offer)})}
       </div>
 
       <div class="popup-grid-2">
-        <div><div class="popup-label">Est. Offer / Unit</div><div class="popup-value">$${Math.round(est_offer / pf.maxUnits).toLocaleString()}</div></div>
-        <div><div class="popup-label">Total Cost</div><div class="popup-value">$${Math.round(pf.totalCost).toLocaleString()}</div></div>
-
-        <div><div class="popup-label">Land Basis / Product SF</div><div class="popup-value" style="color:${pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)'}">$${pf.land_basis_psf}/sf</div></div>
-        <div><div class="popup-label">Effective Buildable SF</div><div class="popup-value">${pf.effective_buildable_sf.toLocaleString()} sf</div></div>
-
-        <div class="popup-divider"></div>
-        <div class="popup-span-2" style="font-size:11px;font-weight:600;color:${pf.max_offer>=est_offer?'var(--green)':'var(--red)'}">Max Offer @ 30% Margin: $${pf.max_offer.toLocaleString()}</div>
-        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${pf.max_offer>=est_offer?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${pf.max_offer>=est_offer?'var(--green)':'var(--red)'}">${pf.max_offer>=est_offer?'&#9989; Est. offer is $'+Math.round((pf.max_offer-est_offer)/1000).toLocaleString()+'k below max offer':'&#10060; Est. offer is $'+Math.round((est_offer-pf.max_offer)/1000).toLocaleString()+'k above max offer'}</div>
-
-        <div class="popup-divider"></div>
         <div class="popup-section-label">Economics (at Est. Offer $${Math.round(est_offer).toLocaleString()})</div>
 
         <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope adj)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
@@ -3335,13 +3318,10 @@ function updateStats(){
 
 // Compute layer counts regardless of toggle state so sidebar shows what's available
 function updateLayerCounts(){
-  const filtered = getFilteredListings();
-
-  // Off-Market count — same predicate as buildOffMarketLayer()
+  // Off-Market count — same predicate as buildOffMarketLayer() but without _onForSaleLayer gate
   let offMarketN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    if(l._onForSaleLayer) continue;
     const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const est_market_value = hood_psf * structure_sf;
@@ -3370,9 +3350,9 @@ function updateLayerCounts(){
   const omEl = document.getElementById('offMarketCount');
   if(omEl) omEl.textContent = offMarketN.toLocaleString();
 
-  // BTR count — same predicate as buildBTRLayer()
+  // BTR count — same predicate as buildBTRLayer() but over all LISTINGS
   let btrN = 0;
-  for(const l of filtered){
+  for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
     if(!(l.estRentMonth > 0 || l.fmr3br > 0)) continue;
     const btrPF = calculateBTRProForma(l);
