@@ -3632,6 +3632,7 @@ function initDrawControl(){
   const container = L.DomUtil.create('div','draw-control');
   container.innerHTML = `
     <button class="draw-btn" id="drawBtn" title="Draw area to filter">&#9998;</button>
+    <button class="draw-btn" id="drawDoneBtn" title="Close polygon" style="display:none;font-size:11px;font-weight:700">Done</button>
     <button class="draw-clear-btn" id="drawClearBtn" title="Clear drawn area">&#10005;</button>
   `;
   document.getElementById('map').appendChild(container);
@@ -3639,11 +3640,12 @@ function initDrawControl(){
   L.DomEvent.disableScrollPropagation(container);
 
   document.getElementById('drawBtn').addEventListener('click', toggleDrawMode);
+  document.getElementById('drawDoneBtn').addEventListener('click', function(){ finishPolygon(); });
   document.getElementById('drawClearBtn').addEventListener('click', clearDrawPolygon);
 }
 
 function toggleDrawMode(){
-  if(drawMode) cancelDrawMode();
+  if(drawMode) stopDrawMode();
   else startDrawMode();
 }
 
@@ -3651,8 +3653,8 @@ function startDrawMode(){
   drawMode = true;
   drawVertices = [];
   document.getElementById('drawBtn').classList.add('active');
+  document.getElementById('drawDoneBtn').style.display = 'none';
   map.getContainer().classList.add('draw-mode');
-  // Disable map click handlers temporarily
   map._drawClickHandler = onDrawClick;
   map._drawMoveHandler = onDrawMouseMove;
   map._drawDblClickHandler = onDrawDoubleClick;
@@ -3664,30 +3666,35 @@ function startDrawMode(){
   map.doubleClickZoom.disable();
 }
 
-function cancelDrawMode(){
+function stopDrawMode(){
   drawMode = false;
-  drawVertices = [];
   document.getElementById('drawBtn').classList.remove('active');
+  document.getElementById('drawDoneBtn').style.display = 'none';
   map.getContainer().classList.remove('draw-mode');
   if(drawPreviewLine){ map.removeLayer(drawPreviewLine); drawPreviewLine = null; }
-  map.off('click', map._drawClickHandler);
-  map.off('mousemove', map._drawMoveHandler);
-  map.off('dblclick', map._drawDblClickHandler);
-  document.removeEventListener('keydown', map._drawKeyHandler);
+  if(map._drawClickHandler) map.off('click', map._drawClickHandler);
+  if(map._drawMoveHandler) map.off('mousemove', map._drawMoveHandler);
+  if(map._drawDblClickHandler) map.off('dblclick', map._drawDblClickHandler);
+  if(map._drawKeyHandler) document.removeEventListener('keydown', map._drawKeyHandler);
   map.doubleClickZoom.enable();
 }
 
 function onDrawClick(e){
   if(!drawMode) return;
-  drawVertices.push([e.latlng.lat, e.latlng.lng]);
-  updateDrawPreview();
-  // Close polygon if clicking near first vertex (within 8px)
+  // If we already have 3+ vertices, check snap-to-first (close polygon)
   if(drawVertices.length >= 3){
     const first = map.latLngToContainerPoint(L.latLng(drawVertices[0]));
     const click = map.latLngToContainerPoint(e.latlng);
-    if(first.distanceTo(click) < 15){
+    if(first.distanceTo(click) < 20){
       finishPolygon();
+      return;
     }
+  }
+  drawVertices.push([e.latlng.lat, e.latlng.lng]);
+  updateDrawPreview();
+  // Show Done button once we have enough vertices
+  if(drawVertices.length >= 3){
+    document.getElementById('drawDoneBtn').style.display = 'flex';
   }
 }
 
@@ -3697,16 +3704,18 @@ function onDrawMouseMove(e){
 }
 
 function onDrawDoubleClick(e){
-  if(!drawMode || drawVertices.length < 3) return;
+  if(!drawMode) return;
   L.DomEvent.stop(e);
-  finishPolygon();
+  // Double-click fires two click events first, adding 2 duplicate vertices.
+  // Pop the extras so we keep the intended shape.
+  if(drawVertices.length > 2) drawVertices.pop();
+  if(drawVertices.length > 2) drawVertices.pop();
+  if(drawVertices.length >= 3) finishPolygon();
 }
 
 function onDrawKeyDown(e){
-  if(e.key === 'Escape'){
-    if(drawVertices.length > 0){ cancelDrawMode(); }
-    else { cancelDrawMode(); }
-  }
+  if(e.key === 'Escape') stopDrawMode();
+  if(e.key === 'Enter' && drawVertices.length >= 3) finishPolygon();
 }
 
 function updateDrawPreview(mouseLatLng){
@@ -3714,25 +3723,27 @@ function updateDrawPreview(mouseLatLng){
   if(drawVertices.length === 0) return;
   const pts = drawVertices.map(v => L.latLng(v[0], v[1]));
   if(mouseLatLng) pts.push(mouseLatLng);
-  // Close the preview shape
   if(pts.length >= 2) pts.push(pts[0]);
   drawPreviewLine = L.polyline(pts, {color:'#2563eb',weight:2,dashArray:'6,6',fillOpacity:0}).addTo(map);
 }
 
 function finishPolygon(){
-  cancelDrawMode();
-  if(drawVertices.length < 3) return;
+  // Save vertices before stopping draw mode (which doesn't touch drawVertices)
+  const verts = drawVertices.slice();
+  stopDrawMode();
+  if(verts.length < 3) return;
   // Remove old polygon
   if(drawPolygonLayer){ map.removeLayer(drawPolygonLayer); }
   // Create Leaflet polygon
-  drawPolygonLayer = L.polygon(drawVertices, {
+  drawPolygonLayer = L.polygon(verts, {
     color:'#2563eb', weight:2, fillColor:'#2563eb', fillOpacity:0.1,
     interactive:false
   }).addTo(map);
   // Create turf GeoJSON (turf uses [lng, lat])
-  const coords = drawVertices.map(v => [v[1], v[0]]);
+  const coords = verts.map(v => [v[1], v[0]]);
   coords.push(coords[0]); // Close ring
   drawPolygonGeoJSON = turf.polygon([coords]);
+  drawVertices = [];
   // Show clear button
   document.getElementById('drawClearBtn').classList.add('visible');
   // Re-apply filters with polygon
@@ -3745,6 +3756,7 @@ function clearDrawPolygon(){
   drawVertices = [];
   document.getElementById('drawClearBtn').classList.remove('visible');
   document.getElementById('drawBtn').classList.remove('active');
+  document.getElementById('drawDoneBtn').style.display = 'none';
   applyFilters();
 }
 
