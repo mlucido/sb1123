@@ -2097,10 +2097,18 @@ function calcTwoSidedLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densi
 }
 
 function findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap){
-  var candidates = [0, setback, lw - driveW, lw - driveW - setback, Math.round((lw - driveW) / 2)];
-  var best = setback, bestUnits = 0;
+  // Default auto-layout: keep driveway between setbacks so nothing bleeds
+  var minX = setback, maxX = Math.max(setback, lw - driveW - setback);
+  // Candidates: flush to each setback, centered, and unit-aligned positions
+  var candidates = [minX, maxX, Math.round((lw - driveW) / 2)];
+  // Add unit-aligned positions (driveway flush after N left units)
+  for(var n = 1; n <= 4; n++){
+    var aligned = setback + n * unitW;
+    if(aligned >= minX && aligned + driveW <= lw - setback) candidates.push(aligned);
+  }
+  var best = minX, bestUnits = 0;
   for(var i = 0; i < candidates.length; i++){
-    var x = Math.max(0, Math.min(lw - driveW, Math.round(candidates[i])));
+    var x = Math.max(minX, Math.min(maxX, Math.round(candidates[i])));
     var r = calcTwoSidedLayout(lw, ld, x, driveW, setback, unitW, unitD, densityCap);
     if(r.capped > bestUnits || (r.capped === bestUnits && x < best)){
       bestUnits = r.capped;
