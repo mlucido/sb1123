@@ -6,7 +6,10 @@
 <title>SB 1123 Deal Finder — LA County</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
@@ -661,6 +664,20 @@ window.CLUSTERS = window.CLUSTERS || [];
     background:var(--surface2);border:1px solid var(--border);
   }
   .gear-icon:hover{color:var(--text);background:var(--surface);border-color:var(--accent)}
+
+  /* ── Polygon Draw Control ── */
+  .draw-control{position:absolute;top:90px;right:10px;z-index:1000;display:flex;flex-direction:column;gap:4px}
+  .draw-btn,.draw-clear-btn{
+    width:34px;height:34px;border-radius:4px;border:2px solid rgba(0,0,0,0.2);
+    background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:#333;box-shadow:0 1px 5px rgba(0,0,0,0.15);transition:all 0.15s;
+  }
+  .draw-btn:hover,.draw-clear-btn:hover{background:#f4f4f4}
+  .draw-btn.active{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+  .draw-clear-btn{font-size:12px;font-weight:700;color:#ef4444;display:none}
+  .draw-clear-btn.visible{display:flex}
+  .leaflet-container.draw-mode{cursor:crosshair !important}
+  .leaflet-container.draw-mode .leaflet-marker-icon,.leaflet-container.draw-mode .leaflet-interactive{cursor:crosshair !important}
 </style>
 </head>
 <body class="light-mode">
@@ -1232,6 +1249,13 @@ const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
 const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+
+// ── Polygon Draw State ──
+let drawPolygonLayer = null;   // The drawn polygon L.Polygon on the map
+let drawPolygonGeoJSON = null; // turf-compatible GeoJSON for point-in-polygon tests
+let drawMode = false;
+let drawVertices = [];         // Array of [lat, lng] while drawing
+let drawPreviewLine = null;    // Polyline showing edges while drawing
 const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
@@ -2214,9 +2238,15 @@ function getFilteredComps(){
   );
 }
 
+function isInsideDrawPolygon(lat, lng){
+  if(!drawPolygonGeoJSON) return true; // No polygon = everything passes
+  return turf.booleanPointInPolygon(turf.point([lng, lat]), drawPolygonGeoJSON);
+}
+
 function getFilteredListings(){
   const favs = favoritesOnly ? loadFavorites() : null;
   return LISTINGS.filter(l => {
+    if(drawPolygonGeoJSON && !isInsideDrawPolygon(l.lat, l.lng)) return false;
     if(favoritesOnly && !favs[listingKey(l)]) return false;
     if(sb1123Mode && !l.sb1123Eligible) return false;
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
@@ -3591,6 +3621,161 @@ function applyFilters(){
   updateFilterCount();
   updateHeroStats();
   refreshVisibility();
+  applyPolygonOpacity();
+}
+
+// ══════════════════════════════════════════
+//  POLYGON DRAW-TO-FILTER
+// ══════════════════════════════════════════
+
+function initDrawControl(){
+  const container = L.DomUtil.create('div','draw-control');
+  container.innerHTML = `
+    <button class="draw-btn" id="drawBtn" title="Draw area to filter">&#9998;</button>
+    <button class="draw-clear-btn" id="drawClearBtn" title="Clear drawn area">&#10005;</button>
+  `;
+  document.getElementById('map').appendChild(container);
+  L.DomEvent.disableClickPropagation(container);
+  L.DomEvent.disableScrollPropagation(container);
+
+  document.getElementById('drawBtn').addEventListener('click', toggleDrawMode);
+  document.getElementById('drawClearBtn').addEventListener('click', clearDrawPolygon);
+}
+
+function toggleDrawMode(){
+  if(drawMode) cancelDrawMode();
+  else startDrawMode();
+}
+
+function startDrawMode(){
+  drawMode = true;
+  drawVertices = [];
+  document.getElementById('drawBtn').classList.add('active');
+  map.getContainer().classList.add('draw-mode');
+  // Disable map click handlers temporarily
+  map._drawClickHandler = onDrawClick;
+  map._drawMoveHandler = onDrawMouseMove;
+  map._drawDblClickHandler = onDrawDoubleClick;
+  map._drawKeyHandler = onDrawKeyDown;
+  map.on('click', map._drawClickHandler);
+  map.on('mousemove', map._drawMoveHandler);
+  map.on('dblclick', map._drawDblClickHandler);
+  document.addEventListener('keydown', map._drawKeyHandler);
+  map.doubleClickZoom.disable();
+}
+
+function cancelDrawMode(){
+  drawMode = false;
+  drawVertices = [];
+  document.getElementById('drawBtn').classList.remove('active');
+  map.getContainer().classList.remove('draw-mode');
+  if(drawPreviewLine){ map.removeLayer(drawPreviewLine); drawPreviewLine = null; }
+  map.off('click', map._drawClickHandler);
+  map.off('mousemove', map._drawMoveHandler);
+  map.off('dblclick', map._drawDblClickHandler);
+  document.removeEventListener('keydown', map._drawKeyHandler);
+  map.doubleClickZoom.enable();
+}
+
+function onDrawClick(e){
+  if(!drawMode) return;
+  drawVertices.push([e.latlng.lat, e.latlng.lng]);
+  updateDrawPreview();
+  // Close polygon if clicking near first vertex (within 8px)
+  if(drawVertices.length >= 3){
+    const first = map.latLngToContainerPoint(L.latLng(drawVertices[0]));
+    const click = map.latLngToContainerPoint(e.latlng);
+    if(first.distanceTo(click) < 15){
+      finishPolygon();
+    }
+  }
+}
+
+function onDrawMouseMove(e){
+  if(!drawMode || drawVertices.length === 0) return;
+  updateDrawPreview(e.latlng);
+}
+
+function onDrawDoubleClick(e){
+  if(!drawMode || drawVertices.length < 3) return;
+  L.DomEvent.stop(e);
+  finishPolygon();
+}
+
+function onDrawKeyDown(e){
+  if(e.key === 'Escape'){
+    if(drawVertices.length > 0){ cancelDrawMode(); }
+    else { cancelDrawMode(); }
+  }
+}
+
+function updateDrawPreview(mouseLatLng){
+  if(drawPreviewLine){ map.removeLayer(drawPreviewLine); drawPreviewLine = null; }
+  if(drawVertices.length === 0) return;
+  const pts = drawVertices.map(v => L.latLng(v[0], v[1]));
+  if(mouseLatLng) pts.push(mouseLatLng);
+  // Close the preview shape
+  if(pts.length >= 2) pts.push(pts[0]);
+  drawPreviewLine = L.polyline(pts, {color:'#2563eb',weight:2,dashArray:'6,6',fillOpacity:0}).addTo(map);
+}
+
+function finishPolygon(){
+  cancelDrawMode();
+  if(drawVertices.length < 3) return;
+  // Remove old polygon
+  if(drawPolygonLayer){ map.removeLayer(drawPolygonLayer); }
+  // Create Leaflet polygon
+  drawPolygonLayer = L.polygon(drawVertices, {
+    color:'#2563eb', weight:2, fillColor:'#2563eb', fillOpacity:0.1,
+    interactive:false
+  }).addTo(map);
+  // Create turf GeoJSON (turf uses [lng, lat])
+  const coords = drawVertices.map(v => [v[1], v[0]]);
+  coords.push(coords[0]); // Close ring
+  drawPolygonGeoJSON = turf.polygon([coords]);
+  // Show clear button
+  document.getElementById('drawClearBtn').classList.add('visible');
+  // Re-apply filters with polygon
+  applyFilters();
+}
+
+function clearDrawPolygon(){
+  if(drawPolygonLayer){ map.removeLayer(drawPolygonLayer); drawPolygonLayer = null; }
+  drawPolygonGeoJSON = null;
+  drawVertices = [];
+  document.getElementById('drawClearBtn').classList.remove('visible');
+  document.getElementById('drawBtn').classList.remove('active');
+  applyFilters();
+}
+
+function applyPolygonOpacity(){
+  if(!drawPolygonGeoJSON) return; // No polygon — nothing to dim
+  // Dim off-market markers outside polygon
+  offMarketLayer.eachLayer(function(marker){
+    if(marker.getLatLng){
+      const ll = marker.getLatLng();
+      const inside = isInsideDrawPolygon(ll.lat, ll.lng);
+      marker.setStyle({opacity: inside ? 1 : 0.2, fillOpacity: inside ? 0.85 : 0.1});
+    }
+  });
+  // Dim BTR markers outside polygon
+  btrLayer.eachLayer(function(marker){
+    if(marker.getLatLng){
+      const ll = marker.getLatLng();
+      const inside = isInsideDrawPolygon(ll.lat, ll.lng);
+      marker.setStyle({opacity: inside ? 1 : 0.2, fillOpacity: inside ? 0.85 : 0.1});
+    }
+  });
+  // Dim comp markers outside polygon
+  Object.values(markerLayers).forEach(function(layer){
+    layer.eachLayer(function(marker){
+      if(marker.getLatLng){
+        const ll = marker.getLatLng();
+        const inside = isInsideDrawPolygon(ll.lat, ll.lng);
+        marker.setStyle({opacity: inside ? 1 : 0.15, fillOpacity: inside ? 0.5 : 0.05});
+      }
+    });
+  });
 }
 
 function resetFilter(key){
@@ -3746,6 +3931,7 @@ window.addEventListener('DOMContentLoaded', function(){
       updateFavCount();
       updateHeroStats();
       updatePinLegend();
+      initDrawControl();
       showOnboardingIfNeeded();
       
       // Ensure Saved Deals button starts in correct visual state
