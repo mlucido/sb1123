@@ -57,6 +57,20 @@ def _perp_dist(p, a, b, lng_ft):
     return abs(bx * py - by * px) / edge_len
 
 
+def _point_in_ring(lng, lat, ring):
+    """Ray-casting point-in-polygon test for a single ring of [lng, lat] pairs."""
+    n = len(ring)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i][0], ring[i][1]
+        xj, yj = ring[j][0], ring[j][1]
+        if ((yi > lat) != (yj > lat)) and (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
 def compute_lot_dimensions(geometry, lot_sf=None):
     """Compute lot width from polygon edges, depth from area / width.
 
@@ -175,6 +189,14 @@ def query_parcel(lat, lng, market, retries=2):
                                 if best_feat is None or lot_raw < best_lot:
                                     best_feat = feat
                                     best_lot = lot_raw
+                        # Fallback: point-in-polygon test when lot sizes are null
+                        if best_feat is None:
+                            for feat in features:
+                                geom = feat.get("geometry", {})
+                                rings = geom.get("rings", [])
+                                if rings and _point_in_ring(lng, lat, rings[0]):
+                                    best_feat = feat
+                                    break
                         chosen = best_feat if best_feat else features[0]
                     else:
                         chosen = features[0]
