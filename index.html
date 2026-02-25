@@ -678,6 +678,19 @@ window.CLUSTERS = window.CLUSTERS || [];
   .draw-clear-btn.visible{display:flex}
   .leaflet-container.draw-mode{cursor:crosshair !important}
   .leaflet-container.draw-mode .leaflet-marker-icon,.leaflet-container.draw-mode .leaflet-interactive{cursor:crosshair !important}
+  /* Polygon edit vertex handles */
+  .leaflet-editing-icon{
+    width:10px !important;height:10px !important;margin-left:-5px !important;margin-top:-5px !important;
+    background:#2563eb;border:2px solid #fff;border-radius:50%;cursor:grab;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+  .leaflet-editing-icon:hover{background:#1d4ed8;transform:scale(1.3)}
+  .leaflet-editing-icon:active{cursor:grabbing}
+  /* Midpoint (ghost) handles — smaller, translucent */
+  .leaflet-edit-resize,.leaflet-marker-icon.leaflet-editing-icon[style*="opacity"]{
+    opacity:0.5 !important;width:8px !important;height:8px !important;
+    margin-left:-4px !important;margin-top:-4px !important;
+  }
 </style>
 </head>
 <body class="light-mode">
@@ -3732,25 +3745,58 @@ function finishPolygon(){
   const verts = drawVertices.slice();
   stopDrawMode();
   if(verts.length < 3) return;
-  // Remove old polygon
+  // Remove old polygon + disable old edit
+  disablePolygonEdit();
   if(drawPolygonLayer){ map.removeLayer(drawPolygonLayer); }
-  // Create Leaflet polygon
+  // Create Leaflet polygon (interactive so edit handles work)
   drawPolygonLayer = L.polygon(verts, {
-    color:'#2563eb', weight:2, fillColor:'#2563eb', fillOpacity:0.1,
-    interactive:false
+    color:'#2563eb', weight:2, fillColor:'#2563eb', fillOpacity:0.1
   }).addTo(map);
-  // Create turf GeoJSON (turf uses [lng, lat])
-  const coords = verts.map(v => [v[1], v[0]]);
-  coords.push(coords[0]); // Close ring
-  drawPolygonGeoJSON = turf.polygon([coords]);
+  syncPolygonGeoJSON();
   drawVertices = [];
+  // Enable vertex editing
+  enablePolygonEdit();
   // Show clear button
   document.getElementById('drawClearBtn').classList.add('visible');
   // Re-apply filters with polygon
   applyFilters();
 }
 
+function syncPolygonGeoJSON(){
+  if(!drawPolygonLayer) return;
+  const latlngs = drawPolygonLayer.getLatLngs()[0];
+  const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+  coords.push(coords[0]); // Close ring
+  drawPolygonGeoJSON = turf.polygon([coords]);
+}
+
+let _polyEditHandler = null;
+function enablePolygonEdit(){
+  if(!drawPolygonLayer) return;
+  // Leaflet.draw adds editing capability to polygons
+  if(drawPolygonLayer.editing){
+    drawPolygonLayer.editing.enable();
+    _polyEditHandler = function(){ syncPolygonGeoJSON(); applyFilters(); };
+    drawPolygonLayer.on('edit', _polyEditHandler);
+    // Leaflet.draw fires 'edit' on the layer when editing completes,
+    // but for live drag updates we listen on the map's editvertex events
+    map.on('draw:editvertex', _polyEditHandler);
+  }
+}
+
+function disablePolygonEdit(){
+  if(drawPolygonLayer && drawPolygonLayer.editing){
+    drawPolygonLayer.editing.disable();
+    if(_polyEditHandler){
+      drawPolygonLayer.off('edit', _polyEditHandler);
+      map.off('draw:editvertex', _polyEditHandler);
+    }
+  }
+  _polyEditHandler = null;
+}
+
 function clearDrawPolygon(){
+  disablePolygonEdit();
   if(drawPolygonLayer){ map.removeLayer(drawPolygonLayer); drawPolygonLayer = null; }
   drawPolygonGeoJSON = null;
   drawVertices = [];
