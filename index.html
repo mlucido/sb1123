@@ -1247,6 +1247,10 @@ const filters = {
 
 let currentSort = { key:null, dir:'desc' };
 let listingsPanelOpen = false;
+let compsTableActive = false;
+let compsMapLayer = null;
+let compsRadiusCircle = null;
+let savedPipelineHeader = '';
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
@@ -1643,6 +1647,167 @@ function compConfidence(l){
   else { label = 'Very Low'; color = '#ef4444'; icon = '&#9675;&#9675;&#9675;'; }
 
   return {score, label, color, icon, bar: Math.round(score), count, method};
+}
+
+// ── View Comps ──
+
+function distMi(lat1,lng1,lat2,lng2){
+  const dlat=(lat2-lat1)*69, dlng=(lng2-lng1)*69*Math.cos(lat1*Math.PI/180);
+  return Math.sqrt(dlat*dlat+dlng*dlng);
+}
+
+function findNearbyComps(l){
+  if(!compSpatialGrid || !COMPS.length) return [];
+  let radius = l.compRadius || l.subdivCompRadius || 2;
+  radius = Math.min(radius * 1.2, 5); // slight expansion for edge cases
+  const radiusDeg = radius / 69, S = 0.005;
+  const rMin=Math.floor((l.lat-radiusDeg)/S), rMax=Math.floor((l.lat+radiusDeg)/S);
+  const cMin=Math.floor((l.lng-radiusDeg)/S), cMax=Math.floor((l.lng+radiusDeg)/S);
+  const results = [];
+  for(let r=rMin;r<=rMax;r++){
+    for(let c=cMin;c<=cMax;c++){
+      const cell = compSpatialGrid[r+','+c];
+      if(cell) cell.forEach(comp=>{
+        const d = distMi(l.lat,l.lng,comp.lat,comp.lng);
+        if(d <= radius) results.push(Object.assign({},comp,{dist:d}));
+      });
+    }
+  }
+  // Zone filter if method is zone-matched
+  const method = l.compMethod || '';
+  if(method.startsWith('zone')){
+    const zm = results.filter(c=>c.zone===l.zone);
+    if(zm.length >= 3){ zm.sort((a,b)=>a.dist-b.dist); return zm; }
+  }
+  results.sort((a,b)=>a.dist-b.dist);
+  return results;
+}
+
+function formatCompDate(d){
+  if(!d) return '—';
+  const parts = d.split('-');
+  if(parts.length>=3) return parts[0].substring(0,3)+' '+parts[2];
+  return d;
+}
+
+function showCompsTable(lat,lng){
+  const l = LISTINGS.find(ll=>ll.lat===lat&&ll.lng===lng);
+  if(!l || !COMPS.length) return;
+  if(!listingsPanelOpen) toggleListingsPanel();
+
+  const comps = findNearbyComps(l);
+  const radius = l.compRadius || l.subdivCompRadius || 2;
+
+  // Hide pipeline elements
+  document.getElementById('tableWrap').style.display='none';
+  document.getElementById('mobileCards').style.display='none';
+  const header = document.querySelector('.listings-panel-header');
+  savedPipelineHeader = header.innerHTML;
+  header.innerHTML = `
+    <button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS</div>
+      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.address} &bull; ${comps.length} comps within ${radius.toFixed(1)}mi</div>
+    </div>
+    <button class="listings-panel-close" onclick="hideCompsTable()">x</button>
+  `;
+
+  // Create or reuse comps container
+  let wrap = document.getElementById('compsTableWrap');
+  if(!wrap){
+    wrap = document.createElement('div');
+    wrap.id = 'compsTableWrap';
+    wrap.className = 'listings-table-wrap';
+    const panel = document.getElementById('listingsPanel');
+    panel.insertBefore(wrap, document.getElementById('tableWrap'));
+  }
+  wrap.style.display = '';
+  wrap.innerHTML = `<table class="listings-table"><thead><tr>
+    <th onclick="sortCompsTable('address')">Address</th>
+    <th onclick="sortCompsTable('price')">Sale Price</th>
+    <th onclick="sortCompsTable('ppsf')">$/SF</th>
+    <th onclick="sortCompsTable('sqft')">SqFt</th>
+    <th onclick="sortCompsTable('yb')">Yr Built</th>
+    <th onclick="sortCompsTable('date')">Sale Date</th>
+    <th onclick="sortCompsTable('dist')">Dist</th>
+    <th onclick="sortCompsTable('t')">Tier</th>
+    <th onclick="sortCompsTable('zone')">Zone</th>
+  </tr></thead><tbody>${comps.map(c=>`<tr style="cursor:pointer" onclick="map.flyTo([${c.lat},${c.lng}],17)">
+    <td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</td>
+    <td>$${c.price.toLocaleString()}</td>
+    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
+    <td>${c.sqft.toLocaleString()}</td>
+    <td>${c.yb||'—'}</td>
+    <td>${formatCompDate(c.date)}</td>
+    <td>${c.dist.toFixed(2)}mi</td>
+    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
+    <td>${c.zone||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
+
+  // Store comps for sorting
+  wrap._comps = comps;
+  wrap._listing = l;
+
+  // Map markers
+  if(compsMapLayer){ map.removeLayer(compsMapLayer); }
+  if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); }
+  compsMapLayer = L.layerGroup();
+  comps.forEach(c=>{
+    L.circleMarker([c.lat,c.lng],{
+      radius:6, color:'#3b82f6', fillColor:'#3b82f6', fillOpacity:0.7, weight:1
+    }).bindPopup(`<b>${c.address||'—'}</b><br>$${c.price.toLocaleString()} &bull; $${c.ppsf}/sf &bull; ${c.sqft}sf<br>${c.date||'—'} &bull; T${c.t||'?'} &bull; ${c.zone}`).addTo(compsMapLayer);
+  });
+  compsRadiusCircle = L.circle([l.lat,l.lng],{
+    radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
+    fillOpacity:0.04, weight:1, dashArray:'6,4'
+  });
+  compsMapLayer.addTo(map);
+  compsRadiusCircle.addTo(map);
+  compsTableActive = true;
+}
+
+function sortCompsTable(key){
+  const wrap = document.getElementById('compsTableWrap');
+  if(!wrap || !wrap._comps) return;
+  const comps = wrap._comps;
+  const l = wrap._listing;
+  // Toggle sort direction via data attribute
+  const prev = wrap.getAttribute('data-sort-key');
+  const dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
+  wrap.setAttribute('data-sort-key', key);
+  wrap.setAttribute('data-sort-dir', dir === 'asc' ? 'desc' : 'asc');
+  comps.sort((a,b)=>{
+    let va=a[key], vb=b[key];
+    if(typeof va==='string') return dir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    va=va||0; vb=vb||0;
+    return dir==='asc' ? va-vb : vb-va;
+  });
+  // Re-render body only
+  wrap.querySelector('tbody').innerHTML = comps.map(c=>`<tr style="cursor:pointer" onclick="map.flyTo([${c.lat},${c.lng}],17)">
+    <td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</td>
+    <td>$${c.price.toLocaleString()}</td>
+    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
+    <td>${c.sqft.toLocaleString()}</td>
+    <td>${c.yb||'—'}</td>
+    <td>${formatCompDate(c.date)}</td>
+    <td>${c.dist.toFixed(2)}mi</td>
+    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
+    <td>${c.zone||'—'}</td>
+  </tr>`).join('');
+}
+
+function hideCompsTable(){
+  // Restore pipeline
+  document.getElementById('tableWrap').style.display='';
+  document.getElementById('mobileCards').style.display='';
+  const header = document.querySelector('.listings-panel-header');
+  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
+  const wrap = document.getElementById('compsTableWrap');
+  if(wrap) wrap.remove();
+  // Remove map markers
+  if(compsMapLayer){ map.removeLayer(compsMapLayer); compsMapLayer=null; }
+  if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); compsRadiusCircle=null; }
+  compsTableActive = false;
 }
 
 // Build descriptive exit $/SF label for popup display
@@ -2085,7 +2250,7 @@ function rebuildListings(){
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
         ${remainderAnalysis(l)}
       </div>
       <div class="popup-grid-2">
@@ -2237,7 +2402,7 @@ function buildBTRLayer(){
         <div class="popup-section-label">PRO FORMA — ${pf.maxUnits} Units${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
         ${remainderAnalysis(l)}
 
         <div class="popup-divider"></div>
@@ -2614,7 +2779,7 @@ function buildOffMarketLayer(){
         <div class="popup-section-label">DEVELOPMENT PRO FORMA — ${pf.maxUnits} Townhomes${l.layoutNote ? ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>' : ''}${l.slopeAdjUnits ? ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>' : ''} • ${pf.effective_buildable_sf.toLocaleString()} SF</div>
         ${l.layoutNote ? '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>' : ''}
         <div class="popup-span-2" style="font-size:10px;color:${exitLabel(l).color};line-height:1.4">EXIT $${exitLabel(l).psf}/SF (${exitLabel(l).label})</div>
-        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <span style="color:var(--text-dim)">(${compConfidence(l).count} comps, score ${compConfidence(l).bar})</span></div>
+        <div class="popup-span-2" style="font-size:10px;line-height:1.4;display:flex;align-items:center;gap:6px"><span style="color:${compConfidence(l).color};letter-spacing:2px">${compConfidence(l).icon}</span> <span style="color:${compConfidence(l).color};font-weight:600">Comp Confidence: ${compConfidence(l).label}</span> <a href="#" onclick="showCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${compConfidence(l).count} comps &#8599;</a> <span style="color:var(--text-dim)">score ${compConfidence(l).bar}</span></div>
       </div>
 
       <div class="popup-grid-2">
