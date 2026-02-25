@@ -2405,10 +2405,9 @@ function rebuildListings(){
         <div><div class="popup-label">YOC</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         ` : ''}
         ${btr.btrPencils ? `
-        <div><div class="popup-label">Stabilized Val</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M</div></div>
-        <div><div class="popup-label">Refi</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → <span style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x DSCR</span></div></div>
+        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${btr.stabilizedValue>=btr.totalCost?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">${btr.stabilizedValue>=btr.totalCost?'&#9989; Refi-able &mdash; $'+Math.round((btr.stabilizedValue-btr.totalCost)/1000).toLocaleString()+'k equity at '+(btr.capRate*100).toFixed(1)+'% cap':'&#10060; Refi gap: -$'+Math.round((btr.totalCost-btr.stabilizedValue)/1000).toLocaleString()+'k &mdash; cash trapped at '+(btr.capRate*100).toFixed(1)+'% cap'}</div>
+        <div><div class="popup-label">DSCR</div><div class="popup-value" style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x</div></div>
         <div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}/yr</div></div>
-        <div><div class="popup-label">CoC Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Cash-out</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+')'}</div></div>
         ` : ''}
       </div>
@@ -2534,10 +2533,9 @@ function buildBTRLayer(){
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
         <div><div class="popup-label">YOC</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Stabilized Val</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M</div></div>
-        <div><div class="popup-label">Refi</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M &#8594; <span style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x DSCR</span></div></div>
+        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${btr.stabilizedValue>=btr.totalCost?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">${btr.stabilizedValue>=btr.totalCost?'&#9989; Refi-able &mdash; $'+Math.round((btr.stabilizedValue-btr.totalCost)/1000).toLocaleString()+'k equity at '+(btr.capRate*100).toFixed(1)+'% cap':'&#10060; Refi gap: -$'+Math.round((btr.totalCost-btr.stabilizedValue)/1000).toLocaleString()+'k &mdash; cash trapped at '+(btr.capRate*100).toFixed(1)+'% cap'}</div>
+        <div><div class="popup-label">DSCR</div><div class="popup-value" style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x</div></div>
         <div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}/yr</div></div>
-        <div><div class="popup-label">CoC Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Cash-out</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+')'}</div></div>
       </div>
       </div><!-- end col-right -->
@@ -2895,11 +2893,10 @@ function buildOffMarketLayer(){
         <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         ` : ''}
         ${btr.btrPencils ? `
-        <div><div class="popup-label">Stabilized Value</div><div class="popup-value">$${(btr.stabilizedValue/1000000).toFixed(2)}M @ ${(btr.capRate*100).toFixed(1)}% cap</div></div>
-        <div><div class="popup-label">Refi (${Math.round(btr.refiLTV*100)}% LTV)</div><div class="popup-value">$${(btr.loanAmount/1000000).toFixed(2)}M → <span style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">DSCR ${btr.dscr.toFixed(2)}</span></div></div>
-        <div><div class="popup-label">Annual Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}</div></div>
-        <div><div class="popup-label">Cash-on-Cash Return</div><div class="popup-value" style="color:${btr.cashOnCash>=0.08?'var(--green)':btr.cashOnCash>=0?'var(--yellow)':'var(--red)'}">${(btr.cashOnCash*100).toFixed(1)}%</div></div>
-        <div><div class="popup-label">Cash-out at Refi</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+') shortfall'}</div></div>
+        <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${btr.stabilizedValue>=btr.totalCost?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">${btr.stabilizedValue>=btr.totalCost?'&#9989; Refi-able &mdash; $'+Math.round((btr.stabilizedValue-btr.totalCost)/1000).toLocaleString()+'k equity at '+(btr.capRate*100).toFixed(1)+'% cap':'&#10060; Refi gap: -$'+Math.round((btr.totalCost-btr.stabilizedValue)/1000).toLocaleString()+'k &mdash; cash trapped at '+(btr.capRate*100).toFixed(1)+'% cap'}</div>
+        <div><div class="popup-label">DSCR</div><div class="popup-value" style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x</div></div>
+        <div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:${btr.cashFlow>=0?'var(--green)':'var(--red)'}">$${Math.round(btr.cashFlow).toLocaleString()}/yr</div></div>
+        <div><div class="popup-label">Cash-out</div><div class="popup-value" style="color:${btr.cashOutRefi>=0?'var(--green)':'var(--red)'}">${btr.cashOutRefi>=0?'$'+Math.round(btr.cashOutRefi).toLocaleString():'($'+Math.round(Math.abs(btr.cashOutRefi)).toLocaleString()+')'}</div></div>
         ` : ''}
 
         <div class="popup-divider"></div>
