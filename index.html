@@ -1653,6 +1653,7 @@ function compConfidence(l){
 
 const COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500; // Match listings_build.py size band
 const ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',LAND:'Land'};
+const PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 const ADJ_ZONES = {R1:['R2'],R2:['R1','R3'],R3:['R2','R4'],R4:['R3'],LAND:['R1']};
 
 function distMi(lat1,lng1,lat2,lng2){
@@ -1767,7 +1768,7 @@ function compRow(c){
     <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
     <td>${c.sqft.toLocaleString()}</td>
     <td>${c.bd||'—'}/${c.ba||'—'}</td>
-    <td>${ZONE_TYPE_MAP[c.zone]||c.zone||'—'}</td>
+    <td${c.pt===3?' style="color:var(--green);font-weight:600"':''}>${PT_LABEL[c.pt]||ZONE_TYPE_MAP[c.zone]||c.zone||'—'}</td>
     <td>${c.zone||'—'}</td>
     <td>${c.yb||'—'}</td>
     <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>

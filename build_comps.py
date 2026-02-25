@@ -14,6 +14,17 @@ from datetime import datetime
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from market_config import get_market, market_file, TYPE_TO_ZONE
 
+# Property type → numeric code (preserved alongside zone for comp weighting)
+PT_MAP = {
+    "Single Family Residential": 1,
+    "Townhouse": 3,
+    "Condo/Co-op": 2,
+    "Multi-Family (2-4 Unit)": 4,
+    "Multi-Family (5+ Unit)": 5,
+    "Mobile/Manufactured Home": 1,
+    "Ranch": 1,
+}
+
 market = get_market()
 LAT_MIN, LAT_MAX = market["lat_min"], market["lat_max"]
 LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
@@ -340,6 +351,8 @@ with open(src, encoding="utf-8", errors="replace") as f:
             ]
             address = " ".join(p for p in address_parts if p)
 
+            pt = PT_MAP.get(prop_type, 0)
+
             rec = {
                 "lat": round(lat, 6),
                 "lng": round(lng, 6),
@@ -352,6 +365,8 @@ with open(src, encoding="utf-8", errors="replace") as f:
                 "ppsf": ppsf,
                 "yb": year_built,
             }
+            if pt:
+                rec["pt"] = pt
             if beds is not None:
                 rec["bd"] = beds
             if baths is not None:

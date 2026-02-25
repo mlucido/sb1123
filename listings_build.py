@@ -99,11 +99,12 @@ for c in comps:
         newcon_all_grid.setdefault((grow, gcol), []).append((clat, clng, cppsf, csqft, yb, czone))
         newcon_count += 1
 
-    # Zip-level fallbacks
+    # Zip-level fallbacks (carry pt for townhome weighting)
+    cpt = c.get("pt", 0)
     if czip:
         if czone:
-            zip_zone_ppsfs.setdefault((czip, czone), []).append(cppsf)
-        zip_all_ppsfs.setdefault(czip, []).append(cppsf)
+            zip_zone_ppsfs.setdefault((czip, czone), []).append((cppsf, cpt))
+        zip_all_ppsfs.setdefault(czip, []).append((cppsf, cpt))
 
 zone_comp_counts = {z: sum(len(v) for v in g.values()) for z, g in zone_grid.items()}
 print(f"   Spatial index: {len(all_grid):,} grid cells")
@@ -116,6 +117,37 @@ for z in ["R1", "R2", "R3", "R4"]:
     if z in newcon_zone_counts:
         print(f"     {z}: {newcon_zone_counts[z]:,} new-con comps")
 print(f"   Zip+zone fallbacks: {len(zip_zone_ppsfs)} combos")
+
+# Property-type lookup for townhome weighting
+# Key: "lat,lng" → pt code (3=townhome gets 1.5x weight in $/SF calc)
+TH_PT = 3
+TH_WEIGHT = 1.5
+comp_pt_map = {}
+th_count = 0
+for c in comps:
+    pt = c.get("pt", 0)
+    if pt:
+        comp_pt_map[f"{c['lat']},{c['lng']}"] = pt
+        if pt == TH_PT:
+            th_count += 1
+print(f"   Townhome comps (pt=3, weighted {TH_WEIGHT}x): {th_count:,}")
+
+
+def wp75(vals):
+    """Weighted P75 — townhome comps (pt=3) get 1.5x weight in percentile calc."""
+    if not vals:
+        return 0
+    # vals: list of (ppsf, pt) tuples
+    weighted = [(ppsf, TH_WEIGHT if pt == TH_PT else 1.0) for ppsf, pt in vals]
+    weighted.sort(key=lambda x: x[0])
+    total = sum(w for _, w in weighted)
+    target = total * 0.75
+    cum = 0
+    for v, w in weighted:
+        cum += w
+        if cum >= target:
+            return round(v)
+    return round(weighted[-1][0])
 
 
 def find_exit_ppsf(lat, lng, zone, zipcode):
@@ -136,12 +168,22 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
 
-    def p75(vals):
-        vals.sort()
-        return round(vals[int(len(vals) * 0.75)])
-
     def in_band(sqft):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
+
+    def _collect(grid, radius):
+        """Collect (ppsf, pt) tuples from grid within radius, split by size band."""
+        cells = int(radius / GRID_SIZE) + 1
+        band, all_ = [], []
+        for dr in range(-cells, cells + 1):
+            for dc in range(-cells, cells + 1):
+                for clat, clng, cppsf, csqft in grid.get((grow + dr, gcol + dc), []):
+                    if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
+                        cpt = comp_pt_map.get(f"{clat},{clng}", 0)
+                        all_.append((cppsf, cpt))
+                        if in_band(csqft):
+                            band.append((cppsf, cpt))
+        return band, all_
 
     # Try same-zone spatial search
     zg = zone_grid.get(zone, {})
@@ -150,69 +192,51 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
     last_zone_miles = 0
     if zg:
         for radius in SEARCH_RADII_DEG:
-            cells = int(radius / GRID_SIZE) + 1
-            nearby_band = []
-            nearby_all = []
-            for dr in range(-cells, cells + 1):
-                for dc in range(-cells, cells + 1):
-                    for clat, clng, cppsf, csqft in zg.get((grow + dr, gcol + dc), []):
-                        if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                            nearby_all.append(cppsf)
-                            if in_band(csqft):
-                                nearby_band.append(cppsf)
+            nearby_band, nearby_all = _collect(zg, radius)
             if len(nearby_band) >= MIN_COMPS:
                 miles = round(radius * 69, 2)
-                return p75(nearby_band), len(nearby_band), miles, "zone"
+                return wp75(nearby_band), len(nearby_band), miles, "zone"
             last_zone_band = nearby_band
             last_zone_all = nearby_all
             last_zone_miles = round(radius * 69, 2)
         # At widest radius: try all-size fallback, then thin-comp
         if len(last_zone_all) >= MIN_COMPS:
-            return p75(last_zone_all), len(last_zone_all), last_zone_miles, "zone"
+            return wp75(last_zone_all), len(last_zone_all), last_zone_miles, "zone"
         if len(last_zone_band) > 0:
-            return p75(last_zone_band), len(last_zone_band), last_zone_miles, "zone-thin"
+            return wp75(last_zone_band), len(last_zone_band), last_zone_miles, "zone-thin"
         if len(last_zone_all) > 0:
-            return p75(last_zone_all), len(last_zone_all), last_zone_miles, "zone-thin"
+            return wp75(last_zone_all), len(last_zone_all), last_zone_miles, "zone-thin"
 
     # Fallback: all-zone spatial search
     last_all_band = []
     last_all_all = []
     last_all_miles = 0
     for radius in SEARCH_RADII_DEG:
-        cells = int(radius / GRID_SIZE) + 1
-        nearby_band = []
-        nearby_all = []
-        for dr in range(-cells, cells + 1):
-            for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf, csqft in all_grid.get((grow + dr, gcol + dc), []):
-                    if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        nearby_all.append(cppsf)
-                        if in_band(csqft):
-                            nearby_band.append(cppsf)
+        nearby_band, nearby_all = _collect(all_grid, radius)
         if len(nearby_band) >= MIN_COMPS:
             miles = round(radius * 69, 2)
-            return p75(nearby_band), len(nearby_band), miles, "all"
+            return wp75(nearby_band), len(nearby_band), miles, "all"
         last_all_band = nearby_band
         last_all_all = nearby_all
         last_all_miles = round(radius * 69, 2)
     # At widest radius: try all-size fallback, then thin-comp
     if len(last_all_all) >= MIN_COMPS:
-        return p75(last_all_all), len(last_all_all), last_all_miles, "all"
+        return wp75(last_all_all), len(last_all_all), last_all_miles, "all"
     if len(last_all_band) > 0:
-        return p75(last_all_band), len(last_all_band), last_all_miles, "all-thin"
+        return wp75(last_all_band), len(last_all_band), last_all_miles, "all-thin"
     if len(last_all_all) > 0:
-        return p75(last_all_all), len(last_all_all), last_all_miles, "all-thin"
+        return wp75(last_all_all), len(last_all_all), last_all_miles, "all-thin"
 
     # Fallback: zip + same zone (only if zero spatial comps)
     zz_key = (zipcode, zone)
     if zz_key in zip_zone_ppsfs and len(zip_zone_ppsfs[zz_key]) >= 3:
         vals = list(zip_zone_ppsfs[zz_key])
-        return p75(vals), len(vals), 0, "zip+zone"
+        return wp75(vals), len(vals), 0, "zip+zone"
 
     # Last resort: zip all-zone
     if zipcode in zip_all_ppsfs:
         vals = list(zip_all_ppsfs[zipcode])
-        return p75(vals), len(vals), 0, "zip"
+        return wp75(vals), len(vals), 0, "zip"
 
     return 0, 0, 0, "none"
 
@@ -246,10 +270,6 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
     def in_band(sqft):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
-    def p75(vals):
-        vals.sort()
-        return round(vals[int(len(vals) * 0.75)])
-
     def collect_from_grid(grid, radius):
         """Collect comps from a zone-specific grid within radius."""
         cells = int(radius / GRID_SIZE) + 1
@@ -263,23 +283,26 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
         return result
 
     def try_tiers(raw_comps):
-        """Apply tiered vintage filtering. Returns (adjusted_ppsf_list, tier_label, has_stale)."""
+        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,pt)_list, tier_label, has_stale)."""
         # Tier 1: 2024-2025 only
-        t1 = [(cppsf, csqft) for _, _, cppsf, csqft, yb in raw_comps
-               if yb >= 2024 and in_band(csqft)]
+        t1 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0))
+              for clat, clng, cppsf, csqft, yb in raw_comps
+              if yb >= 2024 and in_band(csqft)]
         if len(t1) >= MIN_COMPS:
-            return [p for p, _ in t1], "2024-25", False
+            return [(p, pt) for p, _, pt in t1], "2024-25", False
 
         # Tier 2: 2023+ (includes tier 1)
-        t2 = [(cppsf, csqft) for _, _, cppsf, csqft, yb in raw_comps
-               if yb >= 2023 and in_band(csqft)]
+        t2 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0))
+              for clat, clng, cppsf, csqft, yb in raw_comps
+              if yb >= 2023 and in_band(csqft)]
         if len(t2) >= MIN_COMPS:
-            return [p for p, _ in t2], "2023+", False
+            return [(p, pt) for p, _, pt in t2], "2023+", False
 
         # Tier 3: 2021-2022 with -10% haircut, added to tier 2 comps
-        t3_adj = [round(cppsf * 0.90) for _, _, cppsf, csqft, yb in raw_comps
+        t3_adj = [(round(cppsf * 0.90), comp_pt_map.get(f"{clat},{clng}", 0))
+                  for clat, clng, cppsf, csqft, yb in raw_comps
                   if 2021 <= yb <= 2022 and in_band(csqft)]
-        combined = [p for p, _ in t2] + t3_adj
+        combined = [(p, pt) for p, _, pt in t2] + t3_adj
         if len(combined) >= NEWCON_MIN:
             tier = "2021-22 adj" if t3_adj else "2023+"
             return combined, tier, bool(t3_adj)
@@ -295,7 +318,7 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
             continue
         ppsf_list, tier, has_stale = try_tiers(raw)
         if tier and len(ppsf_list) >= MIN_COMPS:
-            val = p75(ppsf_list)
+            val = wp75(ppsf_list)
             flag = "thin" if len(ppsf_list) < MIN_COMPS + 2 else ("stale" if has_stale else None)
             # Sanity check vs general P75
             if exit_psf and exit_psf > 0:
@@ -322,7 +345,7 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
             continue
         ppsf_list, tier, has_stale = try_tiers(raw_all)
         if tier and len(ppsf_list) >= NEWCON_MIN:
-            val = p75(ppsf_list)
+            val = wp75(ppsf_list)
             flag = "cross-zone"
             if has_stale:
                 flag = "cross-zone"  # cross-zone takes priority as flag
