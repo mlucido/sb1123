@@ -1651,36 +1651,102 @@ function compConfidence(l){
 
 // ── View Comps ──
 
+const COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500; // Match listings_build.py size band
+const ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',LAND:'Land'};
+const ADJ_ZONES = {R1:['R2'],R2:['R1','R3'],R3:['R2','R4'],R4:['R3'],LAND:['R1']};
+
 function distMi(lat1,lng1,lat2,lng2){
   const dlat=(lat2-lat1)*69, dlng=(lng2-lng1)*69*Math.cos(lat1*Math.PI/180);
   return Math.sqrt(dlat*dlat+dlng*dlng);
 }
 
-function findNearbyComps(l){
+function searchCompsInRadius(lat,lng,radiusMi){
   if(!compSpatialGrid || !COMPS.length) return [];
-  let radius = l.compRadius || l.subdivCompRadius || 2;
-  radius = Math.min(radius * 1.2, 5); // slight expansion for edge cases
-  const radiusDeg = radius / 69, S = 0.005;
-  const rMin=Math.floor((l.lat-radiusDeg)/S), rMax=Math.floor((l.lat+radiusDeg)/S);
-  const cMin=Math.floor((l.lng-radiusDeg)/S), cMax=Math.floor((l.lng+radiusDeg)/S);
-  const results = [];
+  const radiusDeg=radiusMi/69, S=0.005;
+  const rMin=Math.floor((lat-radiusDeg)/S), rMax=Math.floor((lat+radiusDeg)/S);
+  const cMin=Math.floor((lng-radiusDeg)/S), cMax=Math.floor((lng+radiusDeg)/S);
+  const out=[];
   for(let r=rMin;r<=rMax;r++){
     for(let c=cMin;c<=cMax;c++){
-      const cell = compSpatialGrid[r+','+c];
+      const cell=compSpatialGrid[r+','+c];
       if(cell) cell.forEach(comp=>{
-        const d = distMi(l.lat,l.lng,comp.lat,comp.lng);
-        if(d <= radius) results.push(Object.assign({},comp,{dist:d}));
+        // Use box check matching Python: abs(dlat)<=radius && abs(dlng)<=radius
+        if(Math.abs(comp.lat-lat)<=radiusDeg && Math.abs(comp.lng-lng)<=radiusDeg){
+          out.push(Object.assign({},comp,{dist:distMi(lat,lng,comp.lat,comp.lng)}));
+        }
       });
     }
   }
-  // Zone filter if method is zone-matched
-  const method = l.compMethod || '';
-  if(method.startsWith('zone')){
-    const zm = results.filter(c=>c.zone===l.zone);
-    if(zm.length >= 3){ zm.sort((a,b)=>a.dist-b.dist); return zm; }
+  return out;
+}
+
+function findCompsForListing(l){
+  if(!COMPS.length) return {used:[],ref:[],source:'none',radius:0};
+
+  let source,searchRadius,targetCount;
+
+  if(l.subdivExitPsf){
+    source='subdiv'; searchRadius=l.subdivCompRadius||2; targetCount=l.subdivCompCount||0;
+  } else if(l.newconPpsf){
+    source='newcon'; searchRadius=2; targetCount=l.newconCount||0;
+  } else if(l.exitPsf){
+    source='zone'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
+  } else {
+    return {used:[],ref:[],source:'none',radius:0};
   }
-  results.sort((a,b)=>a.dist-b.dist);
-  return results;
+
+  // Wider search for reference comps
+  const wideRadius = Math.min(searchRadius*2, 5);
+  const all = searchCompsInRadius(l.lat,l.lng,wideRadius);
+
+  const used=[], ref=[];
+  for(const c of all){
+    const inRadius = c.dist <= searchRadius + 0.05; // small tolerance
+    let isUsed = false;
+
+    if(source==='newcon'){
+      // New-con: yb>=2021, zone-matched or cross-zone
+      const isNewcon = c.yb && c.yb >= 2021;
+      const zmOrAdj = l.newconZoneMatch
+        ? c.zone===l.zone
+        : (c.zone===l.zone || (ADJ_ZONES[l.zone]||[]).includes(c.zone));
+      const inBand = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
+      isUsed = inRadius && isNewcon && zmOrAdj && inBand;
+    } else if(source==='subdiv'){
+      // Subdiv: zone-matched, recent sales
+      isUsed = inRadius && c.zone===l.zone && c.yb && c.yb>=2021;
+    } else {
+      // Zone/all comps
+      const method = l.compMethod||'';
+      const zoneMatch = method.startsWith('zone') ? c.zone===l.zone : true;
+      const inBand = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
+      // Try size-band match first
+      isUsed = inRadius && zoneMatch && inBand;
+    }
+
+    c.isUsed = isUsed;
+    c.isOutlier = c.sqft<400 || c.ppsf>2000;
+    if(isUsed && !c.isOutlier) used.push(c);
+    else ref.push(c);
+  }
+
+  // If zone comps and size-band gave too few, widen to all-size (matching Python fallback)
+  if(source==='zone' && used.length < targetCount){
+    const method = l.compMethod||'';
+    const zoneMatch = method.startsWith('zone');
+    // Move non-band, in-radius, zone-matched comps from ref to used
+    for(let i=ref.length-1;i>=0;i--){
+      const c=ref[i];
+      if(c.dist<=searchRadius+0.05 && !c.isOutlier && (zoneMatch?c.zone===l.zone:true)){
+        c.isUsed=true;
+        used.push(ref.splice(i,1)[0]);
+      }
+    }
+  }
+
+  used.sort((a,b)=>a.dist-b.dist);
+  ref.sort((a,b)=>a.dist-b.dist);
+  return {used,ref,source,radius:searchRadius};
 }
 
 function formatCompDate(d){
@@ -1690,13 +1756,33 @@ function formatCompDate(d){
   return d;
 }
 
+function compRow(c){
+  const outlier = c.isOutlier;
+  const style = outlier ? 'opacity:0.4' : c.isUsed ? 'border-left:3px solid var(--green)' : '';
+  const tag = outlier ? ' <span style="color:var(--orange);font-size:9px">&#9888; outlier</span>' : '';
+  return `<tr style="cursor:pointer;${style}" onclick="map.flyTo([${c.lat},${c.lng}],17)">
+    <td style="text-align:center">${c.isUsed&&!outlier?'<span style="color:var(--green)">&#10003;</span>':''}</td>
+    <td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}${tag}</td>
+    <td>$${c.price.toLocaleString()}</td>
+    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
+    <td>${c.sqft.toLocaleString()}</td>
+    <td>${c.bd||'—'}/${c.ba||'—'}</td>
+    <td>${ZONE_TYPE_MAP[c.zone]||c.zone||'—'}</td>
+    <td>${c.zone||'—'}</td>
+    <td>${c.yb||'—'}</td>
+    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
+    <td>${formatCompDate(c.date)}</td>
+    <td>${c.dist.toFixed(2)}mi</td>
+  </tr>`;
+}
+
 function showCompsTable(lat,lng){
   const l = LISTINGS.find(ll=>ll.lat===lat&&ll.lng===lng);
   if(!l || !COMPS.length) return;
   if(!listingsPanelOpen) toggleListingsPanel();
 
-  const comps = findNearbyComps(l);
-  const radius = l.compRadius || l.subdivCompRadius || 2;
+  const {used,ref,source,radius} = findCompsForListing(l);
+  const sourceLabel = {subdiv:'Subdivision',newcon:'New Construction',zone:'Zone-Matched'}[source]||source;
 
   // Hide pipeline elements
   document.getElementById('tableWrap').style.display='none';
@@ -1706,8 +1792,8 @@ function showCompsTable(lat,lng){
   header.innerHTML = `
     <button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
     <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS</div>
-      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.address} &bull; ${comps.length} comps within ${radius.toFixed(1)}mi</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; ${sourceLabel}</div>
+      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.address} &bull; ${used.length} used within ${radius.toFixed(1)}mi${ref.length?' + '+ref.length+' reference':''}</div>
     </div>
     <button class="listings-panel-close" onclick="hideCompsTable()">x</button>
   `;
@@ -1722,43 +1808,47 @@ function showCompsTable(lat,lng){
     panel.insertBefore(wrap, document.getElementById('tableWrap'));
   }
   wrap.style.display = '';
-  wrap.innerHTML = `<table class="listings-table"><thead><tr>
+
+  const thead = `<table class="listings-table"><thead><tr>
+    <th style="width:30px">Used</th>
     <th onclick="sortCompsTable('address')">Address</th>
     <th onclick="sortCompsTable('price')">Sale Price</th>
     <th onclick="sortCompsTable('ppsf')">$/SF</th>
     <th onclick="sortCompsTable('sqft')">SqFt</th>
+    <th>Bd/Ba</th>
+    <th>Type</th>
+    <th onclick="sortCompsTable('zone')">Zone</th>
     <th onclick="sortCompsTable('yb')">Yr Built</th>
+    <th onclick="sortCompsTable('t')">Tier</th>
     <th onclick="sortCompsTable('date')">Sale Date</th>
     <th onclick="sortCompsTable('dist')">Dist</th>
-    <th onclick="sortCompsTable('t')">Tier</th>
-    <th onclick="sortCompsTable('zone')">Zone</th>
-  </tr></thead><tbody>${comps.map(c=>`<tr style="cursor:pointer" onclick="map.flyTo([${c.lat},${c.lng}],17)">
-    <td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</td>
-    <td>$${c.price.toLocaleString()}</td>
-    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
-    <td>${c.sqft.toLocaleString()}</td>
-    <td>${c.yb||'—'}</td>
-    <td>${formatCompDate(c.date)}</td>
-    <td>${c.dist.toFixed(2)}mi</td>
-    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
-    <td>${c.zone||'—'}</td>
-  </tr>`).join('')}</tbody></table>`;
+  </tr></thead>`;
 
-  // Store comps for sorting
-  wrap._comps = comps;
+  const dividerRow = ref.length ? `<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${ref.length}) &mdash;</td></tr>` : '';
+  const tbody = `<tbody>${used.map(c=>compRow(c)).join('')}${dividerRow}${ref.filter(c=>!c.isOutlier).map(c=>compRow(c)).join('')}</tbody></table>`;
+  wrap.innerHTML = thead + tbody;
+
+  // Store data for sorting
+  wrap._used = used;
+  wrap._ref = ref;
   wrap._listing = l;
 
-  // Map markers
+  // Map markers — used=green, reference=gray
   if(compsMapLayer){ map.removeLayer(compsMapLayer); }
   if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); }
   compsMapLayer = L.layerGroup();
-  comps.forEach(c=>{
+  used.forEach(c=>{
     L.circleMarker([c.lat,c.lng],{
-      radius:6, color:'#3b82f6', fillColor:'#3b82f6', fillOpacity:0.7, weight:1
+      radius:6, color:'#22c55e', fillColor:'#22c55e', fillOpacity:0.8, weight:1
     }).bindPopup(`<b>${c.address||'—'}</b><br>$${c.price.toLocaleString()} &bull; $${c.ppsf}/sf &bull; ${c.sqft}sf<br>${c.date||'—'} &bull; T${c.t||'?'} &bull; ${c.zone}`).addTo(compsMapLayer);
   });
+  ref.filter(c=>!c.isOutlier).forEach(c=>{
+    L.circleMarker([c.lat,c.lng],{
+      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
+    }).addTo(compsMapLayer);
+  });
   compsRadiusCircle = L.circle([l.lat,l.lng],{
-    radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
+    radius: radius*1609.34, color:'#22c55e', fillColor:'#22c55e',
     fillOpacity:0.04, weight:1, dashArray:'6,4'
   });
   compsMapLayer.addTo(map);
@@ -1768,32 +1858,21 @@ function showCompsTable(lat,lng){
 
 function sortCompsTable(key){
   const wrap = document.getElementById('compsTableWrap');
-  if(!wrap || !wrap._comps) return;
-  const comps = wrap._comps;
-  const l = wrap._listing;
-  // Toggle sort direction via data attribute
+  if(!wrap || !wrap._used) return;
   const prev = wrap.getAttribute('data-sort-key');
   const dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
   wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir === 'asc' ? 'desc' : 'asc');
-  comps.sort((a,b)=>{
-    let va=a[key], vb=b[key];
-    if(typeof va==='string') return dir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-    va=va||0; vb=vb||0;
-    return dir==='asc' ? va-vb : vb-va;
-  });
-  // Re-render body only
-  wrap.querySelector('tbody').innerHTML = comps.map(c=>`<tr style="cursor:pointer" onclick="map.flyTo([${c.lat},${c.lng}],17)">
-    <td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</td>
-    <td>$${c.price.toLocaleString()}</td>
-    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
-    <td>${c.sqft.toLocaleString()}</td>
-    <td>${c.yb||'—'}</td>
-    <td>${formatCompDate(c.date)}</td>
-    <td>${c.dist.toFixed(2)}mi</td>
-    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
-    <td>${c.zone||'—'}</td>
-  </tr>`).join('');
+  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
+  const sorter = (a,b)=>{
+    let va=a[key],vb=b[key];
+    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    va=va||0;vb=vb||0;
+    return dir==='asc'?va-vb:vb-va;
+  };
+  wrap._used.sort(sorter);
+  wrap._ref.sort(sorter);
+  const dividerRow = wrap._ref.length ? `<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${wrap._ref.length}) &mdash;</td></tr>` : '';
+  wrap.querySelector('tbody').innerHTML = wrap._used.map(c=>compRow(c)).join('') + dividerRow + wrap._ref.filter(c=>!c.isOutlier).map(c=>compRow(c)).join('');
 }
 
 function hideCompsTable(){
