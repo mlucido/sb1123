@@ -1762,7 +1762,7 @@ function compConfidence(l){
   else if(score >= 25){ label = 'Low'; color = '#f97316'; icon = '&#9679;&#9675;&#9675;'; }
   else { label = 'Very Low'; color = '#ef4444'; icon = '&#9675;&#9675;&#9675;'; }
 
-  return {score, label, color, icon, bar: Math.round(score), count, method};
+  return {score, label, color, icon, bar: Math.round(score), count, method, radius};
 }
 
 // ── Pro Forma Block (shared across all 3 pin card templates) ──
@@ -1772,7 +1772,6 @@ function proFormaBlock(l, pf, opts){
   const buyPerUnit = opts.buyPerUnit != null ? opts.buyPerUnit : pf.pricePerUnit;
   const comparePrice = opts.comparePrice != null ? opts.comparePrice : l.price;
   const cc = compConfidence(l);
-  const el = exitLabel(l);
   const lbColor = pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)';
   const moColor = pf.max_offer>=comparePrice?'var(--green)':'var(--red)';
   let h = '<div class="popup-divider"></div>';
@@ -1781,8 +1780,7 @@ function proFormaBlock(l, pf, opts){
   else if(l.slopeAdjUnits) h += ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>';
   h += ' &bull; <span class="pf-buildable-sf">'+pf.effective_buildable_sf.toLocaleString()+'</span> SF</div>';
   if(l.layoutNote) h += '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>';
-  h += '<div class="popup-span-2" style="font-size:10px;color:'+el.color+';line-height:1.4">EXIT $'+el.psf+'/SF &mdash; '+el.label+'</div>';
-  h += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><span style="color:'+cc.color+';letter-spacing:2px">'+cc.icon+'</span> <span style="color:'+cc.color+';font-weight:600">'+cc.label+'</span> <span style="color:var(--text-dim)">(score '+cc.bar+')</span> &mdash; <a href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+cc.count+' comps &#8599;</a></div>';
+  h += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><span style="color:'+cc.color+';letter-spacing:2px">'+cc.icon+'</span> <a href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+cc.count+' comps'+(cc.radius ? ' within '+cc.radius+'mi' : '')+' &#8599;</a></div>';
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b class="pf-buy-per-unit">$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b class="pf-land-basis" style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b class="pf-buildable-sf2">'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
   h += '<div class="popup-span-2 pf-max-offer-row" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: <span class="pf-max-offer">$'+pf.max_offer.toLocaleString()+'</span></div>';
