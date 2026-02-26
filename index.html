@@ -656,6 +656,12 @@ window.CLUSTERS = window.CLUSTERS || [];
   }
   .modal-close:hover{color:var(--text);background:var(--surface2)}
   .modal-body{padding:20px}
+  .data-key-panel{max-width:640px}
+  .data-key-section{margin-bottom:16px}
+  .data-key-section h4{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+  .data-key-item{margin-bottom:10px}
+  .data-key-item dt{font-weight:700;font-size:12px;color:var(--text);margin-bottom:2px}
+  .data-key-item dd{margin:0;font-size:11px;color:var(--text-dim);line-height:1.5}
   .gear-icon{
     display:inline-flex;align-items:center;justify-content:center;
     width:28px;height:28px;border-radius:6px;cursor:pointer;
@@ -1180,6 +1186,87 @@ window.CLUSTERS = window.CLUSTERS || [];
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data Key Modal -->
+<div class="modal-overlay" id="dataKeyModal" onclick="if(event.target===this) closeDataKeyModal()">
+  <div class="modal-panel data-key-panel">
+    <div class="modal-header">
+      <h3>Data Key</h3>
+      <button class="modal-close" onclick="closeDataKeyModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="data-key-section">
+        <h4>Deal Metrics (Top Row)</h4>
+        <dl class="data-key-item"><dt>Price</dt><dd>Listing price from MLS. For off-market, enter your own estimate.</dd></dl>
+        <dl class="data-key-item"><dt>Units</dt><dd>Number of SB 1123 townhome units the lot can support. R1/LAND: floor(lotSF &divide; 1,200), cap 10. R2&ndash;R4: floor(lotSF &divide; 600), cap 10. Layout constraints (setbacks, driveway) may reduce this further.</dd></dl>
+        <dl class="data-key-item"><dt>Lot SF</dt><dd>Total lot area in square feet. Primary source is MLS listing data; falls back to county parcel data if MLS is missing. Source shown as &ldquo;mls&rdquo; or &ldquo;parcel.&rdquo;</dd></dl>
+        <dl class="data-key-item"><dt>Exit $/SF</dt><dd>Estimated sale price per square foot for finished townhomes. Prefers new-construction comps within 1 mile; falls back to zone-matched resale comps with expanding search radius (0.25mi &rarr; 4mi). Color indicates comp type: <span style="color:#4ecdc4">teal = new-con</span>, <span style="color:#ffe66d">gold = zone comps</span>.</dd></dl>
+        <dl class="data-key-item"><dt>Spread</dt><dd>Exit $/SF minus hard construction cost (default $350/SF). Higher spread = more margin for profit.</dd></dl>
+        <dl class="data-key-item"><dt>Net Margin</dt><dd>Estimated profit &divide; gross revenue. Green (&ge;20%) = strong, yellow (10&ndash;20%) = marginal, red (&lt;10%) = risky.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Comp Quality</h4>
+        <dl class="data-key-item"><dt>Comp Confidence</dt><dd>Score from 0&ndash;100 rating reliability of the exit $/SF estimate. Based on: number of comps found, distance from subject, recency, and whether new-construction comps are available. Shown as a colored bar in the deal card.</dd></dl>
+        <dl class="data-key-item"><dt>Comp Type</dt><dd><b>New-con (subdiv)</b>: Recent new-construction sales &mdash; most reliable for SB 1123 product. <b>Zone comps</b>: Resale comps matched by zoning type (R1 with R1, etc.) &mdash; used when no new-con available.</dd></dl>
+        <dl class="data-key-item"><dt>Comp Count &amp; Radius</dt><dd>Number of comparable sales found and the search radius used. More comps at shorter radius = higher confidence.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Unit Count &amp; Layout</h4>
+        <dl class="data-key-item"><dt>Lot Dimensions</dt><dd>Width &times; Depth estimated from parcel geometry. &ldquo;Irregular&rdquo; flag appears when effective rectangle area differs &gt;15% from actual lot area (pie-shaped, flag lots, etc.).</dd></dl>
+        <dl class="data-key-item"><dt>Layout Constraint</dt><dd>Unit count may be reduced by physical fit: units must fit within lot width minus setbacks (4&rsquo; each side) and driveway (20&rsquo;). Each unit assumed 20&rsquo; wide. Use the Layout Planner tool to experiment with driveway placement.</dd></dl>
+        <dl class="data-key-item"><dt>FAR (Floor Area Ratio)</dt><dd>Maximum buildable SF &divide; lot SF. SB 1123 allows: 1.25 FAR for 8&ndash;10 units, 1.0 for 3&ndash;7 units, 0.5 for &lt;3 units. Buildable SF = min(units &times; avg unit size, lot &times; FAR).</dd></dl>
+        <dl class="data-key-item"><dt>Density Cap</dt><dd>SB 1123 caps at 10 units per lot regardless of lot size. R1/LAND uses 1,200 SF/unit divisor; R2&ndash;R4 uses 600 SF/unit.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Financial Model</h4>
+        <dl class="data-key-item"><dt>Buildable SF</dt><dd>Total square footage of finished product. = units &times; avg unit size (default 1,200 SF), capped by FAR limit.</dd></dl>
+        <dl class="data-key-item"><dt>Gross Revenue</dt><dd>Buildable SF &times; Exit $/SF. What you&rsquo;d gross if you sold all units.</dd></dl>
+        <dl class="data-key-item"><dt>Sale Discount</dt><dd>5% reduction from gross revenue to account for broker commissions, concessions, and closing costs.</dd></dl>
+        <dl class="data-key-item"><dt>Net Revenue</dt><dd>Gross revenue minus sale discount.</dd></dl>
+        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Construction cost = buildable SF &times; $350/SF (default). Covers structure, MEP, finishes.</dd></dl>
+        <dl class="data-key-item"><dt>Soft Costs</dt><dd>25% of hard costs (default). Covers architecture, engineering, permits, insurance, legal, financing.</dd></dl>
+        <dl class="data-key-item"><dt>Demo Cost</dt><dd>$25,000 flat (default) for demolition of existing structures.</dd></dl>
+        <dl class="data-key-item"><dt>Total Development Cost</dt><dd>Hard + soft + demo + land acquisition (asking price).</dd></dl>
+        <dl class="data-key-item"><dt>Est. Profit</dt><dd>Net revenue minus total development cost.</dd></dl>
+        <dl class="data-key-item"><dt>Buy/Unit</dt><dd>Asking price &divide; number of units. Lower = more land efficiency.</dd></dl>
+        <dl class="data-key-item"><dt>Land Basis</dt><dd>Asking price &divide; buildable SF. What you&rsquo;re paying per SF of finished product for the land alone.</dd></dl>
+        <dl class="data-key-item"><dt>Max Offer</dt><dd>Maximum land price that still achieves the target margin (default 20%). Calculated as: net revenue &minus; construction costs &minus; target profit.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Build-to-Rent (BTR)</h4>
+        <dl class="data-key-item"><dt>Monthly Rent</dt><dd>Estimated market rent per unit from HUD Small Area Fair Market Rents (SAFMR) for the property&rsquo;s ZIP code, sized to unit bedroom count.</dd></dl>
+        <dl class="data-key-item"><dt>Gross Annual Income</dt><dd>Monthly rent &times; units &times; 12 months.</dd></dl>
+        <dl class="data-key-item"><dt>NOI (Net Operating Income)</dt><dd>Gross income minus operating expenses (default 35% of gross: property management, maintenance, insurance, taxes, vacancy).</dd></dl>
+        <dl class="data-key-item"><dt>Yield on Cost (YOC)</dt><dd>NOI &divide; total development cost. The unlevered return on your all-in investment. Target: &ge;5.5%. Shown as pass/fail badge.</dd></dl>
+        <dl class="data-key-item"><dt>Cap Rate Valuation</dt><dd>NOI &divide; market cap rate (default 5%). Estimates what the completed, stabilized property would sell for as a rental asset.</dd></dl>
+        <dl class="data-key-item"><dt>Refi Loan (70% LTV)</dt><dd>70% of the cap rate valuation. Estimates how much permanent debt you could place after stabilization.</dd></dl>
+        <dl class="data-key-item"><dt>Equity Remaining</dt><dd>Total development cost minus refi loan. The cash you&rsquo;d still have tied up after refinancing.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Due Diligence Flags</h4>
+        <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>Very High Fire Hazard Severity Zone. SB 1123 projects are <b>not eligible</b> in VHFHSZ areas. These listings are flagged but still shown for awareness.</dd></dl>
+        <dl class="data-key-item"><dt>Slope</dt><dd>Average ground slope percentage from USGS LiDAR elevation data. Steeper slopes increase grading costs and may require retaining walls. &gt;15% is flagged as challenging.</dd></dl>
+        <dl class="data-key-item"><dt>Tenant Risk</dt><dd>Risk level (0&ndash;3) for existing tenant displacement issues. Factors: occupied/improved property, 3+ bedrooms, 5+ bedrooms, multi-family structures, pre-2000 construction, RSO (rent stabilization) overlay. Higher risk = more relocation costs and legal complexity.</dd></dl>
+        <dl class="data-key-item"><dt>HOA</dt><dd>Existing HOA may restrict or prevent SB 1123 development. R1 properties with HOA are flagged as potentially ineligible.</dd></dl>
+        <dl class="data-key-item"><dt>Lot Source</dt><dd>Where lot size data comes from: &ldquo;MLS&rdquo; (listing agent, more reliable) or &ldquo;Parcel&rdquo; (county GIS, may match wrong parcel on irregular lots).</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Deal Margin Colors</h4>
+        <dl class="data-key-item"><dt style="color:#4ecdc4">Green (Net Margin &ge; 20%)</dt><dd>Strong deal &mdash; meets or exceeds target profit margin.</dd></dl>
+        <dl class="data-key-item"><dt style="color:#ffe66d">Yellow (Net Margin 10&ndash;20%)</dt><dd>Marginal deal &mdash; profit exists but thin. Sensitive to cost overruns or market softening.</dd></dl>
+        <dl class="data-key-item"><dt style="color:#ff6b6b">Red (Net Margin &lt; 10%)</dt><dd>Risky deal &mdash; little to no profit cushion. Likely not viable at asking price.</dd></dl>
+      </div>
+
     </div>
   </div>
 </div>
@@ -3126,6 +3213,9 @@ function openAssumptionsModal(){
 function closeAssumptionsModal(){
   document.getElementById('assumptionsModal').classList.remove('active');
 }
+function closeDataKeyModal(){
+  document.getElementById('dataKeyModal').classList.remove('active');
+}
 
 // ══════════════════════════════════════════
 //  HERO STAT BAR (updates with filters)
@@ -3670,6 +3760,7 @@ function initDrawControl(){
     <button class="draw-btn" id="drawBtn" title="Draw area to filter">&#9998;</button>
     <button class="draw-btn" id="drawDoneBtn" title="Close polygon" style="display:none;font-size:11px;font-weight:700">Done</button>
     <button class="draw-clear-btn" id="drawClearBtn" title="Clear drawn area">&#10005;</button>
+    <button class="draw-btn" id="dataKeyBtn" title="Data Key — how metrics are calculated" style="font-size:14px;font-weight:700;margin-top:8px">?</button>
   `;
   document.getElementById('map').appendChild(container);
   L.DomEvent.disableClickPropagation(container);
@@ -3678,6 +3769,9 @@ function initDrawControl(){
   document.getElementById('drawBtn').addEventListener('click', toggleDrawMode);
   document.getElementById('drawDoneBtn').addEventListener('click', function(){ finishPolygon(); });
   document.getElementById('drawClearBtn').addEventListener('click', clearDrawPolygon);
+  document.getElementById('dataKeyBtn').addEventListener('click', function(){
+    document.getElementById('dataKeyModal').classList.add('active');
+  });
 }
 
 function toggleDrawMode(){
