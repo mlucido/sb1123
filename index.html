@@ -214,8 +214,12 @@ window.CLUSTERS = window.CLUSTERS || [];
   .popup-badge.comp{background:rgba(96,165,250,0.15);color:var(--accent)}
   .popup-badge.listing{background:rgba(244,63,94,0.15);color:var(--listing)}
   .popup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 10px}
+  .popup-grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:3px 8px}
   .popup-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px 10px}
   .popup-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 12px}
+  .popup-toggle{cursor:pointer;user-select:none}
+  .popup-toggle:hover{opacity:0.8}
+  .popup-toggle .ca{font-size:8px;margin-right:2px}
   .popup-label{font-size:10px;color:var(--text-dim);line-height:1.2}
   .popup-value{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;line-height:1.3}
   .popup-divider{grid-column:1/-1;border-top:1px solid var(--border);margin:5px 0 3px 0}
@@ -1681,23 +1685,23 @@ function compConfidence(l){
 // ── Pro Forma Block (shared across all 3 pin card templates) ──
 function proFormaBlock(l, pf, opts){
   opts = opts || {};
-  const buyLabel = opts.buyLabel || 'Buy/Unit';
-  const buyPerUnit = opts.buyPerUnit != null ? opts.buyPerUnit : pf.pricePerUnit;
   const comparePrice = opts.comparePrice != null ? opts.comparePrice : l.price;
   const cc = compConfidence(l);
   const el = exitLabel(l);
-  const lbColor = pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)';
   const moColor = pf.max_offer>=comparePrice?'var(--green)':'var(--red)';
+  const estEquity = Math.round(pf.totalCost * 0.30);
+  const moic = estEquity > 0 ? (pf.profit / estEquity).toFixed(2) : '0.00';
+  const moicColor = parseFloat(moic) >= 2.0 ? 'var(--green)' : parseFloat(moic) >= 1.5 ? 'var(--yellow)' : 'var(--red)';
+  const profitColor = pf.profit >= 0 ? 'var(--green)' : 'var(--red)';
   let h = '<div class="popup-divider"></div>';
   h += '<div class="popup-section-label">PRO FORMA &mdash; <span class="pf-units">'+pf.maxUnits+'</span> UNITS';
-  if(l.layoutNote) h += ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+l.densityUnits+')</span>';
+  if(l.layoutNote) h += ' <span style="color:var(--orange);font-weight:400">(layout-capped from '+pf.densityUnits+')</span>';
   else if(l.slopeAdjUnits) h += ' <span style="color:var(--orange);font-weight:400">(slope-adj ~'+l.slopeAdjUnits+')</span>';
   h += ' &bull; <span class="pf-buildable-sf">'+pf.effective_buildable_sf.toLocaleString()+'</span> SF</div>';
   if(l.layoutNote) h += '<div class="popup-span-2" style="color:var(--orange);font-size:11px">&#9888; '+l.layoutNote+'</div>';
-  h += '<div class="popup-span-2" style="font-size:10px;color:'+el.color+';line-height:1.4">EXIT $'+el.psf+'/SF &mdash; '+el.label+'</div>';
-  h += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><span style="color:'+cc.color+';letter-spacing:2px">'+cc.icon+'</span> <span style="color:'+cc.color+';font-weight:600">'+cc.label+'</span> <span style="color:var(--text-dim)">(score '+cc.bar+')</span> &mdash; <a href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+cc.count+' comps &#8599;</a></div>';
-  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b class="pf-buy-per-unit">$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
-  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b class="pf-land-basis" style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b class="pf-buildable-sf2">'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
+  h += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><span style="color:'+cc.color+';letter-spacing:2px">'+cc.icon+'</span> <span style="color:'+cc.color+';font-weight:600">'+cc.label+'</span> <span style="color:var(--text-dim)">(score '+cc.bar+')</span> &mdash; <a href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+el.label+' &#8599;</a></div>';
+  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span><span>Est Equity (30%) <b>$'+estEquity.toLocaleString()+'</b></span></div>';
+  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Profit / Unit <b style="color:'+profitColor+'">$'+Math.round(pf.profit/pf.maxUnits).toLocaleString()+'</b></span><span>Profit / Equity <b style="color:'+moicColor+'">'+moic+'x</b></span></div>';
   h += '<div class="popup-span-2 pf-max-offer-row" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: <span class="pf-max-offer">$'+pf.max_offer.toLocaleString()+'</span></div>';
   h += remainderAnalysis(l);
   return h;
@@ -1950,21 +1954,22 @@ function exitLabel(l){
     const count = l.subdivCompCount || 0;
     const radius = l.subdivCompRadius || '';
     const appr = l.subdivAvgAppr ? ` (${l.subdivAvgAppr > 0 ? '+' : ''}${l.subdivAvgAppr.toFixed(1)}% adj)` : '';
-    return {psf: l.subdivExitPsf, label: `SUBDIV COMP — ${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv'};
+    return {psf: l.subdivExitPsf, label: `${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv', readable: `${count} subdiv comps`, count};
   }
   const exitPsf = l.newconPpsf || l.exitPsf || 0;
-  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
+  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data', readable: 'no data', count: 0};
   if(l.newconPpsf){
     const tier = l.newconTier || '';
     const count = l.newconCount || 0;
     const zm = l.newconZoneMatch !== false ? 'zone-matched' : 'cross-zone';
     const flag = l.newconFlag;
-    let label = `NEW-CON — ${count} comps, ${tier}, ${zm}`;
+    let label = `${count} comps, ${tier}, ${zm}`;
     let color = 'var(--accent)';
-    if(flag === 'thin'){ label += ' ⚠️ thin'; color = '#f59e0b'; }
-    else if(flag === 'cross-zone'){ color = '#f59e0b'; }
-    else if(flag === 'sanity-high'){ label += ' ⚠️ high'; color = '#f59e0b'; }
-    return {psf: exitPsf, label, color, short: 'new-con'};
+    let readable = `${count} new-con comps`;
+    if(flag === 'thin'){ label += ' \u26a0\ufe0f thin'; color = '#f59e0b'; }
+    else if(flag === 'cross-zone'){ color = '#f59e0b'; readable += ' (cross-zone)'; }
+    else if(flag === 'sanity-high'){ label += ' \u26a0\ufe0f high'; color = '#f59e0b'; }
+    return {psf: exitPsf, label, color, short: 'new-con', readable, count};
   }
   // General P75 fallback
   const count = l.compCount || 0;
@@ -1972,8 +1977,8 @@ function exitLabel(l){
   let reason = '';
   if(l.newconFlag === 'sanity-low') reason = ' — newcon failed sanity check';
   else if(l.newconFlag === 'sanity-high') reason = ' — newcon flagged high';
-  const label = `ALL SALES — ${count} comps within ${radius}mi${reason}`;
-  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'all sales'};
+  const label = `${count} comps within ${radius}mi${reason}`;
+  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'all sales', readable: `${count} zone comps`, count};
 }
 
 function calculateProForma(l){
@@ -2104,10 +2109,17 @@ function lotLabel(l, effPct){
   const src = l.lotSource === 'parcel' ? 'Parcel' : 'MLS';
   const srcColor = l.lotSfParcel ? 'var(--orange)' : 'var(--text-dim)';
   const mismatch = l.lotSfParcel ? ` <small style="color:var(--orange)">&#9888; Parcel: ${l.lotSfParcel.toLocaleString()}</small>` : '';
-  const irregWarn = l.lotShape === 'irreg' ? ' <small style="color:var(--orange)">&#9888; irregular</small>' : '';
-  const dims = l.lw && l.ld ? ` <small style="color:var(--text-dim)">${l.lw}'\u00d7${l.ld}'</small>${irregWarn}` : '';
-  const eff = effPct != null ? ` <small style="color:${effPct>=85?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)'}">(${effPct}% eff)</small>` : '';
-  return `<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${srcColor}">(${src})</small>${dims}${mismatch}${eff}</div></div>`;
+  const isIrreg = effPct != null && (effPct < 85 || effPct > 115);
+  const irregFlag = isIrreg ? ' <small style="color:var(--orange)">&#9888; irregular</small>' : '';
+  const dims = l.lw && l.ld ? ` <small style="color:var(--text-dim)">${l.lw}'\u00d7${l.ld}'</small>${irregFlag}` : '';
+  return `<div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf.toLocaleString()} sf <small style="color:${srcColor}">(${src})</small>${dims}${mismatch}</div></div>`;
+}
+function lotLabelCompact(l, effPct){
+  if(!l.lotSf) return '';
+  const isIrreg = effPct != null && (effPct < 85 || effPct > 115);
+  const irregFlag = isIrreg ? ' &#9888; irregular' : '';
+  const dims = l.lw && l.ld ? l.lw+"'\u00d7"+l.ld+"'" : '';
+  return l.lotSf.toLocaleString()+' sf'+(dims ? ' '+dims : '')+irregFlag;
 }
 
 // Remainder parcel analysis section for R2-R4
@@ -2396,14 +2408,14 @@ function rebuildListings(){
 
       <div class="popup-two-col">
       <div class="popup-col-left">
-      <div class="popup-grid">
+      <div class="popup-grid-5">
         <div><div class="popup-label">List Price</div><div class="popup-value" style="color:${color}">$${l.price.toLocaleString()}</div></div>
-        <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
+        <div><div class="popup-label">Lot Size</div><div class="popup-value">${l.lotSf?lotLabelCompact(l,Math.round(pf.lot_efficiency*100)):'—'}</div></div>
+        <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).readable})</small></div></div>
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
-        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
-
-        ${l.lotSf?lotLabel(l,Math.round(pf.lot_efficiency*100)):'<div></div>'}
-        ${l.city?`<div><div class="popup-label">City</div><div class="popup-value">${l.city}</div></div>`:'<div></div>'}
+        <div><div class="popup-label">Net Margin</div><div class="popup-value" style="font-size:14px;font-weight:700;color:${pf.margin>=30?'var(--green)':pf.margin>=20?'var(--yellow)':'var(--red)'}">${pf.margin.toFixed(1)}%</div></div>
+      </div>
+      <div class="popup-grid">
         <div><div class="popup-label">Zone</div><div class="popup-value">${l.zone||'—'}${l.zimasZone?` <small style="color:var(--text-dim)">${l.zimasZone}</small>`:''}</div></div>
         ${l.slope!=null?`<div><div class="popup-label">Slope</div><div class="popup-value" style="color:${l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'}">${l.slope}%</div></div>`:'<div></div>'}
         ${l.dom!==null&&l.dom!==undefined?`<div><div class="popup-label">Days on Market</div><div class="popup-value" style="color:${l.dom>=60?'var(--green)':l.dom>=30?'var(--yellow)':'var(--text)'}">${l.dom}</div></div>`:'<div></div>'}
@@ -2436,7 +2448,13 @@ function rebuildListings(){
 
       <div class="popup-col-right">
       <div class="popup-grid-2">
-        <div class="popup-section-label">Economics</div>
+        <div><div class="popup-label">Net Revenue</div><div class="popup-value pf-net-revenue">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
+        <div><div class="popup-label">Est Profit</div><div class="popup-value pf-profit ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit).toLocaleString()}</div></div>
+      </div>
+
+      <div class="popup-divider" style="margin:4px 0 2px"></div>
+      <div class="popup-section-label popup-toggle" onclick="var t=this.nextElementSibling;t.style.display=t.style.display==='none'?'':'none';this.querySelector('.ca').textContent=t.style.display==='none'?'\u25B6':'\u25BC'"><span class="ca">&#9654;</span> ECONOMICS</div>
+      <div class="popup-grid-2" style="display:none">
         <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
         <div><div class="popup-label">Construction</div><div class="popup-value">$${Math.round(pf.constructionCost).toLocaleString()}</div></div>
         ${pf.demo>0?`<div><div class="popup-label">Demo</div><div class="popup-value">$${pf.demo.toLocaleString()}</div></div>`:''}
@@ -2445,23 +2463,11 @@ function rebuildListings(){
         <div><div class="popup-label">Origination (${proforma.originationPct}%)</div><div class="popup-value">$${pf.originationFee.toLocaleString()}</div></div>
         <div><div class="popup-label">Carry Interest (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryInterest.toLocaleString()}</div></div>
         <div><div class="popup-label">Prop Tax (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryPropTax.toLocaleString()}</div></div>
+      </div>
 
-        <div class="popup-divider"></div>
-        <div><div class="popup-label">Net Revenue</div><div class="popup-value pf-net-revenue">$${Math.round(pf.netRevenue).toLocaleString()}</div></div>
-        <div><div class="popup-label">Est Profit</div><div class="popup-value pf-profit ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit).toLocaleString()}</div></div>
-        <div><div class="popup-label">Sell / Unit</div><div class="popup-value" style="color:var(--green)">$${Math.round(pf.netRevenue/pf.maxUnits).toLocaleString()}</div></div>
-        <div><div class="popup-label">Profit / Unit</div><div class="popup-value pf-profit-per-unit ${pf.profit>=0?'popup-profit-positive':'popup-profit-negative'}">$${Math.round(pf.profit/pf.maxUnits).toLocaleString()}</div></div>
-        <div><div class="popup-label">Return on Cost</div><div class="popup-value ${pf.return_on_cost>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.return_on_cost.toFixed(1)}%</div></div>
-        <div><div class="popup-label">Net Margin</div><div class="popup-value pf-margin ${pf.margin>=0?'popup-profit-positive':'popup-profit-negative'}">${pf.margin.toFixed(1)}%</div></div>
-
-        <div class="popup-divider"></div>
-        <div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>
-        ${btr.btrPencils
-          ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
-          : btr.baseRent > 0
-            ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC (min '+(btr.minYOC*100).toFixed(1)+'%)</div>'
-            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; No rent data</div>'
-        }
+      <div class="popup-divider" style="margin:4px 0 2px"></div>
+      <div class="popup-section-label popup-toggle" onclick="var t=this.nextElementSibling;t.style.display=t.style.display==='none'?'':'none';this.querySelector('.ca').textContent=t.style.display==='none'?'\u25B6':'\u25BC'"><span class="ca">&#9654;</span> BUILD-TO-RENT &mdash; ${btr.baseRent > 0 ? (btr.btrPencils ? '<span style="color:var(--green)">'+(btr.yieldOnCost*100).toFixed(1)+'% YOC &#10003;</span>' : '<span style="color:var(--red)">'+(btr.yieldOnCost*100).toFixed(1)+'% YOC &#10007;</span>') : '<span style="color:#94a3b8">no rent data</span>'}</div>
+      <div class="popup-grid-2" style="display:none">
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
@@ -2470,7 +2476,7 @@ function rebuildListings(){
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
         <div><div class="popup-label">YOC</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
-        ` : ''}
+        ` : '<div class="popup-span-2" style="font-size:10px;color:#94a3b8">No rent data available</div>'}
         ${btr.btrPencils ? `
         <div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:${btr.stabilizedValue>=btr.totalCost?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">${btr.stabilizedValue>=btr.totalCost?'&#9989; Refi-able &mdash; $'+Math.round((btr.stabilizedValue-btr.totalCost)/1000).toLocaleString()+'k equity at '+(btr.capRate*100).toFixed(1)+'% cap':'&#10060; Refi gap: -$'+Math.round((btr.totalCost-btr.stabilizedValue)/1000).toLocaleString()+'k &mdash; cash trapped at '+(btr.capRate*100).toFixed(1)+'% cap'}</div>
         <div><div class="popup-label">DSCR</div><div class="popup-value" style="color:${btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)'}">${btr.dscr.toFixed(2)}x</div></div>
