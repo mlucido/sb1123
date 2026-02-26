@@ -386,8 +386,6 @@ window.CLUSTERS = window.CLUSTERS || [];
   .fav-toggle:disabled{opacity:0.4;cursor:not-allowed;border-color:transparent;pointer-events:none}
   .fav-toggle.active{border-color:#facc15;background:rgba(250,204,21,0.08)}
   .fav-toggle .fav-count{margin-left:auto;font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px}
-  .popup-notes{width:100%;margin-top:8px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;resize:vertical;min-height:40px;max-height:100px}
-  .popup-notes::placeholder{color:var(--text-dim)}
   .popup-fav-btn{
     display:inline-flex;align-items:center;gap:4px;padding:4px 10px;margin-top:6px;
     background:var(--surface2);border:1px solid var(--border);border-radius:4px;
@@ -2482,7 +2480,6 @@ function rebuildListings(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
-      <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `,{maxWidth:750});
     cm.addTo(listingsLayer);
   });
@@ -2610,7 +2607,6 @@ function buildBTRLayer(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
-      <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `;
 
     marker.bindPopup(popupHTML, {maxWidth: 750});
@@ -2995,7 +2991,6 @@ function buildOffMarketLayer(){
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
-      <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `, {maxWidth: 580});
 
     marker.addTo(offMarketLayer);
