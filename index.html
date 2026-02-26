@@ -2000,16 +2000,21 @@ function calculateProForma(l){
   if (l.lw && l.ld) {
     const setback = 4, unitW = 20, unitD = 40;
     const driveW = (MARKET.slug === 'sd' && densityUnits >= 9) ? 24 : 20;
-    const availW = l.lw - 2 * setback - driveW;
-    const availD = l.ld - 2 * setback;
-    let across = Math.max(0, Math.floor(availW / unitW));
-    const deep = Math.max(0, Math.floor(availD / unitD));
-    if (across === 0 && l.lw >= unitW + driveW + 2 * setback) across = 1;
-    layoutMax = across * deep;
+    const availDepth = l.ld - 2 * setback;
+    const unitsPerSide = Math.floor(availDepth / unitW);
+    const singleMinW = 2 * setback + driveW + unitD;
+    const doubleMinW = 2 * setback + 2 * unitD + driveW;
+    if (l.lw >= doubleMinW) {
+      layoutMax = Math.min(2 * unitsPerSide, 10);
+      layoutNote = "Double-loaded " + l.lw + "'\u00d7" + l.ld + "'";
+    } else if (l.lw >= singleMinW) {
+      layoutMax = Math.min(unitsPerSide, 10);
+      layoutNote = "Lot " + l.lw + "' \u2014 single-loaded only";
+    } else {
+      layoutMax = 0;
+      layoutNote = "Lot " + l.lw + "' too narrow for " + unitD + "' units";
+    }
     if (layoutMax > 0 && layoutMax < maxUnits) {
-      layoutNote = across <= 1
-        ? "Lot width " + l.lw + "' limits to single-loaded layout"
-        : "Lot " + l.lw + "'\u00d7" + l.ld + "' fits " + across + "\u00d7" + deep + " layout";
       maxUnits = Math.max(2, layoutMax);
     }
   }
@@ -2091,52 +2096,55 @@ function calculateProForma(l){
   };
 }
 
-// ── Two-sided lot layout model (units on both sides of driveway) ──
-function calcTwoSidedLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap, hasRem){
-  var leftAvail = Math.max(0, driveX - setback);
-  var rightAvail = Math.max(0, (lw - setback) - (driveX + driveW));
-  var leftAcross = Math.floor(leftAvail / unitW);
-  var rightAcross = Math.floor(rightAvail / unitW);
-  // When remainder handles the street front, dev zone only needs rear setback
+// ── Linear lot layout: every unit must touch the driveway ──
+// Units stack along driveway (Y axis) with unitW frontage, unitD depth perpendicular
+function calcLinearLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap, hasRem){
+  var leftSpace = Math.max(0, driveX - setback);
+  var rightSpace = Math.max(0, (lw - setback) - (driveX + driveW));
+  var leftFits = leftSpace >= unitD;
+  var rightFits = rightSpace >= unitD;
   var depthSetbacks = hasRem ? 1 : 2;
-  var deep = Math.max(0, Math.floor((ld - depthSetbacks * setback) / unitD));
-  var total = (leftAcross + rightAcross) * deep;
-  var capped = Math.min(total, densityCap);
-  return {leftAcross:leftAcross, rightAcross:rightAcross, deep:deep, total:total, capped:capped};
+  var availDepth = Math.max(0, ld - depthSetbacks * setback);
+  var unitsPerSide = Math.floor(availDepth / unitW);
+  var leftCount = leftFits ? unitsPerSide : 0;
+  var rightCount = rightFits ? unitsPerSide : 0;
+  var total = leftCount + rightCount;
+  if(total > densityCap){
+    if(leftCount > 0 && rightCount > 0){
+      var half = Math.floor(densityCap / 2);
+      leftCount = half + (densityCap % 2);
+      rightCount = half;
+    } else if(leftCount > 0){ leftCount = densityCap; }
+    else { rightCount = densityCap; }
+    total = leftCount + rightCount;
+  }
+  var warning = '';
+  if(!leftFits && !rightFits){
+    warning = "Lot too narrow (" + lw + "') \u2014 need " + (2*setback+driveW+unitD) + "' min";
+  }
+  return {leftCount:leftCount, rightCount:rightCount, leftFits:leftFits, rightFits:rightFits,
+    leftSpace:leftSpace, rightSpace:rightSpace, availDepth:availDepth,
+    total:total, capped:Math.min(total, densityCap), warning:warning};
 }
 
 function findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap, forceDbl, hasRem){
-  var minX = setback, maxX = Math.max(setback, lw - driveW - setback);
-  var candidates = [minX, maxX, Math.round((lw - driveW) / 2)];
-  for(var n = 1; n <= 4; n++){
-    var aligned = setback + n * unitW;
-    if(aligned >= minX && aligned + driveW <= lw - setback) candidates.push(aligned);
+  if(forceDbl){
+    var dblX = setback + unitD;
+    if((lw - setback) - (dblX + driveW) >= unitD) return dblX;
   }
-  var best = minX, bestUnits = 0;
-  for(var i = 0; i < candidates.length; i++){
-    var x = Math.max(minX, Math.min(maxX, Math.round(candidates[i])));
-    var r = calcTwoSidedLayout(lw, ld, x, driveW, setback, unitW, unitD, densityCap, hasRem);
-    if(forceDbl && (r.leftAcross < 1 || r.rightAcross < 1)) continue;
-    if(r.capped > bestUnits || (r.capped === bestUnits && x < best)){
-      bestUnits = r.capped;
-      best = x;
-    }
-  }
-  return best;
+  // Single-loaded: prefer driveway at left edge
+  return setback;
 }
 
-// Build all dynamic SVG elements: units, yards, parcels, garages, dimension lines
+// Build SVG elements for linear layout: units stack along driveway, depth perpendicular
 function buildLayoutElements(layout, driveX, driveW, setback, unitW, unitD, lw, ld, ox, oy, zoneColor, densityCap, remD){
   var s = '', pn = 0;
   var hasRem = remD > 0;
-  var devH = ld - (remD || 0);
-  var bldgD = unitD - 8; // 32' building, 8' rear yard per parcel row
+  var bldgD = unitD - 8; // 32' building depth, 8' yard beyond
   var garageW = 3;
-  var rowsH = layout.deep * unitD;
-  // With remainder, dev zone has no front setback (remainder handles street relationship)
-  var devBottom = hasRem ? (oy + devH) : (oy + devH - setback);
+  var topSet = setback; // rear setback at top of SVG
 
-  // Remainder parcel (tan area at bottom near street)
+  // Remainder parcel (existing structure near street)
   if(hasRem){
     var ry = oy + ld - remD;
     s += '<rect class="layout-el" x="'+ox+'" y="'+ry+'" width="'+lw+'" height="'+remD+'" fill="#D7CCC844" stroke="#8d6e63" stroke-width="0.5" stroke-dasharray="3,2"/>';
@@ -2145,102 +2153,99 @@ function buildLayoutElements(layout, driveX, driveW, setback, unitW, unitD, lw, 
     s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(ry+remD/2+8)+'" text-anchor="middle" fill="#8d6e63" font-size="3.5" font-family="sans-serif" opacity="0.7">'+remD+'\' deep</text>';
   }
 
-  // Full-parcel green yard backgrounds (covers entire parcel area — buildings overlay on top)
-  if(layout.leftAcross > 0 && rowsH > 0){
-    var leftW = layout.leftAcross * unitW;
-    s += '<rect class="layout-el" x="'+(ox+setback)+'" y="'+(oy+setback)+'" width="'+leftW+'" height="'+rowsH+'" fill="#C8E6C9" opacity="0.35"/>';
-  }
-  if(layout.rightAcross > 0 && rowsH > 0){
-    var rightW = layout.rightAcross * unitW;
-    s += '<rect class="layout-el" x="'+(ox+driveX+driveW)+'" y="'+(oy+setback)+'" width="'+rightW+'" height="'+rowsH+'" fill="#C8E6C9" opacity="0.35"/>';
+  // Warning if lot too narrow
+  if(layout.warning){
+    var devH = ld - (remD || 0);
+    s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(oy+devH/2)+'" text-anchor="middle" fill="#ef4444" font-size="4" font-family="sans-serif">'+layout.warning+'</text>';
+    return s;
   }
 
-  // Side setback yards (between lot edge and unit parcels)
-  if(layout.leftAcross > 0 && rowsH > 0)
-    s += '<rect class="layout-el" x="'+ox+'" y="'+(oy+setback)+'" width="'+setback+'" height="'+rowsH+'" fill="#C8E6C9" opacity="0.4"/>';
-  if(layout.rightAcross > 0 && rowsH > 0){
-    var rEnd = ox + driveX + driveW + layout.rightAcross * unitW;
-    var rW = (ox + lw) - rEnd;
-    if(rW > 0) s += '<rect class="layout-el" x="'+rEnd+'" y="'+(oy+setback)+'" width="'+rW+'" height="'+rowsH+'" fill="#C8E6C9" opacity="0.4"/>';
-  }
-
-  // Bottom yard (unused depth below unit rows in dev zone)
-  var bottomStart = oy + setback + rowsH;
-  var bottomH = devBottom - bottomStart;
-  if(bottomH > 1){
-    s += '<rect class="layout-el" x="'+(ox+setback)+'" y="'+bottomStart+'" width="'+(lw-2*setback)+'" height="'+bottomH+'" fill="#C8E6C9" opacity="0.25"/>';
-  }
-
-  // Gap between left units and driveway
-  if(layout.leftAcross > 0){
-    var lEnd = setback + layout.leftAcross * unitW;
-    var lGap = driveX - lEnd;
-    if(lGap > 1) s += '<rect class="layout-el" x="'+(ox+lEnd)+'" y="'+(oy+setback)+'" width="'+lGap+'" height="'+rowsH+'" fill="#e0e0e0" opacity="0.15"/>';
-  }
-
-  // LEFT side units
   var count = 0;
-  for(var row = 0; row < layout.deep; row++){
-    for(var col = 0; col < layout.leftAcross; col++){
+
+  // LEFT side units: building right-aligned to driveway, yard on far left
+  if(layout.leftCount > 0){
+    var lbx = ox + driveX - bldgD; // building X
+    var lyx = ox + driveX - unitD; // yard X (far side)
+    var lyW = unitD - bldgD; // yard width (8')
+    var rowH = layout.leftCount * unitW;
+    // Yard background
+    s += '<rect class="layout-el" x="'+lyx+'" y="'+(oy+topSet)+'" width="'+lyW+'" height="'+rowH+'" fill="#C8E6C9" opacity="0.35"/>';
+    // Extra side setback yard if space between lot edge and unit parcel
+    var lsGap = driveX - unitD - setback;
+    if(lsGap > 0) s += '<rect class="layout-el" x="'+(ox+setback)+'" y="'+(oy+topSet)+'" width="'+lsGap+'" height="'+rowH+'" fill="#C8E6C9" opacity="0.2"/>';
+    for(var i = 0; i < layout.leftCount; i++){
       count++; pn++;
       var dim = count > densityCap;
       var cls = 'layout-el unit-block' + (dim ? ' unit-block-dimmed' : '');
-      var ux = ox + setback + col * unitW, uy = oy + setback + row * unitD;
-      // Building
-      s += '<rect class="'+cls+'" x="'+ux+'" y="'+uy+'" width="'+(unitW-1)+'" height="'+bldgD+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
-      // Garage strip (right edge = driveway side)
-      s += '<rect class="layout-el" x="'+(ux+unitW-1-garageW)+'" y="'+uy+'" width="'+garageW+'" height="'+bldgD+'" fill="'+zoneColor+'22" rx="0.5"/>';
-      if(col === 0 && row === 0) s += '<text class="layout-el" x="'+(ux+unitW-1-garageW/2)+'" y="'+(uy+bldgD/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
-      // Parcel label
-      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(ux+(unitW-1)/2)+'" y="'+(uy+bldgD-2)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
+      var uy = oy + topSet + i * unitW;
+      s += '<rect class="'+cls+'" x="'+lbx+'" y="'+uy+'" width="'+bldgD+'" height="'+(unitW-1)+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
+      // Garage strip on driveway side (right edge)
+      s += '<rect class="layout-el" x="'+(ox+driveX-garageW)+'" y="'+uy+'" width="'+garageW+'" height="'+(unitW-1)+'" fill="'+zoneColor+'22" rx="0.5"/>';
+      if(i === 0) s += '<text class="layout-el" x="'+(ox+driveX-garageW/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
+      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(lbx+bldgD/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
     }
   }
-  // RIGHT side units
-  for(var row = 0; row < layout.deep; row++){
-    for(var col = 0; col < layout.rightAcross; col++){
+
+  // RIGHT side units: building left-aligned to driveway, yard on far right
+  if(layout.rightCount > 0){
+    var rbx = ox + driveX + driveW; // building X
+    var ryx = rbx + bldgD; // yard X (far side)
+    var ryW = unitD - bldgD;
+    var rRowH = layout.rightCount * unitW;
+    s += '<rect class="layout-el" x="'+ryx+'" y="'+(oy+topSet)+'" width="'+ryW+'" height="'+rRowH+'" fill="#C8E6C9" opacity="0.35"/>';
+    var rsEnd = ox + driveX + driveW + unitD;
+    var rsGap = (ox + lw - setback) - rsEnd;
+    if(rsGap > 0) s += '<rect class="layout-el" x="'+rsEnd+'" y="'+(oy+topSet)+'" width="'+rsGap+'" height="'+rRowH+'" fill="#C8E6C9" opacity="0.2"/>';
+    for(var i = 0; i < layout.rightCount; i++){
       count++; pn++;
       var dim = count > densityCap;
       var cls = 'layout-el unit-block' + (dim ? ' unit-block-dimmed' : '');
-      var ux = ox + driveX + driveW + col * unitW, uy = oy + setback + row * unitD;
-      s += '<rect class="'+cls+'" x="'+ux+'" y="'+uy+'" width="'+(unitW-1)+'" height="'+bldgD+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
-      // Garage strip (left edge = driveway side)
-      s += '<rect class="layout-el" x="'+ux+'" y="'+uy+'" width="'+garageW+'" height="'+bldgD+'" fill="'+zoneColor+'22" rx="0.5"/>';
-      if(col === 0 && row === 0 && layout.leftAcross === 0) s += '<text class="layout-el" x="'+(ux+garageW/2)+'" y="'+(uy+bldgD/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
-      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(ux+(unitW-1)/2)+'" y="'+(uy+bldgD-2)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
+      var uy = oy + topSet + i * unitW;
+      s += '<rect class="'+cls+'" x="'+rbx+'" y="'+uy+'" width="'+bldgD+'" height="'+(unitW-1)+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
+      // Garage strip on driveway side (left edge)
+      s += '<rect class="layout-el" x="'+rbx+'" y="'+uy+'" width="'+garageW+'" height="'+(unitW-1)+'" fill="'+zoneColor+'22" rx="0.5"/>';
+      if(i === 0 && layout.leftCount === 0) s += '<text class="layout-el" x="'+(rbx+garageW/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
+      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(rbx+bldgD/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
     }
   }
 
-  // Parcel boundary lines — horizontal between rows (more visible)
-  for(var row = 1; row < layout.deep; row++){
-    var ly = oy + setback + row * unitD;
-    if(layout.leftAcross > 0) s += '<line class="layout-el" x1="'+(ox+setback)+'" y1="'+ly+'" x2="'+(ox+setback+layout.leftAcross*unitW)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
-    if(layout.rightAcross > 0) s += '<line class="layout-el" x1="'+(ox+driveX+driveW)+'" y1="'+ly+'" x2="'+(ox+driveX+driveW+layout.rightAcross*unitW)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
-  }
-  // Vertical between columns (more visible)
-  for(var col = 1; col < layout.leftAcross; col++){
-    var lx = ox + setback + col * unitW;
-    s += '<line class="layout-el" x1="'+lx+'" y1="'+(oy+setback)+'" x2="'+lx+'" y2="'+(oy+setback+rowsH)+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
-  }
-  for(var col = 1; col < layout.rightAcross; col++){
-    var lx = ox + driveX + driveW + col * unitW;
-    s += '<line class="layout-el" x1="'+lx+'" y1="'+(oy+setback)+'" x2="'+lx+'" y2="'+(oy+setback+rowsH)+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
+  // Parcel boundary lines between adjacent units (horizontal, perpendicular to driveway)
+  var maxN = Math.max(layout.leftCount, layout.rightCount);
+  for(var i = 1; i < maxN; i++){
+    var ly = oy + topSet + i * unitW;
+    if(i < layout.leftCount)
+      s += '<line class="layout-el" x1="'+(ox+setback)+'" y1="'+ly+'" x2="'+(ox+driveX)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
+    if(i < layout.rightCount)
+      s += '<line class="layout-el" x1="'+(ox+driveX+driveW)+'" y1="'+ly+'" x2="'+(ox+lw-setback)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
   }
 
-  // Unit dimension lines (architect style, first unit only)
-  var fu, fy, side;
-  if(layout.leftAcross > 0 && layout.deep > 0){ fu = ox+setback; fy = oy+setback; side='left'; }
-  else if(layout.rightAcross > 0 && layout.deep > 0){ fu = ox+driveX+driveW; fy = oy+setback; side='right'; }
-  if(fu != null){
-    var dx1=fu, dx2=fu+unitW-1, dy=fy-2;
-    s += '<line class="layout-el" x1="'+dx1+'" y1="'+dy+'" x2="'+dx2+'" y2="'+dy+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+dx1+'" y1="'+(dy-1)+'" x2="'+dx1+'" y2="'+(dy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+dx2+'" y1="'+(dy-1)+'" x2="'+dx2+'" y2="'+(dy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<text class="layout-el" x="'+((dx1+dx2)/2)+'" y="'+(dy-1.5)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif">'+unitW+'\'</text>';
-    var vx = side==='left' ? fu-2 : fu+unitW+1;
-    s += '<line class="layout-el" x1="'+vx+'" y1="'+fy+'" x2="'+vx+'" y2="'+(fy+bldgD)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
+  // Unused depth below last unit row
+  var devH = ld - (remD || 0);
+  var devBottom = hasRem ? (oy + devH) : (oy + devH - setback);
+  var usedH = Math.max(layout.leftCount, layout.rightCount) * unitW;
+  var bottomStart = oy + topSet + usedH;
+  if(bottomStart < devBottom){
+    if(layout.leftFits) s += '<rect class="layout-el" x="'+(ox+driveX-unitD)+'" y="'+bottomStart+'" width="'+unitD+'" height="'+(devBottom-bottomStart)+'" fill="#C8E6C9" opacity="0.12"/>';
+    if(layout.rightFits) s += '<rect class="layout-el" x="'+(ox+driveX+driveW)+'" y="'+bottomStart+'" width="'+unitD+'" height="'+(devBottom-bottomStart)+'" fill="#C8E6C9" opacity="0.12"/>';
+  }
+
+  // Dimension lines on first unit (architect style)
+  var firstSide = layout.leftCount > 0 ? 'left' : (layout.rightCount > 0 ? 'right' : null);
+  if(firstSide){
+    var fy = oy + topSet;
+    // Horizontal: unit depth (40') perpendicular to driveway
+    var hx1 = firstSide === 'left' ? (ox+driveX-unitD) : (ox+driveX+driveW);
+    var hx2 = hx1 + unitD, hy = fy - 2;
+    s += '<line class="layout-el" x1="'+hx1+'" y1="'+hy+'" x2="'+hx2+'" y2="'+hy+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
+    s += '<line class="layout-el" x1="'+hx1+'" y1="'+(hy-1)+'" x2="'+hx1+'" y2="'+(hy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
+    s += '<line class="layout-el" x1="'+hx2+'" y1="'+(hy-1)+'" x2="'+hx2+'" y2="'+(hy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
+    s += '<text class="layout-el" x="'+((hx1+hx2)/2)+'" y="'+(hy-1.5)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif">'+unitD+'\'</text>';
+    // Vertical: unit width (20') along driveway
+    var vx = firstSide === 'left' ? (ox+driveX-unitD-2) : (ox+driveX+driveW+unitD+2);
+    s += '<line class="layout-el" x1="'+vx+'" y1="'+fy+'" x2="'+vx+'" y2="'+(fy+unitW-1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
     s += '<line class="layout-el" x1="'+(vx-1)+'" y1="'+fy+'" x2="'+(vx+1)+'" y2="'+fy+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+(vx-1)+'" y1="'+(fy+bldgD)+'" x2="'+(vx+1)+'" y2="'+(fy+bldgD)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<text class="layout-el" x="'+vx+'" y="'+((fy+fy+bldgD)/2)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif" transform="rotate(-90,'+vx+','+((fy+fy+bldgD)/2)+')">'+unitD+'\'</text>';
+    s += '<line class="layout-el" x1="'+(vx-1)+'" y1="'+(fy+unitW-1)+'" x2="'+(vx+1)+'" y2="'+(fy+unitW-1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
+    s += '<text class="layout-el" x="'+vx+'" y="'+((fy+fy+unitW-1)/2)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif" transform="rotate(-90,'+vx+','+((fy+fy+unitW-1)/2)+')">'+unitW+'\'</text>';
   }
   return s;
 }
@@ -2257,8 +2262,8 @@ function buildLotDiagramSVG(l, pf){
   var svgW = lw + 16, svgH = ld + 22 + streetH; // 12 top pad + ld + streetH
 
   var driveX = findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap, false);
-  var layout = calcTwoSidedLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap);
-  var isDbl = layout.leftAcross > 0 && layout.rightAcross > 0;
+  var layout = calcLinearLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap);
+  var isDbl = layout.leftCount > 0 && layout.rightCount > 0;
 
   var s = '<div class="lot-layout-wrap">';
   s += '<svg class="lot-layout-svg" viewBox="0 0 '+svgW+' '+svgH+'"';
@@ -2403,7 +2408,7 @@ function rebuildLotLayout(svg, newDriveX){
   if(frontSetback) frontSetback.style.display = hasRem ? 'none' : '';
 
   // Recalculate layout with effective depth
-  var layout = calcTwoSidedLayout(lw, effectiveLd, newDriveX, driveW, setback, unitW, unitD, densityCap, hasRem);
+  var layout = calcLinearLayout(lw, effectiveLd, newDriveX, driveW, setback, unitW, unitD, densityCap, hasRem);
 
   // Remove old dynamic elements, add new
   var old = svg.querySelectorAll('.layout-el');
