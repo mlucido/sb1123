@@ -2474,8 +2474,8 @@ function rebuildListings(){
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
-      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
-      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND' ? (l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : '') : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND'&&l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
       ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
@@ -2507,7 +2507,7 @@ function rebuildListings(){
           <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
           ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}${slopeBadge(l)}
         </div>
-        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
+        ${l.rsoRisk&&l.zone!=='R1'&&l.zone!=='LAND' ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
@@ -2611,8 +2611,8 @@ function buildBTRLayer(){
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
       ${l.compMethod&&l.compMethod.includes('thin') ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>' : !l.exitPsf&&!l.newconPpsf ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>' : ''}
-      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
-      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND' ? (l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : '') : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND'&&l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
       ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
@@ -2643,7 +2643,7 @@ function buildBTRLayer(){
           <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking •
           ${l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control'}${slopeBadge(l)}
         </div>
-        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
+        ${l.rsoRisk&&l.zone!=='R1'&&l.zone!=='LAND' ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
@@ -2986,8 +2986,8 @@ function buildOffMarketLayer(){
       </div>
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
-      ${l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : ''}
-      ${l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND' ? (l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : '') : ''}
+      ${l.zone!=='R1'&&l.zone!=='LAND'&&l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
       ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${l.address || 'N/A'}</div>
 
@@ -3064,7 +3064,7 @@ function buildOffMarketLayer(){
             slopeBadge(l)
           ) : '<span style="color:var(--yellow)">&#9888;&#65039;</span> No ZIMAS data — zoning unverified (outside LA City)'}
         </div>
-        ${l.rsoRisk ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
+        ${l.rsoRisk&&l.zone!=='R1'&&l.zone!=='LAND' ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
         ${remainderAnalysis(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
