@@ -4030,8 +4030,6 @@ window.addEventListener('DOMContentLoaded', function(){
         map.fitBounds([[minLat,minLng],[maxLat,maxLng]],{padding:[50,50]});
       }
 
-      // Auto-open the table panel (desktop only)
-      if(!isMobile()) toggleListingsPanel();
 
       // Update visual sort indicators to match current sort
       const th=document.querySelector('.listings-table th[data-sort="estMargin"]');
