@@ -226,21 +226,6 @@ window.CLUSTERS = window.CLUSTERS || [];
   .popup-profit-positive{color:var(--green)}
   .popup-profit-negative{color:var(--red)}
 
-  /* Lot Layout Diagram */
-  .lot-layout-wrap{width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg);margin:8px 0 4px;padding:6px;box-sizing:border-box}
-  .lot-layout-svg{width:100%;max-height:280px;display:block}
-  .lot-layout-svg .driveway-handle{cursor:ew-resize;transition:opacity 0.1s}
-  .lot-layout-svg .driveway-handle:hover{opacity:0.8}
-  .lot-layout-svg .unit-block{pointer-events:none}
-  .lot-layout-svg .unit-block-dimmed{opacity:0.2}
-  .lot-layout-counter{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;color:var(--text-dim);margin-top:2px}
-  .lot-layout-controls{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:4px;padding:2px 0}
-  .lot-ctrl-btn{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;padding:2px 6px;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1.4}
-  .lot-ctrl-btn:hover:not(:disabled){background:var(--border)}
-  .lot-ctrl-btn:disabled{opacity:0.3;cursor:not-allowed}
-  .lot-ctrl-lbl{font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:3px;cursor:pointer;user-select:none}
-  .lot-ctrl-lbl input[type="checkbox"]{width:12px;height:12px;margin:0;cursor:pointer}
-  .lot-rem-input{background:var(--surface2);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:10px;padding:1px 4px;width:40px;font-family:'JetBrains Mono',monospace}
 
   /* Pin Color Legend */
   .pin-legend{
@@ -2104,404 +2089,15 @@ function calculateProForma(l){
   };
 }
 
-// ── Linear lot layout: every unit must touch the driveway ──
-// Units stack along driveway (Y axis) with unitW frontage, dynamic depth perpendicular
-function calcLinearLayout(lw, ld, driveX, driveW, setback, unitW, defaultUnitD, densityCap, hasRem){
-  var leftSpace = Math.max(0, driveX - setback);
-  var rightSpace = Math.max(0, (lw - setback) - (driveX + driveW));
-  // Dynamic unit depth: use available space, capped at default, minimum 20'
-  var leftUnitD = Math.min(defaultUnitD, leftSpace);
-  var rightUnitD = Math.min(defaultUnitD, rightSpace);
-  var leftFits = leftUnitD >= 20;
-  var rightFits = rightUnitD >= 20;
-  var depthSetbacks = hasRem ? 1 : 2;
-  var availDepth = Math.max(0, ld - depthSetbacks * setback);
-  var unitsPerSide = Math.floor(availDepth / unitW);
-  var leftCount = leftFits ? unitsPerSide : 0;
-  var rightCount = rightFits ? unitsPerSide : 0;
-  var total = leftCount + rightCount;
-  if(total > densityCap){
-    if(leftCount > 0 && rightCount > 0){
-      var half = Math.floor(densityCap / 2);
-      leftCount = half + (densityCap % 2);
-      rightCount = half;
-    } else if(leftCount > 0){ leftCount = densityCap; }
-    else { rightCount = densityCap; }
-    total = leftCount + rightCount;
-  }
-  // Actual unit depth used (per side, for rendering)
-  var actualUnitD = leftCount > 0 && rightCount > 0 ? Math.min(leftUnitD, rightUnitD)
-    : leftCount > 0 ? leftUnitD : rightCount > 0 ? rightUnitD : defaultUnitD;
-  var warning = '';
-  if(!leftFits && !rightFits){
-    warning = "Lot too narrow (" + lw + "') \u2014 min 20' unit depth required";
-  }
-  return {leftCount:leftCount, rightCount:rightCount, leftFits:leftFits, rightFits:rightFits,
-    leftSpace:leftSpace, rightSpace:rightSpace, availDepth:availDepth,
-    leftUnitD:leftUnitD, rightUnitD:rightUnitD, actualUnitD:actualUnitD,
-    total:total, capped:Math.min(total, densityCap), warning:warning};
-}
-
-function findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap, forceDbl, hasRem){
-  if(forceDbl){
-    // Center driveway for equal depth on both sides
-    var centerX = Math.round((lw - driveW) / 2);
-    if(centerX - setback >= 20) return centerX;
-  }
-  // Single-loaded: prefer driveway at left edge
-  return setback;
-}
-
-// Build SVG elements for linear layout: units stack along driveway, depth perpendicular
-function buildLayoutElements(layout, driveX, driveW, setback, unitW, unitD, lw, ld, ox, oy, zoneColor, densityCap, remD){
-  var s = '', pn = 0;
-  var hasRem = remD > 0;
-  // Per-side dynamic unit depth (from layout), fallback to passed unitD
-  var leftUnitD = layout.leftUnitD || unitD;
-  var rightUnitD = layout.rightUnitD || unitD;
-  var garageW = 3;
-  var topSet = setback; // rear setback at top of SVG
-
-  // Remainder parcel (existing structure near street)
-  if(hasRem){
-    var ry = oy + ld - remD;
-    s += '<rect class="layout-el" x="'+ox+'" y="'+ry+'" width="'+lw+'" height="'+remD+'" fill="#D7CCC844" stroke="#8d6e63" stroke-width="0.5" stroke-dasharray="3,2"/>';
-    s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(ry+remD/2-4)+'" text-anchor="middle" fill="#8d6e63" font-size="4" font-family="sans-serif">Existing Structure</text>';
-    s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(ry+remD/2+2)+'" text-anchor="middle" font-size="6" opacity="0.7">&#127968;</text>';
-    s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(ry+remD/2+8)+'" text-anchor="middle" fill="#8d6e63" font-size="3.5" font-family="sans-serif" opacity="0.7">'+remD+'\' deep</text>';
-  }
-
-  // Warning if lot too narrow
-  if(layout.warning){
-    var devH = ld - (remD || 0);
-    s += '<text class="layout-el" x="'+(ox+lw/2)+'" y="'+(oy+devH/2)+'" text-anchor="middle" fill="#ef4444" font-size="4" font-family="sans-serif">'+layout.warning+'</text>';
-    return s;
-  }
-
-  var count = 0;
-
-  // LEFT side units: building right-aligned to driveway, yard on far left
-  if(layout.leftCount > 0){
-    var lBldgD = Math.max(12, leftUnitD - 8);
-    var lbx = ox + driveX - lBldgD; // building X
-    var lyx = ox + driveX - leftUnitD; // yard X (far side)
-    var lyW = leftUnitD - lBldgD; // yard width
-    var rowH = layout.leftCount * unitW;
-    // Yard background
-    s += '<rect class="layout-el" x="'+lyx+'" y="'+(oy+topSet)+'" width="'+lyW+'" height="'+rowH+'" fill="#C8E6C9" opacity="0.35"/>';
-    // Extra side setback yard if space between lot edge and unit parcel
-    var lsGap = driveX - leftUnitD - setback;
-    if(lsGap > 0) s += '<rect class="layout-el" x="'+(ox+setback)+'" y="'+(oy+topSet)+'" width="'+lsGap+'" height="'+rowH+'" fill="#C8E6C9" opacity="0.2"/>';
-    for(var i = 0; i < layout.leftCount; i++){
-      count++; pn++;
-      var dim = count > densityCap;
-      var cls = 'layout-el unit-block' + (dim ? ' unit-block-dimmed' : '');
-      var uy = oy + topSet + i * unitW;
-      s += '<rect class="'+cls+'" x="'+lbx+'" y="'+uy+'" width="'+lBldgD+'" height="'+(unitW-1)+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
-      // Garage strip on driveway side (right edge)
-      s += '<rect class="layout-el" x="'+(ox+driveX-garageW)+'" y="'+uy+'" width="'+garageW+'" height="'+(unitW-1)+'" fill="'+zoneColor+'22" rx="0.5"/>';
-      if(i === 0) s += '<text class="layout-el" x="'+(ox+driveX-garageW/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
-      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(lbx+lBldgD/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
-    }
-  }
-
-  // RIGHT side units: building left-aligned to driveway, yard on far right
-  if(layout.rightCount > 0){
-    var rBldgD = Math.max(12, rightUnitD - 8);
-    var rbx = ox + driveX + driveW; // building X
-    var ryx = rbx + rBldgD; // yard X (far side)
-    var ryW = rightUnitD - rBldgD;
-    var rRowH = layout.rightCount * unitW;
-    s += '<rect class="layout-el" x="'+ryx+'" y="'+(oy+topSet)+'" width="'+ryW+'" height="'+rRowH+'" fill="#C8E6C9" opacity="0.35"/>';
-    var rsEnd = ox + driveX + driveW + rightUnitD;
-    var rsGap = (ox + lw - setback) - rsEnd;
-    if(rsGap > 0) s += '<rect class="layout-el" x="'+rsEnd+'" y="'+(oy+topSet)+'" width="'+rsGap+'" height="'+rRowH+'" fill="#C8E6C9" opacity="0.2"/>';
-    for(var i = 0; i < layout.rightCount; i++){
-      count++; pn++;
-      var dim = count > densityCap;
-      var cls = 'layout-el unit-block' + (dim ? ' unit-block-dimmed' : '');
-      var uy = oy + topSet + i * unitW;
-      s += '<rect class="'+cls+'" x="'+rbx+'" y="'+uy+'" width="'+rBldgD+'" height="'+(unitW-1)+'" fill="'+zoneColor+'55" stroke="'+zoneColor+'" stroke-width="0.5" rx="1"/>';
-      // Garage strip on driveway side (left edge)
-      s += '<rect class="layout-el" x="'+rbx+'" y="'+uy+'" width="'+garageW+'" height="'+(unitW-1)+'" fill="'+zoneColor+'22" rx="0.5"/>';
-      if(i === 0 && layout.leftCount === 0) s += '<text class="layout-el" x="'+(rbx+garageW/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" opacity="0.6" font-family="sans-serif">G</text>';
-      if(!dim && pn <= 10) s += '<text class="layout-el parcel-label" x="'+(rbx+rBldgD/2)+'" y="'+(uy+(unitW-1)/2+1)+'" text-anchor="middle" fill="'+zoneColor+'" font-size="3" font-family="sans-serif" opacity="0.45">P'+pn+'</text>';
-    }
-  }
-
-  // Parcel boundary lines between adjacent units (horizontal, perpendicular to driveway)
-  var maxN = Math.max(layout.leftCount, layout.rightCount);
-  for(var i = 1; i < maxN; i++){
-    var ly = oy + topSet + i * unitW;
-    if(i < layout.leftCount)
-      s += '<line class="layout-el" x1="'+(ox+setback)+'" y1="'+ly+'" x2="'+(ox+driveX)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
-    if(i < layout.rightCount)
-      s += '<line class="layout-el" x1="'+(ox+driveX+driveW)+'" y1="'+ly+'" x2="'+(ox+lw-setback)+'" y2="'+ly+'" stroke="#333" stroke-width="0.7" stroke-dasharray="3,2"/>';
-  }
-
-  // Unused depth below last unit row
-  var devH = ld - (remD || 0);
-  var devBottom = hasRem ? (oy + devH) : (oy + devH - setback);
-  var usedH = Math.max(layout.leftCount, layout.rightCount) * unitW;
-  var bottomStart = oy + topSet + usedH;
-  if(bottomStart < devBottom){
-    if(layout.leftFits) s += '<rect class="layout-el" x="'+(ox+driveX-leftUnitD)+'" y="'+bottomStart+'" width="'+leftUnitD+'" height="'+(devBottom-bottomStart)+'" fill="#C8E6C9" opacity="0.12"/>';
-    if(layout.rightFits) s += '<rect class="layout-el" x="'+(ox+driveX+driveW)+'" y="'+bottomStart+'" width="'+rightUnitD+'" height="'+(devBottom-bottomStart)+'" fill="#C8E6C9" opacity="0.12"/>';
-  }
-
-  // Dimension lines on first unit (architect style) — show actual calculated depth
-  var firstSide = layout.leftCount > 0 ? 'left' : (layout.rightCount > 0 ? 'right' : null);
-  if(firstSide){
-    var sideD = firstSide === 'left' ? leftUnitD : rightUnitD;
-    var fy = oy + topSet;
-    // Horizontal: unit depth perpendicular to driveway
-    var hx1 = firstSide === 'left' ? (ox+driveX-sideD) : (ox+driveX+driveW);
-    var hx2 = hx1 + sideD, hy = fy - 2;
-    s += '<line class="layout-el" x1="'+hx1+'" y1="'+hy+'" x2="'+hx2+'" y2="'+hy+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+hx1+'" y1="'+(hy-1)+'" x2="'+hx1+'" y2="'+(hy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+hx2+'" y1="'+(hy-1)+'" x2="'+hx2+'" y2="'+(hy+1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<text class="layout-el" x="'+((hx1+hx2)/2)+'" y="'+(hy-1.5)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif">'+sideD+'\'</text>';
-    // Vertical: unit width along driveway
-    var vx = firstSide === 'left' ? (ox+driveX-sideD-2) : (ox+driveX+driveW+sideD+2);
-    s += '<line class="layout-el" x1="'+vx+'" y1="'+fy+'" x2="'+vx+'" y2="'+(fy+unitW-1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+(vx-1)+'" y1="'+fy+'" x2="'+(vx+1)+'" y2="'+fy+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<line class="layout-el" x1="'+(vx-1)+'" y1="'+(fy+unitW-1)+'" x2="'+(vx+1)+'" y2="'+(fy+unitW-1)+'" stroke="var(--text-dim)" stroke-width="0.3"/>';
-    s += '<text class="layout-el" x="'+vx+'" y="'+((fy+fy+unitW-1)/2)+'" text-anchor="middle" fill="var(--text-dim)" font-size="3" font-family="sans-serif" transform="rotate(-90,'+vx+','+((fy+fy+unitW-1)/2)+')">'+unitW+'\'</text>';
-  }
-  return s;
-}
-
-function buildLotDiagramSVG(l, pf){
-  if(!l.lw || !l.ld) return '';
-  var lw = l.lw, ld = l.ld;
-  var setback = 4, unitW = 20, unitD = 40;
-  var driveW = (MARKET.slug === 'sd' && pf.densityUnits >= 9) ? 24 : 20;
-  var densityCap = pf.densityUnits;
-  var zoneColor = ZONE_COLORS[l.zone] || '#666';
-  var ox = 8, oy = 12;
-  var streetH = 10;
-  var svgW = lw + 16, svgH = ld + 22 + streetH;
-
-  var driveX = findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap, false);
-  var layout = calcLinearLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap);
-  // If too narrow, try 16' fire lane minimum driveway
-  if(layout.capped === 0 && layout.warning && driveW > 16){
-    driveW = 16;
-    driveX = findOptimalDriveX(lw, driveW, setback, unitW, unitD, ld, densityCap, false);
-    layout = calcLinearLayout(lw, ld, driveX, driveW, setback, unitW, unitD, densityCap);
-  }
-  var isDbl = layout.leftCount > 0 && layout.rightCount > 0;
-
-  var s = '<div class="lot-layout-wrap">';
-  s += '<svg class="lot-layout-svg" viewBox="0 0 '+svgW+' '+svgH+'"';
-  s += ' data-lw="'+lw+'" data-ld="'+ld+'" data-drive-w="'+driveW+'"';
-  s += ' data-density-cap="'+densityCap+'" data-orig-cap="'+densityCap+'"';
-  s += ' data-listing-lat="'+l.lat+'" data-listing-lng="'+l.lng+'"';
-  s += ' data-zone-color="'+zoneColor+'" data-drive-x="'+driveX+'"';
-  s += ' data-rem-depth="0" data-dbl="'+(isDbl?1:0)+'"';
-  s += ' preserveAspectRatio="xMidYMid meet">';
-
-  // Street bar (flush with lot bottom)
-  s += '<rect x="'+ox+'" y="'+(oy+ld)+'" width="'+lw+'" height="'+streetH+'" fill="#78909C22" stroke="var(--text-dim)" stroke-width="0.5"/>';
-  s += '<text x="'+(ox+lw/2)+'" y="'+(oy+ld+streetH/2+1.5)+'" text-anchor="middle" fill="#78909C" font-size="4" font-family="sans-serif" letter-spacing="2">STREET</text>';
-
-  // Lot outline
-  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="none" stroke="var(--text-dim)" stroke-width="1" rx="2"/>';
-
-  // Setback lines (dashed orange)
-  s += '<line x1="'+(ox+setback)+'" y1="'+oy+'" x2="'+(ox+setback)+'" y2="'+(oy+ld)+'" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="3,2"/>';
-  s += '<line x1="'+(ox+lw-setback)+'" y1="'+oy+'" x2="'+(ox+lw-setback)+'" y2="'+(oy+ld)+'" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="3,2"/>';
-  s += '<line x1="'+ox+'" y1="'+(oy+setback)+'" x2="'+(ox+lw)+'" y2="'+(oy+setback)+'" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="3,2"/>';
-  s += '<line class="setback-front" x1="'+ox+'" y1="'+(oy+ld-setback)+'" x2="'+(ox+lw)+'" y2="'+(oy+ld-setback)+'" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="3,2"/>';
-  s += '<text x="'+(ox+lw+1)+'" y="'+(oy+setback+2)+'" fill="#f59e0b" font-size="3.5" font-family="sans-serif">4\' setback</text>';
-
-  // Lot dimension labels
-  s += '<text x="'+(ox+lw/2)+'" y="'+(oy-3)+'" text-anchor="middle" fill="var(--text-dim)" font-size="5" font-family="sans-serif">'+lw+'\'</text>';
-  s += '<text x="'+(ox-3)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="var(--text-dim)" font-size="5" font-family="sans-serif" transform="rotate(-90,'+(ox-3)+','+(oy+ld/2)+')">'+ld+'\'</text>';
-
-  // Driveway
-  s += '<rect class="driveway-handle" x="'+(ox+driveX)+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="#6b728088" stroke="#9ca3af" stroke-width="0.5" rx="1"/>';
-  var gripX = ox + driveX + driveW/2;
-  s += '<line x1="'+(gripX-3)+'" y1="'+(oy+ld/2-6)+'" x2="'+(gripX-3)+'" y2="'+(oy+ld/2+6)+'" stroke="#fff" stroke-width="0.8" opacity="0.6" class="driveway-grip"/>';
-  s += '<line x1="'+gripX+'" y1="'+(oy+ld/2-6)+'" x2="'+gripX+'" y2="'+(oy+ld/2+6)+'" stroke="#fff" stroke-width="0.8" opacity="0.6" class="driveway-grip"/>';
-  s += '<line x1="'+(gripX+3)+'" y1="'+(oy+ld/2-6)+'" x2="'+(gripX+3)+'" y2="'+(oy+ld/2+6)+'" stroke="#fff" stroke-width="0.8" opacity="0.6" class="driveway-grip"/>';
-  s += '<text class="driveway-label" x="'+(ox+driveX+driveW/2)+'" y="'+(oy+ld/2+12)+'" text-anchor="middle" fill="#9ca3af" font-size="4" font-family="sans-serif">'+driveW+'\' drive</text>';
-
-  // Dynamic layout elements
-  s += buildLayoutElements(layout, driveX, driveW, setback, unitW, unitD, lw, ld, ox, oy, zoneColor, densityCap, 0);
-
-  // Unit count label with actual dimensions
-  var dimLabel = layout.capped > 0 ? layout.capped+' units ('+layout.actualUnitD+'\'x'+unitW+'\')' : layout.capped+' units';
-  s += '<text class="lot-unit-count" x="'+(ox+lw/2)+'" y="'+(oy-7)+'" text-anchor="middle" fill="var(--text)" font-size="5" font-weight="600" font-family="sans-serif">'+dimLabel+'</text>';
-
-  s += '</svg>';
-
-  // Controls
-  s += '<div class="lot-layout-controls">';
-  s += '<label class="lot-ctrl-lbl"><input type="checkbox" class="lot-dbl-chk"'+(isDbl?' checked':'')+'>Double-loaded</label>';
-  s += '<label class="lot-ctrl-lbl"><input type="checkbox" class="lot-rem-chk">Structure</label>';
-  s += '<input type="number" class="lot-rem-input" value="60" min="20" max="120" style="display:none"> ';
-  s += '<span style="flex:1"></span>';
-  s += '<button class="lot-ctrl-btn lot-snap-left" title="Snap driveway left">&#9664;</button>';
-  s += '<button class="lot-ctrl-btn lot-snap-right" title="Snap driveway right">&#9654;</button>';
-  s += '<button class="lot-ctrl-btn lot-add-btn" title="'+(layout.capped>=10?'Maximum 10 units under SB 1123':'Add unit')+'"'+(layout.capped>=10?' disabled':'')+'>+</button>';
-  s += '<button class="lot-ctrl-btn lot-sub-btn" title="Remove unit"'+(layout.capped<=1?' disabled':'')+'>&#8722;</button>';
-  s += '<button class="lot-ctrl-btn lot-copy-btn" title="Copy layout link">Link</button>';
-  s += '</div>';
-
-  if(l.lotShape === 'irreg') s += '<div class="lot-layout-counter" style="color:var(--orange)">Approximate — irregular lot</div>';
-  else s += '<div class="lot-layout-counter">Drag driveway &#x2194; to optimize layout</div>';
-  s += '</div>';
-  return s;
-}
-
-function calculateProFormaWithUnits(l, overrideUnits){
-  var pf = proforma;
-  var maxUnits = overrideUnits;
-  var valuePerSf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
-  var adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
-  var effective_buildable_sf = maxUnits * pf.avgUnitSf;
-  var grossPerUnit = valuePerSf * pf.avgUnitSf;
-  var grossRevenue = maxUnits * grossPerUnit;
-  var netRevenue = grossRevenue * (1 - pf.txnCostPct / 100) - pf.fixedDispositionCosts;
-  var acquisition = l.price;
-  var demo = l.sqft > 0 ? pf.demoCost : 0;
-  var constructionCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
-  var totalBuildCost = constructionCost + demo;
-  var avgLoanOutstanding = totalBuildCost * 0.5;
-  var carryInterest = avgLoanOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  var carryPropTax = acquisition * 0.011 * (pf.holdMonths / 12);
-  var insurance = pf.insurance || 40000;
-  var originationFee = totalBuildCost * ((pf.originationPct || 1) / 100);
-  var totalCarry = carryInterest + carryPropTax + insurance + originationFee;
-  var totalCost = acquisition + totalBuildCost + totalCarry;
-  var profit = netRevenue - totalCost;
-  var margin_on_revenue = netRevenue > 0 ? ((profit / netRevenue) * 100) : 0;
-  var land_basis_psf = effective_buildable_sf > 0 ? (l.price / effective_buildable_sf) : 0;
-  var target_margin = 0.30;
-  var nr = netRevenue;
-  var target_total_cost = nr * (1 - target_margin);
-  var build_carry = avgLoanOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  var build_plus_soft = totalBuildCost + build_carry + insurance + originationFee;
-  var propTaxFactor = 0.011 * (pf.holdMonths / 12);
-  var max_offer = (target_total_cost - build_plus_soft) / (1 + propTaxFactor);
-  return {
-    maxUnits:maxUnits, effective_buildable_sf:Math.round(effective_buildable_sf),
-    totalCost:totalCost, netRevenue:netRevenue, profit:profit,
-    margin:margin_on_revenue, max_offer:Math.round(max_offer),
-    land_basis_psf:Math.round(land_basis_psf), pricePerUnit:Math.round(acquisition/maxUnits)
-  };
-}
-
-// Full layout rebuild from current SVG state (called by controls + drag)
-function rebuildLotLayout(svg, newDriveX){
-  var lw = +svg.dataset.lw, ld = +svg.dataset.ld;
-  var driveW = +svg.dataset.driveW, densityCap = +svg.dataset.densityCap;
-  var zoneColor = svg.dataset.zoneColor;
-  var remD = +(svg.dataset.remDepth || 0);
-  var hasRem = remD > 0;
-  var setback = 4, unitW = 20, unitD = 40, ox = 8, oy = 12;
-  var effectiveLd = ld - remD;
-
-  if(newDriveX == null) newDriveX = +svg.dataset.driveX;
-  newDriveX = Math.max(0, Math.min(lw - driveW, newDriveX));
-  svg.dataset.driveX = newDriveX;
-
-  // Move driveway rect + shorten to dev zone when remainder active
-  var driveEl = svg.querySelector('.driveway-handle');
-  var driveHeight = hasRem ? effectiveLd : ld;
-  driveEl.setAttribute('x', ox + newDriveX);
-  driveEl.setAttribute('height', driveHeight);
-
-  // Move + reposition grip lines to center of visible driveway
-  var gripX = ox + newDriveX + driveW / 2;
-  var gripCenterY = oy + driveHeight / 2;
-  var grips = svg.querySelectorAll('.driveway-grip');
-  if(grips.length >= 3){
-    grips[0].setAttribute('x1', gripX-3); grips[0].setAttribute('x2', gripX-3);
-    grips[0].setAttribute('y1', gripCenterY-6); grips[0].setAttribute('y2', gripCenterY+6);
-    grips[1].setAttribute('x1', gripX); grips[1].setAttribute('x2', gripX);
-    grips[1].setAttribute('y1', gripCenterY-6); grips[1].setAttribute('y2', gripCenterY+6);
-    grips[2].setAttribute('x1', gripX+3); grips[2].setAttribute('x2', gripX+3);
-    grips[2].setAttribute('y1', gripCenterY-6); grips[2].setAttribute('y2', gripCenterY+6);
-  }
-  var dLabel = svg.querySelector('.driveway-label');
-  if(dLabel){
-    dLabel.setAttribute('x', ox + newDriveX + driveW / 2);
-    dLabel.setAttribute('y', oy + driveHeight / 2 + 12);
-  }
-
-  // Hide front setback line when remainder handles street edge
-  var frontSetback = svg.querySelector('.setback-front');
-  if(frontSetback) frontSetback.style.display = hasRem ? 'none' : '';
-
-  // Recalculate layout with effective depth (dynamic unit depth)
-  var layout = calcLinearLayout(lw, effectiveLd, newDriveX, driveW, setback, unitW, unitD, densityCap, hasRem);
-
-  // Remove old dynamic elements, add new
-  var old = svg.querySelectorAll('.layout-el');
-  for(var i = 0; i < old.length; i++) old[i].remove();
-  var els = buildLayoutElements(layout, newDriveX, driveW, setback, unitW, layout.actualUnitD, lw, ld, ox, oy, zoneColor, densityCap, remD);
-  var tmp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  tmp.innerHTML = els;
-  while(tmp.firstChild) svg.appendChild(tmp.firstChild);
-
-  // Update count label with actual dimensions
-  var countEl = svg.querySelector('.lot-unit-count');
-  if(countEl) countEl.textContent = layout.capped > 0 ? layout.capped + ' units (' + layout.actualUnitD + "'x" + unitW + "')" : layout.capped + ' units';
-
-  // Update +/- button states
-  var wrap = svg.closest('.lot-layout-wrap');
-  if(wrap){
-    var addBtn = wrap.querySelector('.lot-add-btn');
-    var subBtn = wrap.querySelector('.lot-sub-btn');
-    if(addBtn){ addBtn.disabled = densityCap >= 10; addBtn.title = densityCap >= 10 ? 'Maximum 10 units under SB 1123' : 'Add unit'; }
-    if(subBtn) subBtn.disabled = densityCap <= 1;
-  }
-
-  // Update pro forma
-  updateLayoutProForma(svg, layout.capped);
-}
-
-function updateLayoutProForma(svg, unitCount){
-  var lat = +svg.dataset.listingLat, lng = +svg.dataset.listingLng;
-  var listing = LISTINGS.find(function(x){ return x.lat === lat && x.lng === lng; });
-  if(!listing) return;
-
-  var newPf = calculateProFormaWithUnits(listing, unitCount);
-  var popup = svg.closest('.leaflet-popup-content');
-  if(!popup) return;
-
-  var el;
-  el = popup.querySelector('.pf-units');
-  if(el) el.textContent = newPf.maxUnits;
-  el = popup.querySelector('.pf-buildable-sf');
-  if(el) el.textContent = newPf.effective_buildable_sf.toLocaleString();
-  el = popup.querySelector('.pf-total-cost');
-  if(el) el.textContent = '$' + Math.round(newPf.totalCost).toLocaleString();
-  el = popup.querySelector('.pf-buildable-sf2');
-  if(el) el.textContent = newPf.effective_buildable_sf.toLocaleString() + ' sf';
-  var moColor = newPf.max_offer >= listing.price ? 'var(--green)' : 'var(--red)';
-  el = popup.querySelector('.pf-max-offer');
-  if(el){ el.textContent = '$' + newPf.max_offer.toLocaleString(); el.style.color = moColor; }
-  el = popup.querySelector('.pf-net-revenue');
-  if(el) el.textContent = '$' + Math.round(newPf.netRevenue).toLocaleString();
-  el = popup.querySelector('.pf-profit');
-  if(el){ el.textContent = '$' + Math.round(newPf.profit).toLocaleString(); el.className = 'popup-value pf-profit ' + (newPf.profit >= 0 ? 'popup-profit-positive' : 'popup-profit-negative'); }
-  el = popup.querySelector('.pf-profit-per-unit');
-  if(el){ el.textContent = '$' + Math.round(newPf.profit / newPf.maxUnits).toLocaleString(); el.className = 'popup-value pf-profit-per-unit ' + (newPf.profit >= 0 ? 'popup-profit-positive' : 'popup-profit-negative'); }
-  el = popup.querySelector('.pf-margin');
-  if(el){ el.textContent = newPf.margin.toFixed(1) + '%'; el.className = 'popup-value pf-margin ' + (newPf.margin >= 0 ? 'popup-profit-positive' : 'popup-profit-negative'); }
-  el = popup.querySelector('.pf-buy-per-unit');
-  if(el) el.textContent = '$' + newPf.pricePerUnit.toLocaleString();
-  var lbColor = newPf.land_basis_psf < 120 ? 'var(--green)' : newPf.land_basis_psf <= 160 ? 'var(--yellow)' : 'var(--red)';
-  el = popup.querySelector('.pf-land-basis');
-  if(el){ el.textContent = '$' + newPf.land_basis_psf + '/sf'; el.style.color = lbColor; }
-}
-
-// Legacy wrapper used by old drag handler
-function updateDrivewayDrag(svg, newDriveX){
-  rebuildLotLayout(svg, newDriveX);
+// ── Layout Planner URL builder ──
+function lotPlannerUrl(l){
+  var exitSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
+  p += '&address='+encodeURIComponent(l.address||'');
+  p += '&asking='+(l.price||0);
+  p += '&lotSF='+(l.lotSf||0);
+  if(exitSF) p += '&exitSF='+exitSF;
+  return 'https://mlucido.github.io/lot-planner/?'+p;
 }
 
 // Lot size display with source + mismatch warning
@@ -2834,6 +2430,7 @@ function rebuildListings(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -2885,7 +2482,6 @@ function rebuildListings(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
-      ${l.lw && l.ld ? buildLotDiagramSVG(l, pf) : ''}
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `,{maxWidth:750});
     cm.addTo(listingsLayer);
@@ -2971,6 +2567,7 @@ function buildBTRLayer(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -3013,7 +2610,6 @@ function buildBTRLayer(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
-      ${l.lw && l.ld ? buildLotDiagramSVG(l, pf) : ''}
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `;
 
@@ -3394,11 +2990,11 @@ function buildOffMarketLayer(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
-      ${l.lw && l.ld ? buildLotDiagramSVG(l, pf) : ''}
       <textarea class="popup-notes" placeholder="Add notes..." onchange="saveFavNote(${l.lat},${l.lng},this.value)">${getFavNote(l.lat,l.lng)}</textarea>
     `, {maxWidth: 580});
 
@@ -4329,140 +3925,6 @@ function exportCSV(){
   a.href=url; a.download='sb1123_deals_export.csv'; a.click();
   URL.revokeObjectURL(url);
 }
-
-// ══════════════════════════════════════════
-//  LOT DIAGRAM DRAG HANDLER
-// ══════════════════════════════════════════
-
-map.on('popupopen', function(e){
-  var el = e.popup.getElement();
-  var svg = el && el.querySelector('.lot-layout-svg');
-  if(!svg) return;
-  var wrap = svg.closest('.lot-layout-wrap');
-  L.DomEvent.disableClickPropagation(svg);
-  L.DomEvent.disableScrollPropagation(svg);
-  if(wrap){ L.DomEvent.disableClickPropagation(wrap); L.DomEvent.disableScrollPropagation(wrap); }
-
-  var lw = +svg.dataset.lw, driveW = +svg.dataset.driveW;
-  var setback = 4, unitW = 20, unitD = 40, ox = 8;
-  var dragging = false, startX = 0, startDriveX = 0;
-  var driveEl = svg.querySelector('.driveway-handle');
-
-  function toSvgX(clientX){
-    var ctm = svg.getScreenCTM();
-    return (clientX - ctm.e) / ctm.a;
-  }
-  function onStart(clientX){
-    dragging = true;
-    startX = toSvgX(clientX);
-    startDriveX = parseFloat(driveEl.getAttribute('x')) - ox;
-  }
-  function onMove(clientX){
-    if(!dragging) return;
-    var dx = toSvgX(clientX) - startX;
-    var newX = Math.round(Math.max(0, Math.min(lw - driveW, startDriveX + dx)));
-    rebuildLotLayout(svg, newX);
-  }
-  function onEnd(){ dragging = false; }
-
-  // Driveway drag — mouse
-  driveEl.addEventListener('mousedown', function(ev){ onStart(ev.clientX); ev.preventDefault(); });
-  svg.addEventListener('mousemove', function(ev){ onMove(ev.clientX); });
-  document.addEventListener('mouseup', onEnd);
-  // Driveway drag — touch
-  driveEl.addEventListener('touchstart', function(ev){ onStart(ev.touches[0].clientX); ev.preventDefault(); }, {passive:false});
-  svg.addEventListener('touchmove', function(ev){ if(dragging){ onMove(ev.touches[0].clientX); ev.preventDefault(); } }, {passive:false});
-  document.addEventListener('touchend', onEnd);
-
-  if(!wrap) return;
-
-  // Double-loaded checkbox
-  var dblChk = wrap.querySelector('.lot-dbl-chk');
-  if(dblChk) dblChk.addEventListener('change', function(){
-    var isDbl = this.checked;
-    svg.dataset.dbl = isDbl ? '1' : '0';
-    var remD = +(svg.dataset.remDepth || 0);
-    var hasRem = remD > 0;
-    var effectiveLd = (+svg.dataset.ld) - remD;
-    var cap = +svg.dataset.densityCap;
-    var newX = findOptimalDriveX(lw, driveW, setback, unitW, unitD, effectiveLd, cap, isDbl, hasRem);
-    rebuildLotLayout(svg, newX);
-  });
-
-  // Existing structure checkbox + depth input — auto-rerun on all changes
-  var remChk = wrap.querySelector('.lot-rem-chk');
-  var remInput = wrap.querySelector('.lot-rem-input');
-  if(remChk && remInput){
-    function rebuildFromRemainder(){
-      var remD = +(svg.dataset.remDepth || 0);
-      var hasRem = remD > 0;
-      var isDbl = svg.dataset.dbl === '1';
-      var effectiveLd = (+svg.dataset.ld) - remD;
-      var cap = +svg.dataset.densityCap;
-      var newX = findOptimalDriveX(lw, driveW, setback, unitW, unitD, effectiveLd, cap, isDbl, hasRem);
-      rebuildLotLayout(svg, newX);
-    }
-    remChk.addEventListener('change', function(){
-      remInput.style.display = this.checked ? 'inline-block' : 'none';
-      svg.dataset.remDepth = this.checked ? (+remInput.value || 60) : 0;
-      rebuildFromRemainder();
-    });
-    remInput.addEventListener('change', function(){
-      var v = Math.max(20, Math.min(120, +this.value || 60));
-      this.value = v;
-      svg.dataset.remDepth = v;
-      rebuildFromRemainder();
-    });
-    // Auto-rerun on every keystroke/spinner click
-    remInput.addEventListener('input', function(){
-      var v = +this.value;
-      if(v >= 20 && v <= 120){
-        svg.dataset.remDepth = v;
-        rebuildFromRemainder();
-      }
-    });
-  }
-
-  // Snap buttons
-  var snapL = wrap.querySelector('.lot-snap-left');
-  var snapR = wrap.querySelector('.lot-snap-right');
-  if(snapL) snapL.addEventListener('click', function(){ rebuildLotLayout(svg, setback); });
-  if(snapR) snapR.addEventListener('click', function(){ rebuildLotLayout(svg, Math.max(setback, lw - driveW - setback)); });
-
-  // +/- unit buttons
-  var addBtn = wrap.querySelector('.lot-add-btn');
-  var subBtn = wrap.querySelector('.lot-sub-btn');
-  if(addBtn) addBtn.addEventListener('click', function(){
-    var cap = +svg.dataset.densityCap;
-    if(cap >= 10) return;
-    svg.dataset.densityCap = Math.min(10, cap + 1);
-    rebuildLotLayout(svg, null);
-  });
-  if(subBtn) subBtn.addEventListener('click', function(){
-    var cap = +svg.dataset.densityCap;
-    if(cap <= 1) return;
-    svg.dataset.densityCap = Math.max(1, cap - 1);
-    rebuildLotLayout(svg, null);
-  });
-
-  // Copy link button
-  var copyBtn = wrap.querySelector('.lot-copy-btn');
-  if(copyBtn) copyBtn.addEventListener('click', function(){
-    var lat = svg.dataset.listingLat, lng = svg.dataset.listingLng;
-    var dx = svg.dataset.driveX, cap = svg.dataset.densityCap;
-    var dbl = svg.dataset.dbl, rem = svg.dataset.remDepth;
-    var params = MARKET.slug !== 'la' ? '?market='+MARKET.slug+'&pin='+lat+','+lng : '?pin='+lat+','+lng;
-    params += '&layout='+dx+','+cap+','+dbl+','+(rem||0);
-    var url = window.location.origin + window.location.pathname + params;
-    navigator.clipboard.writeText(url).then(function(){
-      var orig = copyBtn.textContent;
-      copyBtn.textContent = 'Copied!';
-      copyBtn.style.background = 'var(--green)';
-      copyBtn.style.color = '#000';
-      setTimeout(function(){ copyBtn.textContent = orig; copyBtn.style.background = ''; copyBtn.style.color = ''; }, 2000);
-    }).catch(function(){ prompt('Share layout link:', url); });
-  });
-});
 
 // ══════════════════════════════════════════
 //  INITIALIZATION
