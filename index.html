@@ -787,7 +787,7 @@ window.CLUSTERS = window.CLUSTERS || [];
       <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
         <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
       </button>
-      <button class="layer-btn active" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
+      <button class="layer-btn" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
         <span class="icon" style="color:#22c55e">▪</span> Profit Margin Heatmap <span class="layer-count" id="spreadCount">0</span>
       </button>
       <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)">
@@ -1372,7 +1372,7 @@ const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:true,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
 
 // ── Polygon Draw State ──
 let drawPolygonLayer = null;   // The drawn polygon L.Polygon on the map
