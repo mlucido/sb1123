@@ -790,11 +790,12 @@ def build_om(d, matt_photo=None, joe_photo=None):
         ("Sales & Marketing", cs+cm_val-2, cs+cm_val+sm-2, RGBColor(0x0D,0x94,0x88)),
         ("Final Sales", cs+cm_val+sm-4, hm, TEAL),
     ]
-    cx=Inches(2.8); cw=Inches(6.7); cy=Inches(0.95); rh_val=Inches(0.5); mx_val=hm+2
-    for m in range(0, mx_val+1, 3):
+    cx=Inches(2.8); cw=Inches(6.7); cy=Inches(0.95); rh_val=Inches(0.5); mx_val=hm
+    step = 3 if hm <= 30 else 6
+    for m in range(0, mx_val+1, step):
         px=cx+(m/mx_val)*cw
         _r(s, px, cy, Inches(0.005), rh_val*len(gantt), S200)
-        _t(s, px-Inches(0.15), cy-Inches(0.22), Inches(0.35), Inches(0.2), f"M{m}", sz=7, color=S400, align=PP_ALIGN.CENTER)
+        _t(s, px-Inches(0.2), cy-Inches(0.22), Inches(0.45), Inches(0.2), f"M{m}", sz=7, color=S400, align=PP_ALIGN.CENTER)
     for i,(name,start,end,color) in enumerate(gantt):
         y=cy+rh_val*i
         if i%2==0: _r(s, Inches(0.3), y, Inches(9.4), rh_val, S100)
