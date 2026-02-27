@@ -1790,6 +1790,13 @@ function proFormaBlock(l, pf, opts){
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b class="pf-buy-per-unit">$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b class="pf-land-basis" style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b class="pf-buildable-sf2">'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
   h += '<div class="popup-span-2 pf-max-offer-row" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: <span class="pf-max-offer">$'+pf.max_offer.toLocaleString()+'</span></div>';
+  // Stabilized Value & Cap Rate
+  var _btrSnap = calculateBTRProForma(l);
+  var _hasRent = _btrSnap.baseRent > 0;
+  var _capPct = (_btrSnap.capRate * 100).toFixed(1);
+  var _stabFmt = _hasRent ? '$'+(Math.round(_btrSnap.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M' : 'N/A';
+  var _stabColor = !_hasRent ? 'var(--text-dim)' : _btrSnap.stabilizedValue >= _btrSnap.totalCost ? 'var(--green)' : 'var(--red)';
+  h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Stabilized Value <b style="color:'+_stabColor+'">'+_stabFmt+'</b></span><span>Cap Rate <b style="color:'+(_hasRent?'var(--text)':'var(--text-dim)')+'">'+(_hasRent?_capPct+'%':'N/A')+'</b></span></div>';
   if(l.lw && l.ld){
     var layoutId = 'lot-layout-'+Math.random().toString(36).slice(2,8);
     h += '<div class="lot-layout-toggle" onclick="var b=document.getElementById(\''+layoutId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Lot Layout &middot; '+pf.maxUnits+' units</div>';
