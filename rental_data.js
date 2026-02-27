@@ -1,0 +1,1 @@
+const LOADED_RENTAL_COMPS = [];

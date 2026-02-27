@@ -18,10 +18,10 @@
 var _urlMarket = new URLSearchParams(window.location.search).get('market') || 'la';
 var MARKET_CONFIG = {
   la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:11,
-        dataFile:'data.js', listingsFile:'listings.js',
+        dataFile:'data.js', listingsFile:'listings.js', rentalDataFile:'rental_data.js',
         burnZones:true, subtitle:'Townhome development sites in Los Angeles' },
   sd: { name:'San Diego', slug:'sd', center:[32.77,-117.15], zoom:10,
-        dataFile:'sd_data.js', listingsFile:'sd_listings.js',
+        dataFile:'sd_data.js', listingsFile:'sd_listings.js', rentalDataFile:'sd_rental_data.js',
         burnZones:false, subtitle:'Townhome development sites in San Diego' }
 };
 var MARKET = MARKET_CONFIG[_urlMarket] || MARKET_CONFIG.la;
@@ -35,9 +35,11 @@ if(!_isMob){
   document.write('<script src="'+MARKET.dataFile+'?v=7"><\/script>');
 }
 document.write('<script src="'+MARKET.listingsFile+'?v=7"><\/script>');
+document.write('<script src="'+(MARKET.rentalDataFile||'rental_data.js')+'?v=7"><\/script>');
 window.LOADED_COMPS = window.LOADED_COMPS || [];
 window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
 window.CLUSTERS = window.CLUSTERS || [];
+window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -1369,6 +1371,8 @@ function getPinBorder(ppsf){
 // ── State ──
 let COMPS = [];
 let LISTINGS = [];
+let RENTAL_COMPS = [];
+let rentalCompGrid = null;
 const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L.layerGroup(),LAND:L.layerGroup()};
 const listingsLayer = L.layerGroup();
 const btrLayer = L.layerGroup();  // BTR opportunity layer
@@ -1401,6 +1405,9 @@ let listingsPanelOpen = false;
 let compsTableActive = false;
 let compsMapLayer = null;
 let compsRadiusCircle = null;
+let rentalCompsTableActive = false;
+let rentalCompsMapLayer = null;
+let rentalCompsRadiusCircle = null;
 let savedPipelineHeader = '';
 let favoritesOnly = false;
 let newThisWeekFilter = false;
@@ -1923,6 +1930,9 @@ function btrBlock(l, btr){
 
   // Existing BTR metrics (from calculateBTRProForma)
   btrContent += '<div><div class="popup-label">Rent Source</div><div class="popup-value">'+getRentSourceLabel(l)+'</div></div>';
+  if(RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp')){
+    btrContent += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+l.rentCompCount+' rental comps within '+l.rentCompRadius+'mi &#8599;</a></div>';
+  }
   btrContent += '<div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">('+proforma.avgUnitSf.toLocaleString()+' SF)</small></div></div>';
   btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
   btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
@@ -2103,6 +2113,9 @@ function showCompsTable(lat,lng){
   if(!l || !COMPS.length) return;
   if(!listingsPanelOpen) toggleListingsPanel();
 
+  // Hide any existing rental comps table first
+  if(rentalCompsTableActive) hideRentalCompsTable();
+
   const {used,ref,source,radius} = findCompsForListing(l);
   const sourceLabel = {subdiv:'Subdivision',newcon:'New Construction',zone:'Zone-Matched'}[source]||source;
 
@@ -2209,6 +2222,214 @@ function hideCompsTable(){
   if(compsMapLayer){ map.removeLayer(compsMapLayer); compsMapLayer=null; }
   if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); compsRadiusCircle=null; }
   compsTableActive = false;
+}
+
+// ── Rental Comps Table ──
+
+function buildRentalCompGrid(comps){
+  const grid = {};
+  const S = 0.005;
+  comps.forEach(c=>{
+    const key = Math.floor(c.lat/S)+','+Math.floor(c.lng/S);
+    if(!grid[key]) grid[key]=[];
+    grid[key].push(c);
+  });
+  return grid;
+}
+
+function searchRentalCompsInRadius(lat,lng,radiusMi){
+  if(!rentalCompGrid || !RENTAL_COMPS.length) return [];
+  const radiusDeg=radiusMi/69, S=0.005;
+  const rMin=Math.floor((lat-radiusDeg)/S), rMax=Math.floor((lat+radiusDeg)/S);
+  const cMin=Math.floor((lng-radiusDeg)/S), cMax=Math.floor((lng+radiusDeg)/S);
+  const out=[];
+  for(let r=rMin;r<=rMax;r++){
+    for(let c=cMin;c<=cMax;c++){
+      const cell=rentalCompGrid[r+','+c];
+      if(cell) cell.forEach(comp=>{
+        if(Math.abs(comp.lat-lat)<=radiusDeg && Math.abs(comp.lng-lng)<=radiusDeg){
+          out.push(Object.assign({},comp,{dist:distMi(lat,lng,comp.lat,comp.lng)}));
+        }
+      });
+    }
+  }
+  return out;
+}
+
+const RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
+const SFR_TH_TYPES = [1,2,3,4]; // SFR, Condo, TH, MF 2-4
+
+function findRentalCompsForListing(l){
+  if(!RENTAL_COMPS.length) return {used:[],ref:[],radius:0,method:'none'};
+  const method = l.rentMethod||'';
+
+  // Determine search radius from listing data
+  let usedRadius = l.rentCompRadius || 1;
+  // Widen for reference comps
+  const wideRadius = Math.min(usedRadius * 2, 5);
+  const all = searchRentalCompsInRadius(l.lat, l.lng, wideRadius);
+
+  const used=[], ref=[];
+  for(const c of all){
+    const inRadius = c.dist <= usedRadius + 0.05;
+    let isUsed = false;
+
+    if(method === 'rental-comp' || method === 'rental-comp-wide'){
+      // Tier 1/2: 3+ BR, 1200+ SF, SFR/TH/Condo/MF types
+      const bdOk = (c.bd||0) >= 3;
+      const sfOk = (c.sqft||0) >= 1200;
+      const ptOk = SFR_TH_TYPES.includes(c.pt||0);
+      isUsed = inRadius && bdOk && sfOk && ptOk;
+    } else if(method === 'rental-adj'){
+      // Tier 3: 2+ BR, 900+ SF, all types
+      const bdOk = (c.bd||0) >= 2;
+      const sfOk = (c.sqft||0) >= 900;
+      isUsed = inRadius && bdOk && sfOk;
+    } else {
+      // ZORI/SAFMR — show nearby for reference but none "used"
+      isUsed = false;
+    }
+
+    c.isUsed = isUsed;
+    if(isUsed) used.push(c);
+    else ref.push(c);
+  }
+
+  used.sort((a,b)=>a.dist-b.dist);
+  ref.sort((a,b)=>a.dist-b.dist);
+  return {used, ref, radius:usedRadius, method};
+}
+
+function rentalCompRow(c){
+  const rentPsf = (c.sqft && c.sqft > 0) ? (c.rent / c.sqft).toFixed(2) : '—';
+  const style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
+  return `<tr style="cursor:pointer;${style}" onclick="map.flyTo([${c.lat},${c.lng}],17)">
+    <td style="text-align:center">${c.isUsed?'<span style="color:var(--green)">&#10003;</span>':''}</td>
+    <td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.addr||'—'}</td>
+    <td>$${c.rent.toLocaleString()}</td>
+    <td>${rentPsf==='—'?'—':'$'+rentPsf}</td>
+    <td>${c.bd||'—'}</td>
+    <td>${c.ba||'—'}</td>
+    <td>${c.sqft?c.sqft.toLocaleString():'—'}</td>
+    <td>${RENTAL_PT_LABEL[c.pt]||'—'}</td>
+    <td>${c.dist.toFixed(2)}mi</td>
+  </tr>`;
+}
+
+function showRentalCompsTable(lat,lng){
+  const l = LISTINGS.find(ll=>ll.lat===lat&&ll.lng===lng);
+  if(!l || !RENTAL_COMPS.length) return;
+  if(!listingsPanelOpen) toggleListingsPanel();
+
+  // Hide any existing comps table first
+  if(compsTableActive) hideCompsTable();
+
+  const {used,ref,radius,method} = findRentalCompsForListing(l);
+
+  // Hide pipeline elements
+  document.getElementById('tableWrap').style.display='none';
+  document.getElementById('mobileCards').style.display='none';
+  const header = document.querySelector('.listings-panel-header');
+  if(!rentalCompsTableActive && !compsTableActive) savedPipelineHeader = header.innerHTML;
+  header.innerHTML = `
+    <button onclick="hideRentalCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">RENTAL COMPS &mdash; ${l.address}</div>
+      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${used.length} used / ${used.length+ref.length} nearby within ${radius.toFixed(1)}mi</div>
+    </div>
+    <button class="listings-panel-close" onclick="hideRentalCompsTable()">x</button>
+  `;
+
+  // Create or reuse rental comps container
+  let wrap = document.getElementById('rentalCompsTableWrap');
+  if(!wrap){
+    wrap = document.createElement('div');
+    wrap.id = 'rentalCompsTableWrap';
+    wrap.className = 'listings-table-wrap';
+    const panel = document.getElementById('listingsPanel');
+    panel.insertBefore(wrap, document.getElementById('tableWrap'));
+  }
+  wrap.style.display = '';
+
+  const thead = `<table class="listings-table"><thead><tr>
+    <th style="width:30px">Used</th>
+    <th onclick="sortRentalCompsTable('addr')">Address</th>
+    <th onclick="sortRentalCompsTable('rent')">Rent $/mo</th>
+    <th onclick="sortRentalCompsTable('rentPsf')">$/SF/mo</th>
+    <th onclick="sortRentalCompsTable('bd')">Beds</th>
+    <th onclick="sortRentalCompsTable('ba')">Baths</th>
+    <th onclick="sortRentalCompsTable('sqft')">SqFt</th>
+    <th>Type</th>
+    <th onclick="sortRentalCompsTable('dist')">Dist</th>
+  </tr></thead>`;
+
+  const dividerRow = ref.length ? `<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${ref.length}) &mdash;</td></tr>` : '';
+  const tbody = `<tbody>${used.map(c=>rentalCompRow(c)).join('')}${dividerRow}${ref.map(c=>rentalCompRow(c)).join('')}</tbody></table>`;
+  wrap.innerHTML = thead + tbody;
+
+  // Store data for sorting
+  wrap._used = used;
+  wrap._ref = ref;
+  wrap._listing = l;
+
+  // Map markers — used=blue, reference=gray
+  if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); }
+  if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); }
+  rentalCompsMapLayer = L.layerGroup();
+  used.forEach(c=>{
+    L.circleMarker([c.lat,c.lng],{
+      radius:6, color:'#3b82f6', fillColor:'#3b82f6', fillOpacity:0.8, weight:1
+    }).bindPopup(`<b>${c.addr||'—'}</b><br>$${c.rent.toLocaleString()}/mo &bull; ${c.bd||'?'}bd/${c.ba||'?'}ba &bull; ${c.sqft?c.sqft.toLocaleString()+'sf':'—'}`).addTo(rentalCompsMapLayer);
+  });
+  ref.forEach(c=>{
+    L.circleMarker([c.lat,c.lng],{
+      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
+    }).addTo(rentalCompsMapLayer);
+  });
+  rentalCompsRadiusCircle = L.circle([l.lat,l.lng],{
+    radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
+    fillOpacity:0.04, weight:1, dashArray:'6,4'
+  });
+  rentalCompsMapLayer.addTo(map);
+  rentalCompsRadiusCircle.addTo(map);
+  rentalCompsTableActive = true;
+}
+
+function sortRentalCompsTable(key){
+  const wrap = document.getElementById('rentalCompsTableWrap');
+  if(!wrap || !wrap._used) return;
+  const prev = wrap.getAttribute('data-sort-key');
+  const dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
+  wrap.setAttribute('data-sort-key', key);
+  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
+  const sorter = (a,b)=>{
+    let va,vb;
+    if(key==='rentPsf'){
+      va=(a.sqft&&a.sqft>0)?a.rent/a.sqft:0;
+      vb=(b.sqft&&b.sqft>0)?b.rent/b.sqft:0;
+    } else {
+      va=a[key]; vb=b[key];
+    }
+    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    va=va||0;vb=vb||0;
+    return dir==='asc'?va-vb:vb-va;
+  };
+  wrap._used.sort(sorter);
+  wrap._ref.sort(sorter);
+  const dividerRow = wrap._ref.length ? `<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${wrap._ref.length}) &mdash;</td></tr>` : '';
+  wrap.querySelector('tbody').innerHTML = wrap._used.map(c=>rentalCompRow(c)).join('') + dividerRow + wrap._ref.map(c=>rentalCompRow(c)).join('');
+}
+
+function hideRentalCompsTable(){
+  document.getElementById('tableWrap').style.display='';
+  document.getElementById('mobileCards').style.display='';
+  const header = document.querySelector('.listings-panel-header');
+  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
+  const wrap = document.getElementById('rentalCompsTableWrap');
+  if(wrap) wrap.remove();
+  if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); rentalCompsMapLayer=null; }
+  if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); rentalCompsRadiusCircle=null; }
+  rentalCompsTableActive = false;
 }
 
 // Build descriptive exit $/SF label for popup display
@@ -3304,6 +3525,7 @@ function buildOffMarketLayer(){
         }
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
+        ${RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp') ? `<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${l.rentCompCount} rental comps within ${l.rentCompRadius}mi &#8599;</a></div>` : ''}
         ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
@@ -4767,6 +4989,11 @@ window.addEventListener('DOMContentLoaded', function(){
 
   if(typeof LOADED_COMPS !== 'undefined' && LOADED_COMPS.length > 0) COMPS = LOADED_COMPS;
   if(typeof LOADED_LISTINGS !== 'undefined' && LOADED_LISTINGS.length > 0) LISTINGS = LOADED_LISTINGS;
+  if(typeof LOADED_RENTAL_COMPS !== 'undefined' && LOADED_RENTAL_COMPS.length > 0){
+    RENTAL_COMPS = LOADED_RENTAL_COMPS;
+    rentalCompGrid = buildRentalCompGrid(RENTAL_COMPS);
+    console.log('Rental comps loaded:', RENTAL_COMPS.length, 'grid cells:', Object.keys(rentalCompGrid).length);
+  }
 
   // Stamp each listing with nearest cluster's T1 normalized exit $/SF
   if(CLUSTERS.length && LISTINGS.length){
