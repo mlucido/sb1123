@@ -890,7 +890,7 @@ window.CLUSTERS = window.CLUSTERS || [];
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotSliderFill"></div>
-          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="8000">
+          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="12000">
           <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
         </div>
         <button class="reset-btn" onclick="resetFilter('lot')">Reset Lot Filter</button>
@@ -1368,7 +1368,7 @@ const filters = {
   price:{ min:0, max:3000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:3000000 },
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
-  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:8000, defaultMax:45000 },
+  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:45000 },
   lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:200 },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
   margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:null },
