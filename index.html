@@ -2752,40 +2752,16 @@ function rebuildMarkers(){
   refreshVisibility();
 }
 
-function rebuildListings(){
-  listingsLayer.clearLayers();
-  // Clear for-sale flags so off-market layer can exclude visible for-sale listings
-  LISTINGS.forEach(l => { l._onForSaleLayer = false; });
-  const filtered = getFilteredListings();
-
-  filtered.forEach(l => {
-    l._onForSaleLayer = true;
-    // Color by margin
-    const margin = l.estMargin || 0;
-    let color;
-    if(margin >= 30) color = '#22c55e';       // Green - 30%+ margin
-    else if(margin >= 20) color = '#facc15';  // Yellow - 20-29% margin
-    else color = '#9ca3af';                   // Gray - under 20% margin
-    
-    const lotSf = l.lotSf || 0;
-    const isNewListing = l.isNew;
-    const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
-    const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const markerColor = isNewListing ? '#22c55e' : '#ffffff'; // White border for heatmap contrast
-    const markerWeight = isNewListing ? 4 : 2;
-    const isDualViable = margin >= 20 && l.btrViable;
-    const cm = L.circleMarker([l.lat,l.lng],{
-      radius, color: isDualViable ? '#f59e0b' : markerColor, fillColor:color,
-      fillOpacity: 0.95,
-      weight: isDualViable ? 3 : markerWeight,
-      pane:'listingsPane',
-      className: isNewListing ? 'listing-marker-new' : '',
-    });
-
-    const pf = calculateProForma(l);
-    const btr = calculateBTRProForma(l);
-
-    cm.bindPopup(`
+function buildForSalePopupHTML(l){
+  const margin = l.estMargin || 0;
+  let color;
+  if(margin >= 30) color = '#22c55e';
+  else if(margin >= 20) color = '#facc15';
+  else color = '#9ca3af';
+  const isDualViable = margin >= 20 && l.btrViable;
+  const pf = calculateProForma(l);
+  const btr = calculateBTRProForma(l);
+  return `
       ${l.burnZone ? '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:4px 10px">&#128293; BURN ZONE — '+l.burnZone+' Fire (Jan 2025)</div>' : ''}
       <div class="popup-badge" style="background:${ZONE_COLORS[l.zone]||'#666'}22;color:${ZONE_COLORS[l.zone]||'#666'}">${l.zone} — ${ZONE_LABELS[l.zone]||l.zone||'Unknown'}</div>
       ${isDualViable ? '<div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b;font-weight:700">&#9670; BTS + BTR</div>' : ''}
@@ -2841,7 +2817,40 @@ function rebuildListings(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
-    `,{maxWidth:750});
+    `;
+}
+
+function rebuildListings(){
+  listingsLayer.clearLayers();
+  // Clear for-sale flags so off-market layer can exclude visible for-sale listings
+  LISTINGS.forEach(l => { l._onForSaleLayer = false; });
+  const filtered = getFilteredListings();
+
+  filtered.forEach(l => {
+    l._onForSaleLayer = true;
+    // Color by margin
+    const margin = l.estMargin || 0;
+    let color;
+    if(margin >= 30) color = '#22c55e';       // Green - 30%+ margin
+    else if(margin >= 20) color = '#facc15';  // Yellow - 20-29% margin
+    else color = '#9ca3af';                   // Gray - under 20% margin
+    
+    const lotSf = l.lotSf || 0;
+    const isNewListing = l.isNew;
+    const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
+    const radius = isNewListing ? baseRadius + 3 : baseRadius;
+    const markerColor = isNewListing ? '#22c55e' : '#ffffff'; // White border for heatmap contrast
+    const markerWeight = isNewListing ? 4 : 2;
+    const isDualViable = margin >= 20 && l.btrViable;
+    const cm = L.circleMarker([l.lat,l.lng],{
+      radius, color: isDualViable ? '#f59e0b' : markerColor, fillColor:color,
+      fillOpacity: 0.95,
+      weight: isDualViable ? 3 : markerWeight,
+      pane:'listingsPane',
+      className: isNewListing ? 'listing-marker-new' : '',
+    });
+
+    cm.bindPopup(buildForSalePopupHTML(l),{maxWidth:750});
     cm.addTo(listingsLayer);
   });
 
@@ -4458,18 +4467,32 @@ window.addEventListener('DOMContentLoaded', function(){
             // Find and open the popup for this pin
             setTimeout(function(){
               // Check all layers for a marker at this location
+              var found = false;
               const layers = [listingsLayer, btrLayer, offMarketLayer];
               layers.forEach(layer => {
-                if(layer){
+                if(layer && !found){
                   layer.eachLayer(marker => {
+                    if(found) return;
                     const pos = marker.getLatLng();
-                    // Match within ~1 meter tolerance
                     if(Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001){
                       marker.openPopup();
+                      found = true;
                     }
                   });
                 }
               });
+              // Fallback: listing may be filtered out — open popup directly from LISTINGS data
+              if(!found){
+                var pinListing = LISTINGS.find(function(x){
+                  return Math.abs(x.lat - lat) < 0.0001 && Math.abs(x.lng - lng) < 0.0001;
+                });
+                if(pinListing){
+                  L.popup({maxWidth:750})
+                    .setLatLng([lat, lng])
+                    .setContent(buildForSalePopupHTML(pinListing))
+                    .openOn(map);
+                }
+              }
             }, 500);
           }
         }
