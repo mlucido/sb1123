@@ -229,9 +229,9 @@ window.CLUSTERS = window.CLUSTERS || [];
   .lot-layout-toggle:hover{color:var(--text)}
   .lot-layout-toggle .tri{font-size:8px;transition:transform 0.2s}
   .lot-layout-toggle.open .tri{transform:rotate(90deg)}
-  .lot-layout-body{grid-column:1/-1;overflow:hidden;max-height:0;transition:max-height 0.3s ease-out}
-  .lot-layout-body.open{max-height:400px;transition:max-height 0.4s ease-in}
-  .lot-layout-body svg{display:block;margin:4px auto 0;width:100%;max-width:280px}
+  .lot-layout-body{grid-column:1/-1;overflow:hidden;max-height:0;transition:max-height 0.4s ease-out}
+  .lot-layout-body.open{max-height:2000px;transition:max-height 0.5s ease-in}
+  .lot-layout-body svg{display:block;margin:4px auto 0;width:100%;max-width:280px;height:auto}
 
   /* Pin Color Legend */
   .pin-legend{
@@ -2186,17 +2186,13 @@ function buildLotLayoutSVG(l, pf){
   var lw = l.lw, ld = l.ld;
   var units = pf.maxUnits || 0;
   var driveW = 24, rearSet = 4;
-  // Front setback per underlying zone (SB 1123 does NOT override front setbacks)
   var frontSet = (l.zone === 'R2' || l.zone === 'R3' || l.zone === 'R4') ? 15 : 20;
-  // Unit width = full lot width minus driveway (no separate side setback — driveway covers it, other side 0')
   var unitBuildW = lw - driveW;
   if(unitBuildW < 20) return '';
 
-  // Parcel-depth model: each parcel spans full lot width, driveway is shared easement
   var parcelDepth = 1200 / lw;
   var availDepth = ld - frontSet - rearSet;
 
-  // Remainder parcel at front (existing structure area)
   var remDepth = 0;
   if(l.remainderUnits > 0){
     var lotSf = l.lotSf || lw * ld;
@@ -2205,73 +2201,92 @@ function buildLotLayoutSVG(l, pf){
   }
 
   var devDepth = availDepth - remDepth;
-  if(devDepth < parcelDepth) devDepth = availDepth; // ignore remainder if it kills layout
+  if(devDepth < parcelDepth) devDepth = availDepth;
   var maxFit = Math.min(10, Math.floor(devDepth / parcelDepth));
   var placed = Math.min(units, maxFit);
 
-  // SVG scaling: fit lot + labels into 280px wide
-  var labelPadL = 14, labelPadR = 6, labelPadT = 12, labelPadB = 14;
-  var totalW = lw + labelPadL + labelPadR;
-  var totalH = ld + labelPadT + labelPadB;
-  var ox = labelPadL, oy = labelPadT;
+  // SVG padding for labels
+  var padL = 16, padR = 8, padT = 14, padB = 18;
+  var totalW = lw + padL + padR;
+  var totalH = ld + padT + padB;
+  var ox = padL, oy = padT;
 
-  // Street at BOTTOM. SVG y=0 at top = rear of lot.
-  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+totalW+' '+totalH+'" style="font-family:DM Sans,sans-serif;max-width:280px;height:auto">';
+  // Colors — light architectural style
+  var cLot = '#fafaf8', cBorder = '#1e3a5f', cSetback = '#e74c3c', cDrive = '#e8e6e1', cDriveBorder = '#c8c5be';
+  var cUnit = '#dbeafe', cUnitStroke = '#3b82f6', cUnitText = '#2563eb';
+  var cYard = '#f0fdf4', cLabel = '#888', cRem = '#fef3c7', cRemStroke = '#d97706';
 
-  // Lot boundary
-  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="#1a1d27" stroke="#e5e7eb" stroke-width="1"/>';
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+totalW+' '+totalH+'" style="font-family:\'DM Sans\',system-ui,sans-serif;height:auto">';
 
-  // Driveway — left side, full depth (includes side setback on this side)
-  s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="#d1d5db" opacity="0.2"/>';
-  s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="none" stroke="#9ca3af" stroke-width="0.5"/>';
-  s += '<text x="'+(ox+driveW/2)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#9ca3af" font-size="5" transform="rotate(-90,'+(ox+driveW/2)+','+(oy+ld/2)+')">24\' DRIVE</text>';
+  // Lot boundary — white fill, thin navy outline
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="'+cLot+'" stroke="'+cBorder+'" stroke-width="1"/>';
 
-  // Yard areas
-  // Rear setback yard (top of SVG)
-  s += '<rect x="'+(ox+driveW)+'" y="'+oy+'" width="'+unitBuildW+'" height="'+rearSet+'" fill="#dcfce7" opacity="0.15"/>';
-  // Front setback yard (bottom of SVG)
-  s += '<rect x="'+(ox+driveW)+'" y="'+(oy+ld-frontSet)+'" width="'+unitBuildW+'" height="'+frontSet+'" fill="#dcfce7" opacity="0.15"/>';
+  // Front setback zone (bottom of SVG = front of lot)
+  s += '<rect x="'+ox+'" y="'+(oy+ld-frontSet)+'" width="'+lw+'" height="'+frontSet+'" fill="'+cYard+'" opacity="0.6"/>';
+  // Rear setback zone (top of SVG = rear of lot)
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+rearSet+'" fill="'+cYard+'" opacity="0.4"/>';
+
+  // Driveway — left side, full depth
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="'+cDrive+'" stroke="'+cDriveBorder+'" stroke-width="0.5"/>';
+  // Driveway label (rotated)
+  var driveFS = Math.min(6, driveW * 0.22);
+  s += '<text x="'+(ox+driveW/2)+'" y="'+(oy+ld/2)+'" text-anchor="middle" dominant-baseline="central" fill="#999" font-size="'+driveFS+'" transform="rotate(-90,'+(ox+driveW/2)+','+(oy+ld/2)+')">24\u2032 DRIVE</text>';
+
+  // Setback lines — coral dashed
+  var frontY = oy + ld - frontSet;
+  s += '<line x1="'+ox+'" y1="'+frontY+'" x2="'+(ox+lw)+'" y2="'+frontY+'" stroke="'+cSetback+'" stroke-width="0.6" stroke-dasharray="3,2" opacity="0.55"/>';
+  var rearY = oy + rearSet;
+  s += '<line x1="'+ox+'" y1="'+rearY+'" x2="'+(ox+lw)+'" y2="'+rearY+'" stroke="'+cSetback+'" stroke-width="0.6" stroke-dasharray="3,2" opacity="0.55"/>';
 
   // Remainder parcel at front (just above front setback)
   if(remDepth > 0){
     var remY = oy + ld - frontSet - remDepth;
-    s += '<rect x="'+(ox+driveW)+'" y="'+remY+'" width="'+unitBuildW+'" height="'+remDepth+'" fill="rgba(251,191,36,0.08)" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="2,2"/>';
-    if(remDepth > 10) s += '<text x="'+(ox+driveW+unitBuildW/2)+'" y="'+(remY+remDepth/2+2)+'" text-anchor="middle" fill="#f59e0b" font-size="5" opacity="0.8">REMAINDER</text>';
+    s += '<rect x="'+(ox+driveW)+'" y="'+remY+'" width="'+unitBuildW+'" height="'+remDepth+'" fill="'+cRem+'" stroke="'+cRemStroke+'" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.7"/>';
+    if(remDepth > 10) s += '<text x="'+(ox+driveW+unitBuildW/2)+'" y="'+(remY+remDepth/2+2)+'" text-anchor="middle" fill="'+cRemStroke+'" font-size="5" opacity="0.7">REMAINDER</text>';
   }
 
-  // Setback lines (dashed red)
-  var frontY = oy + ld - frontSet;
-  s += '<line x1="'+ox+'" y1="'+frontY+'" x2="'+(ox+lw)+'" y2="'+frontY+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>';
-  var rearY = oy + rearSet;
-  s += '<line x1="'+ox+'" y1="'+rearY+'" x2="'+(ox+lw)+'" y2="'+rearY+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>';
-  // No side setback line on driveway side (driveway covers it)
-  // No side setback line on right side (SB 1123 allows 0' on non-driveway side)
-
-  // Place units: stack from rear setback, each parcelDepth apart
-  // Units span full buildable width (lotWidth - driveway)
+  // Place units — light blue fills, steel blue stroke
   var unitStartX = ox + driveW;
   var unitStartY = oy + rearSet;
-  var n = 0;
   for(var i = 0; i < placed; i++){
     var uy = unitStartY + i * parcelDepth;
-    s += '<rect x="'+unitStartX+'" y="'+uy+'" width="'+unitBuildW+'" height="'+(parcelDepth-1)+'" fill="rgba(96,165,250,0.25)" stroke="#60a5fa" stroke-width="0.8" rx="1"/>';
-    s += '<text x="'+(unitStartX+unitBuildW/2)+'" y="'+(uy+parcelDepth/2)+'" text-anchor="middle" fill="#60a5fa" font-size="6" font-weight="700">'+(i+1)+'</text>';
+    var uh = parcelDepth - 1;
+    s += '<rect x="'+unitStartX+'" y="'+uy+'" width="'+unitBuildW+'" height="'+uh+'" fill="'+cUnit+'" stroke="'+cUnitStroke+'" stroke-width="0.8" rx="1"/>';
+    var fs = Math.min(7, Math.min(unitBuildW * 0.15, uh * 0.45));
+    s += '<text x="'+(unitStartX+unitBuildW/2)+'" y="'+(uy+uh/2)+'" text-anchor="middle" dominant-baseline="central" fill="'+cUnitText+'" font-size="'+fs+'" font-weight="600">'+(i+1)+'</text>';
   }
 
   // Open space after last unit
   var lastUnitBottom = unitStartY + placed * parcelDepth;
   var yardH = (oy + ld - frontSet - remDepth) - lastUnitBottom;
   if(yardH > 4){
-    s += '<rect x="'+(ox+driveW)+'" y="'+lastUnitBottom+'" width="'+unitBuildW+'" height="'+yardH+'" fill="#dcfce7" opacity="0.12"/>';
-    if(yardH > 12) s += '<text x="'+(ox+driveW+unitBuildW/2)+'" y="'+(lastUnitBottom+yardH/2+2)+'" text-anchor="middle" fill="#86efac" font-size="4.5" opacity="0.7">YARD</text>';
+    s += '<rect x="'+(ox+driveW)+'" y="'+lastUnitBottom+'" width="'+unitBuildW+'" height="'+yardH+'" fill="'+cYard+'" opacity="0.5"/>';
   }
 
-  // Dimension labels
-  s += '<text x="'+(ox+lw/2)+'" y="'+(oy-3)+'" text-anchor="middle" fill="#8b8fa3" font-size="6">'+lw+'\u2032</text>';
-  s += '<text x="'+(ox-4)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#8b8fa3" font-size="6" transform="rotate(-90,'+(ox-4)+','+(oy+ld/2)+')">'+ld+'\u2032</text>';
-  s += '<text x="'+(ox+lw+2)+'" y="'+(oy+rearSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">4\u2032</text>';
-  s += '<text x="'+(ox+lw+2)+'" y="'+(frontY+frontSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">'+frontSet+'\u2032</text>';
-  s += '<text x="'+(ox+lw/2)+'" y="'+(oy+ld+10)+'" text-anchor="middle" fill="#9ca3af" font-size="5" letter-spacing="2">STREET</text>';
+  // Dimension labels — 9px equivalent scaled, muted grey
+  // Top: lot width
+  s += '<text x="'+(ox+lw/2)+'" y="'+(oy-4)+'" text-anchor="middle" fill="'+cLabel+'" font-size="6">'+lw+'\u2032</text>';
+  // Left: lot depth (rotated)
+  s += '<text x="'+(ox-5)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="'+cLabel+'" font-size="6" transform="rotate(-90,'+(ox-5)+','+(oy+ld/2)+')">'+ld+'\u2032</text>';
+  // Right side: setback labels in coral
+  s += '<text x="'+(ox+lw+2)+'" y="'+(oy+rearSet/2+2)+'" fill="'+cSetback+'" font-size="4" opacity="0.6">4\u2032</text>';
+  s += '<text x="'+(ox+lw+2)+'" y="'+(frontY+frontSet/2+2)+'" fill="'+cSetback+'" font-size="4" opacity="0.6">'+frontSet+'\u2032</text>';
+
+  // STREET label at bottom
+  s += '<text x="'+(ox+lw/2)+'" y="'+(oy+ld+11)+'" text-anchor="middle" fill="'+cLabel+'" font-size="5" letter-spacing="2" font-weight="600">STREET</text>';
+
+  // Scale bar — bottom-left, 10ft reference
+  var sbX = ox + 1, sbY = oy + ld + 12;
+  s += '<line x1="'+sbX+'" y1="'+sbY+'" x2="'+(sbX+10)+'" y2="'+sbY+'" stroke="'+cLabel+'" stroke-width="0.7"/>';
+  s += '<line x1="'+sbX+'" y1="'+(sbY-1.5)+'" x2="'+sbX+'" y2="'+(sbY+1.5)+'" stroke="'+cLabel+'" stroke-width="0.5"/>';
+  s += '<line x1="'+(sbX+10)+'" y1="'+(sbY-1.5)+'" x2="'+(sbX+10)+'" y2="'+(sbY+1.5)+'" stroke="'+cLabel+'" stroke-width="0.5"/>';
+  s += '<text x="'+(sbX+5)+'" y="'+(sbY-2)+'" text-anchor="middle" fill="'+cLabel+'" font-size="3.5">10\u2032</text>';
+
+  // North arrow — bottom-right, minimal
+  var naX = ox + lw + padR - 4, naY = oy + ld + 10;
+  s += '<line x1="'+naX+'" y1="'+(naY+5)+'" x2="'+naX+'" y2="'+naY+'" stroke="'+cLabel+'" stroke-width="0.7"/>';
+  s += '<polygon points="'+(naX-1.5)+','+(naY+2)+' '+naX+','+naY+' '+(naX+1.5)+','+(naY+2)+'" fill="'+cLabel+'"/>';
+  s += '<text x="'+naX+'" y="'+(naY-1.5)+'" text-anchor="middle" fill="'+cLabel+'" font-size="3.5" font-weight="700">N</text>';
 
   s += '</svg>';
   return s;
