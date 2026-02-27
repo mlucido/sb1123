@@ -2796,7 +2796,8 @@ function buildForSalePopupHTML(l){
         ${dueDiligenceBlock(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; XLS</button>
+        <button class="popup-fav-btn" onclick="exportOM(${l.lat},${l.lng}).catch(console.error)">&#128196; OM</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -2923,7 +2924,8 @@ function buildBTRLayer(){
         ${dueDiligenceBlock(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; XLS</button>
+        <button class="popup-fav-btn" onclick="exportOM(${l.lat},${l.lng}).catch(console.error)">&#128196; OM</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -3331,7 +3333,8 @@ function buildOffMarketLayer(){
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; XLS</button>
+        <button class="popup-fav-btn" onclick="exportOM(${l.lat},${l.lng}).catch(console.error)">&#128196; OM</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -4325,6 +4328,75 @@ async function exportModel(lat, lng) {
   start.setDate(1);
   ws.getCell('G9').value = start;
 
+  // ── Exit Comps sheet ──
+  var compResult = findCompsForListing(l);
+  if (compResult.used.length || compResult.ref.length) {
+    var cs = wb.addWorksheet('Exit Comps');
+    var el = exitLabel(l);
+
+    // Summary header
+    cs.getCell('A1').value = 'Exit Comps for ' + (l.address || '');
+    cs.getCell('A1').font = {bold: true, size: 14};
+    cs.mergeCells('A1:L1');
+    cs.getCell('A2').value = el.label + '  —  $' + el.psf + '/SF';
+    cs.getCell('A2').font = {bold: true, size: 11};
+    cs.mergeCells('A2:L2');
+    // Row 3 spacer
+
+    // Column headers
+    var compHeaders = ['Status','Address','Sale Price','$/SF','SqFt','Beds','Baths','Zone','Year Built','Tier','Sale Date','Distance (mi)'];
+    var headerRow = cs.getRow(4);
+    compHeaders.forEach(function(h, i) {
+      var cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = {bold: true};
+      cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFE0E0E0'}};
+    });
+
+    // Column widths
+    cs.getColumn(1).width = 8;   // Status
+    cs.getColumn(2).width = 35;  // Address
+    cs.getColumn(3).width = 14;  // Sale Price
+    cs.getColumn(4).width = 10;  // $/SF
+    cs.getColumn(5).width = 10;  // SqFt
+    cs.getColumn(6).width = 6;   // Beds
+    cs.getColumn(7).width = 6;   // Baths
+    cs.getColumn(8).width = 8;   // Zone
+    cs.getColumn(9).width = 11;  // Year Built
+    cs.getColumn(10).width = 6;  // Tier
+    cs.getColumn(11).width = 12; // Sale Date
+    cs.getColumn(12).width = 12; // Distance
+
+    var greenFill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFE8F5E9'}};
+    var allComps = compResult.used.concat(compResult.ref);
+    for (var ci = 0; ci < allComps.length; ci++) {
+      var comp = allComps[ci];
+      var row = cs.getRow(5 + ci);
+      var isUsed = ci < compResult.used.length;
+
+      row.getCell(1).value = isUsed ? 'Used' : 'Ref';
+      row.getCell(2).value = comp.address || '';
+      row.getCell(3).value = comp.price || 0;
+      row.getCell(3).numFmt = '$#,##0';
+      row.getCell(4).value = comp.ppsf || 0;
+      row.getCell(4).numFmt = '$#,##0';
+      row.getCell(5).value = comp.sqft || 0;
+      row.getCell(5).numFmt = '#,##0';
+      row.getCell(6).value = comp.bd || '';
+      row.getCell(7).value = comp.ba || '';
+      row.getCell(8).value = comp.zone || '';
+      row.getCell(9).value = comp.yb || '';
+      row.getCell(10).value = comp.t ? 'T' + comp.t : '';
+      row.getCell(11).value = comp.date || '';
+      row.getCell(12).value = comp.dist ? +comp.dist.toFixed(2) : '';
+      row.getCell(12).numFmt = '0.00';
+
+      if (isUsed) {
+        for (var k = 1; k <= 12; k++) row.getCell(k).fill = greenFill;
+      }
+    }
+  }
+
   // Generate and download
   var filename = (l.address||'deal').replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_') + '_model.xlsx';
   var outBuf = await wb.xlsx.writeBuffer();
@@ -4335,6 +4407,306 @@ async function exportModel(lat, lng) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+async function exportOM(lat, lng) {
+  // Localhost guard — OM generation requires local Python server
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    alert('OM export requires the local server.\n\nRun: python3 om_server.py');
+    return;
+  }
+
+  var l = LISTINGS.find(function(x){ return x.lat===lat && x.lng===lng; });
+  if (!l) { alert('Listing not found'); return; }
+
+  var pf = calculateProForma(l);
+  var btr = calculateBTRProForma(l);
+  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
+  var avgUnitSF = proforma.avgUnitSf;
+  var buildCostPSF = pf.adjBuildCostPerSf;
+  var units = pf.maxUnits;
+
+  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
+
+  // ── Constants (must match sizeEquityAndDebt) ──
+  var SOFT_PCT = 0.25;
+  var DEMO = 55000;
+  var SUBDIV = 100000;
+  var AE = 150000;
+  var TAX_RATE = 0.011;
+  var INS_ANNUAL = 20000;
+  var AM_MONTHLY = 3000;
+  var DM_MONTHLY = 5000;
+  var ACQ_FEE_PCT = 0.02;
+  var DISP_FEE_PCT = 0.015;
+  var ORIG_FEE_PCT = 0.02;
+  var INTEREST_RATE = 0.09;
+  var LP_PREF = 0.08;
+  var GP_PROMOTE = 0.20;
+  var GP_COINVEST = 0.05;
+  var PRE_DEV_MO = 6;
+  var CONSTR_MO = 12;
+  var SALE_MO = 6;
+  var HOLD_MO = PRE_DEV_MO + CONSTR_MO + SALE_MO;
+  var TX_COST_PCT = proforma.txnCostPct / 100;
+  var BTR_VACANCY = btr.vacancyRate;
+  var BTR_OPEX = btr.opexRatio;
+  var BTR_CAP = btr.capRate;
+  var BTR_LTV = btr.refiLTV;
+  var BTR_PERM_RATE = 0.0625;
+  var BTR_RENT_GROWTH = 0.03;
+
+  // ── Development costs ──
+  var buildableSF = units * avgUnitSF;
+  var hardCosts = buildableSF * buildCostPSF;
+  var softCosts = hardCosts * SOFT_PCT;
+  var totalDev = hardCosts + softCosts + DEMO + SUBDIV + AE;
+
+  // ── Capital structure ──
+  var totalProjectCost = ed.totalCost;
+  var equity = ed.equity;
+  var debt = totalProjectCost - equity;
+  var gpCoinvestEquity = Math.round(equity * GP_COINVEST);
+  var lpEquity = equity - gpCoinvestEquity;
+  var origFee = debt * ORIG_FEE_PCT;
+
+  // ── Carry costs (monthly accumulation) ──
+  var monthlyTax = l.price * TAX_RATE / 12;
+  var monthlyIns = INS_ANNUAL / 12;
+
+  var totalPropTax = monthlyTax * HOLD_MO;
+  var totalInsurance = monthlyIns * HOLD_MO;
+  var totalAssetMgmt = AM_MONTHLY * HOLD_MO;
+  var totalDevMgmt = DM_MONTHLY * CONSTR_MO;
+
+  // ── Interest (PIK — accrues on drawn debt) ──
+  // Pre-dev: land acquisition debt drawn; Construction: progressive draws; Sale: fully drawn
+  var landDebt = Math.max(0, l.price - equity);  // debt portion of land
+  var constrDebt = debt - landDebt;  // remaining debt for construction
+  // Simplified PIK: average outstanding × rate × time
+  var preDevInterest = landDebt * INTEREST_RATE * (PRE_DEV_MO / 12);
+  var constrInterest = (landDebt + constrDebt * 0.5) * INTEREST_RATE * (CONSTR_MO / 12);
+  var saleInterest = debt * INTEREST_RATE * (SALE_MO / 12);
+  var totalInterest = preDevInterest + constrInterest + saleInterest;
+
+  // ── Fees ──
+  var acqFee = l.price * ACQ_FEE_PCT;
+  var dispFee = 0;  // computed on exit below
+  var totalSponsorFees = acqFee + totalAssetMgmt + totalDevMgmt;  // disposition added at exit
+
+  // ── Exit ──
+  var grossRevenue = units * avgUnitSF * exitPSF;
+  var txCosts = grossRevenue * TX_COST_PCT;
+  dispFee = grossRevenue * DISP_FEE_PCT;
+  totalSponsorFees += dispFee;
+  var netSaleProceeds = grossRevenue - txCosts;
+
+  // ── Waterfall ──
+  var loanRepayment = debt + totalInterest + origFee;
+  var netDistributable = netSaleProceeds - loanRepayment;
+  var lpROC = lpEquity;
+  var gpROC = gpCoinvestEquity;
+  var profitAfterROC = netDistributable - lpROC - gpROC;
+
+  // LP preferred return (simple, on hold period)
+  var lpPrefDollars = lpEquity * LP_PREF * (HOLD_MO / 12);
+  var remainingAfterPref = Math.max(0, profitAfterROC - lpPrefDollars);
+
+  // GP promote on remaining
+  var gpPromoteDollars = remainingAfterPref * GP_PROMOTE;
+  var lpShareRemaining = remainingAfterPref * (1 - GP_PROMOTE);
+
+  // LP totals
+  var lpTotalDist = lpROC + lpPrefDollars + lpShareRemaining;
+  var lpNetProfit = lpTotalDist - lpEquity;
+  var lpMOIC = lpEquity > 0 ? lpTotalDist / lpEquity : 0;
+
+  // LP IRR (annualized approximation from MOIC and hold)
+  var holdYears = HOLD_MO / 12;
+  var lpIRR = holdYears > 0 ? Math.pow(lpMOIC, 1 / holdYears) - 1 : 0;
+
+  // Project-level metrics
+  var projectMargin = netSaleProceeds > 0 ? (netSaleProceeds - totalProjectCost) / netSaleProceeds : 0;
+  var projectMOIC = totalProjectCost > 0 ? netSaleProceeds / totalProjectCost : 0;
+  var allInPsf = buildableSF > 0 ? totalProjectCost / buildableSF : 0;
+
+  // GP economics
+  var gpTotalIncome = gpPromoteDollars + totalSponsorFees;
+  var gpFeeLoad = grossRevenue > 0 ? gpTotalIncome / grossRevenue : 0;
+
+  // Lot dimensions
+  var lotWidth = l.lw || Math.round(Math.sqrt((l.lotSf||10000) * 0.33));
+  var lotDepth = l.ld || Math.round((l.lotSf||10000) / lotWidth);
+
+  // ── BTR ──
+  var btrGPI = btr.grossAnnualRent;
+  var btrEGI = btr.effectiveGrossIncome;
+  var btrNOI = btr.annualNOI;
+  var btrStabilizedValue = btr.stabilizedValue;
+  var btrRefiLoan = btr.loanAmount;
+  var btrEffectiveLTV = btrStabilizedValue > 0 ? btrRefiLoan / btrStabilizedValue : 0;
+  var btrAnnualDS = btr.annualDebtService;
+  var btrDSCR = btr.dscr;
+  var btrAnnualCF = btr.cashFlow;
+  var btrCoC = btr.cashOnCash;
+  var btrYOC = btr.yieldOnCost;
+
+  // ── Build deal dict matching read_xls() schema ──
+  var addrParts = (l.address || '').split(',');
+  var street = addrParts[0] ? addrParts[0].trim() : (l.address || '');
+
+  var d = {
+    // Property
+    address: street,
+    city: l.city || '',
+    zip: l.zip || '',
+    state: 'CA',
+    zoning: (l.zone || 'R1').toUpperCase(),
+    lot_sf: l.lotSf || 0,
+    lot_width: lotWidth,
+    lot_depth: lotDepth,
+    slope_pct: (l.slope || 0) / 100,
+    beds_baths: (l.beds || '') + ' / ' + (l.baths || ''),
+    dom: l.dom || 0,
+
+    // Acquisition
+    asking_price: l.price || 0,
+
+    // Development
+    units: units,
+    unit_sf: avgUnitSF,
+    buildable_sf: buildableSF,
+    build_cost_psf: buildCostPSF,
+    hard_costs: hardCosts,
+    soft_cost_pct: SOFT_PCT,
+    soft_costs: softCosts,
+    demo_cost: DEMO,
+    subdivision_cost: SUBDIV,
+    ae_cost: AE,
+    total_dev_costs: totalDev,
+
+    // Exit
+    exit_psf: exitPSF,
+    gross_revenue: grossRevenue,
+    tx_cost_pct: TX_COST_PCT,
+    net_sale_proceeds: netSaleProceeds,
+
+    // Timeline
+    predev_months: PRE_DEV_MO,
+    construction_months: CONSTR_MO,
+    sale_months: SALE_MO,
+    hold_months: HOLD_MO,
+
+    // Capital structure
+    equity_total: equity,
+    debt_total: debt,
+    total_project_cost: totalProjectCost,
+    equity_pct: totalProjectCost > 0 ? equity / totalProjectCost : 0,
+    interest_rate: INTEREST_RATE,
+    orig_fee_pct: ORIG_FEE_PCT,
+    orig_fee_dollars: origFee,
+    interest_treatment: 'PIK',
+
+    // Carry
+    prop_tax_rate: TAX_RATE,
+    monthly_tax: monthlyTax,
+    insurance_annual: INS_ANNUAL,
+    monthly_insurance: monthlyIns,
+
+    // Fees
+    acq_fee_pct: ACQ_FEE_PCT,
+    acq_fee_dollars: acqFee,
+    asset_mgmt_monthly: AM_MONTHLY,
+    dev_mgmt_monthly: DM_MONTHLY,
+    disposition_fee_pct: DISP_FEE_PCT,
+    disposition_fee_dollars: dispFee,
+    total_sponsor_fees: totalSponsorFees,
+
+    // Waterfall
+    lp_pref_rate: LP_PREF,
+    gp_promote_pct: GP_PROMOTE,
+    gp_coinvest_pct: GP_COINVEST,
+    lp_promote_pct: 1 - GP_PROMOTE,
+
+    // Waterfall results
+    lp_moic: lpMOIC,
+    lp_irr: lpIRR,
+    lp_total_dist: lpTotalDist,
+    lp_equity_in: lpEquity,
+    lp_net_profit: lpNetProfit,
+    project_margin: projectMargin,
+    project_moic: projectMOIC,
+    all_in_psf: allInPsf,
+    gp_promote_dollars: gpPromoteDollars,
+    gp_total_income: gpTotalIncome,
+    gp_fee_load: gpFeeLoad,
+
+    // Monthly CF waterfall detail
+    loan_repayment: loanRepayment,
+    net_distributable: netDistributable,
+    lp_roc: lpROC,
+    gp_roc: gpROC,
+    profit_after_roc: profitAfterROC,
+    lp_pref_dollars: lpPrefDollars,
+    remaining_after_pref: remainingAfterPref,
+    lp_share_remaining: lpShareRemaining,
+    gp_coinvest_equity: gpCoinvestEquity,
+    loan_draws: debt,
+    total_interest: totalInterest,
+    total_prop_tax: totalPropTax,
+    total_insurance: totalInsurance,
+    total_asset_mgmt: totalAssetMgmt,
+    total_dev_mgmt: totalDevMgmt,
+
+    // BTR
+    btr_rent_monthly: btr.rentPerUnit,
+    btr_vacancy: BTR_VACANCY,
+    btr_opex_ratio: BTR_OPEX,
+    btr_cap_rate: BTR_CAP,
+    btr_refi_ltv: BTR_LTV,
+    btr_perm_rate: BTR_PERM_RATE,
+    btr_rent_growth: BTR_RENT_GROWTH,
+    btr_gpi: btrGPI,
+    btr_egi: btrEGI,
+    btr_noi: btrNOI,
+    btr_stabilized_value: btrStabilizedValue,
+    btr_effective_ltv: btrEffectiveLTV,
+    btr_refi_loan: btrRefiLoan,
+    btr_annual_ds: btrAnnualDS,
+    btr_dscr: btrDSCR,
+    btr_annual_cf: btrAnnualCF,
+    btr_coc: btrCoC,
+    btr_yoc: btrYOC,
+
+    // Derived
+    break_even_psf: buildableSF > 0 ? totalProjectCost / (buildableSF * (1 - TX_COST_PCT)) : 0,
+    lot_per_unit: units > 0 ? (l.lotSf || 0) / units : 0,
+    fee_pct_of_cap: totalProjectCost > 0 ? totalSponsorFees / totalProjectCost : 0,
+  };
+
+  // ── POST to local server ──
+  try {
+    var resp = await fetch('/api/generate-om', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d),
+    });
+    if (!resp.ok) {
+      var errText = await resp.text();
+      alert('OM generation failed: ' + errText);
+      return;
+    }
+    var blob = await resp.blob();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = street.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_') + '_OM.pptx';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('OM export failed. Is the local server running?\n\nRun: python3 om_server.py\n\n' + err.message);
+  }
 }
 
 // ══════════════════════════════════════════
