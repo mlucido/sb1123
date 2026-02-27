@@ -2183,6 +2183,15 @@ function hideCompsTable(){
 
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
+  // Prefer calibrated T1 normalized from CLUSTERS
+  if(l.clusterT1psf){
+    const t1n = l.clusterT1n || 0;
+    const fb = l.clusterFb;
+    const fbTag = fb === 0 ? 'per-cell' : fb === 1 ? 'blended' : 'median';
+    const conf = (l.clusterRw >= 0.8 && t1n >= 8) ? 'high' : (l.clusterRw >= 0.5 && t1n >= 4) ? 'med' : 'low';
+    const color = conf === 'high' ? '#22c55e' : conf === 'med' ? 'var(--accent)' : '#f59e0b';
+    return {psf: l.clusterT1psf, label: `T1 NORM — ${t1n} comps, ${fbTag}, ${conf} conf`, color, short: 'T1 norm'};
+  }
   if(l.subdivExitPsf){
     const count = l.subdivCompCount || 0;
     const radius = l.subdivCompRadius || '';
@@ -2242,7 +2251,7 @@ function calculateProForma(l){
     }
   }
   const pf = proforma;
-  const valuePerSf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  const valuePerSf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
   const effective_buildable_sf = maxUnits * pf.avgUnitSf;
@@ -2487,7 +2496,7 @@ function buildLotLayoutSVG(l, pf){
 }
 
 function lotPlannerUrl(l){
-  var exitSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
   p += '&address='+encodeURIComponent(l.address||'');
   p += '&asking='+(l.price||0);
@@ -2967,11 +2976,11 @@ function buildSpreadHeatmap(){
   // Calculate spread for each eligible listing
   const heatPts = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
-    const exitPsf = l.newconPpsf || l.exitPsf || 0;
+    const exitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
     const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
     return exitPsf > 0 && landBasisPsf > 0;
   }).map(l => {
-    const exitPsf = l.newconPpsf || l.exitPsf || 0;
+    const exitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
     const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
     const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
     
@@ -3013,7 +3022,7 @@ function buildNeighborhoodLayer(){
   const cells = {};
   LISTINGS.forEach(l => {
     if(!l.sb1123Eligible) return;
-    const exitPsf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const exitPsf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     if(!exitPsf) return;
     const cellLat = Math.floor(l.lat / CELL_SIZE) * CELL_SIZE;
     const cellLng = Math.floor(l.lng / CELL_SIZE) * CELL_SIZE;
@@ -3030,13 +3039,14 @@ function buildNeighborhoodLayer(){
     const median = vals.length%2 ? vals[Math.floor(vals.length/2)] : (vals[Math.floor(vals.length/2)-1]+vals[Math.floor(vals.length/2)])/2;
     const min = vals[0], max = vals[vals.length-1];
 
-    // Color by median exit $/SF
+    // Color by median exit $/SF ($600-$1000 scale matching heatmap)
     let color, fillOpacity;
-    if(median >= 900)      { color = '#059669'; fillOpacity = 0.4; }
-    else if(median >= 750) { color = '#22c55e'; fillOpacity = 0.35; }
-    else if(median >= 600) { color = '#eab308'; fillOpacity = 0.3; }
-    else if(median >= 450) { color = '#f97316'; fillOpacity = 0.25; }
-    else                   { color = '#ef4444'; fillOpacity = 0.2; }
+    if(median >= 1000)     { color = '#ef4444'; fillOpacity = 0.4; }
+    else if(median >= 900) { color = '#eab308'; fillOpacity = 0.35; }
+    else if(median >= 800) { color = '#22c55e'; fillOpacity = 0.35; }
+    else if(median >= 700) { color = '#22d3ee'; fillOpacity = 0.3; }
+    else if(median >= 600) { color = '#3b82f6'; fillOpacity = 0.3; }
+    else                   { color = '#6366f1'; fillOpacity = 0.2; }
 
     // Create polygon for cell
     const bounds = [
@@ -3085,7 +3095,7 @@ function buildOffMarketLayer(){
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -3123,7 +3133,7 @@ function buildOffMarketLayer(){
   });
 
   offMarketListings.forEach(l => {
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -3195,7 +3205,7 @@ function buildOffMarketLayer(){
     const omProxy = Object.assign({}, l, {price: Math.round(est_offer)});
     const pf = calculateProForma(omProxy);
     const btr = calculateBTRProForma(omProxy);
-    const omExitPsf = l.newconPpsf || l.exitPsf || 0;
+    const omExitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
     const omEstMvPsf = (est_market_value && l.lotSf) ? Math.round(est_market_value / l.lotSf) : null;
 
     marker.bindPopup(`
@@ -3456,7 +3466,7 @@ function updateHeroStats(){
   const offMarket = LISTINGS.filter(l => {
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
@@ -3702,7 +3712,7 @@ function updateLayerCounts(){
   let offMarketN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
@@ -3836,7 +3846,7 @@ function rebuildTable(filtered){
     const profitClass = (l.estProfit||0)>=0?'profit-pos':'profit-neg';
     const marginClass = (l.estMargin||0)>=0?'profit-pos':'profit-neg';
     const starred = isFavorite(l);
-    const exitPpsf = l.newconPpsf || l.exitPsf;
+    const exitPpsf = l.clusterT1psf || l.newconPpsf || l.exitPsf;
     return `<tr onclick="flyToListing(${l.lat},${l.lng})" onmouseenter="highlightMarker(${l.lat},${l.lng})" onmouseleave="unhighlightMarker()">
       <td class="col-fav"><span class="fav-star ${starred?'active':''}" onclick="event.stopPropagation();toggleFavorite(${l.lat},${l.lng})">&#9733;</span></td>
       <td class="col-addr" title="${l.address}">${l.address}</td>
@@ -4228,7 +4238,7 @@ function exportCSV(){
   const favs = loadFavorites();
   const rows = filtered.map(l=>[
     favs[listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.lw||'', l.maxUnits, l.newconPpsf||l.exitPsf||0,
+    l.lotSf||'', l.lw||'', l.maxUnits, l.clusterT1psf||l.newconPpsf||l.exitPsf||0,
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',
@@ -4247,7 +4257,7 @@ async function exportModel(lat, lng) {
   if (!l) { alert('Listing not found'); return; }
 
   var pf = calculateProForma(l);
-  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var avgUnitSF = proforma.avgUnitSf;
   var buildCostPSF = pf.adjBuildCostPerSf;
@@ -4384,7 +4394,7 @@ async function exportOM(lat, lng) {
 
   var pf = calculateProForma(l);
   var btr = calculateBTRProForma(l);
-  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var avgUnitSF = proforma.avgUnitSf;
   var buildCostPSF = pf.adjBuildCostPerSf;
@@ -4711,6 +4721,24 @@ window.addEventListener('DOMContentLoaded', function(){
 
   if(typeof LOADED_COMPS !== 'undefined' && LOADED_COMPS.length > 0) COMPS = LOADED_COMPS;
   if(typeof LOADED_LISTINGS !== 'undefined' && LOADED_LISTINGS.length > 0) LISTINGS = LOADED_LISTINGS;
+
+  // Stamp each listing with nearest cluster's T1 normalized exit $/SF
+  if(CLUSTERS.length && LISTINGS.length){
+    LISTINGS.forEach(function(l){
+      var best = null, bestD = Infinity;
+      for(var ci = 0; ci < CLUSTERS.length; ci++){
+        var cl = CLUSTERS[ci];
+        var d = Math.abs(cl.lat - l.lat) + Math.abs(cl.lng - l.lng);
+        if(d < bestD){ bestD = d; best = cl; }
+      }
+      if(best && bestD < 0.01 && best.t1psf > 0){
+        l.clusterT1psf = best.t1psf;
+        l.clusterT1n = best.t1n || 0;
+        l.clusterRw = best.rw || 0;
+        l.clusterFb = best.t1fb;
+      }
+    });
+  }
 
   if(COMPS.length > 0 || LISTINGS.length > 0){
     document.getElementById('loadingBanner').classList.add('active');
