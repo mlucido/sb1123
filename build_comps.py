@@ -125,7 +125,7 @@ def classify_tier(yb, ppsf, nbhd_median):
         return 1
 
     # Strong T1: high residual
-    if residual > 100:
+    if residual > 150:
         return 1
 
     # Strong T2: low residual on old home
@@ -133,7 +133,7 @@ def classify_tier(yb, ppsf, nbhd_median):
         return 2
 
     # Moderate T1: somewhat elevated on older home
-    if residual > 30 and (not yb or yb < 2000):
+    if residual > 75 and (not yb or yb < 2000):
         return 1
 
     # Recent-ish homes (2000-2015)
@@ -148,7 +148,7 @@ def fit_size_curve(comps_list, target_sf):
     Pure Python, no numpy/scipy.
     Returns predicted $/SF at target_sf, or None if insufficient data."""
     cfg = ARV_CONFIG
-    valid = [c for c in comps_list if cfg["sqft_min"] <= c['sqft'] <= cfg["sqft_max"] and c['ppsf'] > 0]
+    valid = [c for c in comps_list if cfg["sqft_min"] <= c['sqft'] <= cfg["sqft_max"] and 0 < c['ppsf'] <= 1200]
     if len(valid) < 3:
         return None
 
