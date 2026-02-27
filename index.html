@@ -2072,32 +2072,26 @@ function calculateProForma(l){
   let maxUnits = densityUnits;
   let layoutMax = null, layoutNote = null;
   if (l.lw && l.ld) {
-    const setback = 4, unitW = 20, defaultUnitD = 40;
-    let driveW = (MARKET.slug === 'sd' && densityUnits >= 9) ? 24 : 20;
-    let available = l.lw - driveW - 2 * setback;
-    // Try narrow driveway if standard doesn't leave 20' for units
-    if (available < 20 && driveW > 16) { driveW = 16; available = l.lw - 16 - 2 * setback; }
-    const actualUnitD = Math.min(defaultUnitD, available);
-    const availDepth = l.ld - 2 * setback;
-    const unitsPerSide = Math.floor(availDepth / unitW);
-    if (actualUnitD >= 20) {
-      // Check if double-loaded fits: each side needs >= 20'
-      const dblPerSide = Math.min(defaultUnitD, Math.floor(available / 2));
-      if (dblPerSide >= 20) {
-        layoutMax = Math.min(2 * unitsPerSide, 10);
-        layoutNote = "Double-loaded " + l.lw + "'\u00d7" + l.ld + "' (" + dblPerSide + "' deep)";
-      } else {
-        layoutMax = Math.min(unitsPerSide, 10);
-        layoutNote = actualUnitD < defaultUnitD
-          ? "Single-loaded " + l.lw + "' (" + actualUnitD + "' deep)"
-          : "Lot " + l.lw + "' \u2014 single-loaded only";
+    // SB 1123 parcel-depth layout model
+    // Driveway (24') includes the side setback on that side — no double-counting
+    // Non-driveway side: SB 1123 allows 0' setback (build to property line)
+    // Front setback: per underlying zone (R1=20', R2-R4=15')
+    const driveW = 24;
+    const frontSet = (l.zone === 'R2' || l.zone === 'R3' || l.zone === 'R4') ? 15 : 20;
+    const rearSet = 4;
+    const unitBuildW = l.lw - driveW; // full remaining width after driveway
+    if (unitBuildW >= 20) {
+      // Parcel depth = 1,200 SF / full lot width (driveway is shared easement)
+      const parcelDepth = 1200 / l.lw;
+      const availDepth = l.ld - frontSet - rearSet;
+      layoutMax = Math.min(10, Math.floor(availDepth / parcelDepth));
+      if (layoutMax > 0 && layoutMax < maxUnits) {
+        maxUnits = Math.max(2, layoutMax);
+        layoutNote = l.lw + "'\u00d7" + l.ld + "' \u2014 " + layoutMax + " parcels at " + parcelDepth.toFixed(1) + "' depth";
       }
     } else {
       layoutMax = 0;
-      layoutNote = "Lot " + l.lw + "' too narrow \u2014 need 20' min unit depth";
-    }
-    if (layoutMax > 0 && layoutMax < maxUnits) {
-      maxUnits = Math.max(2, layoutMax);
+      layoutNote = "Lot " + l.lw + "' too narrow \u2014 need 44'+ (24' drive + 20' unit)";
     }
   }
   const pf = proforma;
@@ -2191,121 +2185,92 @@ function buildLotLayoutSVG(l, pf){
   if(!l.lw || !l.ld) return '';
   var lw = l.lw, ld = l.ld;
   var units = pf.maxUnits || 0;
-  var driveW = 24, sideSet = 4, frontSet = 20, rearSet = 4;
-  var unitW = 22, unitD = 32;
-  var buildW = lw - driveW - sideSet;
-  if(buildW < 22) return '';
+  var driveW = 24, rearSet = 4;
+  // Front setback per underlying zone (SB 1123 does NOT override front setbacks)
+  var frontSet = (l.zone === 'R2' || l.zone === 'R3' || l.zone === 'R4') ? 15 : 20;
+  // Unit width = full lot width minus driveway (no separate side setback — driveway covers it, other side 0')
+  var unitBuildW = lw - driveW;
+  if(unitBuildW < 20) return '';
 
-  // Remainder parcel: area left over after units. At FRONT of lot (street side).
-  var lotSf = l.lotSf || lw * ld;
-  var unitLandEach = 2200; // 22' x ~100' per SB1123 lot split
-  var remSf = lotSf - units * unitLandEach;
+  // Parcel-depth model: each parcel spans full lot width, driveway is shared easement
+  var parcelDepth = 1200 / lw;
+  var availDepth = ld - frontSet - rearSet;
+
+  // Remainder parcel at front (existing structure area)
   var remDepth = 0;
-  if(remSf > 400 && l.remainderUnits > 0){
-    remDepth = Math.min(Math.round(remSf / lw), ld * 0.4); // cap at 40% of depth
+  if(l.remainderUnits > 0){
+    var lotSf = l.lotSf || lw * ld;
+    var remSf = lotSf - units * 1200;
+    if(remSf > 400) remDepth = Math.min(Math.round(remSf / lw), ld * 0.4);
   }
 
-  var buildD = ld - frontSet - rearSet - remDepth;
-  if(buildD < unitD) buildD = ld - frontSet - rearSet; // ignore remainder if it kills layout
-
-  // Column layout: 2 cols if >=50' (22+6+22), single if >=22'
-  var cols = buildW >= 50 ? 2 : 1;
-  var colGap = cols === 2 ? buildW - unitW * 2 : 0; // distribute remaining as gap
-  var rows = Math.floor(buildD / unitD);
-  var maxFit = Math.min(cols * rows, 10);
+  var devDepth = availDepth - remDepth;
+  if(devDepth < parcelDepth) devDepth = availDepth; // ignore remainder if it kills layout
+  var maxFit = Math.min(10, Math.floor(devDepth / parcelDepth));
   var placed = Math.min(units, maxFit);
 
   // SVG scaling: fit lot + labels into 280px wide
-  var labelPadL = 14, labelPadR = 14, labelPadT = 12, labelPadB = 14;
+  var labelPadL = 14, labelPadR = 6, labelPadT = 12, labelPadB = 14;
   var totalW = lw + labelPadL + labelPadR;
   var totalH = ld + labelPadT + labelPadB;
-  var scale = 280 / totalW;
-  var svgW = 280, svgH = Math.round(totalH * scale);
-
-  // Lot origin in scaled coords
   var ox = labelPadL, oy = labelPadT;
 
-  // SVG coordinate system: use viewBox in feet, CSS scales to pixels
+  // Street at BOTTOM. SVG y=0 at top = rear of lot.
   var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+totalW+' '+totalH+'" style="font-family:DM Sans,sans-serif;max-width:280px;height:auto">';
-
-  // Street at BOTTOM. SVG y=0 at top = rear of lot, y=ld at bottom = street.
-  // So: rear setback at top, front setback at bottom.
 
   // Lot boundary
   s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="#1a1d27" stroke="#e5e7eb" stroke-width="1"/>';
 
-  // Driveway — left side, full depth
+  // Driveway — left side, full depth (includes side setback on this side)
   s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="#d1d5db" opacity="0.2"/>';
   s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="none" stroke="#9ca3af" stroke-width="0.5"/>';
   s += '<text x="'+(ox+driveW/2)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#9ca3af" font-size="5" transform="rotate(-90,'+(ox+driveW/2)+','+(oy+ld/2)+')">24\' DRIVE</text>';
 
-  // Yard areas — open space behind units (between rear setback and last unit row), and side setback
+  // Yard areas
   // Rear setback yard (top of SVG)
-  s += '<rect x="'+(ox+driveW)+'" y="'+oy+'" width="'+(lw-driveW)+'" height="'+rearSet+'" fill="#dcfce7" opacity="0.15"/>';
-  // Right side setback yard
-  s += '<rect x="'+(ox+lw-sideSet)+'" y="'+(oy+rearSet)+'" width="'+sideSet+'" height="'+(ld-rearSet-frontSet-remDepth)+'" fill="#dcfce7" opacity="0.15"/>';
-  // Front setback yard (bottom of SVG, above street)
-  s += '<rect x="'+(ox+driveW)+'" y="'+(oy+ld-frontSet)+'" width="'+(lw-driveW)+'" height="'+frontSet+'" fill="#dcfce7" opacity="0.15"/>';
+  s += '<rect x="'+(ox+driveW)+'" y="'+oy+'" width="'+unitBuildW+'" height="'+rearSet+'" fill="#dcfce7" opacity="0.15"/>';
+  // Front setback yard (bottom of SVG)
+  s += '<rect x="'+(ox+driveW)+'" y="'+(oy+ld-frontSet)+'" width="'+unitBuildW+'" height="'+frontSet+'" fill="#dcfce7" opacity="0.15"/>';
 
   // Remainder parcel at front (just above front setback)
   if(remDepth > 0){
     var remY = oy + ld - frontSet - remDepth;
-    s += '<rect x="'+(ox+driveW)+'" y="'+remY+'" width="'+(lw-driveW)+'" height="'+remDepth+'" fill="rgba(251,191,36,0.08)" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="2,2"/>';
-    if(remDepth > 10){
-      s += '<text x="'+(ox+driveW+(lw-driveW)/2)+'" y="'+(remY+remDepth/2+2)+'" text-anchor="middle" fill="#f59e0b" font-size="5" opacity="0.8">REMAINDER</text>';
-    }
+    s += '<rect x="'+(ox+driveW)+'" y="'+remY+'" width="'+unitBuildW+'" height="'+remDepth+'" fill="rgba(251,191,36,0.08)" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="2,2"/>';
+    if(remDepth > 10) s += '<text x="'+(ox+driveW+unitBuildW/2)+'" y="'+(remY+remDepth/2+2)+'" text-anchor="middle" fill="#f59e0b" font-size="5" opacity="0.8">REMAINDER</text>';
   }
 
   // Setback lines (dashed red)
-  // Front setback (20') — near bottom
   var frontY = oy + ld - frontSet;
   s += '<line x1="'+ox+'" y1="'+frontY+'" x2="'+(ox+lw)+'" y2="'+frontY+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>';
-  // Rear setback (4') — near top
   var rearY = oy + rearSet;
   s += '<line x1="'+ox+'" y1="'+rearY+'" x2="'+(ox+lw)+'" y2="'+rearY+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>';
-  // Right side setback (4')
-  var sideX = ox + lw - sideSet;
-  s += '<line x1="'+sideX+'" y1="'+oy+'" x2="'+sideX+'" y2="'+(oy+ld)+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>';
+  // No side setback line on driveway side (driveway covers it)
+  // No side setback line on right side (SB 1123 allows 0' on non-driveway side)
 
-  // Place units: stack from rear setback downward (top of SVG = rear of lot)
-  // Units face the driveway (garages on left/west side)
+  // Place units: stack from rear setback, each parcelDepth apart
+  // Units span full buildable width (lotWidth - driveway)
   var unitStartX = ox + driveW;
-  var unitStartY = oy + rearSet; // start just below rear setback
+  var unitStartY = oy + rearSet;
   var n = 0;
-  for(var r = 0; r < rows && n < placed; r++){
-    var uy = unitStartY + r * unitD;
-    // Column 1 (adjacent to driveway)
-    if(n < placed){
-      s += '<rect x="'+unitStartX+'" y="'+uy+'" width="'+unitW+'" height="'+unitD+'" fill="rgba(96,165,250,0.25)" stroke="#60a5fa" stroke-width="0.8" rx="1"/>';
-      s += '<text x="'+(unitStartX+unitW/2)+'" y="'+(uy+unitD/2+2)+'" text-anchor="middle" fill="#60a5fa" font-size="6" font-weight="700">'+(n+1)+'</text>';
-      n++;
-    }
-    // Column 2 (if double-loaded)
-    if(cols === 2 && n < placed){
-      var ux2 = unitStartX + unitW + colGap;
-      s += '<rect x="'+ux2+'" y="'+uy+'" width="'+unitW+'" height="'+unitD+'" fill="rgba(96,165,250,0.25)" stroke="#60a5fa" stroke-width="0.8" rx="1"/>';
-      s += '<text x="'+(ux2+unitW/2)+'" y="'+(uy+unitD/2+2)+'" text-anchor="middle" fill="#60a5fa" font-size="6" font-weight="700">'+(n+1)+'</text>';
-      n++;
-    }
+  for(var i = 0; i < placed; i++){
+    var uy = unitStartY + i * parcelDepth;
+    s += '<rect x="'+unitStartX+'" y="'+uy+'" width="'+unitBuildW+'" height="'+(parcelDepth-1)+'" fill="rgba(96,165,250,0.25)" stroke="#60a5fa" stroke-width="0.8" rx="1"/>';
+    s += '<text x="'+(unitStartX+unitBuildW/2)+'" y="'+(uy+parcelDepth/2)+'" text-anchor="middle" fill="#60a5fa" font-size="6" font-weight="700">'+(i+1)+'</text>';
   }
 
-  // Open space behind last unit row (yard)
-  var lastUnitBottom = unitStartY + Math.ceil(placed / cols) * unitD;
+  // Open space after last unit
+  var lastUnitBottom = unitStartY + placed * parcelDepth;
   var yardH = (oy + ld - frontSet - remDepth) - lastUnitBottom;
   if(yardH > 4){
-    s += '<rect x="'+(ox+driveW)+'" y="'+lastUnitBottom+'" width="'+(buildW)+'" height="'+yardH+'" fill="#dcfce7" opacity="0.12"/>';
-    if(yardH > 12) s += '<text x="'+(ox+driveW+buildW/2)+'" y="'+(lastUnitBottom+yardH/2+2)+'" text-anchor="middle" fill="#86efac" font-size="4.5" opacity="0.7">YARD</text>';
+    s += '<rect x="'+(ox+driveW)+'" y="'+lastUnitBottom+'" width="'+unitBuildW+'" height="'+yardH+'" fill="#dcfce7" opacity="0.12"/>';
+    if(yardH > 12) s += '<text x="'+(ox+driveW+unitBuildW/2)+'" y="'+(lastUnitBottom+yardH/2+2)+'" text-anchor="middle" fill="#86efac" font-size="4.5" opacity="0.7">YARD</text>';
   }
 
   // Dimension labels
-  // Width label (top)
   s += '<text x="'+(ox+lw/2)+'" y="'+(oy-3)+'" text-anchor="middle" fill="#8b8fa3" font-size="6">'+lw+'\u2032</text>';
-  // Depth label (left side, rotated)
   s += '<text x="'+(ox-4)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#8b8fa3" font-size="6" transform="rotate(-90,'+(ox-4)+','+(oy+ld/2)+')">'+ld+'\u2032</text>';
-  // Setback labels (right margin)
-  s += '<text x="'+(ox+lw+3)+'" y="'+(oy+rearSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">4\u2032</text>';
-  s += '<text x="'+(ox+lw+3)+'" y="'+(frontY+frontSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">20\u2032</text>';
-  // Street label at bottom
+  s += '<text x="'+(ox+lw+2)+'" y="'+(oy+rearSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">4\u2032</text>';
+  s += '<text x="'+(ox+lw+2)+'" y="'+(frontY+frontSet/2+2)+'" fill="#ef4444" font-size="4" opacity="0.6">'+frontSet+'\u2032</text>';
   s += '<text x="'+(ox+lw/2)+'" y="'+(oy+ld+10)+'" text-anchor="middle" fill="#9ca3af" font-size="5" letter-spacing="2">STREET</text>';
 
   s += '</svg>';
