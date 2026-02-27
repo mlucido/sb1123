@@ -4652,7 +4652,7 @@ async function exportOM(lat, lng) {
   var el = exitLabel(l);
   d.comp_source = el.short || '';
   d.comp_label = el.label || '';
-  d.comps = compResult.used.slice(0, 15).map(function(c) {
+  d.comps = compResult.used.slice(0, 12).map(function(c) {
     return {
       address: c.address || '',
       price: c.price || 0,

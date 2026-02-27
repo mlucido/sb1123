@@ -508,10 +508,11 @@ def build_om(d, matt_photo=None, joe_photo=None):
     sub = comp_label if comp_label else f"Exit $/SF: ${d['exit_psf']:,.0f}"
     _t(s, Inches(0.5), Inches(0.75), Inches(9), Inches(0.25), sub, sz=9, color=S600)
     if comps:
-        c_rows = [("Address", "Sale Price", "$/SF", "SqFt", "Bd/Ba", "Zone", "Yr Built", "Sale Date", "Dist (mi)")]
-        for c in comps:
+        show = comps[:12]
+        c_rows = [("Address", "Sale Price", "$/SF", "SqFt", "Bd/Ba", "Zone", "Yr Built", "Sale Date", "Dist")]
+        for c in show:
             c_rows.append((
-                c.get('address','')[:30],
+                c.get('address','')[:28],
                 f"${c.get('price',0):,.0f}",
                 f"${c.get('ppsf',0):,.0f}",
                 f"{c.get('sqft',0):,.0f}",
@@ -519,28 +520,31 @@ def build_om(d, matt_photo=None, joe_photo=None):
                 c.get('zone',''),
                 str(c.get('year_built','')),
                 c.get('date',''),
-                f"{c.get('dist',0):.2f}",
+                f"{c.get('dist',0):.1f}",
             ))
-        prices = [c.get('price',0) for c in comps if c.get('price')]
-        ppsfs = [c.get('ppsf',0) for c in comps if c.get('ppsf')]
-        sqfts = [c.get('sqft',0) for c in comps if c.get('sqft')]
+        prices = [c.get('price',0) for c in show if c.get('price')]
+        ppsfs = [c.get('ppsf',0) for c in show if c.get('ppsf')]
+        sqfts = [c.get('sqft',0) for c in show if c.get('sqft')]
         c_rows.append((
-            f"Average ({len(comps)} comps)",
+            f"Average ({len(show)} comps)",
             f"${sum(prices)/len(prices):,.0f}" if prices else "\u2014",
             f"${sum(ppsfs)/len(ppsfs):,.0f}" if ppsfs else "\u2014",
             f"{sum(sqfts)/len(sqfts):,.0f}" if sqfts else "\u2014",
             "", "", "", "", "",
         ))
+        crh = Inches(0.22)
         tbl(s, Inches(0.3), Inches(1.0), Inches(9.4), c_rows,
-            [Inches(2.2), Inches(1.0), Inches(0.7), Inches(0.7), Inches(0.7),
-             Inches(0.7), Inches(0.8), Inches(1.0), Inches(0.8)], rh=Inches(0.28))
+            [Inches(2.2), Inches(1.0), Inches(0.65), Inches(0.65), Inches(0.65),
+             Inches(0.6), Inches(0.7), Inches(1.0), Inches(0.6)], rh=crh)
+        bar_y = Inches(1.0) + crh * len(c_rows) + Inches(0.1)
     else:
         _r(s, Inches(0.5), Inches(1.0), Inches(9), Inches(2.5), S100, S200, 0.5)
         _r(s, Inches(0.5), Inches(1.0), Inches(0.06), Inches(2.5), TEAL)
         _t(s, Inches(0.8), Inches(1.8), Inches(8.4), Inches(0.6),
            "No comparable sales data available.\nComps require desktop browser with full data loaded.",
            sz=10, color=S500, align=PP_ALIGN.CENTER)
-    _r(s, Inches(0.3), Inches(4.85), Inches(9.4), Inches(0.45), NAVY)
+        bar_y = Inches(3.7)
+    _r(s, Inches(0.3), bar_y, Inches(9.4), Inches(0.45), NAVY)
     tf=s.shapes[-1].text_frame; p=tf.paragraphs[0]; p.alignment=PP_ALIGN.CENTER
     r=p.add_run(); r.text=f"Target Exit: ${d['exit_psf']:,.0f}/SF   |   All-In: ${d['all_in_psf']:,.0f}/SF   |   Break-Even: ${d['break_even_psf']:,.0f}/SF"
     r.font.size=Pt(9); r.font.color.rgb=WHITE; r.font.name=FB; r.font.bold=True
