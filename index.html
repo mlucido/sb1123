@@ -819,7 +819,7 @@ window.CLUSTERS = window.CLUSTERS || [];
       <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
         <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
-      <button class="layer-btn" data-layer="parcels" onclick="toggleLayer('parcels',this)">
+      <button class="layer-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)">
         <span class="icon">◻</span> Parcel Boundaries
       </button>
       <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">
@@ -1375,7 +1375,7 @@ const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
 let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
 
 // ── Polygon Draw State ──
 let drawPolygonLayer = null;   // The drawn polygon L.Polygon on the map
