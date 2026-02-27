@@ -200,6 +200,41 @@ def fm(n):
 def fn(n): return f"{n:,.0f}"
 def fp(n): return f"{n:.1%}"
 
+def _calc_moic(d, exit_psf=None, build_cost_psf=None, hold_months=None):
+    """Compute LP MOIC for sensitivity analysis, overriding specified inputs."""
+    ep = exit_psf if exit_psf is not None else d['exit_psf']
+    bp = build_cost_psf if build_cost_psf is not None else d['build_cost_psf']
+    hm = hold_months if hold_months is not None else d['hold_months']
+    u = d['units']; usf = d['unit_sf']; bsf = u * usf
+    ap = d['asking_price']
+    hard = bsf * bp; soft = hard * d['soft_cost_pct']
+    tdev = hard + soft + d['demo_cost'] + d['subdivision_cost'] + d['ae_cost']
+    pdm = d['predev_months']; cm = d['construction_months']
+    sm = max(1, hm - pdm - cm)
+    mt = ap * d['prop_tax_rate'] / 12; mi = d['insurance_annual'] / 12
+    carry = ((mt+mi+d['asset_mgmt_monthly'])*pdm +
+             (mt+mi+d['asset_mgmt_monthly']+d['dev_mgmt_monthly'])*cm +
+             (mt+mi+d['asset_mgmt_monthly'])*sm)
+    acq = ap * d['acq_fee_pct']
+    eq_pct = d['equity_pct'] if d.get('equity_pct') else 0.26
+    base = ap + tdev + carry + acq
+    tc = base / (1 - (1 - eq_pct) * d['orig_fee_pct'])
+    eq = math.ceil(tc * eq_pct / 10000) * 10000; db = tc - eq
+    gpc = eq * d['gp_coinvest_pct']; lpe = eq - gpc
+    ld = max(0, ap - eq); cd = db - ld
+    interest = (ld * d['interest_rate'] * pdm / 12 +
+                (ld + cd * 0.5) * d['interest_rate'] * cm / 12 +
+                db * d['interest_rate'] * sm / 12)
+    gross = u * usf * ep
+    net = gross * (1 - d['tx_cost_pct'])
+    repay = db + interest + db * d['orig_fee_pct']
+    nd = net - repay
+    profit = nd - lpe - gpc
+    pref = lpe * d['lp_pref_rate'] * (hm / 12)
+    rem = max(0, profit - pref)
+    lps = rem * (1 - d['gp_promote_pct'])
+    return (lpe + pref + lps) / lpe if lpe > 0 else 0
+
 def _r(s, x, y, w, h, fill, line=None, lw=0):
     sh = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, w, h)
     sh.fill.solid(); sh.fill.fore_color.rgb = fill
@@ -599,48 +634,74 @@ def build_om(d, matt_photo=None, joe_photo=None):
        "Projected targets only. Actual results may differ.", sz=7, color=S400)
     ftr(s, d)
 
-    # ── P13: SENSITIVITY (placeholder for XLS) ────────────────
+    # ── P13: SENSITIVITY ─────────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Sensitivity Analysis")
-    _t(s, Inches(0.5), Inches(0.85), Inches(9), Inches(0.4),
-       "Two-way sensitivity tables from the financial model. Rows/columns vary exit $/SF, "
-       "build cost $/SF, and hold period to show LP MOIC under different scenarios.", sz=9, color=S600)
-    # Table 1 header
-    _t(s, Inches(0.5), Inches(1.4), Inches(9), Inches(0.25),
-       f"TABLE 1: LP MOIC \u2014 Exit $/SF vs Build Cost $/SF  (Base: ${d['exit_psf']:,.0f}/SF, ${d['build_cost_psf']:,.0f}/SF)",
-       sz=9, bold=True, color=NAVY)
-    _r(s, Inches(0.5), Inches(1.7), Inches(9), Inches(1.2), S100, S200, 0.5)
-    _t(s, Inches(1.5), Inches(2.1), Inches(7), Inches(0.5),
-       "Sensitivity values computed in XLS model.\nWill auto-populate when formula engine is connected.",
-       sz=9, color=S400, align=PP_ALIGN.CENTER)
-    _t(s, Inches(0.5), Inches(3.2), Inches(9), Inches(0.25),
-       f"TABLE 2: LP MOIC \u2014 Exit $/SF vs Hold Period  (Base: ${d['exit_psf']:,.0f}/SF, {d['hold_months']} months)",
-       sz=9, bold=True, color=NAVY)
-    _r(s, Inches(0.5), Inches(3.5), Inches(9), Inches(1.2), S100, S200, 0.5)
-    _t(s, Inches(1.5), Inches(3.9), Inches(7), Inches(0.5),
-       "Sensitivity values computed in XLS model.\nWill auto-populate when formula engine is connected.",
-       sz=9, color=S400, align=PP_ALIGN.CENTER)
+    base_exit = d['exit_psf']; base_build = d['build_cost_psf']; base_hold = d['hold_months']
+    exit_vars = [round(base_exit*m/25)*25 for m in [0.80,0.90,1.00,1.10,1.20]]
+    build_vars = [round(base_build*m/25)*25 for m in [0.85,0.925,1.00,1.075,1.15]]
+    hold_vars = [base_hold-6, base_hold-3, base_hold, base_hold+3, base_hold+6]
+    def moic_str(v): return f"{v:.2f}x" if v > 0 else "N/A"
+    # Table 1: Exit $/SF (rows) vs Build Cost $/SF (cols)
+    _t(s, Inches(0.5), Inches(0.82), Inches(9), Inches(0.22),
+       f"LP MOIC \u2014 Exit $/SF vs Build Cost $/SF  (base shaded)", sz=8, bold=True, color=NAVY)
+    t1 = [("Exit \\ Build",) + tuple(f"${b:,.0f}" for b in build_vars)]
+    for ep in exit_vars:
+        t1.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
+    ts1 = tbl(s, Inches(0.3), Inches(1.05), Inches(9.4), t1,
+        [Inches(1.3)]+[Inches(1.62)]*5, rh=Inches(0.26))
+    # Table 2: Exit $/SF (rows) vs Hold Period (cols)
+    _t(s, Inches(0.5), Inches(2.85), Inches(9), Inches(0.22),
+       f"LP MOIC \u2014 Exit $/SF vs Hold Period  (base shaded)", sz=8, bold=True, color=NAVY)
+    t2 = [("Exit \\ Hold",) + tuple(f"{h} mo" for h in hold_vars)]
+    for ep in exit_vars:
+        t2.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, hold_months=h)) for h in hold_vars))
+    ts2 = tbl(s, Inches(0.3), Inches(3.08), Inches(9.4), t2,
+        [Inches(1.3)]+[Inches(1.62)]*5, rh=Inches(0.26))
+    # Highlight base case cells (row 3 = index 3, col 3 = index 3 in both tables)
+    GREEN = RGBColor(0xEC, 0xFD, 0xF5)
+    for ts_obj in [ts1, ts2]:
+        t = ts_obj.table
+        for ci in range(6):
+            cell = t.cell(3, ci)
+            tcPr = cell._tc.get_or_add_tcPr()
+            sf = tcPr.makeelement(qn('a:solidFill'), {})
+            sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5' if ci > 0 else 'E2E8F0'}))
+            tcPr.append(sf)
+        for ri in range(1, 6):
+            cell = t.cell(ri, 3)
+            tcPr = cell._tc.get_or_add_tcPr()
+            sf = tcPr.makeelement(qn('a:solidFill'), {})
+            sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5'}))
+            tcPr.append(sf)
+    _t(s, Inches(0.5), Inches(4.75), Inches(9), Inches(0.2),
+       f"Base case: ${base_exit:,.0f}/SF exit  |  ${base_build:,.0f}/SF build  |  {base_hold} month hold",
+       sz=7, color=S400)
     ftr(s, d)
 
     # ── P14: BTR FALLBACK ─────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Build-to-Rent Fallback", "Downside Protection")
-    _t(s, Inches(0.5), Inches(0.85), Inches(5.3), Inches(2.2),
+    _t(s, Inches(0.5), Inches(0.85), Inches(9), Inches(0.8),
        "If sale conditions are unfavorable, units convert to a rental portfolio. "
-       "Refinance into I/O permanent debt, hold for cash flow + appreciation.\n\n"
+       "Refinance into I/O permanent debt, hold for cash flow + appreciation. "
        f"With {fp(d['btr_rent_growth'])} annual rent growth, cash-on-cash improves each year. "
-       f"DSCR floor of {d.get('btr_dscr',1.25):.2f}x constrains LTV to maintain lender requirements.\n\n"
-       "Rent assumptions from GUI deal finder.", sz=9, color=S600)
-    for i,(val,l) in enumerate([
+       f"DSCR floor of {d.get('btr_dscr',1.25):.2f}x constrains LTV to maintain lender requirements.",
+       sz=9, color=S600)
+    btr_stats = [
         (f"${d['btr_rent_monthly']:,.0f}/mo", "Rent / Unit"),
         (fm(d['btr_gpi']), "Gross Potential Income"),
         (fm(d['btr_noi']), f"NOI ({1-d['btr_opex_ratio']:.0%} margin)"),
         (fm(d['btr_stabilized_value']), f"Stabilized Value ({fp(d['btr_cap_rate'])} cap)"),
         (f"{d['btr_dscr']:.2f}x", "DSCR (I/O)"),
         (fp(d['btr_yoc']), "Yield on Cost"),
-    ]):
-        stat(s, Inches(6.2), Inches(0.85+i*0.72), Inches(3.3), Inches(0.62), val, l, vs=16)
-    _r(s, Inches(0.5), Inches(4.8), Inches(9), Inches(0.45), NAVY)
-    _r(s, Inches(0.5), Inches(4.8), Inches(0.06), Inches(0.45), TEAL)
-    _t(s, Inches(0.8), Inches(4.85), Inches(8.5), Inches(0.35),
+    ]
+    cw = Inches(2.85); ch = Inches(0.85); gx = Inches(0.5); gy = Inches(1.85); gap = Inches(0.15)
+    for i,(val,l) in enumerate(btr_stats):
+        col = i % 3; row = i // 3
+        sx = gx + col * (cw + gap); sy = gy + row * (ch + gap)
+        stat(s, sx, sy, cw, ch, val, l, vs=20)
+    _r(s, Inches(0.3), Inches(4.2), Inches(9.4), Inches(0.45), NAVY)
+    _r(s, Inches(0.3), Inches(4.2), Inches(0.06), Inches(0.45), TEAL)
+    _t(s, Inches(0.6), Inches(4.25), Inches(8.8), Inches(0.35),
        f"If sale market unfavorable, target rent: {fm(btr_monthly)}/month gross.",
        sz=9, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
     ftr(s, d)
