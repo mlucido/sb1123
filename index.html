@@ -12,7 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script>
 // Market config — select via ?market=sd URL param (default: la)
 var _urlMarket = new URLSearchParams(window.location.search).get('market') || 'la';
@@ -2796,7 +2796,7 @@ function buildForSalePopupHTML(l){
         ${dueDiligenceBlock(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng})">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -2923,7 +2923,7 @@ function buildBTRLayer(){
         ${dueDiligenceBlock(l)}
       </div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng})">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -3331,7 +3331,7 @@ function buildOffMarketLayer(){
         <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
         ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng})">&#128202; Export</button>
+        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; Export</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -4273,7 +4273,7 @@ function exportCSV(){
   URL.revokeObjectURL(url);
 }
 
-function exportModel(lat, lng) {
+async function exportModel(lat, lng) {
   var l = LISTINGS.find(function(x){ return x.lat===lat && x.lng===lng; });
   if (!l) { alert('Listing not found'); return; }
 
@@ -4286,42 +4286,55 @@ function exportModel(lat, lng) {
 
   var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
 
-  var wb = XLSX.read(TEMPLATE_B64, {type:'base64'});
-  var ws = wb.Sheets['Assumptions'];
+  // Decode base64 template to ArrayBuffer
+  var raw = atob(TEMPLATE_B64);
+  var buf = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) buf[i] = raw.charCodeAt(i);
 
-  function writeCell(ref, val, type) {
-    ws[ref] = { v: val, t: type || (typeof val === 'number' ? 'n' : 's') };
-  }
+  // Load with ExcelJS (preserves all formatting, styles, formulas)
+  var wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buf.buffer);
+  var ws = wb.getWorksheet('Assumptions');
 
   var lotWidth = l.lw || Math.round(Math.sqrt((l.lotSf||10000) * 0.33));
   var lotDepth = l.ld || Math.round((l.lotSf||10000) / lotWidth);
   var slopeDecimal = (l.slope || 0) / 100;
   var bedsBaths = (l.beds||'') + ' / ' + (l.baths||'');
 
-  writeCell('C5', l.address || '');
-  writeCell('C6', (l.city||'') + (l.zip ? ', '+l.zip : ''));
-  writeCell('C7', (l.zone||'R1').toUpperCase());
-  writeCell('C8', l.lotSf || 0);
-  writeCell('C9', lotWidth);
-  writeCell('C10', lotDepth);
-  writeCell('C11', slopeDecimal);
-  writeCell('C12', bedsBaths);
-  writeCell('C13', l.dom || 0);
-  writeCell('C16', l.price || 0);
-  writeCell('C20', units);
-  writeCell('C21', avgUnitSF);
-  writeCell('C35', exitPSF);
-  writeCell('C48', monthlyRent);
-  writeCell('G14', ed.equity);
-  writeCell('G15', ed.debt);
+  // Write input cells — .value preserves existing cell style
+  ws.getCell('C5').value = l.address || '';
+  ws.getCell('C6').value = (l.city||'') + (l.zip ? ', '+l.zip : '');
+  ws.getCell('C7').value = (l.zone||'R1').toUpperCase();
+  ws.getCell('C8').value = l.lotSf || 0;
+  ws.getCell('C9').value = lotWidth;
+  ws.getCell('C10').value = lotDepth;
+  ws.getCell('C11').value = slopeDecimal;
+  ws.getCell('C12').value = bedsBaths;
+  ws.getCell('C13').value = l.dom || 0;
+  ws.getCell('C16').value = l.price || 0;
+  ws.getCell('C20').value = units;
+  ws.getCell('C21').value = avgUnitSF;
+  ws.getCell('C23').value = buildCostPSF;
+  ws.getCell('C35').value = exitPSF;
+  ws.getCell('C48').value = monthlyRent;
+  ws.getCell('G14').value = ed.equity;
+  ws.getCell('G15').value = ed.debt;
 
   var start = new Date();
   start.setDate(start.getDate() + 60);
   start.setDate(1);
-  writeCell('G9', start, 'd');
+  ws.getCell('G9').value = start;
 
+  // Generate and download
   var filename = (l.address||'deal').replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_') + '_model.xlsx';
-  XLSX.writeFile(wb, filename);
+  var outBuf = await wb.xlsx.writeBuffer();
+  var blob = new Blob([outBuf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ══════════════════════════════════════════
