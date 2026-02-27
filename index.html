@@ -206,6 +206,7 @@ window.CLUSTERS = window.CLUSTERS || [];
   .leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border-radius:10px!important;border:1px solid var(--border)!important;box-shadow:0 8px 32px rgba(0,0,0,0.5)!important}
   .leaflet-popup-tip{background:var(--surface)!important}
   .leaflet-popup-content{font-family:'DM Sans',sans-serif!important;margin:12px 14px!important;min-width:340px;max-width:750px}
+  .dark-popup .leaflet-popup-content{min-width:260px}
   .popup-two-col{display:flex;gap:14px;max-height:75vh;width:710px}
   .popup-col-left,.popup-col-right{flex:1;min-width:0;overflow-y:auto;padding-right:4px}
   .popup-col-left::-webkit-scrollbar,.popup-col-right::-webkit-scrollbar{width:4px}
@@ -4992,57 +4993,67 @@ map.on('click', function(e) {
 
   if (!nearest || minDist > 0.01) return;
 
-  var TARGET = 1750;
-  var BUILD = proforma.allInBuildPsf || 360;
-  var UNITS = 10;
-  var MARGIN = 0.50;
-
   var t1psf = nearest.t1psf || 0;
   var t2psf = nearest.t2psf || 0;
   var prem = nearest.prem || (t1psf - t2psf);
-  var premPct = t2psf > 0 ? ((t1psf / t2psf - 1) * 100).toFixed(1) : '—';
+  var t1n = nearest.t1n || 0;
+  var t2n = nearest.t2n || 0;
+  var rw = nearest.rw || 0;
 
-  var grossRev = UNITS * t1psf * TARGET;
-  var landBudget = Math.round(grossRev * (1 - MARGIN) - (UNITS * TARGET * BUILD));
+  // Confidence: based on recency weight AND T1 count
+  var confLabel, confDots;
+  if (rw >= 0.8 && t1n >= 8) { confLabel = 'High'; confDots = 4; }
+  else if (rw >= 0.5 && t1n >= 4) { confLabel = 'Medium'; confDots = 3; }
+  else if (t1n >= 2) { confLabel = 'Low'; confDots = 2; }
+  else { confLabel = 'Low'; confDots = 1; }
 
-  var n = nearest.n || 0;
-  var confLabel = 'Low', confColor = '#ef4444';
-  if (n >= 20) { confLabel = 'High'; confColor = '#22c55e'; }
-  else if (n >= 8) { confLabel = 'Medium'; confColor = '#eab308'; }
+  var dots = '';
+  for (var di = 0; di < 4; di++) {
+    dots += '<span style="display:inline-block;width:8px;height:8px;border-radius:50;margin-right:2px;background:' + (di < confDots ? '#14b8a6' : '#2e3140') + '"></span>';
+  }
 
-  var fb = nearest.t1fb;
-  var fbLabel = fb === 0 ? 'Per-cell' : fb === 1 ? 'All-tier + premium' : fb === 3 ? 'Median' : '—';
+  // Find zip from nearest listing
+  var nearestListing = null, nlDist = Infinity;
+  LISTINGS.forEach(function(ll) {
+    var d2 = Math.abs(ll.lat - nearest.lat) + Math.abs(ll.lng - nearest.lng);
+    if (d2 < nlDist) { nlDist = d2; nearestListing = ll; }
+  });
+  var zipLabel = nearestListing ? (nearestListing.zip || '') : '';
+  var cityLabel = nearestListing ? (nearestListing.city || '') : '';
+  var locLine = (zipLabel ? zipLabel + ' · ' : '') + cityLabel;
 
-  var html = '<div style="min-width:300px">'
-    + '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;margin-bottom:4px">NEIGHBORHOOD PRICING</div>'
-    + '<div style="font-size:11px;color:#8b8fa3;margin-bottom:12px">' + nearest.n + ' comps · ' + fbLabel + ' · <span style="color:' + confColor + '">' + confLabel + ' confidence</span></div>'
-    + '<div style="margin-bottom:12px">'
-    + '  <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#14b8a6;padding-bottom:4px;border-bottom:2px solid #14b8a6;margin-bottom:8px">NEW / REMODEL (T1) — ' + (nearest.t1n || 0) + ' comps</div>'
-    + '  <div style="font-family:\'JetBrains Mono\',monospace">'
-    + '    <span style="font-size:20px;font-weight:700">$' + t1psf.toLocaleString() + '/SF</span>'
-    + '    <span style="font-size:14px;color:#8b8fa3"> → $' + (t1psf * TARGET).toLocaleString() + ' @ ' + TARGET.toLocaleString() + ' SF</span>'
-    + '  </div>'
-    + (nearest.t1std ? '<div style="font-size:10px;color:#8b8fa3;margin-top:2px">±$' + nearest.t1std + '/SF stdev</div>' : '')
+  // Compute T1 raw median from nearby comps for display
+  var cellComps = COMPS.filter(function(c) {
+    return Math.abs(c.lat - nearest.lat) < 0.004 && Math.abs(c.lng - nearest.lng) < 0.004;
+  });
+  var t1Raw = cellComps.filter(function(c) { return c.t === 1; }).map(function(c) { return c.ppsf; }).sort(function(a,b){return a-b;});
+  var t1RawMedian = t1Raw.length ? t1Raw[Math.floor(t1Raw.length / 2)] : t1psf;
+
+  var html = '<div style="min-width:260px;font-family:DM Sans,sans-serif">'
+    // Header
+    + '<div style="padding-bottom:8px;border-bottom:1px solid #2e3140;margin-bottom:10px">'
+    + '  <div style="font-size:13px;font-weight:600;color:#e4e6ed">' + locLine + '</div>'
+    + '  <div style="font-size:11px;color:#8b8fa3;margin-top:3px">' + dots + ' ' + confLabel + ' (' + t1n + ' T1)</div>'
     + '</div>'
-    + '<div style="margin-bottom:12px">'
-    + '  <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#64748b;padding-bottom:4px;border-bottom:2px solid #64748b;margin-bottom:8px">EXISTING / AS-IS (T2) — ' + (nearest.t2n || 0) + ' comps</div>'
-    + '  <div style="font-family:\'JetBrains Mono\',monospace">'
-    + '    <span style="font-size:16px;font-weight:600;color:#8b8fa3">$' + t2psf.toLocaleString() + '/SF</span>'
-    + '    <span style="font-size:12px;color:#64748b"> → $' + (t2psf * TARGET).toLocaleString() + ' @ ' + TARGET.toLocaleString() + ' SF</span>'
-    + '  </div>'
+    // Primary metric
+    + '<div style="padding-bottom:10px;border-bottom:1px solid #2e3140;margin-bottom:10px">'
+    + '  <div style="font-size:11px;color:#8b8fa3;margin-bottom:4px">T1 Exit $/SF (@ 1,750 SF)</div>'
+    + '  <div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:700;color:#14b8a6">$' + t1psf.toLocaleString() + '</div>'
     + '</div>'
-    + (prem > 0 ? '<div style="background:rgba(20,184,166,0.08);border:1px solid rgba(20,184,166,0.2);border-radius:8px;padding:8px 12px;margin-bottom:12px">'
-      + '<div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:#14b8a6">+$' + prem + '/SF (+' + premPct + '%)</div>'
-      + '<div style="font-size:10px;color:#8b8fa3">Remodel premium</div>'
-      + '</div>' : '')
-    + '<div style="border-top:1px dashed #2e3140;padding-top:10px;margin-top:8px;font-size:11px;color:#8b8fa3">'
-    + '  <div style="font-weight:600;color:#60a5fa;margin-bottom:4px">SB 1123 QUICK MATH</div>'
-    + '  <div>Exit: <span style="font-family:\'JetBrains Mono\',monospace;color:#e4e6ed">$' + t1psf + '/SF × ' + TARGET.toLocaleString() + ' SF × ' + UNITS + ' units = $' + (grossRev/1000000).toFixed(2) + 'M</span></div>'
-    + '  <div>Build: <span style="font-family:\'JetBrains Mono\',monospace;color:#e4e6ed">$' + BUILD + '/SF all-in</span></div>'
-    + '  <div>Land budget (' + Math.round(MARGIN*100) + '% margin): <span style="font-family:\'JetBrains Mono\',monospace;color:' + (landBudget>0?'#22c55e':'#ef4444') + '">$' + (landBudget > 0 ? (landBudget/1000000).toFixed(2)+'M' : 'negative') + '</span></div>'
+    // Breakdown rows
+    + '<div style="padding-bottom:10px;border-bottom:1px solid #2e3140;margin-bottom:10px;font-size:12px">'
+    + '  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8b8fa3">T1 Raw Median</span><span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">$' + t1RawMedian.toLocaleString() + '</span></div>'
+    + '  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8b8fa3">T2 Baseline</span><span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">$' + t2psf.toLocaleString() + '</span></div>'
+    + (prem > 0 ? '  <div style="display:flex;justify-content:space-between"><span style="color:#8b8fa3">Remodel Premium</span><span style="font-family:JetBrains Mono,monospace;color:#14b8a6">+$' + prem.toLocaleString() + '</span></div>' : '')
+    + '</div>'
+    // Footer stats
+    + '<div style="display:flex;justify-content:space-between;font-size:11px">'
+    + '  <div><span style="color:#8b8fa3">Recency</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + rw.toFixed(2) + '</span></div>'
+    + '  <div><span style="color:#8b8fa3">T1</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + t1n + '</span></div>'
+    + '  <div><span style="color:#8b8fa3">T2</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + t2n + '</span></div>'
     + '</div></div>';
 
-  L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+  L.popup({className:'dark-popup'}).setLatLng(e.latlng).setContent(html).openOn(map);
 });
 </script>
 </body>
