@@ -738,9 +738,11 @@ window.CLUSTERS = window.CLUSTERS || [];
   <span class="separator" id="heroBtrSep" style="display:none">|</span>
   <div class="stat-item" id="heroBtrItem" style="display:none"><span class="stat-value" id="heroBtrDeals" style="color:#f59e0b">—</span> BTR Deals</div>
   <span class="separator" id="heroBtrYocSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrYocItem" style="display:none">Avg YOC: <span class="stat-value" id="heroBtrYoc" style="color:#f59e0b">—</span></div>
+  <div class="stat-item" id="heroBtrYocItem" style="display:none">Avg Base YOC: <span class="stat-value" id="heroBtrYoc" style="color:#f59e0b">—</span></div>
   <span class="separator" id="heroBtrRentSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrRentItem" style="display:none">Median Rent: <span class="stat-value" id="heroBtrRent" style="color:#f59e0b">—</span></div>
+  <div class="stat-item" id="heroBtrRentItem" style="display:none">Avg Base Rent: <span class="stat-value" id="heroBtrRent" style="color:#f59e0b">—</span></div>
+  <span class="separator" id="heroBtrZoriSep" style="display:none">|</span>
+  <div class="stat-item" id="heroBtrZoriItem" style="display:none">Avg ZORI: <span class="stat-value" id="heroBtrZori" style="color:#f59e0b">—</span></div>
 </div>
 
 <div class="app-row">
@@ -1869,6 +1871,13 @@ function economicsBlock(pf, opts){
 }
 
 // ── BTR section (collapsible when not viable) ──
+function btrConfidenceDot(conf){
+  if(conf==='validated') return '<span style="color:#22c55e" title="Validated (5+ comps)">\u25cf</span>';
+  if(conf==='estimated') return '<span style="color:#eab308" title="Estimated (<5 comps)">\u25d0</span>';
+  if(conf==='manual') return '<span style="color:#3b82f6" title="Manual neighborhood data">\u25cf</span>';
+  return '<span style="color:#64748b" title="Default (no local data)">\u25cb</span>';
+}
+
 function btrBlock(l, btr){
   var hasRent = btr.baseRent > 0;
   if(!hasRent){
@@ -1881,17 +1890,45 @@ function btrBlock(l, btr){
   var h = '<div class="popup-divider"></div>';
   h += '<div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>';
   if(viable){
-    h += '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE &mdash; '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>';
+    h += '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE &mdash; '+(btr.yieldOnCost*100).toFixed(1)+'% base YOC</div>';
   }
-  // Full BTR content
+
+  // Three-scenario table (from pre-computed pipeline data)
+  var hasScenarios = l.rentBase > 0 && l.yocBase > 0;
   var btrContent = '';
+  if(hasScenarios){
+    var conf = l.confidence || 'default';
+    var pf_str = l.premiumFactor ? l.premiumFactor.toFixed(2)+'x' : 'N/A';
+    btrContent += '<div class="popup-span-2" style="margin:4px 0 2px">';
+    btrContent += '<table style="width:100%;font-size:11px;font-family:\'JetBrains Mono\',monospace;border-collapse:collapse">';
+    btrContent += '<tr style="color:#8b8fa3;font-size:10px"><td></td><td style="text-align:right">$/mo</td><td style="text-align:right">YoC</td></tr>';
+    // Conservative
+    btrContent += '<tr><td style="color:#8b8fa3;padding:1px 0">Conservative</td>';
+    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentConservative.toLocaleString()+'</td>';
+    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocConservative>=0.04?'var(--green)':l.yocConservative>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocConservative||0)*100).toFixed(1)+'%</td></tr>';
+    // Base
+    btrContent += '<tr style="font-weight:600"><td style="padding:1px 0">Base Case '+btrConfidenceDot(conf)+'</td>';
+    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentBase.toLocaleString()+'</td>';
+    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocBase>=0.04?'var(--green)':l.yocBase>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocBase||0)*100).toFixed(1)+'%</td></tr>';
+    // Aggressive
+    btrContent += '<tr><td style="color:#8b8fa3;padding:1px 0">Aggressive</td>';
+    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentAggressive.toLocaleString()+'</td>';
+    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocAggressive>=0.04?'var(--green)':l.yocAggressive>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocAggressive||0)*100).toFixed(1)+'%</td></tr>';
+    btrContent += '</table></div>';
+    // Data source footer
+    btrContent += '<div class="popup-span-2" style="font-size:10px;color:#64748b;padding:2px 0;display:flex;gap:8px;flex-wrap:wrap">';
+    if(l.safmr3br) btrContent += '<span>SAFMR: $'+l.safmr3br.toLocaleString()+'</span>';
+    if(l.zoriBase) btrContent += '<span>ZORI: $'+l.zoriBase.toLocaleString()+'</span>';
+    if(l.premiumFactor) btrContent += '<span>Premium: '+pf_str+'</span>';
+    btrContent += '<span>'+btrConfidenceDot(conf)+' '+conf+'</span>';
+    btrContent += '</div>';
+  }
+
+  // Existing BTR metrics (from calculateBTRProForma)
   btrContent += '<div><div class="popup-label">Rent Source</div><div class="popup-value">'+getRentSourceLabel(l)+'</div></div>';
-  if(!btr.hasEstRent) btrContent += '<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$'+btr.baseRent.toLocaleString()+'/mo</div></div>';
   btrContent += '<div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">('+proforma.avgUnitSf.toLocaleString()+' SF)</small></div></div>';
-  btrContent += '<div><div class="popup-label">Gross Annual</div><div class="popup-value">$'+Math.round(btr.grossAnnualRent).toLocaleString()+' <small style="color:var(--text-dim)">('+btr.units+'u)</small></div></div>';
   btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
-  btrContent += '<div><div class="popup-label">OpEx</div><div class="popup-value">'+Math.round(btr.opexRatio*100)+'% <small style="color:var(--text-dim)">($'+Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()+'/yr)</small></div></div>';
-  btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%'+(btr.yieldOnCost<btr.minYOC?' <small style="color:var(--text-dim)">(min '+(btr.minYOC*100).toFixed(0)+'% target)</small>':'')+'</div></div>';
+  btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
   btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
   btrContent += '<div><div class="popup-label">Cap Rate</div><div class="popup-value">'+(btr.capRate*100).toFixed(1)+'%</div></div>';
   if(viable){
@@ -2662,7 +2699,9 @@ function enrichListings(){
     l.isNew = (l.dom !== null && l.dom !== undefined && l.dom <= 3) ? 1 : 0;
     l.isNewThisWeek = (l.dom !== null && l.dom !== undefined && l.dom <= 7) ? 1 : 0;
     // BTR viability flag for dual-deal detection
-    if((l.estRentMonth && l.estRentMonth > 0) || (l.fmr3br && l.fmr3br > 0)){
+    if(l.yocBase > 0){
+      l.btrViable = l.yocBase >= 0.04;
+    } else if((l.estRentMonth && l.estRentMonth > 0) || (l.fmr3br && l.fmr3br > 0)){
       const btrPF = calculateBTRProForma(l);
       l.btrViable = btrPF.btrPencils;
     } else {
@@ -2871,11 +2910,17 @@ function buildBTRLayer(){
 
   // BTR layer shows deals where:
   // 1. BTS net margin < 20% (for-sale doesn't pencil well)
-  // 2. btrPencils == true (YOC >= min threshold AND DSCR >= 1.25)
-  // 3. Has rent data (baseRent > 0)
+  // 2. Base-case YoC >= 4% (from pipeline pre-computation)
+  // 3. Has rent data
   // Deals that pencil for BOTH BTS (>=20%) and BTR get a badge on the BTS pin instead
+  const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
   const btrListings = getFilteredListings().filter(l => {
     if(!l.sb1123Eligible) return false;
+    // Use pre-computed yocBase from pipeline if available, else fall back to dynamic calc
+    if(l.yocBase > 0){
+      const btsMargin = l.estMargin || 0;
+      return btsMargin < 20 && l.yocBase >= minYOC;
+    }
     if(!(l.estRentMonth > 0 || l.fmr3br > 0)) return false;
     const btrPF = calculateBTRProForma(l);
     const btsMargin = l.estMargin || 0;
@@ -3499,24 +3544,28 @@ function updateHeroStats(){
 
   // BTR hero stats — visible when BTR layer is on
   const showBtr = layerState.btr;
-  ['heroBtrSep','heroBtrItem','heroBtrYocSep','heroBtrYocItem','heroBtrRentSep','heroBtrRentItem'].forEach(id => {
+  ['heroBtrSep','heroBtrItem','heroBtrYocSep','heroBtrYocItem','heroBtrRentSep','heroBtrRentItem','heroBtrZoriSep','heroBtrZoriItem'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = showBtr ? '' : 'none';
   });
   if(showBtr){
-    const btrEligible = LISTINGS.filter(l => l.sb1123Eligible && (l.estRentMonth > 0 || (l.fmr3br && l.fmr3br > 0)));
-    const btrDeals = btrEligible.filter(l => {
-      const btrPF = calculateBTRProForma(l);
+    // Use pre-computed BTR fields from pipeline
+    const btrDeals = LISTINGS.filter(l => {
+      if(!l.sb1123Eligible) return false;
+      if(!l.yocBase || l.yocBase <= 0) return false;
       const btsMargin = l.estMargin || 0;
-      return btsMargin < 20 && btrPF.btrPencils;
+      return btsMargin < 20 && l.yocBase >= 0.04;
     });
-    const btrYocs = btrEligible.map(l => calculateBTRProForma(l).yieldOnCost).filter(y => y > 0);
+    const btrYocs = btrDeals.map(l => l.yocBase).filter(y => y > 0);
     const avgYoc = btrYocs.length ? (btrYocs.reduce((a,b)=>a+b,0)/btrYocs.length*100).toFixed(1) : '0.0';
-    const rents = LISTINGS.filter(l=>l.estRentMonth).map(l=>l.estRentMonth).sort((a,b)=>a-b);
-    const medRent = rents.length ? rents[Math.floor(rents.length/2)] : 0;
+    const btrRents = btrDeals.map(l => l.rentBase).filter(r => r > 0);
+    const avgRent = btrRents.length ? Math.round(btrRents.reduce((a,b)=>a+b,0)/btrRents.length) : 0;
+    const zoris = btrDeals.map(l => l.zoriBase).filter(z => z > 0);
+    const avgZori = zoris.length ? Math.round(zoris.reduce((a,b)=>a+b,0)/zoris.length) : 0;
     document.getElementById('heroBtrDeals').textContent = btrDeals.length.toLocaleString();
     document.getElementById('heroBtrYoc').textContent = avgYoc + '%';
-    document.getElementById('heroBtrRent').textContent = '$' + medRent.toLocaleString() + '/mo';
+    document.getElementById('heroBtrRent').textContent = '$' + avgRent.toLocaleString() + '/mo';
+    document.getElementById('heroBtrZori').textContent = avgZori > 0 ? '$' + avgZori.toLocaleString() + '/mo' : 'N/A';
   }
 }
 
@@ -3735,14 +3784,20 @@ function updateLayerCounts(){
   const omEl = document.getElementById('offMarketCount');
   if(omEl) omEl.textContent = offMarketN.toLocaleString();
 
-  // BTR count — same predicate as buildBTRLayer() but over all LISTINGS
+  // BTR count — use pre-computed yocBase when available
+  const btrMinYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
   let btrN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    if(!(l.estRentMonth > 0 || l.fmr3br > 0)) continue;
-    const btrPF = calculateBTRProForma(l);
     const btsMargin = l.estMargin || 0;
-    if(btsMargin < 20 && btrPF.btrPencils) btrN++;
+    if(btsMargin >= 20) continue;
+    if(l.yocBase > 0){
+      if(l.yocBase >= btrMinYOC) btrN++;
+    } else {
+      if(!(l.estRentMonth > 0 || l.fmr3br > 0)) continue;
+      const btrPF = calculateBTRProForma(l);
+      if(btrPF.btrPencils) btrN++;
+    }
   }
   const btrEl = document.getElementById('btrCount');
   if(btrEl) btrEl.textContent = btrN.toLocaleString();
