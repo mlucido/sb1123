@@ -1892,7 +1892,6 @@ function btrBlock(l, btr){
   btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
   btrContent += '<div><div class="popup-label">OpEx</div><div class="popup-value">'+Math.round(btr.opexRatio*100)+'% <small style="color:var(--text-dim)">($'+Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()+'/yr)</small></div></div>';
   btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%'+(btr.yieldOnCost<btr.minYOC?' <small style="color:var(--text-dim)">(min '+(btr.minYOC*100).toFixed(0)+'% target)</small>':'')+'</div></div>';
-  btrContent += '<div><div class="popup-label">GRM</div><div class="popup-value" style="color:'+(btr.grm<=20?'var(--green)':btr.grm<=30?'var(--yellow)':'var(--red)')+'">'+btr.grm.toFixed(1)+'x</div></div>';
   btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
   btrContent += '<div><div class="popup-label">Cap Rate</div><div class="popup-value">'+(btr.capRate*100).toFixed(1)+'%</div></div>';
   if(viable){
@@ -1906,9 +1905,8 @@ function btrBlock(l, btr){
   } else {
     // Collapsed with summary line when not viable
     var summaryYoc = (btr.yieldOnCost*100).toFixed(1);
-    var summaryGrm = btr.grm.toFixed(1);
     var summaryStab = '$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M';
-    h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> BTR: '+summaryYoc+'% YOC &middot; GRM '+summaryGrm+'x &middot; Stab '+summaryStab+'</div>';
+    h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> BTR: '+summaryYoc+'% YOC &middot; Stab '+summaryStab+'</div>';
     h += '<div class="popup-collapse-body" id="'+collapseId+'" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;padding-top:4px">';
     h += btrContent;
     h += '</div></div>';
@@ -3271,7 +3269,6 @@ function buildOffMarketLayer(){
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
         <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%${btr.yieldOnCost<btr.minYOC?' <small style="color:var(--text-dim)">(min '+(btr.minYOC*100).toFixed(0)+'% target)</small>':''}</div></div>
-        <div><div class="popup-label">GRM</div><div class="popup-value" style="color:${btr.grm<=20?'var(--green)':btr.grm<=30?'var(--yellow)':'var(--red)'}">${btr.grm.toFixed(1)}x</div></div>
         <div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">$${(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')}M</div></div>
         <div><div class="popup-label">Cap Rate</div><div class="popup-value">${(btr.capRate*100).toFixed(1)}%</div></div>
         ` : `
