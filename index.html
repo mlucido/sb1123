@@ -3004,67 +3004,39 @@ function buildSpreadHeatmap(){
 
 function buildNeighborhoodLayer(){
   neighborhoodLayer.clearLayers();
-  
+
   // Grid cell size (0.01° ≈ 1km)
   const CELL_SIZE = 0.01;
-  
+
   // Group listings by neighborhood grid cell
   const cells = {};
   LISTINGS.forEach(l => {
     if(!l.sb1123Eligible) return;
+    const exitPsf = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    if(!exitPsf) return;
     const cellLat = Math.floor(l.lat / CELL_SIZE) * CELL_SIZE;
     const cellLng = Math.floor(l.lng / CELL_SIZE) * CELL_SIZE;
     const key = `${cellLat},${cellLng}`;
-    if(!cells[key]) cells[key] = {lat:cellLat, lng:cellLng, listings:[]};
+    if(!cells[key]) cells[key] = {lat:cellLat, lng:cellLng, listings:[], exitVals:[]};
     cells[key].listings.push(l);
+    cells[key].exitVals.push(exitPsf);
   });
-  
-  const BUILD_COST_PSF = proforma.allInBuildPsf || 360;
 
-  // Calculate scores for each cell
+  // Calculate scores for each cell — pure exit $/SF
   Object.values(cells).forEach(cell => {
-    const listings = cell.listings;
-    
-    // Calculate metrics
-    const avgExitPsf = listings.reduce((sum,l)=> sum + (l.newconPpsf || l.exitPsf || 0), 0) / listings.length;
-    const avgLandBasis = listings.reduce((sum,l)=> sum + (l.lotSf ? l.price / l.lotSf : 0), 0) / listings.length;
-    const avgSpread = avgExitPsf - avgLandBasis - BUILD_COST_PSF;
-    const dealFlowDepth = listings.length;
-    const avgLotSize = listings.reduce((sum,l)=> sum + (l.lotSf||0), 0) / listings.length;
-    const avgEfficiency = listings.reduce((sum,l)=> sum + (l.lotEfficiency||0), 0) / listings.length;
-    const avgDOM = listings.reduce((sum,l)=> sum + (l.dom||0), 0) / listings.length;
-    const avgSlope = listings.reduce((sum,l)=> sum + (l.slope||0), 0) / listings.length;
-    
-    // Normalize and weight factors (0-100 scale)
-    const spreadScore = Math.max(0, Math.min(100, (avgSpread / 300) * 100));
-    const flowScore = Math.max(0, Math.min(100, (dealFlowDepth / 20) * 100));
-    const effScore = Math.max(0, Math.min(100, avgEfficiency));
-    const domScore = Math.max(0, Math.min(100, Math.min(avgDOM, 120) / 120 * 100));
-    const slopeScore = Math.max(0, Math.min(100, (1 - Math.min(avgSlope, 25) / 25) * 100));
-    
-    // Composite score
-    const compositeScore = 
-      spreadScore * 0.35 + 
-      flowScore * 0.25 + 
-      effScore * 0.20 + 
-      domScore * 0.10 + 
-      slopeScore * 0.10;
-    
-    // Letter grade
-    let grade = 'F';
-    if(compositeScore >= 80) grade = 'A';
-    else if(compositeScore >= 60) grade = 'B';
-    else if(compositeScore >= 40) grade = 'C';
-    else if(compositeScore >= 20) grade = 'D';
-    
-    // Color
+    const vals = cell.exitVals;
+    vals.sort((a,b)=>a-b);
+    const median = vals.length%2 ? vals[Math.floor(vals.length/2)] : (vals[Math.floor(vals.length/2)-1]+vals[Math.floor(vals.length/2)])/2;
+    const min = vals[0], max = vals[vals.length-1];
+
+    // Color by median exit $/SF
     let color, fillOpacity;
-    if(compositeScore >= 80) { color = '#059669'; fillOpacity = 0.4; }
-    else if(compositeScore >= 60) { color = '#22c55e'; fillOpacity = 0.35; }
-    else if(compositeScore >= 40) { color = '#eab308'; fillOpacity = 0.3; }
-    else if(compositeScore >= 20) { color = '#f97316'; fillOpacity = 0.25; }
-    else { color = '#ef4444'; fillOpacity = 0.2; }
-    
+    if(median >= 900)      { color = '#059669'; fillOpacity = 0.4; }
+    else if(median >= 750) { color = '#22c55e'; fillOpacity = 0.35; }
+    else if(median >= 600) { color = '#eab308'; fillOpacity = 0.3; }
+    else if(median >= 450) { color = '#f97316'; fillOpacity = 0.25; }
+    else                   { color = '#ef4444'; fillOpacity = 0.2; }
+
     // Create polygon for cell
     const bounds = [
       [cell.lat, cell.lng],
@@ -3072,7 +3044,7 @@ function buildNeighborhoodLayer(){
       [cell.lat + CELL_SIZE, cell.lng + CELL_SIZE],
       [cell.lat, cell.lng + CELL_SIZE]
     ];
-    
+
     const polygon = L.polygon(bounds, {
       color: color,
       fillColor: color,
@@ -3080,25 +3052,18 @@ function buildNeighborhoodLayer(){
       weight: 1,
       opacity: 0.7
     });
-    
-    // Tooltip with breakdown
+
     polygon.bindTooltip(`
-      <div style="font-size:12px;font-weight:700;margin-bottom:4px;color:${color}">Grade ${grade} (${compositeScore.toFixed(0)}/100)</div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;color:${color}">Exit $/SF: $${median.toFixed(0)}</div>
       <div style="font-size:10px;line-height:1.5">
-        <div><strong>Exit $/SF:</strong> $${avgExitPsf.toFixed(0)}</div>
-        <div><strong>Land Basis:</strong> $${avgLandBasis.toFixed(0)}/SF</div>
-        <div><strong>Spread:</strong> $${avgSpread.toFixed(0)}/SF</div>
-        <div><strong>Eligible Parcels:</strong> ${dealFlowDepth}</div>
-        <div><strong>Avg Lot Size:</strong> ${avgLotSize.toLocaleString()} SF</div>
-        <div><strong>Lot Efficiency:</strong> ${avgEfficiency.toFixed(0)}%</div>
-        <div><strong>Avg DOM:</strong> ${avgDOM.toFixed(0)} days</div>
-        <div><strong>Avg Slope:</strong> ${avgSlope.toFixed(1)}%</div>
+        <div><strong>Range:</strong> $${min.toFixed(0)} – $${max.toFixed(0)}/SF</div>
+        <div><strong>Eligible Parcels:</strong> ${vals.length}</div>
       </div>
     `, {permanent: false, direction: 'top'});
-    
+
     polygon.addTo(neighborhoodLayer);
   });
-  
+
   document.getElementById('neighborhoodCount').textContent = Object.keys(cells).length.toLocaleString();
 }
 
