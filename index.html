@@ -4375,11 +4375,8 @@ async function exportModel(lat, lng) {
 }
 
 async function exportOM(lat, lng) {
-  // Localhost guard — OM generation requires local Python server
-  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-    alert('OM export requires the local server.\n\nRun: python3 om_server.py');
-    return;
-  }
+  var OM_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? '' : 'https://sb1123-om-api.fly.dev';
 
   var l = LISTINGS.find(function(x){ return x.lat===lat && x.lng===lng; });
   if (!l) { alert('Listing not found'); return; }
@@ -4650,9 +4647,9 @@ async function exportOM(lat, lng) {
     fee_pct_of_cap: totalProjectCost > 0 ? totalSponsorFees / totalProjectCost : 0,
   };
 
-  // ── POST to local server ──
+  // ── POST to OM API ──
   try {
-    var resp = await fetch('/api/generate-om', {
+    var resp = await fetch(OM_API + '/api/generate-om', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(d),
@@ -4670,7 +4667,7 @@ async function exportOM(lat, lng) {
     a.click();
     URL.revokeObjectURL(url);
   } catch (err) {
-    alert('OM export failed. Is the local server running?\n\nRun: python3 om_server.py\n\n' + err.message);
+    alert('OM export failed: ' + err.message);
   }
 }
 
