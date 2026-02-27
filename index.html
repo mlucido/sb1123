@@ -4647,6 +4647,26 @@ async function exportOM(lat, lng) {
     fee_pct_of_cap: totalProjectCost > 0 ? totalSponsorFees / totalProjectCost : 0,
   };
 
+  // ── Attach comp sales data ──
+  var compResult = findCompsForListing(l);
+  var el = exitLabel(l);
+  d.comp_source = el.short || '';
+  d.comp_label = el.label || '';
+  d.comps = compResult.used.slice(0, 15).map(function(c) {
+    return {
+      address: c.address || '',
+      price: c.price || 0,
+      ppsf: Math.round(c.ppsf || 0),
+      sqft: c.sqft || 0,
+      beds: c.bd || '',
+      baths: c.ba || '',
+      zone: c.zone || '',
+      year_built: c.yb || '',
+      date: c.date || '',
+      dist: c.dist ? +c.dist.toFixed(2) : 0,
+    };
+  });
+
   // ── POST to OM API ──
   try {
     var resp = await fetch(OM_API + '/api/generate-om', {
