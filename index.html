@@ -2365,7 +2365,7 @@ function calculateBTRProForma(l){
   const hasEstRent = l.estRentMonth && l.estRentMonth > 0;
   const baseRent = hasEstRent ? l.estRentMonth : (l.fmr3br || 0);
   const rentRefSf = 1200; // SAFMR/ZORI benchmarks to a typical ~1,200 SF 3BR
-  const sizeAdj = pf.avgUnitSf / rentRefSf; // scale rent proportionally to actual unit size
+  const sizeAdj = proforma.avgUnitSf / rentRefSf; // scale rent proportionally to actual unit size
   const rentPerUnit = Math.round((hasEstRent ? l.estRentMonth : Math.round(baseRent * newConPremium)) * sizeAdj);
   const units = pf.maxUnits;
   const totalCost = pf.totalCost;
@@ -2685,7 +2685,7 @@ function rebuildListings(){
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${pf.avgUnitSf.toLocaleString()} SF)</small></div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units}u)</small></div></div>
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
@@ -2822,7 +2822,7 @@ function buildBTRLayer(){
 
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${pf.avgUnitSf.toLocaleString()} SF)</small></div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units}u)</small></div></div>
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()}</div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
@@ -3183,7 +3183,7 @@ function buildOffMarketLayer(){
         ${btr.baseRent > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${pf.avgUnitSf.toLocaleString()} SF)</small></div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
