@@ -1790,11 +1790,6 @@ function proFormaBlock(l, pf, opts){
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b class="pf-buy-per-unit">$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b class="pf-land-basis" style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b class="pf-buildable-sf2">'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
   h += '<div class="popup-span-2 pf-max-offer-row" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: <span class="pf-max-offer">$'+pf.max_offer.toLocaleString()+'</span></div>';
-  if(l.lw && l.ld && pf.maxUnits > 0 && pf.max_offer > 0){
-    var layoutId = 'lot-layout-'+Math.random().toString(36).slice(2,8);
-    h += '<div class="lot-layout-toggle" onclick="var b=document.getElementById(\''+layoutId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Lot Layout &middot; '+pf.maxUnits+' units</div>';
-    h += '<div class="lot-layout-body" id="'+layoutId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
-  }
   h += remainderAnalysis(l);
   return h;
 }
@@ -2185,6 +2180,13 @@ function calculateProForma(l){
 
 // ── Layout Planner URL builder ──
 // ── Lot Layout SVG for popup ──
+function lotLayoutSection(l, pf){
+  if(!l.lw || !l.ld || !pf.maxUnits || pf.maxUnits <= 0 || pf.max_offer <= 0) return '';
+  var layoutId = 'lot-layout-'+Math.random().toString(36).slice(2,8);
+  return '<div class="lot-layout-toggle" onclick="var b=document.getElementById(\''+layoutId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Lot Layout &middot; '+pf.maxUnits+' units</div>'
+    + '<div class="lot-layout-body" id="'+layoutId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
+}
+
 function buildLotLayoutSVG(l, pf){
   if(!l.lw || !l.ld) return '';
   var lw = l.lw, ld = l.ld;
@@ -2707,6 +2709,7 @@ function rebuildListings(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
+      ${lotLayoutSection(l, pf)}
     `,{maxWidth:750});
     cm.addTo(listingsLayer);
   });
@@ -2836,6 +2839,7 @@ function buildBTRLayer(){
       </div>
       </div><!-- end col-right -->
       </div><!-- end two-col -->
+      ${lotLayoutSection(l, pf)}
     `;
 
     marker.bindPopup(popupHTML, {maxWidth: 750});
@@ -3225,6 +3229,7 @@ function buildOffMarketLayer(){
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
+      ${lotLayoutSection(l, pf)}
     `, {maxWidth: 580});
 
     marker.addTo(offMarketLayer);
