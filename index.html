@@ -225,7 +225,13 @@ window.CLUSTERS = window.CLUSTERS || [];
   .popup-span-4{grid-column:span 4}
   .popup-profit-positive{color:var(--green)}
   .popup-profit-negative{color:var(--red)}
-
+  .lot-layout-toggle{grid-column:1/-1;cursor:pointer;user-select:none;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-weight:700;margin-top:4px;padding:4px 0;display:flex;align-items:center;gap:6px;border-top:1px solid var(--border)}
+  .lot-layout-toggle:hover{color:var(--text)}
+  .lot-layout-toggle .tri{font-size:8px;transition:transform 0.2s}
+  .lot-layout-toggle.open .tri{transform:rotate(90deg)}
+  .lot-layout-body{grid-column:1/-1;overflow:hidden;max-height:0;transition:max-height 0.3s ease-out}
+  .lot-layout-body.open{max-height:400px;transition:max-height 0.4s ease-in}
+  .lot-layout-body svg{display:block;margin:4px auto 0;width:100%;max-width:280px}
 
   /* Pin Color Legend */
   .pin-legend{
@@ -1784,6 +1790,11 @@ function proFormaBlock(l, pf, opts){
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>'+buyLabel+' <b class="pf-buy-per-unit">$'+buyPerUnit.toLocaleString()+'</b></span><span>Total Cost <b class="pf-total-cost">$'+Math.round(pf.totalCost).toLocaleString()+'</b></span></div>';
   h += '<div class="popup-span-2" style="display:flex;justify-content:space-between;font-size:11px"><span>Land Basis <b class="pf-land-basis" style="color:'+lbColor+'">$'+pf.land_basis_psf+'/sf</b></span><span>Buildable SF <b class="pf-buildable-sf2">'+pf.effective_buildable_sf.toLocaleString()+' sf</b></span></div>';
   h += '<div class="popup-span-2 pf-max-offer-row" style="font-size:11px;font-weight:600;color:'+moColor+'">Max Offer @ 30%: <span class="pf-max-offer">$'+pf.max_offer.toLocaleString()+'</span></div>';
+  if(l.lw && l.ld){
+    var layoutId = 'lot-layout-'+Math.random().toString(36).slice(2,8);
+    h += '<div class="lot-layout-toggle" onclick="var b=document.getElementById(\''+layoutId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Lot Layout &middot; '+pf.maxUnits+' units</div>';
+    h += '<div class="lot-layout-body" id="'+layoutId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
+  }
   h += remainderAnalysis(l);
   return h;
 }
@@ -2173,6 +2184,99 @@ function calculateProForma(l){
 }
 
 // ── Layout Planner URL builder ──
+// ── Lot Layout SVG for popup ──
+function buildLotLayoutSVG(l, pf){
+  if(!l.lw || !l.ld) return '';
+  var lw = l.lw, ld = l.ld;
+  var units = pf.maxUnits || 0;
+  var driveW = 24, sideSet = 4, frontSet = 20, rearSet = 4;
+  var unitW = 22, unitD = 22;
+  // SVG coordinate space: pad 20 left (labels), 8 right, 16 top (label), 16 bottom
+  var padL = 20, padR = 8, padT = 16, padB = 16;
+  var svgW = lw + padL + padR, svgH = ld + padT + padB;
+  // Lot origin
+  var ox = padL, oy = padT;
+  // Buildable area
+  var buildW = lw - driveW - sideSet;
+  var buildD = ld - frontSet - rearSet;
+  if(buildW < unitW || buildD < unitD) {
+    // Too small — show lot outline only
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+svgW+' '+svgH+'" style="font-family:DM Sans,sans-serif">';
+    s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="none" stroke="#555" stroke-width="1"/>';
+    s += '<text x="'+(ox+lw/2)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#8b8fa3" font-size="8">Too narrow for layout</text>';
+    s += '</svg>';
+    return s;
+  }
+  // Column layout
+  var cols = buildW >= unitW * 2 + 4 ? 2 : 1;  // 4' gap between columns
+  var gap = cols === 2 ? Math.max(4, buildW - unitW * 2) : 0;
+  var rows = Math.floor(buildD / unitD);
+  var maxFit = cols * rows;
+  var placed = Math.min(units, maxFit);
+
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+svgW+' '+svgH+'" style="font-family:DM Sans,sans-serif">';
+  // Lot boundary
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+ld+'" fill="#1a1d27" stroke="#555" stroke-width="1"/>';
+  // Yard areas (light green fill for front & rear setbacks)
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+lw+'" height="'+frontSet+'" fill="rgba(34,197,94,0.08)"/>';
+  s += '<rect x="'+ox+'" y="'+(oy+ld-rearSet)+'" width="'+lw+'" height="'+rearSet+'" fill="rgba(34,197,94,0.08)"/>';
+  // Right side setback yard
+  s += '<rect x="'+(ox+lw-sideSet)+'" y="'+(oy+frontSet)+'" width="'+sideSet+'" height="'+(ld-frontSet-rearSet)+'" fill="rgba(34,197,94,0.08)"/>';
+  // Driveway
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+driveW+'" height="'+ld+'" fill="rgba(150,150,150,0.15)" stroke="#666" stroke-width="0.5" stroke-dasharray="2,2"/>';
+  s += '<text x="'+(ox+driveW/2)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#888" font-size="6" transform="rotate(-90,'+(ox+driveW/2)+','+(oy+ld/2)+')">DRIVEWAY '+driveW+"'</text>";
+  // Setback lines
+  // Front setback (from bottom — street side)
+  s += '<line x1="'+ox+'" y1="'+(oy+ld-rearSet)+'" x2="'+(ox+lw)+'" y2="'+(oy+ld-rearSet)+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.6"/>';
+  // Rear setback
+  s += '<line x1="'+ox+'" y1="'+(oy+frontSet)+'" x2="'+(ox+lw)+'" y2="'+(oy+frontSet)+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.6"/>';
+  // Right side setback
+  s += '<line x1="'+(ox+lw-sideSet)+'" y1="'+oy+'" x2="'+(ox+lw-sideSet)+'" y2="'+(oy+ld)+'" stroke="#ef4444" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.6"/>';
+
+  // Place units: start from front setback, left of driveway+gap
+  var unitStartX = ox + driveW;
+  var unitStartY = oy + frontSet;
+  var n = 0;
+  for(var r = 0; r < rows && n < placed; r++){
+    // Left column (or single column)
+    if(n < placed){
+      var ux = unitStartX;
+      var uy = unitStartY + r * unitD;
+      s += '<rect x="'+ux+'" y="'+uy+'" width="'+unitW+'" height="'+unitD+'" fill="rgba(96,165,250,0.25)" stroke="var(--accent)" stroke-width="0.8" rx="1"/>';
+      s += '<text x="'+(ux+unitW/2)+'" y="'+(uy+unitD/2+3)+'" text-anchor="middle" fill="var(--accent)" font-size="7" font-weight="600">'+(n+1)+'</text>';
+      n++;
+    }
+    // Right column
+    if(cols === 2 && n < placed){
+      var ux2 = unitStartX + unitW + gap;
+      var uy2 = unitStartY + r * unitD;
+      s += '<rect x="'+ux2+'" y="'+uy2+'" width="'+unitW+'" height="'+unitD+'" fill="rgba(96,165,250,0.25)" stroke="var(--accent)" stroke-width="0.8" rx="1"/>';
+      s += '<text x="'+(ux2+unitW/2)+'" y="'+(uy2+unitD/2+3)+'" text-anchor="middle" fill="var(--accent)" font-size="7" font-weight="600">'+(n+1)+'</text>';
+      n++;
+    }
+  }
+
+  // Remainder parcel highlight
+  if(l.remainderUnits > 0){
+    var remY = unitStartY + rows * unitD;
+    var remH = buildD - rows * unitD;
+    if(remH > 2){
+      s += '<rect x="'+unitStartX+'" y="'+remY+'" width="'+(buildW)+'" height="'+remH+'" fill="rgba(251,191,36,0.1)" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="2,2"/>';
+      if(remH > 8) s += '<text x="'+(unitStartX+buildW/2)+'" y="'+(remY+remH/2+3)+'" text-anchor="middle" fill="#f59e0b" font-size="5">REMAINDER</text>';
+    }
+  }
+
+  // Dimension labels
+  s += '<text x="'+(ox+lw/2)+'" y="'+(oy-4)+'" text-anchor="middle" fill="#8b8fa3" font-size="7">'+lw+"'</text>";
+  s += '<text x="'+(ox-4)+'" y="'+(oy+ld/2)+'" text-anchor="middle" fill="#8b8fa3" font-size="7" transform="rotate(-90,'+(ox-4)+','+(oy+ld/2)+')">'+ld+"'</text>";
+  // Setback labels
+  s += '<text x="'+(ox+lw+5)+'" y="'+(oy+frontSet/2+3)+'" fill="#ef4444" font-size="5" opacity="0.7">'+frontSet+"'</text>";
+  s += '<text x="'+(ox+lw+5)+'" y="'+(oy+ld-rearSet/2+2)+'" fill="#ef4444" font-size="5" opacity="0.7">'+rearSet+"'</text>";
+
+  s += '</svg>';
+  return s;
+}
+
 function lotPlannerUrl(l){
   var exitSF = l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
