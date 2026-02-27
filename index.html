@@ -1889,9 +1889,6 @@ function btrBlock(l, btr){
   var viable = btr.btrPencils;
   var h = '<div class="popup-divider"></div>';
   h += '<div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>';
-  if(viable){
-    h += '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE &mdash; '+(btr.yieldOnCost*100).toFixed(1)+'% base YOC</div>';
-  }
 
   // Three-scenario table (from pre-computed pipeline data)
   var hasScenarios = l.rentBase > 0 && l.yocBase > 0;
@@ -1932,7 +1929,6 @@ function btrBlock(l, btr){
   btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
   btrContent += '<div><div class="popup-label">Cap Rate</div><div class="popup-value">'+(btr.capRate*100).toFixed(1)+'%</div></div>';
   if(viable){
-    btrContent += '<div class="popup-span-2" style="font-size:10px;padding:3px 8px;border-radius:4px;background:'+(btr.stabilizedValue>=btr.totalCost?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)')+';color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">'+(btr.stabilizedValue>=btr.totalCost?'&#9989; Refi-able &mdash; $'+Math.round((btr.stabilizedValue-btr.totalCost)/1000).toLocaleString()+'k equity at '+(btr.capRate*100).toFixed(1)+'% cap':'&#10060; Refi gap: -$'+Math.round((btr.totalCost-btr.stabilizedValue)/1000).toLocaleString()+'k &mdash; cash trapped at '+(btr.capRate*100).toFixed(1)+'% cap')+'</div>';
     btrContent += '<div><div class="popup-label">DSCR</div><div class="popup-value" style="color:'+(btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)')+'">'+btr.dscr.toFixed(2)+'x</div></div>';
     btrContent += '<div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">$'+Math.round(btr.cashFlow).toLocaleString()+'/yr</div></div>';
   }
