@@ -3261,23 +3261,18 @@ function rebuildListings(){
 function buildBTRLayer(){
   btrLayer.clearLayers();
 
-  // BTR layer shows deals where:
-  // 1. BTS net margin < 20% (for-sale doesn't pencil well)
-  // 2. Base-case YoC >= 4% (from pipeline pre-computation)
-  // 3. Has rent data
-  // Deals that pencil for BOTH BTS (>=20%) and BTR get a badge on the BTS pin instead
+  // BTR layer shows ALL BTR-viable deals (YoC >= min threshold)
+  // Dual-viable deals (also BTS profitable) show both a BTS circle and BTR diamond
   const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
   const btrListings = getFilteredListings().filter(l => {
     if(!l.sb1123Eligible) return false;
     // Use pre-computed yocBase from pipeline if available, else fall back to dynamic calc
     if(l.yocBase > 0){
-      const btsMargin = l.estMargin || 0;
-      return btsMargin < 20 && l.yocBase >= minYOC;
+      return l.yocBase >= minYOC;
     }
     if(!(l.estRentMonth > 0 || l.fmr3br > 0)) return false;
     const btrPF = calculateBTRProForma(l);
-    const btsMargin = l.estMargin || 0;
-    return btsMargin < 20 && btrPF.btrPencils;
+    return btrPF.btrPencils;
   });
 
   btrListings.forEach(l => {
@@ -3820,8 +3815,7 @@ function updateHeroStats(){
     const btrDeals = LISTINGS.filter(l => {
       if(!l.sb1123Eligible) return false;
       if(!l.yocBase || l.yocBase <= 0) return false;
-      const btsMargin = l.estMargin || 0;
-      return btsMargin < 20 && l.yocBase >= 0.04;
+      return l.yocBase >= 0.04;
     });
     const btrYocs = btrDeals.map(l => l.yocBase).filter(y => y > 0);
     const avgYoc = btrYocs.length ? (btrYocs.reduce((a,b)=>a+b,0)/btrYocs.length*100).toFixed(1) : '0.0';
@@ -4039,13 +4033,11 @@ function updateLayerCounts(){
   const omEl = document.getElementById('offMarketCount');
   if(omEl) omEl.textContent = offMarketN.toLocaleString();
 
-  // BTR count — use pre-computed yocBase when available
+  // BTR count — all BTR-viable deals (YoC >= min threshold)
   const btrMinYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
   let btrN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    const btsMargin = l.estMargin || 0;
-    if(btsMargin >= 20) continue;
     if(l.yocBase > 0){
       if(l.yocBase >= btrMinYOC) btrN++;
     } else {
