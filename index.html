@@ -289,11 +289,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-sep{border-top:1px solid var(--border);margin:4px 0}
 
   /* Comp buttons */
-  .dp-comps{display:flex;gap:8px;padding:8px 8px 0}
-  .dp-comp-btn{flex:1;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);text-decoration:none}
-  .dp-comp-btn:hover{border-color:var(--accent)}
-  .dp-comp-btn .dp-comp-icon{display:grid;grid-template-columns:1fr 1fr;gap:2px}
-  .dp-comp-btn .dp-comp-icon span{width:5px;height:5px;border-radius:1px}
+  .dp-comps{display:flex;gap:6px;padding:6px 8px 0;align-items:center}
+  .dp-comp-btn{display:inline-flex;align-items:center;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;line-height:1.3}
+  .dp-comp-btn:hover{border-color:var(--accent);background:rgba(96,165,250,0.08)}
 
   /* BTR section */
   .dp-btr{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:8px 8px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -3210,14 +3208,10 @@ function generateDealCard(l, opts){
 
   // ── Comp buttons ──
   var compBtns = '<div class="dp-comps">';
-  compBtns += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">';
-  compBtns += '<div class="dp-comp-icon"><span style="background:var(--accent)"></span><span style="background:var(--accent)"></span><span style="background:var(--accent)"></span><span style="background:var(--accent)"></span></div>';
-  compBtns += '<span>'+cc.count+' Sale<br>Comps</span></a>';
+  compBtns += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps &#8599;</a>';
   var hasRentalComps = typeof RENTAL_COMPS!=='undefined'&&RENTAL_COMPS.length>0&&l.rentMethod&&l.rentMethod.startsWith('rental-comp');
   if(hasRentalComps){
-    compBtns += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false">';
-    compBtns += '<div class="dp-comp-icon"><span style="background:var(--orange)"></span><span style="background:var(--orange)"></span><span style="background:var(--orange)"></span><span style="background:var(--orange)"></span></div>';
-    compBtns += '<span>Rent<br>Comps</span></a>';
+    compBtns += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">Rent Comps &#8599;</a>';
   }
   compBtns += '</div>';
 
