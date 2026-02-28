@@ -342,6 +342,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .pin-legend-marker{width:8px;height:8px;border-radius:50%;flex-shrink:0}
   .pin-legend-marker.diamond{border-radius:0;transform:rotate(45deg);border:1.5px dashed #d97706;background:rgba(245,158,11,0.85)}
   .pin-legend-marker.circle{border:2px solid #666;background:transparent}
+  .pin-legend-section{border-top:1px solid var(--border);margin:4px 0;padding-top:4px}
+  .pin-legend-gradient{height:8px;border-radius:4px;margin:3px 0}
+  .pin-legend-gradient-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)}
 
   /* Old Legend (keep for desktop reference) */
   .map-legend{position:absolute;bottom:30px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:800;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none}
@@ -3807,6 +3810,34 @@ function updatePinLegend(){
   if(layerState.compHeat){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6"></div> T1 New/Remodel</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#64748b"></div> T2 Existing</div>';
+  }
+
+  // Neighborhood Scores legend
+  if(layerState.neighborhoods){
+    if(html) html += '<div class="pin-legend-section"></div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Neighborhood Exit $/SF</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444;border-radius:2px"></div> $1,000+</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border-radius:2px"></div> $900–1k</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border-radius:2px"></div> $800–900</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border-radius:2px"></div> $700–800</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border-radius:2px"></div> $600–700</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border-radius:2px"></div> &lt;$600</div>';
+  }
+
+  // Profit Spread Heatmap legend
+  if(layerState.spreadHeat){
+    if(html) html += '<div class="pin-legend-section"></div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Profit Spread $/SF</div>';
+    html += '<div class="pin-legend-gradient" style="background:linear-gradient(to right,#ef4444,#f97316,#eab308,#22c55e,#059669)"></div>';
+    html += '<div class="pin-legend-gradient-labels"><span>&lt;$0</span><span>$300+</span></div>';
+  }
+
+  // Risk overlay legends
+  if(layerState.fireZones || layerState.floodZones || layerState.liquefaction){
+    if(html) html += '<div class="pin-legend-section"></div>';
+    if(layerState.fireZones)    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:rgba(239,68,68,0.5);border-radius:2px"></div> VHFHSZ Fire Hazard</div>';
+    if(layerState.floodZones)   html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:rgba(59,130,246,0.5);border-radius:2px"></div> FEMA Flood Zone</div>';
+    if(layerState.liquefaction)  html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:rgba(147,51,234,0.5);border-radius:2px"></div> Liquefaction Risk</div>';
   }
 
   legend.innerHTML = html;
