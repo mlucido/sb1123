@@ -2961,7 +2961,7 @@ function isInsideDrawPolygon(lat, lng){
   return turf.booleanPointInPolygon(turf.point([lng, lat]), drawPolygonGeoJSON);
 }
 
-function getFilteredListings(){
+function getFilteredListings(skipZoneFilter){
   const favs = favoritesOnly ? loadFavorites() : null;
   return LISTINGS.filter(l => {
     if(drawPolygonGeoJSON && !isInsideDrawPolygon(l.lat, l.lng)) return false;
@@ -2975,7 +2975,7 @@ function getFilteredListings(){
       if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
       else return false;
     }
-    const zoneOk = !l.zone || zoneState[l.zone];
+    const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
     const psfOk = isLand || (l.ppsf >= filters.psf.min && l.ppsf <= filters.psf.max);
@@ -4070,10 +4070,11 @@ function rebuildZoneToggles(){
   if(!el){ console.error('zoneToggles element not found!'); return; }
   el.innerHTML='';
   const filtered = getFilteredComps();
-  const fListings = getFilteredListings();
+  // Count listings per zone ignoring zone toggle state (all other filters apply)
+  const allFiltered = getFilteredListings(true);
   ['R1','R2','R3','R4','LAND'].forEach(zone=>{
     const zc=filtered.filter(c=>c.zone===zone);
-    const zl=fListings.filter(l=>l.zone===zone);
+    const zl=allFiltered.filter(l=>l.zone===zone);
     const psfs=zc.map(c=>c.ppsf||c.price/c.sqft);
     const avg=psfs.length?Math.round(psfs.reduce((a,b)=>a+b,0)/psfs.length):0;
     const div=document.createElement('label');
