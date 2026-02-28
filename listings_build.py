@@ -1191,24 +1191,27 @@ else:
 # 4d-c: 6-tier rental estimate function
 SFR_TH_TYPES = {"Single Family Residential", "Townhouse", "Condo/Co-op", "Multi-Family (2-4 Unit)"}
 
-def find_rental_estimate(lat, lng, zipcode, safmr_3br):
-    """Find best rental estimate using 6-tier priority.
+def find_rental_psf(lat, lng, zipcode, safmr_3br):
+    """Find best rental $/SF estimate using 6-tier priority.
 
-    Returns: (est_rent, method, comp_count, radius_mi, median_beds)
+    Returns: (rent_psf, method, comp_count, radius_mi, median_beds, median_sqft)
     """
     grow = math.floor(lat / RENTAL_GRID_SIZE)
     gcol = math.floor(lng / RENTAL_GRID_SIZE)
 
     def p75(vals):
         vals.sort()
-        return round(vals[int(len(vals) * 0.75)])
+        return vals[int(len(vals) * 0.75)]
 
     def median_val(vals):
         vals.sort()
         return vals[len(vals) // 2]
 
-    def collect_comps(radius, min_beds, min_sqft, types_filter):
-        """Collect rental comps within radius matching criteria."""
+    def collect_comps(radius, exact_beds, min_beds, min_sqft, max_sqft, types_filter):
+        """Collect rental comps within radius matching criteria.
+        exact_beds: if set, filter beds == exact_beds; otherwise use min_beds.
+        Returns list of (rent_psf, beds, sqft) tuples.
+        """
         cells = int(radius / RENTAL_GRID_SIZE) + 1
         matches = []
         for dr in range(-cells, cells + 1):
@@ -1216,44 +1219,55 @@ def find_rental_estimate(lat, lng, zipcode, safmr_3br):
                 for clat, clng, rent, beds, sqft, ptype in rental_grid.get((grow + dr, gcol + dc), []):
                     if abs(clat - lat) > radius or abs(clng - lng) > radius:
                         continue
-                    if beds < min_beds:
+                    if exact_beds is not None and beds != exact_beds:
                         continue
-                    if min_sqft > 0 and sqft > 0 and sqft < min_sqft:
+                    if exact_beds is None and beds < min_beds:
+                        continue
+                    if sqft < min_sqft or sqft <= 0:
+                        continue
+                    if max_sqft > 0 and sqft > max_sqft:
                         continue
                     if types_filter and ptype not in types_filter:
                         continue
-                    matches.append((rent, beds))
+                    rpsf = rent / sqft
+                    # Sanity filter: reject outlier $/SF
+                    if rpsf < 0.50 or rpsf > 10.00:
+                        continue
+                    matches.append((rpsf, beds, sqft))
         return matches
 
-    # Tier 1: rental-comp — 0.5mi→1mi, 3+ BR, 1200+ SF, SFR/TH/Condo/MF2-4
+    # Tier 1: rental-comp — 0.5mi→1mi, 3BR exact, 800-2500 SF, SFR/TH/Condo/MF2-4
     for radius in [0.007, 0.015]:
-        comps = collect_comps(radius, 3, 1200, SFR_TH_TYPES)
+        comps = collect_comps(radius, 3, 0, 800, 2500, SFR_TH_TYPES)
         if len(comps) >= 3:
-            rents = [r for r, _ in comps]
-            beds_list = [b for _, b in comps]
+            psf_vals = [rpsf for rpsf, _, _ in comps]
+            beds_list = [b for _, b, _ in comps]
+            sqft_list = [s for _, _, s in comps]
             miles = round(radius * 69, 2)
-            return p75(rents), "rental-comp", len(comps), miles, median_val(beds_list)
+            return round(p75(psf_vals), 2), "rental-comp", len(comps), miles, median_val(beds_list), round(median_val(sqft_list))
 
-    # Tier 2: rental-comp-wide — 2mi, 3+ BR, 1200+ SF, SFR/TH/Condo/MF2-4
-    comps = collect_comps(0.029, 3, 1200, SFR_TH_TYPES)
+    # Tier 2: rental-comp-wide — 2mi, 3BR exact, 800-2500 SF, SFR/TH/Condo/MF2-4
+    comps = collect_comps(0.029, 3, 0, 800, 2500, SFR_TH_TYPES)
     if len(comps) >= 3:
-        rents = [r for r, _ in comps]
-        beds_list = [b for _, b in comps]
-        return p75(rents), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list)
+        psf_vals = [rpsf for rpsf, _, _ in comps]
+        beds_list = [b for _, b, _ in comps]
+        sqft_list = [s for _, _, s in comps]
+        return round(p75(psf_vals), 2), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list), round(median_val(sqft_list))
 
-    # Tier 3: rental-adj — 1mi, 2+ BR, 900+ SF, ALL types, adj for 2BR
-    comps = collect_comps(0.015, 2, 900, None)
+    # Tier 3: rental-adj — 1mi, 2+ BR, 800+ SF, ALL types, +15% if median beds < 3
+    comps = collect_comps(0.015, None, 2, 800, 0, None)
     if len(comps) >= 3:
-        rents = [r for r, _ in comps]
-        beds_list = [b for _, b in comps]
+        psf_vals = [rpsf for rpsf, _, _ in comps]
+        beds_list = [b for _, b, _ in comps]
+        sqft_list = [s for _, _, s in comps]
         med_beds = median_val(list(beds_list))
-        rent_p75 = p75(rents)
-        # If median beds is 2, adjust up 20% to approximate 3BR
+        rent_psf = p75(psf_vals)
         if med_beds < 3:
-            rent_p75 = round(rent_p75 * 1.20)
-        return rent_p75, "rental-adj", len(comps), round(0.015 * 69, 2), med_beds
+            rent_psf = rent_psf * 1.15
+        return round(rent_psf, 2), "rental-adj", len(comps), round(0.015 * 69, 2), med_beds, round(median_val(sqft_list))
 
-    # Tier 4: Census tract-level rent — nearest centroid within 0.02° (~1.4 mi), 3BR × 1.30
+    # Tier 4: Census tract-level rent — nearest centroid within 0.02° (~1.4 mi)
+    # Convert 3BR rent to $/SF: (rent3br × 1.20) / 1200
     if census_rent_grid:
         search_radius = 0.02
         cells = int(search_radius / RENTAL_GRID_SIZE) + 1
@@ -1265,27 +1279,26 @@ def find_rental_estimate(lat, lng, zipcode, safmr_3br):
                     dist = abs(clat - lat) + abs(clng - lng)  # Manhattan distance
                     if dist < best_dist and dist <= search_radius * 2:
                         best_dist = dist
-                        # Prefer 3BR, fall back to overall median
                         best_rent = rent3br if rent3br else rent
         if best_rent and best_rent > 0:
-            census_est = round(best_rent * 1.30)
-            # Floor at ZORI so census never lowers the estimate vs what ZORI would give
+            rent_psf = round((best_rent * 1.20) / 1200, 2)
+            # Floor at ZORI-derived $/SF
             if zipcode in zori_by_zip:
-                zori_est = round(zori_by_zip[zipcode] * 1.30)
-                census_est = max(census_est, zori_est)
-            return census_est, "census-tract", 0, round(best_dist * 69, 2), 0
+                zori_psf = round((zori_by_zip[zipcode] * 1.20) / 1200, 2)
+                rent_psf = max(rent_psf, zori_psf)
+            return rent_psf, "census-tract", 0, round(best_dist * 69, 2), 0, 0
 
-    # Tier 5: ZORI zip-level × 1.30 premium (new-con townhomes = ~30% above all-stock median)
+    # Tier 5: ZORI zip-level — (zori × 1.20) / 1200
     if zipcode in zori_by_zip:
-        zori_rent = round(zori_by_zip[zipcode] * 1.30)
-        return zori_rent, "zori", 0, 0, 0
+        rent_psf = round((zori_by_zip[zipcode] * 1.20) / 1200, 2)
+        return rent_psf, "zori", 0, 0, 0, 0
 
-    # Tier 6: SAFMR fallback — fmr3br × 1.25
+    # Tier 6: SAFMR fallback — (fmr3br × 1.15) / 1200
     if safmr_3br and safmr_3br > 0:
-        safmr_rent = round(safmr_3br * 1.25)
-        return safmr_rent, "safmr", 0, 0, 0
+        rent_psf = round((safmr_3br * 1.15) / 1200, 2)
+        return rent_psf, "safmr", 0, 0, 0, 0
 
-    return 0, "none", 0, 0, 0
+    return 0, "none", 0, 0, 0, 0
 
 # 4d-d: Stamp rental estimates per listing
 if rental_comp_count > 0 or zori_by_zip:
@@ -1296,18 +1309,20 @@ if rental_comp_count > 0 or zori_by_zip:
 
     for i, l in enumerate(listings):
         safmr = l.get("fmr3br") or 0
-        est_rent, method, comp_count, radius_mi, med_beds = find_rental_estimate(
+        rent_psf, method, comp_count, radius_mi, med_beds, med_sqft = find_rental_psf(
             l["lat"], l["lng"], l.get("zip", ""), safmr
         )
-        if est_rent > 0:
-            l["estRentMonth"] = est_rent  # Override Step 4c SAFMR-based value
+        l["rentPsf"] = rent_psf
+        if rent_psf > 0:
+            l["estRentMonth"] = round(rent_psf * 1750)  # Backward compat at default unit size
         l["rentMethod"] = method
         l["rentCompCount"] = comp_count
         l["rentCompRadius"] = radius_mi
         l["rentCompMedianBeds"] = med_beds
+        l["rentCompMedianSqft"] = med_sqft
         tier_counts[method] += 1
-        if method in tier_rents and est_rent > 0:
-            tier_rents[method].append(est_rent)
+        if method in tier_rents and rent_psf > 0:
+            tier_rents[method].append(rent_psf)
 
         if (i + 1) % 5000 == 0:
             elapsed = time.time() - t0
@@ -1325,7 +1340,8 @@ if rental_comp_count > 0 or zori_by_zip:
         med_str = ""
         if tier_rents.get(method):
             vals = sorted(tier_rents[method])
-            med_str = f" (median ${vals[len(vals)//2]:,}/mo)"
+            med_psf = vals[len(vals)//2]
+            med_str = f" (median ${med_psf:.2f}/SF → ${round(med_psf * 1750):,}/mo)"
         print(f"     {method:20s}: {cnt:>6,} ({pct:5.1f}%){med_str}")
 
     with_rent = sum(1 for l in listings if l.get("estRentMonth") and l["estRentMonth"] > 0)
@@ -1338,9 +1354,11 @@ else:
     print(f"\n   No rental comp data or ZORI — keeping Step 4c SAFMR estimates")
     for l in listings:
         l["rentMethod"] = "safmr" if l.get("estRentMonth") else "none"
+        l["rentPsf"] = round(l["estRentMonth"] / 1750, 2) if l.get("estRentMonth") else 0
         l["rentCompCount"] = 0
         l["rentCompRadius"] = 0
         l["rentCompMedianBeds"] = 0
+        l["rentCompMedianSqft"] = 0
 
 # ── Step 5: Stamp lot slope from slopes.json ──
 SLOPE_FILE = market_file("slopes.json", market)

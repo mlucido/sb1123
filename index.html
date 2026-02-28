@@ -1266,10 +1266,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <h4 style="margin:0 0 8px;font-size:12px;color:var(--accent)">Build-to-Rent Assumptions</h4>
         <div class="proforma-inputs">
           <div class="proforma-group">
-            <label>Rent Premium <small>(SAFMR only)</small></label>
-            <input type="number" id="btrPremium" value="1.25" step="0.05" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
             <label>Vacancy %</label>
             <input type="number" id="btrVacancy" value="0.04" step="0.01" onchange="onProformaChange()">
           </div>
@@ -1965,7 +1961,7 @@ function btrConfidenceDot(conf){
 }
 
 function btrBlock(l, btr){
-  var hasRent = btr.baseRent > 0;
+  var hasRent = btr.rentPsf > 0;
   if(!hasRent){
     return '<div class="popup-divider"></div>'
       +'<div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>'
@@ -2012,7 +2008,7 @@ function btrBlock(l, btr){
   if(RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp')){
     btrContent += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+l.rentCompCount+' rental comps within '+l.rentCompRadius+'mi &#8599;</a></div>';
   }
-  btrContent += '<div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">('+proforma.avgUnitSf.toLocaleString()+' SF)</small></div></div>';
+  btrContent += '<div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF × '+proforma.avgUnitSf.toLocaleString()+' SF)</small></div></div>';
   btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
   btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
   btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
@@ -2354,15 +2350,15 @@ function findRentalCompsForListing(l){
     let isUsed = false;
 
     if(method === 'rental-comp' || method === 'rental-comp-wide'){
-      // Tier 1/2: 3+ BR, 1200+ SF, SFR/TH/Condo/MF types
-      const bdOk = (c.bd||0) >= 3;
-      const sfOk = (c.sqft||0) >= 1200;
+      // Tier 1/2: 3BR exact, 800-2500 SF, SFR/TH/Condo/MF types
+      const bdOk = (c.bd||0) === 3;
+      const sfOk = (c.sqft||0) >= 800 && (c.sqft||0) <= 2500;
       const ptOk = SFR_TH_TYPES.includes(c.pt||0);
       isUsed = inRadius && bdOk && sfOk && ptOk;
     } else if(method === 'rental-adj'){
-      // Tier 3: 2+ BR, 900+ SF, all types
+      // Tier 3: 2+ BR, 800+ SF, all types
       const bdOk = (c.bd||0) >= 2;
-      const sfOk = (c.sqft||0) >= 900;
+      const sfOk = (c.sqft||0) >= 800;
       isUsed = inRadius && bdOk && sfOk;
     } else {
       // ZORI/SAFMR — show nearby for reference but none "used"
@@ -2866,11 +2862,13 @@ function remainderAnalysis(l){
 // BTR (Build-to-Rent) Pro Forma Calculator
 function getRentSourceLabel(l) {
   const m = l.rentMethod;
-  if (m === 'rental-comp') return `${l.rentCompCount} rental comps within ${l.rentCompRadius} mi`;
-  if (m === 'rental-comp-wide') return `${l.rentCompCount} comps within ${l.rentCompRadius} mi <small>(wide)</small>`;
-  if (m === 'rental-adj') return `${l.rentCompCount} comps within ${l.rentCompRadius} mi <small>(2BR adj +20%)</small>`;
-  if (m === 'zori') return `ZORI <small>ZIP ${l.zip||'\u2014'}</small>`;
-  return `SAFMR <small>ZIP ${l.zip||'\u2014'}</small>`;
+  const psf = l.rentPsf ? ` ($${l.rentPsf.toFixed(2)}/SF)` : '';
+  if (m === 'rental-comp') return `${l.rentCompCount} rental comps within ${l.rentCompRadius} mi${psf}`;
+  if (m === 'rental-comp-wide') return `${l.rentCompCount} comps within ${l.rentCompRadius} mi <small>(wide)</small>${psf}`;
+  if (m === 'rental-adj') return `${l.rentCompCount} comps within ${l.rentCompRadius} mi <small>(2BR adj +15%)</small>${psf}`;
+  if (m === 'census-tract') return `Census tract${psf}`;
+  if (m === 'zori') return `ZORI <small>ZIP ${l.zip||'\u2014'}</small>${psf}`;
+  return `SAFMR <small>ZIP ${l.zip||'\u2014'}</small>${psf}`;
 }
 
 function calculateBTRProForma(l){
@@ -2878,7 +2876,6 @@ function calculateBTRProForma(l){
   const pf = calculateProForma(l);
 
   // BTR-specific assumptions (configurable via modal)
-  const newConPremium = parseFloat((document.getElementById('btrPremium')||{}).value) || 1.25;
   const vacancyRate = parseFloat((document.getElementById('btrVacancy')||{}).value) || 0.04;
   const opexRatio = parseFloat((document.getElementById('btrOpex')||{}).value) || 0.30;
   const capRate = parseFloat((document.getElementById('btrCapRate')||{}).value) || 0.055;
@@ -2886,11 +2883,9 @@ function calculateBTRProForma(l){
   const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.0625;
   const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
 
-  const hasEstRent = l.estRentMonth && l.estRentMonth > 0;
-  const baseRent = hasEstRent ? l.estRentMonth : (l.fmr3br || 0);
-  const rentRefSf = 1200; // SAFMR/ZORI benchmarks to a typical ~1,200 SF 3BR
-  const sizeAdj = proforma.avgUnitSf / rentRefSf; // scale rent proportionally to actual unit size
-  const rentPerUnit = Math.round((hasEstRent ? l.estRentMonth : Math.round(baseRent * newConPremium)) * sizeAdj);
+  const rentPsf = l.rentPsf || (l.estRentMonth > 0 ? l.estRentMonth / 1750 : 0);
+  const hasEstRent = rentPsf > 0;
+  const rentPerUnit = Math.round(rentPsf * proforma.avgUnitSf);
   const units = pf.maxUnits;
   const totalCost = pf.totalCost;
 
@@ -2916,15 +2911,13 @@ function calculateBTRProForma(l){
   const grm = grossAnnualRent > 0 ? pf.grossRevenue / grossAnnualRent : 0;
 
   // Does it pencil? (DSCR shown as informational, not a gate — it's a constant of cap/LTV/rate)
-  const btrPencils = yieldOnCost >= minYOC && baseRent > 0;
+  const btrPencils = yieldOnCost >= minYOC && rentPsf > 0;
 
   return {
     ...pf,  // inherit all BTS fields
     rentPerUnit,
-    baseRent,
+    rentPsf,
     hasEstRent,
-    newConPremium,
-    sizeAdj,
     grm,
     grossAnnualRent,
     effectiveGrossIncome,
@@ -3230,11 +3223,11 @@ function generateDealCard(l, opts){
 
   // ── BTR section (2-column) ──
   var btrSection = '';
-  if(btr.baseRent>0){
+  if(btr.rentPsf>0){
     btrSection = '<div class="dp-btr">';
     // Left column: Rent, NOI, YoC
     btrSection += '<div class="dp-btr-col">';
-    btrSection += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo</span></div>';
+    btrSection += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF)</small></span></div>';
     btrSection += '<div class="dp-row"><span class="dp-k">NOI</span><span class="dp-v">'+fmtDollar(btr.annualNOI)+'</span></div>';
     btrSection += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
     btrSection += '</div>';
@@ -3660,15 +3653,14 @@ function buildOffMarketLayer(){
         <div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>
         ${btr.btrPencils
           ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
-          : btr.baseRent <= 0
+          : btr.rentPsf <= 0
             ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
             : ''
         }
-        ${btr.baseRent > 0 ? `
+        ${btr.rentPsf > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp') ? `<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${l.rentCompCount} rental comps within ${l.rentCompRadius}mi &#8599;</a></div>` : ''}
-        ${btr.hasEstRent ? '' : `<div><div class="popup-label">Base FMR (3BR)</div><div class="popup-value">$${btr.baseRent.toLocaleString()}/mo</div></div>`}
-        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">(${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
+        <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">($${btr.rentPsf.toFixed(2)}/SF × ${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
         <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
         <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
