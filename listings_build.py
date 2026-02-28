@@ -1100,13 +1100,28 @@ RENTAL_COMPS_FILE = market_file("rental_comps.csv", market)
 rental_grid = {}  # { (row, col): [(lat, lng, rent, beds, sqft, prop_type), ...] }
 RENTAL_GRID_SIZE = 0.01  # ~0.7 mi cells, matches sale comp grid
 
+RENTAL_MAX_AGE_DAYS = 150  # Drop rental listings older than 5 months
 rental_comp_count = 0
+rental_stale_skipped = 0
 if os.path.exists(RENTAL_COMPS_FILE):
     print(f"\n🏠 Step 4d: Loading rental comps from {RENTAL_COMPS_FILE}...")
+    from datetime import datetime, timezone
+    _now = datetime.now(timezone.utc)
     with open(RENTAL_COMPS_FILE, encoding="utf-8", errors="replace") as f:
         reader = csv.DictReader(f)
         for row in reader:
             try:
+                # Freshness filter — drop stale listings
+                freshness_ts = row.get("FRESHNESS TIMESTAMP", "").strip()
+                if freshness_ts:
+                    try:
+                        dt = datetime.fromisoformat(freshness_ts.replace("Z", "+00:00"))
+                        if (_now - dt).days > RENTAL_MAX_AGE_DAYS:
+                            rental_stale_skipped += 1
+                            continue
+                    except Exception:
+                        pass
+
                 rent = float(re.sub(r"[^0-9.]", "", row.get("PRICE") or "0") or 0)
                 clat = float(row.get("LATITUDE") or 0)
                 clng = float(row.get("LONGITUDE") or 0)
@@ -1127,6 +1142,8 @@ if os.path.exists(RENTAL_COMPS_FILE):
             except (ValueError, TypeError):
                 continue
     print(f"   Loaded {rental_comp_count:,} rental comps in {len(rental_grid):,} grid cells")
+    if rental_stale_skipped:
+        print(f"   Skipped {rental_stale_skipped:,} stale listings (>{RENTAL_MAX_AGE_DAYS} days old)")
 else:
     print(f"\n⚠️  {RENTAL_COMPS_FILE} not found — run: python3 fetch_rental_comps.py")
 

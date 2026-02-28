@@ -8,6 +8,7 @@ Usage:
   python3 build_rental_data.py --market sd  # San Diego
 """
 import csv, json, re, os, sys
+from datetime import datetime, timezone
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from market_config import get_market, market_file
@@ -31,6 +32,7 @@ LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
 MIN_RENT = 500
 MAX_RENT = 20000
 MIN_SQFT = 100
+MAX_AGE_DAYS = 150  # Drop rental listings older than 5 months
 
 src = market_file("rental_comps.csv", market)
 if not os.path.exists(src):
@@ -41,7 +43,9 @@ print(f"\n  Reading {src}...")
 
 comps = []
 skipped = 0
+stale_skipped = 0
 total = 0
+now = datetime.now(timezone.utc)
 
 with open(src, encoding="utf-8", errors="replace") as f:
     reader = csv.DictReader(f)
@@ -54,6 +58,18 @@ with open(src, encoding="utf-8", errors="replace") as f:
             if not (LAT_MIN <= lat <= LAT_MAX and LNG_MIN <= lng <= LNG_MAX):
                 skipped += 1
                 continue
+
+            # Freshness filter — drop listings older than MAX_AGE_DAYS
+            freshness_ts = row.get("FRESHNESS TIMESTAMP", "").strip()
+            if freshness_ts:
+                try:
+                    dt = datetime.fromisoformat(freshness_ts.replace("Z", "+00:00"))
+                    age_days = (now - dt).days
+                    if age_days > MAX_AGE_DAYS:
+                        stale_skipped += 1
+                        continue
+                except Exception:
+                    pass  # Keep listings with unparseable dates
 
             price_str = re.sub(r"[^0-9.]", "", row.get("PRICE") or "0") or "0"
             rent = float(price_str)
@@ -112,7 +128,9 @@ with open(src, encoding="utf-8", errors="replace") as f:
 
 print(f"  Total rows: {total}")
 print(f"  Valid rental comps: {len(comps)}")
-print(f"  Skipped: {skipped}")
+print(f"  Skipped (quality/bounds): {skipped}")
+if stale_skipped:
+    print(f"  Skipped (stale >{MAX_AGE_DAYS}d): {stale_skipped}")
 
 if not comps:
     print("  No rental comps to write.")

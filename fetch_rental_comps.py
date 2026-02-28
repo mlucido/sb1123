@@ -131,6 +131,10 @@ def parse_homes(homes):
         prop_type_code = hd.get("propertyType", 0)
         prop_type = PT_TO_LABEL.get(prop_type_code, "Other")
 
+        # Date fields — freshnessTimestamp is when listing was posted/refreshed
+        freshness = rx.get("freshnessTimestamp", "")  # ISO 8601 e.g. "2026-01-20T00:26:48.215Z"
+        last_updated = rx.get("lastUpdated", "")      # ISO 8601 e.g. "2026-02-10T12:55:20.696947Z"
+
         # Rental data — use ranges (for buildings) or exact values (for single units)
         rent_range = rx.get("rentPriceRange", {})
         bed_range = rx.get("bedRange", {})
@@ -150,50 +154,45 @@ def parse_homes(homes):
         if rent_max <= 0:
             continue
 
+        # Common fields for all entries from this home
+        common = {
+            "lat": round(lat, 6),
+            "lng": round(lng, 6),
+            "prop_type": prop_type,
+            "address": address,
+            "city": city,
+            "state": state,
+            "zip": zipcode,
+            "freshness": freshness,
+            "last_updated": last_updated,
+        }
+
         # Single unit (min == max for beds) → one entry
         if beds_min == beds_max:
             results.append({
-                "lat": round(lat, 6),
-                "lng": round(lng, 6),
+                **common,
                 "price": rent_max,  # Use max rent (best case)
                 "beds": beds_max,
                 "baths": baths_max,
                 "sqft": sqft_max,
-                "prop_type": prop_type,
-                "address": address,
-                "city": city,
-                "state": state,
-                "zip": zipcode,
             })
         else:
             # Building with range — create entry using max (largest unit)
             results.append({
-                "lat": round(lat, 6),
-                "lng": round(lng, 6),
+                **common,
                 "price": rent_max,
                 "beds": beds_max,
                 "baths": baths_max,
                 "sqft": sqft_max,
-                "prop_type": prop_type,
-                "address": address,
-                "city": city,
-                "state": state,
-                "zip": zipcode,
             })
             # Also create entry for min bed count if different enough
             if beds_min >= 1 and rent_min > 0:
                 results.append({
-                    "lat": round(lat, 6),
-                    "lng": round(lng, 6),
+                    **common,
                     "price": rent_min,
                     "beds": beds_min,
                     "baths": bath_range.get("min"),
                     "sqft": sqft_min,
-                    "prop_type": prop_type,
-                    "address": address,
-                    "city": city,
-                    "state": state,
-                    "zip": zipcode,
                 })
 
     return results
@@ -410,11 +409,46 @@ def main():
     med = rents[len(rents) // 2]
     print(f"\n  Rent: median ${med:,} | min ${rents[0]:,} | max ${rents[-1]:,}")
 
+    # Freshness stats
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    age_days = []
+    missing_freshness = 0
+    for l in all_listings:
+        ts = l.get("freshness", "")
+        if not ts:
+            missing_freshness += 1
+            continue
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            age_days.append((now - dt).days)
+        except Exception:
+            missing_freshness += 1
+
+    if age_days:
+        age_days.sort()
+        buckets = {"<7d": 0, "7-30d": 0, "30-90d": 0, "90-150d": 0, ">150d": 0}
+        for d in age_days:
+            if d < 7: buckets["<7d"] += 1
+            elif d < 30: buckets["7-30d"] += 1
+            elif d < 90: buckets["30-90d"] += 1
+            elif d < 150: buckets["90-150d"] += 1
+            else: buckets[">150d"] += 1
+        med_age = age_days[len(age_days) // 2]
+        print(f"\n  Freshness (days since posted):")
+        print(f"     Median age: {med_age} days")
+        for label, count in buckets.items():
+            pct = count / len(age_days) * 100
+            print(f"     {label:>6s}: {count:>5,} ({pct:.0f}%)")
+        if missing_freshness:
+            print(f"     (no timestamp): {missing_freshness:,}")
+
     # ── Write CSV ──
     header = [
         "PROPERTY TYPE", "ADDRESS", "CITY", "STATE OR PROVINCE",
         "ZIP OR POSTAL CODE", "PRICE", "BEDS", "BATHS",
         "SQUARE FEET", "LATITUDE", "LONGITUDE",
+        "FRESHNESS TIMESTAMP", "LAST UPDATED",
     ]
     with open(output_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -432,6 +466,8 @@ def main():
                 l.get("sqft", ""),
                 l["lat"],
                 l["lng"],
+                l.get("freshness", ""),
+                l.get("last_updated", ""),
             ])
 
     size_kb = os.path.getsize(output_file) / 1024
