@@ -254,7 +254,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .popup-collapse-body.open{max-height:800px;transition:max-height 0.4s ease-in}
 
   /* Deal Card — Variant B (compact strip + expandable drawer) */
-  .deal-popup .leaflet-popup-content{min-width:380px;max-width:520px;margin:0!important;padding:0!important}
+  .deal-popup .leaflet-popup-content-wrapper{overflow:visible!important}
+  .deal-popup .leaflet-popup-content{min-width:380px;max-width:520px;margin:0!important;padding:0!important;overflow:visible!important}
   .dp-card{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text)}
 
   /* Strip (always visible) */
@@ -3083,6 +3084,23 @@ function rebuildMarkers(){
   refreshVisibility();
 }
 
+function toggleDealCard(el){
+  var card = el.closest('.dp-card');
+  if(!card) return;
+  card.classList.toggle('expanded');
+  // Tell Leaflet to recalculate popup size + position
+  var popup = el.closest('.leaflet-popup');
+  if(popup){
+    // Find the L.Popup object via the map's open popup
+    setTimeout(function(){
+      try{
+        var p = map._popup;
+        if(p && p._container === popup) p.update();
+      }catch(e){}
+    }, 400);
+  }
+}
+
 function generateDealCard(l, opts){
   opts = opts || {};
   var ctx = opts.context || 'bts';
@@ -3133,7 +3151,7 @@ function generateDealCard(l, opts){
   else if(l.remainderUnits>0) badges += '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+commas(l.remainderSf)+' SF ('+l.remainderUnits+')</div>';
 
   // ── Strip ──
-  var strip = '<div class="dp-strip" onclick="this.closest(\'.dp-card\').classList.toggle(\'expanded\');var p=this.closest(\'.leaflet-popup\');if(p){var c=p.querySelector(\'.leaflet-popup-content\');if(c)setTimeout(function(){p._leaflet_id&&map.eachLayer(function(ly){if(ly._popup&&ly._popup._container===p)ly._popup.update()})},50)}">';
+  var strip = '<div class="dp-strip" onclick="toggleDealCard(this)">';
   strip += '<div class="dp-addr">'+(l.address||'N/A')+'<small>'+(l.zone||'')+(l.dom!=null?' &bull; '+l.dom+'d':'')+'</small></div>';
   strip += '<div class="dp-metric"><div class="dp-val" style="color:'+marginColor+'">'+$(l.price)+'</div><div class="dp-lbl">List</div></div>';
   strip += '<div class="dp-metric"><div class="dp-val" style="color:'+el.color+'">$'+el.psf+'</div><div class="dp-lbl">'+el.short+'</div></div>';
