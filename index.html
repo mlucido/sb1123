@@ -4067,6 +4067,7 @@ function updateFilterCount(){
   if(lpc) lpc.textContent = `${listings} deals`;
 }
 
+let _otherZonesExpanded = false;
 function rebuildZoneToggles(){
   const el=document.getElementById('zoneToggles');
   if(!el){ console.error('zoneToggles element not found!'); return; }
@@ -4074,7 +4075,8 @@ function rebuildZoneToggles(){
   const filtered = getFilteredComps();
   // Count listings per zone ignoring zone toggle state (all other filters apply)
   const allFiltered = getFilteredListings(true);
-  ['R1','R2','R3','R4','LAND'].forEach(zone=>{
+
+  function makeRow(zone){
     const zc=filtered.filter(c=>c.zone===zone);
     const zl=allFiltered.filter(l=>l.zone===zone);
     const psfs=zc.map(c=>c.ppsf||c.price/c.sqft);
@@ -4088,8 +4090,29 @@ function rebuildZoneToggles(){
       <span class="zone-label">${zone} <small>${ZONE_LABELS[zone]}</small></span>
       <span class="zone-stat">${avg?'$'+avg+'/sf':'—'}<span class="data-count">${zl.length}</span></span>
     `;
-    el.appendChild(div);
-  });
+    return div;
+  }
+
+  // R1 always visible
+  el.appendChild(makeRow('R1'));
+
+  // Collapsible group for R2-R4, LAND
+  const otherCount = ['R2','R3','R4','LAND'].reduce((n,z)=>n+allFiltered.filter(l=>l.zone===z).length,0);
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 10px;cursor:pointer;font-size:11px;color:var(--text-dim);user-select:none';
+  header.innerHTML = `<span id="otherZoneChevron" style="font-size:9px;transition:transform 0.15s;transform:rotate(${_otherZonesExpanded?'90':'0'}deg)">▶</span> Other Zones <span class="data-count" style="margin-left:auto">${otherCount}</span>`;
+  header.onclick = function(){
+    _otherZonesExpanded = !_otherZonesExpanded;
+    document.getElementById('otherZoneChevron').style.transform = 'rotate('+(_otherZonesExpanded?90:0)+'deg)';
+    document.getElementById('otherZoneRows').style.display = _otherZonesExpanded ? 'block' : 'none';
+  };
+  el.appendChild(header);
+
+  const otherRows = document.createElement('div');
+  otherRows.id = 'otherZoneRows';
+  otherRows.style.display = _otherZonesExpanded ? 'block' : 'none';
+  ['R2','R3','R4','LAND'].forEach(z => otherRows.appendChild(makeRow(z)));
+  el.appendChild(otherRows);
 }
 
 // ══════════════════════════════════════════
