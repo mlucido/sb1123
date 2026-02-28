@@ -151,13 +151,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .kf-chips{display:flex;gap:4px;margin-left:auto}
   .kf-chip{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s}
   .kf-chip.active{background:#dcfce7;color:#16a34a}
-  .kf-chip:not(.active){background:#f1f5f9;color:#94a3b8}
+  .kf-chip:not(.active){background:#e2e8f0;color:#94a3b8}
   .kf-chip:hover:not(.active){background:#e2e8f0;color:#64748b}
-  .kf-range-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:2px}
+  .kf-range-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:6px}
   .kf-block{margin-bottom:14px}
 
   /* Secondary filter rows */
-  .sf-list{border-top:1px solid #f1f5f9;padding-top:8px}
+  .sf-list{border-top:1px solid #e2e8f0;margin-top:10px;padding-top:8px}
   .sf-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:11px;color:#64748b;cursor:pointer}
   .sf-row:hover{color:var(--text)}
   .sf-row .sf-chevron{color:#cbd5e1;font-size:10px;transition:transform 0.2s}
@@ -240,16 +240,36 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .range-inputs .input-group{flex:1}
   .range-inputs .input-label{font-size:9px;color:var(--text-dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em}
 
-  .range-slider-track{position:relative;height:5px;background:var(--surface2);border-radius:3px;margin:0 4px 10px}
-  .range-slider-fill{position:absolute;height:100%;background:var(--accent);border-radius:3px;opacity:0.4}
+  .range-slider-track{position:relative;height:4px;background:#e2e8f0;border-radius:2px;margin:0 4px 10px}
+  .range-slider-fill{position:absolute;height:100%;background:var(--accent);border-radius:2px;opacity:0.4}
   .range-slider-track input[type="range"]{
-    position:absolute;width:100%;height:5px;top:-4px;
-    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
+    position:absolute;width:100%;height:4px;top:0;
+    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;margin:0;
   }
   .range-slider-track input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;
-    background:var(--accent);border:2px solid var(--bg);cursor:pointer;pointer-events:auto;
-    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+    background:#3b82f6;border:2px solid #fff;cursor:pointer;pointer-events:auto;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);margin-top:-6px;
+  }
+  .range-slider-track input[type="range"]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:#3b82f6;border:2px solid #fff;cursor:pointer;pointer-events:auto;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+  /* Standalone single slider (Min Units) */
+  input[type="range"].standalone-slider{
+    -webkit-appearance:none;appearance:none;width:100%;height:4px;
+    background:#e2e8f0;border-radius:2px;outline:none;margin:0;
+  }
+  input[type="range"].standalone-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+    background:#3b82f6;border:2px solid #fff;cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);margin-top:-6px;
+  }
+  input[type="range"].standalone-slider::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:#3b82f6;border:2px solid #fff;cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
   }
 
   .filter-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-align:center;padding:6px 0;background:rgba(96,165,250,0.06);border-radius:6px}
@@ -632,9 +652,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
     /* Range slider: bigger touch targets */
     .range-slider-track input[type="range"]::-webkit-slider-thumb {
-      width: 24px; height: 24px;
+      width: 24px; height: 24px; margin-top: -10px;
     }
-    .range-slider-track input[type="range"] { height: 24px; top: -12px; }
+    .range-slider-track input[type="range"] { height: 4px; top: 0; }
+    input[type="range"].standalone-slider::-webkit-slider-thumb {
+      width: 24px; height: 24px; margin-top: -10px;
+    }
 
     /* Buttons: min 44px touch target */
     .mode-toggle, .layer-btn, .layer-row, .layer-cell, .panel-toggle, .fav-toggle,
@@ -1043,12 +1066,11 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
       <!-- Min Units -->
       <div class="kf-block">
-        <div class="kf-header"><span class="kf-label">Min Units</span></div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input type="range" id="minUnitsSlider" min="2" max="10" step="1" value="4" style="flex:1" oninput="onMinUnitsChange(this.value)">
-          <span id="minUnitsLabel" style="font-family:'JetBrains Mono',monospace;font-size:13px;min-width:32px;text-align:center;color:var(--accent)">4</span>
+        <div class="kf-header">
+          <span class="kf-label">Min Units</span>
+          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">4</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;margin-top:2px"><span>2</span><span>10</span></div>
+        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="4" oninput="onMinUnitsChange(this.value)">
       </div>
 
       <!-- Secondary filters -->
@@ -1546,7 +1568,7 @@ map.createPane('heatmapPane').style.zIndex = 350;
 map.createPane('compDotsPane').style.zIndex = 360;
 const listingsPane = map.createPane('listingsPane');
 listingsPane.style.zIndex = 450;
-listingsPane.style.filter = 'drop-shadow(0 0 6px rgba(0,0,0,0.5))';
+// Note: avoid CSS filter on pane — causes compositing bugs when swapping tile layers
 
 // Base tile layers
 const baseLayers = {
@@ -1573,6 +1595,8 @@ function setBaseMap(name){
   });
   // Toggle body class for light mode adjustments
   document.body.classList.toggle('light-mode', name==='light' || name==='satellite');
+  // Re-assert overlay layers after basemap swap
+  refreshVisibility();
 }
 
 Object.values(markerLayers).forEach(l=>l.addTo(map));
