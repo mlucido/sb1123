@@ -3098,17 +3098,6 @@ function toggleDealCard(el){
   var card = el.closest('.dp-card');
   if(!card) return;
   card.classList.toggle('expanded');
-  // Tell Leaflet to recalculate popup size + position
-  var popup = el.closest('.leaflet-popup');
-  if(popup){
-    // Find the L.Popup object via the map's open popup
-    setTimeout(function(){
-      try{
-        var p = map._popup;
-        if(p && p._container === popup) p.update();
-      }catch(e){}
-    }, 400);
-  }
 }
 
 function generateDealCard(l, opts){
