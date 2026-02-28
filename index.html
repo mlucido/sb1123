@@ -84,51 +84,86 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
   /* Stat pills */
   .stat-pills{display:flex;gap:8px;margin-top:8px}
-  .pill{flex:1;display:flex;flex-direction:column;align-items:center;background:#f1f5f9;padding:6px 4px;border-radius:6px}
-  body:not(.light-mode) .pill{background:var(--surface2)}
-  .pill-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--text)}
-  .pill-label{font-size:9px;color:var(--text-dim);margin-top:1px}
+  .pill{flex:1;text-align:center;padding:6px 0;border-radius:6px;background:#f1f5f9}
+  .pill-val{display:block;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#1e293b}
+  .pill-label{display:block;font-size:9px;color:#94a3b8;margin-top:1px}
 
   /* Sidebar scroll wrapper */
-  .sidebar-scroll{flex:1;overflow-y:auto;padding-bottom:10px}
+  .sidebar-scroll{flex:1;overflow-y:auto;padding-bottom:80px}
 
-  /* Layer grid (2-col) */
-  .layer-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
-  .layer-grid .layer-btn{font-size:11px;padding:6px 8px;margin-bottom:0}
+  /* Accordion headers */
+  .accordion-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+  .accordion-header .label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#475569;text-transform:uppercase}
+  .accordion-header .acc-right{display:flex;align-items:center;gap:8px}
+  .accordion-header .acc-dim{font-size:10px;color:#94a3b8;font-weight:400;text-transform:none;letter-spacing:0}
+  .accordion-header .acc-reset{font-size:10px;color:#3b82f6;cursor:pointer;font-weight:500;text-transform:none;letter-spacing:0}
+  .accordion-header .acc-reset:hover{text-decoration:underline}
+  .accordion-header .chevron{color:#94a3b8;font-size:10px;transition:transform 0.2s}
+  .accordion-section.collapsed .accordion-header .chevron{transform:rotate(-90deg)}
+  .accordion-section.collapsed .accordion-body{display:none}
+  .accordion-body{padding:8px 10px}
 
-  /* Layer cards (Off-Market / BTR) */
-  .layer-card{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;transition:all 0.15s;text-align:left}
-  .layer-card:hover{border-color:var(--accent)}
-  .layer-card.active{border-color:var(--accent);background:rgba(96,165,250,0.08)}
-  .layer-card[data-layer="offMarket"].active{border-color:var(--accent);background:rgba(96,165,250,0.08)}
-  .layer-card[data-layer="btr"].active{border-color:#f59e0b;background:rgba(245,158,11,0.08)}
-  .layer-card-row{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500}
-  .layer-card-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim)}
+  /* Layer rows (primary) */
+  .layer-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;font-size:11px;font-weight:500;margin-bottom:4px;transition:all 0.15s;font-family:inherit;background:transparent;width:100%;color:var(--text)}
+  .layer-row:hover{border-color:#94a3b8}
+  .layer-row .ldot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;transition:background 0.15s}
+  .layer-row .lname{flex:1;text-align:left}
+  .layer-row .lcount{font-family:'JetBrains Mono',monospace;font-size:10px;color:#94a3b8}
+
+  /* Layer grid (2-col for secondary layers) */
+  .layer-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+  .layer-cell{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;font-size:11px;font-weight:500;transition:all 0.15s;font-family:inherit;background:transparent;color:var(--text)}
+  .layer-cell:hover{border-color:#94a3b8}
+  .layer-cell .ldot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;transition:background 0.15s}
+  .layer-cell .lname{flex:1}
+  .layer-cell .lcount{font-family:'JetBrains Mono',monospace;font-size:10px;color:#94a3b8}
 
   /* Overlay chips */
-  .overlay-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
-  .chip-btn{padding:3px 8px;border:1px solid var(--border);border-radius:12px;background:transparent;color:var(--text-dim);font-size:10px;cursor:pointer;transition:all 0.15s;font-family:inherit}
-  .chip-btn:hover{border-color:var(--accent)}
-  .chip-btn.active{border-color:var(--accent);background:rgba(96,165,250,0.12);color:var(--accent)}
+  .overlay-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .chip-btn{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid #e2e8f0;color:#64748b;cursor:pointer;transition:all 0.15s;font-family:inherit;background:transparent}
+  .chip-btn:hover{border-color:#94a3b8}
+  .chip-btn.active{background:rgba(96,165,250,0.1);border-color:#3b82f6;color:#3b82f6}
+
+  /* Zoning compact row */
+  .zoning-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:6px 8px;border-radius:6px;background:#f8fafc}
+  .zoning-bar .zone-sw{width:12px;height:12px;border-radius:3px;background:#3b82f6;flex-shrink:0}
+  .zoning-bar .zone-name{font-size:11px;font-weight:500}
+  .zoning-bar .zone-psf{font-family:'JetBrains Mono',monospace;font-size:10px;color:#94a3b8}
+  .zoning-bar .zone-expand{font-size:10px;color:#64748b;margin-left:auto;cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+  .zoning-bar .zone-expand:hover{color:#3b82f6}
 
   /* Sticky bottom bar */
-  .sidebar-bottom{display:flex;flex-direction:column;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0}
+  .sidebar-bottom{display:flex;flex-direction:column;gap:6px;padding:10px 14px;border-top:1px solid #e2e8f0;background:#fff;flex-shrink:0}
   .sidebar-bottom .bottom-row{display:flex;gap:6px}
-  .bottom-btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font-size:11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit}
-  .bottom-btn:hover{border-color:var(--accent)}
+  .bottom-btn{flex:1;padding:8px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;color:var(--text);transition:all 0.15s}
+  .bottom-btn:hover{border-color:#94a3b8}
   .bottom-btn.active{border-color:#facc15;background:rgba(250,204,21,0.08)}
-  .bottom-btn.gear{flex:0 0 36px;font-size:16px}
-  .basemap-row{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px}
-  .basemap-link{cursor:pointer;color:var(--text-dim);transition:color 0.15s;background:none;border:none;font-family:inherit;font-size:10px;padding:0}
-  .basemap-link:hover{color:var(--accent)}
+  .bottom-btn.gear{padding:8px 10px;flex:none;font-size:16px}
+  .basemap-row{display:flex;justify-content:center;gap:12px;margin-top:8px}
+  .basemap-link{font-size:10px;cursor:pointer;color:#94a3b8;background:none;border:none;font-family:inherit;padding:0;transition:color 0.15s}
+  .basemap-link:hover{color:#3b82f6}
   .basemap-link.active{color:#3b82f6;font-weight:600}
-  .basemap-dot{color:var(--text-dim);font-size:8px}
+  .basemap-dot{color:#94a3b8;font-size:8px}
 
-  /* More Filters sub-section */
-  .more-filters-toggle{display:flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);font-weight:700;cursor:pointer;padding:8px 0;margin-top:4px}
-  .more-filters-toggle .chevron{transition:transform 0.2s;font-size:10px;margin-left:auto}
-  .more-filters-content.collapsed{display:none}
-  .more-filters-toggle.collapsed .chevron{transform:rotate(-90deg)}
+  /* Key filter labels */
+  .kf-header{display:flex;align-items:center;margin-bottom:6px}
+  .kf-label{font-size:11px;font-weight:600;color:var(--text)}
+  .kf-chips{display:flex;gap:4px;margin-left:auto}
+  .kf-chip{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s}
+  .kf-chip.active{background:#dcfce7;color:#16a34a}
+  .kf-chip:not(.active){background:#f1f5f9;color:#94a3b8}
+  .kf-chip:hover:not(.active){background:#e2e8f0;color:#64748b}
+  .kf-range-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:2px}
+  .kf-block{margin-bottom:14px}
+
+  /* Secondary filter rows */
+  .sf-list{border-top:1px solid #f1f5f9;padding-top:8px}
+  .sf-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:11px;color:#64748b;cursor:pointer}
+  .sf-row:hover{color:var(--text)}
+  .sf-row .sf-chevron{color:#cbd5e1;font-size:10px;transition:transform 0.2s}
+  .sf-row.expanded .sf-chevron{transform:rotate(90deg)}
+  .sf-body{display:none;padding:4px 0 8px}
+  .sf-row.expanded+.sf-body{display:block}
 
   .section{padding:14px 20px;border-bottom:1px solid var(--border)}
   .section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
@@ -602,7 +637,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     .range-slider-track input[type="range"] { height: 24px; top: -12px; }
 
     /* Buttons: min 44px touch target */
-    .mode-toggle, .layer-btn, .panel-toggle, .fav-toggle,
+    .mode-toggle, .layer-btn, .layer-row, .layer-cell, .panel-toggle, .fav-toggle,
     .reset-btn, .bottom-btn { min-height: 44px; }
     .preset-btn, .basemap-btn { min-height: 40px; }
 
@@ -876,54 +911,70 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
   <div class="sidebar-scroll">
 
+  <!-- Hidden elements kept for JS compatibility -->
+  <span id="compCount" style="display:none">0</span>
+  <span id="heatCount" style="display:none">0</span>
+  <div id="heatmapModeToggle" style="display:none"><button class="basemap-btn active" id="heatRaw"></button><button class="basemap-btn" id="heatNorm"></button><div id="heatmapModeLabel"></div></div>
+  <span id="filterCount" style="display:none"></span>
+
   <!-- ═══ LAYERS ═══ -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Layers <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <!-- Primary layers -->
-      <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)">
-        <span class="icon">●</span> On-Market <span class="layer-count" id="listingCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
-        <span class="icon" style="color:#8b5cf6">▪</span> Sale $/SF <span class="layer-count" id="neighborhoodCount">0</span>
-      </button>
-
-      <!-- Hidden comp count targets (JS still updates these) -->
-      <span id="compCount" style="display:none">0</span>
-      <span id="heatCount" style="display:none">0</span>
-      <div id="heatmapModeToggle" style="display:none">
-        <button class="basemap-btn active" id="heatRaw"></button>
-        <button class="basemap-btn" id="heatNorm"></button>
-        <div id="heatmapModeLabel"></div>
+  <div class="accordion-section" id="layersAccordion">
+    <div class="accordion-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="label">Layers</span>
+      <div class="acc-right">
+        <span class="acc-dim" id="layersActiveCount"></span>
+        <span class="chevron">▼</span>
       </div>
+    </div>
+    <div class="accordion-body">
+      <!-- Primary layers -->
+      <button class="layer-row active" data-layer="listings" onclick="toggleLayerRow('listings',this)">
+        <span class="ldot" style="background:#22c55e"></span>
+        <span class="lname">On-Market</span>
+        <span class="lcount" id="listingCount">0</span>
+      </button>
+      <button class="layer-row" data-layer="neighborhoods" onclick="toggleLayerRow('neighborhoods',this)">
+        <span class="ldot"></span>
+        <span class="lname">Sale $/SF</span>
+        <span class="lcount" id="neighborhoodCount">0</span>
+      </button>
 
-      <!-- Off-Market / BTR grid -->
-      <div class="layer-grid" style="margin-top:6px">
-        <button class="layer-card" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
-          <div class="layer-card-row"><span class="icon">◎</span> Off-Market</div>
-          <div class="layer-card-count" id="offMarketCount">0</div>
+      <!-- Secondary layers: Off-Market / BTR grid -->
+      <div class="layer-grid" style="margin-top:4px">
+        <button class="layer-cell" data-layer="offMarket" onclick="toggleLayerRow('offMarket',this)">
+          <span class="ldot"></span>
+          <span class="lname">Off-Market</span>
+          <span class="lcount" id="offMarketCount">0</span>
         </button>
-        <button class="layer-card" data-layer="btr" onclick="toggleLayer('btr',this)">
-          <div class="layer-card-row"><span class="icon" style="color:#f59e0b">◆</span> BTR</div>
-          <div class="layer-card-count" id="btrCount">0</div>
+        <button class="layer-cell" data-layer="btr" onclick="toggleLayerRow('btr',this)">
+          <span class="ldot"></span>
+          <span class="lname">BTR</span>
+          <span class="lcount" id="btrCount">0</span>
         </button>
       </div>
 
       <!-- Overlay chips -->
       <div class="overlay-chips">
-        <button class="chip-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)">Parcels</button>
-        <button class="chip-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">🔥 Fire</button>
-        <button class="chip-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)">🌊 Flood</button>
-        <button class="chip-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">🏔 Quake</button>
+        <button class="chip-btn active" data-layer="parcels" onclick="toggleLayerRow('parcels',this)">Parcels</button>
+        <button class="chip-btn" data-layer="fireZones" onclick="toggleLayerRow('fireZones',this)">🔥 Fire</button>
+        <button class="chip-btn" data-layer="floodZones" onclick="toggleLayerRow('floodZones',this)">🌊 Flood</button>
+        <button class="chip-btn" data-layer="liquefaction" onclick="toggleLayerRow('liquefaction',this)">🏔 Quake</button>
       </div>
 
       <!-- Zoning -->
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Zoning</div>
-      <div id="zoneToggles"></div>
+      <div class="zoning-bar" id="zoningBar">
+        <span class="zone-sw"></span>
+        <span class="zone-name" id="zoningBarName">R1</span>
+        <span class="zone-psf" id="zoningBarPsf"></span>
+        <button class="zone-expand" id="zoningExpandBtn" onclick="document.getElementById('zoneTogglesWrap').style.display=this.textContent.indexOf('+')>=0?'block':'none';this.textContent=this.textContent.indexOf('+')>=0?'− zones':'+ zones'">+ zones</button>
+      </div>
+      <div id="zoneTogglesWrap" style="display:none;margin-top:6px">
+        <div id="zoneToggles"></div>
+      </div>
 
       <!-- Condition Tier (shown when comp layer active) -->
       <div id="tierFilterSection" style="display:none;margin-top:8px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Condition Tier</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#475569;margin-bottom:6px;font-weight:700">Condition Tier</div>
         <label class="zone-toggle" style="margin:0 0 2px">
           <input type="checkbox" checked onchange="tierState.t1=this.checked;updateCompPoints()">
           <span class="check-box"></span>
@@ -939,103 +990,71 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           <span class="zone-stat" id="tierT2Count">0</span>
         </label>
       </div>
-
     </div>
   </div>
 
   <!-- ═══ FILTERS ═══ -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Filters <span class="filter-reset-link" onclick="event.stopPropagation();resetFilter('all')" style="margin-left:auto;font-size:10px;color:#3b82f6;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500">reset</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
+  <div class="accordion-section" id="filtersAccordion">
+    <div class="accordion-header" onclick="var t=event.target;if(t.classList.contains('acc-reset'))return;this.parentElement.classList.toggle('collapsed')">
+      <span class="label">Filters</span>
+      <div class="acc-right">
+        <span class="acc-reset" onclick="event.stopPropagation();resetFilter('all')">reset</span>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+    <div class="accordion-body" style="padding:10px 14px">
 
-  <!-- KEY: Deal Margin -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Deal Margin <span class="badge">KEY</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min %</div><input type="number" id="marginMin" step="5"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max %</div><input type="number" id="marginMax" step="5"></div>
+      <!-- Margin -->
+      <div class="kf-block">
+        <div class="kf-header">
+          <span class="kf-label">Margin</span>
+          <div class="kf-chips">
+            <button class="kf-chip active" onclick="setMarginPreset(30,this)">30%+</button>
+            <button class="kf-chip" onclick="setMarginPreset(20,this)">20%+</button>
+            <button class="kf-chip" onclick="setMarginPreset(0,this)">0%+</button>
+          </div>
         </div>
+        <!-- Hidden inputs for JS compat -->
+        <input type="number" id="marginMin" step="5" style="display:none">
+        <input type="number" id="marginMax" step="5" style="display:none">
         <div class="range-slider-track">
           <div class="range-slider-fill" id="marginSliderFill"></div>
           <input type="range" id="marginSliderMin" min="-100" max="100" step="5" value="30">
           <input type="range" id="marginSliderMax" min="-100" max="100" step="5" value="100">
         </div>
-        <div class="preset-row">
-          <button class="preset-btn active" onclick="setMarginPreset(30,this)">Green (30%+)</button>
-          <button class="preset-btn" onclick="setMarginPreset(20,this)">Yellow+ (20%+)</button>
-          <button class="preset-btn" onclick="setMarginPreset(0,this)">Profitable (0%+)</button>
-        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- KEY: Lot Size -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotMin" step="500"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotMax" step="500"></div>
+      <!-- Lot Size -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Lot Size</span></div>
+        <div class="kf-range-labels">
+          <span id="lotRangeMin">12K sf</span>
+          <span id="lotRangeMax">45K sf</span>
         </div>
+        <!-- Hidden inputs for JS compat -->
+        <input type="number" id="lotMin" step="500" style="display:none">
+        <input type="number" id="lotMax" step="500" style="display:none">
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotSliderFill"></div>
           <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="12000">
           <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- KEY: Min Units -->
-  <div class="section">
-    <div class="section-title" onclick="toggleSection(this)">Min Units <span class="badge">KEY</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
+      <!-- Min Units -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Min Units</span></div>
         <div style="display:flex;align-items:center;gap:10px">
           <input type="range" id="minUnitsSlider" min="2" max="10" step="1" value="4" style="flex:1" oninput="onMinUnitsChange(this.value)">
           <span id="minUnitsLabel" style="font-family:'JetBrains Mono',monospace;font-size:13px;min-width:32px;text-align:center;color:var(--accent)">4</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim);margin-top:2px"><span>2</span><span>10</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;margin-top:2px"><span>2</span><span>10</span></div>
       </div>
-    </div>
-  </div>
 
-  <!-- More Filters (collapsed by default) -->
-  <div class="more-filters-toggle collapsed" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed')">
-    More Filters <span class="chevron">▼</span>
-  </div>
-  <div class="more-filters-content collapsed">
-
-    <!-- Lot Width -->
-    <div class="section">
-      <div class="section-title" onclick="toggleSection(this)">Lot Width <span class="chevron">▼</span></div>
-      <div class="section-content">
-        <div class="range-filter">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="lotwSliderFill"></div>
-            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
-            <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
-          </div>
-          <button class="reset-btn" onclick="resetFilter('lotw')">Reset Lot Width</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Asking Price -->
-    <div class="section collapsed">
-      <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
-      <div class="section-content">
-        <div class="range-filter">
+      <!-- Secondary filters -->
+      <div class="sf-list">
+        <div class="sf-row" onclick="this.classList.toggle('expanded')">Asking Price <span class="sf-chevron">▸</span></div>
+        <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
             <span class="separator">—</span>
@@ -1046,16 +1065,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
             <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
             <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="3000000">
           </div>
-          <button class="reset-btn" onclick="resetFilter('price')">Reset Price Filter</button>
         </div>
-      </div>
-    </div>
 
-    <!-- $/SF -->
-    <div class="section collapsed">
-      <div class="section-title" onclick="toggleSection(this)">$/SF <span class="chevron">▼</span></div>
-      <div class="section-content">
-        <div class="range-filter">
+        <div class="sf-row" onclick="this.classList.toggle('expanded')">$/SF <span class="sf-chevron">▸</span></div>
+        <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
             <span class="separator">—</span>
@@ -1066,16 +1079,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
             <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
             <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
           </div>
-          <button class="reset-btn" onclick="resetFilter('psf')">Reset $/SF Filter</button>
         </div>
-      </div>
-    </div>
 
-    <!-- Home Size -->
-    <div class="section collapsed">
-      <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
-      <div class="section-content">
-        <div class="range-filter">
+        <div class="sf-row" onclick="this.classList.toggle('expanded')">Home Size <span class="sf-chevron">▸</span></div>
+        <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="sqftMin" step="100"></div>
             <span class="separator">—</span>
@@ -1086,16 +1093,24 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
             <input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0">
             <input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000">
           </div>
-          <button class="reset-btn" onclick="resetFilter('sqft')">Reset Size Filter</button>
         </div>
-      </div>
-    </div>
 
-    <!-- Terrain Slope -->
-    <div class="section collapsed">
-      <div class="section-title" onclick="toggleSection(this)">Slope <span class="chevron">▼</span></div>
-      <div class="section-content">
-        <div class="range-filter">
+        <div class="sf-row" onclick="this.classList.toggle('expanded')">Lot Width <span class="sf-chevron">▸</span></div>
+        <div class="sf-body">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="lotwSliderFill"></div>
+            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
+            <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
+          </div>
+        </div>
+
+        <div class="sf-row" onclick="this.classList.toggle('expanded')">Slope <span class="sf-chevron">▸</span></div>
+        <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min %</div><input type="number" id="slopeMin" step="1"></div>
             <span class="separator">—</span>
@@ -1106,25 +1121,18 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
             <input type="range" id="slopeSliderMin" min="0" max="100" step="1" value="0">
             <input type="range" id="slopeSliderMax" min="0" max="100" step="1" value="100">
           </div>
-          <button class="reset-btn" onclick="resetFilter('slope')">Reset Slope Filter</button>
         </div>
       </div>
-    </div>
 
-  </div><!-- /more-filters-content -->
+      <!-- Hide Burn Zones -->
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px" id="burnZoneSection">
+        <label class="zone-toggle" style="margin:0;padding:0">
+          <input type="checkbox" id="hideBurnZones" checked onchange="toggleBurnZoneFilter(this.checked)">
+          <span class="check-box" style="width:14px;height:14px"></span>
+          <span style="font-size:11px;color:var(--red)" id="burnZoneLabel">Hide Burn Zones</span>
+        </label>
+      </div>
 
-  <!-- Burn Zone Toggle -->
-  <div style="padding:6px 0" id="burnZoneSection">
-    <label class="zone-toggle" style="margin:0">
-      <input type="checkbox" id="hideBurnZones" checked onchange="toggleBurnZoneFilter(this.checked)">
-      <span class="check-box"></span>
-      <span class="zone-label" style="color:var(--red)" id="burnZoneLabel">Hide Burn Zones</span>
-    </label>
-  </div>
-
-
-      <!-- Filter summary (hidden, kept for JS compat) -->
-      <span id="filterCount" style="display:none"></span>
     </div>
   </div>
 
@@ -1134,9 +1142,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="sidebar-bottom">
     <div class="bottom-row">
       <button class="bottom-btn" id="favToggle" onclick="toggleFavoritesFilter()">
-        <span>Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
+        <span>&#9733; Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
       </button>
-      <button class="bottom-btn" onclick="exportCSV()">Export</button>
+      <button class="bottom-btn" onclick="exportCSV()">&#128202; Export</button>
       <button class="bottom-btn gear" onclick="openAssumptionsModal()" title="Deal Assumptions">&#9881;</button>
     </div>
     <div class="basemap-row">
@@ -3788,16 +3796,56 @@ function setHeatmapMode(mode) {
   if (layerState.compHeat) compHeatLayer.addTo(map);
 }
 
+var LAYER_COLORS = {listings:'#22c55e',neighborhoods:'#8b5cf6',offMarket:'#3b82f6',btr:'#f59e0b',parcels:'#3b82f6',fireZones:'#ef4444',floodZones:'#3b82f6',liquefaction:'#a855f7',markers:'#64748b',compHeat:'#f0641e'};
 function toggleLayer(layer,btn){
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
-  // Show/hide comp sub-controls when compHeat toggles
   if(layer === 'compHeat'){
-    const show = layerState.compHeat;
-    document.getElementById('heatmapModeToggle').style.display = show ? 'block' : 'none';
-    document.getElementById('tierFilterSection').style.display = show ? 'block' : 'none';
+    document.getElementById('heatmapModeToggle').style.display = layerState.compHeat ? 'block' : 'none';
+    document.getElementById('tierFilterSection').style.display = layerState.compHeat ? 'block' : 'none';
   }
   refreshVisibility();
+  updateLayersActiveCount();
+}
+function toggleLayerRow(layer,btn){
+  layerState[layer]=!layerState[layer];
+  btn.classList.toggle('active');
+  // Update dot color
+  var dot=btn.querySelector('.ldot');
+  if(dot) dot.style.background=layerState[layer]?(LAYER_COLORS[layer]||'#3b82f6'):'#cbd5e1';
+  // Tinted border/bg for active state
+  if(layerState[layer]){
+    var c=LAYER_COLORS[layer]||'#3b82f6';
+    btn.style.borderColor=c+'40';
+    btn.style.background=c+'08';
+  } else {
+    btn.style.borderColor='#e2e8f0';
+    btn.style.background='transparent';
+  }
+  if(layer === 'compHeat'){
+    document.getElementById('heatmapModeToggle').style.display = layerState.compHeat ? 'block' : 'none';
+    document.getElementById('tierFilterSection').style.display = layerState.compHeat ? 'block' : 'none';
+  }
+  refreshVisibility();
+  updateLayersActiveCount();
+}
+function initLayerRowStates(){
+  document.querySelectorAll('.layer-row.active,.layer-cell.active,.chip-btn.active').forEach(function(btn){
+    var layer=btn.dataset.layer;
+    if(!layer) return;
+    var dot=btn.querySelector('.ldot');
+    if(dot) dot.style.background=LAYER_COLORS[layer]||'#3b82f6';
+    var c=LAYER_COLORS[layer]||'#3b82f6';
+    if(btn.classList.contains('chip-btn')) return; // chips use CSS
+    btn.style.borderColor=c+'40';
+    btn.style.background=c+'08';
+  });
+}
+function updateLayersActiveCount(){
+  var n=0;
+  ['listings','neighborhoods','offMarket','btr','parcels','fireZones','floodZones','liquefaction'].forEach(function(k){if(layerState[k])n++});
+  var el=document.getElementById('layersActiveCount');
+  if(el) el.textContent=n+' active';
 }
 
 function toggleSection(titleEl){
@@ -3997,6 +4045,16 @@ function rebuildZoneToggles(){
   otherRows.style.display = _otherZonesExpanded ? 'block' : 'none';
   ['R2','R3','R4','LAND'].forEach(z => otherRows.appendChild(makeRow(z)));
   el.appendChild(otherRows);
+  // Update zoning bar summary (R1 stats)
+  var r1c=filtered.filter(c=>c.zone==='R1');
+  var r1psfs=r1c.map(c=>c.ppsf||c.price/c.sqft);
+  var r1avg=r1psfs.length?Math.round(r1psfs.reduce((a,b)=>a+b,0)/r1psfs.length):0;
+  var zbn=document.getElementById('zoningBarName');
+  var zbp=document.getElementById('zoningBarPsf');
+  var zbsw=document.querySelector('.zoning-bar .zone-sw');
+  if(zbn) zbn.textContent='R1';
+  if(zbp) zbp.textContent=r1avg?'$'+r1avg+'/sf':'';
+  if(zbsw && typeof ZONE_COLORS!=='undefined') zbsw.style.background=ZONE_COLORS.R1||'#3b82f6';
 }
 
 // ══════════════════════════════════════════
@@ -4169,10 +4227,17 @@ function updateFill(key){
   const range=f.dataMax-f.dataMin; if(range<=0) return;
   fill.style.left=((f.min-f.dataMin)/range)*100+'%';
   fill.style.width=((f.max-f.min)/range)*100+'%';
+  // Update lot range labels
+  if(key==='lot'){
+    var lm=document.getElementById('lotRangeMin'),lx=document.getElementById('lotRangeMax');
+    if(lm) lm.textContent=fmtSf(f.min);
+    if(lx) lx.textContent=fmtSf(f.max);
+  }
 }
+function fmtSf(v){return v>=1000?(v/1000).toFixed(v%1000?1:0).replace(/\.0$/,'')+'K sf':v+' sf'}
 
 function setMarginPreset(minPct,btn){
-  document.querySelectorAll('.preset-row .preset-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.preset-row .preset-btn, .kf-chips .kf-chip').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   const f=filters.margin;
   f.min=minPct; f.max=f.dataMax;
@@ -4409,7 +4474,10 @@ function resetFilter(key){
     newThisWeekFilter=false;
     var ntwCb=document.getElementById('newThisWeekCheckbox'); if(ntwCb) ntwCb.checked=false;
     resetMinUnits();
-    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.preset-btn,.kf-chip').forEach(b=>b.classList.remove('active'));
+    // Re-activate the 30%+ chip as default
+    var defChip=document.querySelector('.kf-chip');
+    if(defChip) defChip.classList.add('active');
     return;
   }
   const f=filters[key]; f.min=f.dataMin; f.max=f.dataMax;
@@ -5046,6 +5114,8 @@ window.addEventListener('DOMContentLoaded', function(){
       updateFilterCount();
       updateFavCount();
       updateStatPills();
+      updateLayersActiveCount();
+      initLayerRowStates();
       updatePinLegend();
       initDrawControl();
       showOnboardingIfNeeded();
