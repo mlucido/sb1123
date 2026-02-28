@@ -255,7 +255,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
   /* Deal Card v2 */
   .deal-popup .leaflet-popup-content-wrapper{overflow:visible!important}
-  .deal-popup .leaflet-popup-content{min-width:480px;max-width:580px;margin:0!important;padding:0!important;overflow:visible!important}
+  .deal-popup .leaflet-popup-content{min-width:560px;max-width:660px;margin:0!important;padding:0!important;overflow:visible!important}
   .dp-card{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text)}
 
   /* Strip (always visible) */
@@ -279,7 +279,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-card.expanded .dp-drawer{max-height:3000px;transition:max-height 0.4s ease-in}
 
   /* 3-column body */
-  .dp-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:6px 6px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .dp-body{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;margin:6px 6px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
   .dp-col{min-width:0;padding:8px 10px}
   .dp-col+.dp-col{border-left:1px solid var(--border)}
   .dp-col-head{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin-bottom:6px}
@@ -3173,7 +3173,7 @@ function generateDealCard(l, opts){
   col1 += '<div class="dp-sep"></div>';
   col1 += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
   var moColor = pf.max_offer>=l.price?'var(--green)':'var(--red)';
-  col1 += '<div class="dp-row"><span class="dp-k">Max Offer @ 30%</span><span class="dp-v" style="color:'+moColor+'">'+fmtDollar(pf.max_offer)+'</span></div>';
+  col1 += '<div class="dp-row"><span class="dp-k">Max Offer</span><span class="dp-v" style="color:'+moColor+'">'+fmtDollar(pf.max_offer)+'</span></div>';
   col1 += '<div class="dp-row"><span class="dp-k">Est Profit</span><span class="dp-v" style="color:'+(pf.profit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(pf.profit)+'</span></div>';
   col1 += '<div class="dp-row"><span class="dp-k">Net Revenue</span><span class="dp-v">'+fmtDollar(pf.netRevenue)+'</span></div>';
   col1 += '</div>';
@@ -3312,7 +3312,7 @@ function rebuildListings(){
       className: isNewListing ? 'listing-marker-new' : '',
     });
 
-    cm.bindPopup(generateDealCard(l),{maxWidth:520,className:'deal-popup'});
+    cm.bindPopup(generateDealCard(l),{maxWidth:660,className:'deal-popup'});
     cm.addTo(listingsLayer);
   });
 
@@ -3351,7 +3351,7 @@ function buildBTRLayer(){
     });
 
     const marker = L.marker([l.lat, l.lng], { icon: btrIcon });
-    marker.bindPopup(generateDealCard(l, {context:'btr'}), {maxWidth:520, className:'deal-popup'});
+    marker.bindPopup(generateDealCard(l, {context:'btr'}), {maxWidth:660, className:'deal-popup'});
     marker.addTo(btrLayer);
   });
 
@@ -5289,7 +5289,7 @@ window.addEventListener('DOMContentLoaded', function(){
                   return Math.abs(x.lat - lat) < 0.0001 && Math.abs(x.lng - lng) < 0.0001;
                 });
                 if(pinListing){
-                  L.popup({maxWidth:520, className:'deal-popup'})
+                  L.popup({maxWidth:660, className:'deal-popup'})
                     .setLatLng([lat, lng])
                     .setContent(generateDealCard(pinListing))
                     .openOn(map);
