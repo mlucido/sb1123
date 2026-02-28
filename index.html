@@ -68,29 +68,50 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
   .app-row{display:flex;flex:1;overflow:hidden}
 
-  /* ── Hero Stat Bar ── */
-  .hero-stats{
-    background:rgba(96,165,250,0.06);border-bottom:1px solid var(--border);
-    padding:8px 20px;display:flex;align-items:center;justify-content:center;
-    gap:20px;font-size:12px;font-weight:500;white-space:nowrap;
-    overflow-x:auto;z-index:900;
-  }
-  .hero-stats .stat-item{display:flex;align-items:center;gap:6px}
-  .hero-stats .stat-value{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
-  .hero-stats .stat-value.green{color:var(--green)}
-  .hero-stats .separator{color:var(--border);font-weight:300}
+  /* (hero-stats removed — stats now in sidebar pills) */
   .onboarding-tip{position:absolute;top:140px;left:50%;transform:translateX(-50%);max-width:500px;background:#fff;border:2px solid var(--green);border-radius:8px;padding:12px 40px 12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:13px;line-height:1.5;animation:slideIn 0.3s ease-out}
   .onboarding-tip .close-btn{position:absolute;top:8px;right:8px;background:none;border:none;font-size:20px;color:var(--text-dim);cursor:pointer;padding:4px 8px;line-height:1}
   .onboarding-tip .close-btn:hover{color:var(--text)}
   @keyframes slideIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
   /* ── Sidebar ── */
-  .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
+  .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow:hidden}
   .sidebar-header{padding:20px 20px 14px;border-bottom:1px solid var(--border)}
   .sidebar-header h1{font-size:17px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px}
   .sidebar-header h1 span{color:var(--green)}
   .sidebar-header p{font-size:11px;color:var(--text-dim);line-height:1.5}
   .sidebar-header .law-ref{font-size:10px;color:var(--accent);margin-top:4px;opacity:0.7}
+
+  /* Stat pills */
+  .stat-pills{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .pill{font-size:10px;color:var(--text-dim);background:var(--surface2);padding:3px 8px;border-radius:4px}
+  .pill-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
+
+  /* Sidebar scroll wrapper */
+  .sidebar-scroll{flex:1;overflow-y:auto}
+
+  /* Layer grid (2×2) */
+  .layer-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+  .layer-grid .layer-btn{font-size:11px;padding:6px 8px;margin-bottom:0}
+
+  /* Overlay chips */
+  .overlay-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+  .chip-btn{padding:3px 8px;border:1px solid var(--border);border-radius:12px;background:transparent;color:var(--text-dim);font-size:10px;cursor:pointer;transition:all 0.15s;font-family:inherit}
+  .chip-btn:hover{border-color:var(--accent)}
+  .chip-btn.active{border-color:var(--accent);background:rgba(96,165,250,0.12);color:var(--accent)}
+
+  /* Sticky bottom bar */
+  .sidebar-bottom{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface)}
+  .bottom-btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font-size:11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit}
+  .bottom-btn:hover{border-color:var(--accent)}
+  .bottom-btn.active{border-color:#facc15;background:rgba(250,204,21,0.08)}
+  .bottom-btn.gear{flex:0 0 36px;font-size:16px}
+
+  /* More Filters sub-section */
+  .more-filters-toggle{display:flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);font-weight:700;cursor:pointer;padding:8px 0;margin-top:4px}
+  .more-filters-toggle .chevron{transition:transform 0.2s;font-size:10px;margin-left:auto}
+  .more-filters-content.collapsed{display:none}
+  .more-filters-toggle.collapsed .chevron{transform:rotate(-90deg)}
 
   .section{padding:14px 20px;border-bottom:1px solid var(--border)}
   .section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
@@ -464,14 +485,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .section-title .chevron{transition:transform 0.2s;font-size:10px;margin-left:auto;color:var(--text-dim)}
   .section.collapsed .section-title .chevron{transform:rotate(-90deg)}
 
-  /* Export button */
-  .export-btn{
-    display:block;width:100%;padding:8px;margin-top:6px;
-    background:rgba(96,165,250,0.1);border:1px solid var(--accent);border-radius:6px;
-    color:var(--accent);font-family:inherit;font-size:11px;cursor:pointer;
-    transition:all 0.15s;text-align:center;
-  }
-  .export-btn:hover{background:rgba(96,165,250,0.2)}
+  /* (export-btn removed — export now in bottom bar) */
   .refresh-btn{
     padding:4px 10px;background:rgba(34,197,94,0.1);border:1px solid var(--green);
     border-radius:4px;color:var(--green);font-family:inherit;font-size:10px;
@@ -524,8 +538,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       z-index: 1100; transition: height 0.3s ease;
       overflow: hidden;
     }
-    .sidebar.sheet-half { height: 40vh; overflow-y: auto; }
-    .sidebar.sheet-full { height: 85vh; overflow-y: auto; }
+    .sidebar.sheet-half { height: 40vh; }
+    .sidebar.sheet-full { height: 85vh; }
 
     /* Sheet handle */
     .sheet-handle {
@@ -572,7 +586,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
     /* Buttons: min 44px touch target */
     .mode-toggle, .layer-btn, .panel-toggle, .fav-toggle,
-    .reset-btn, .export-btn { min-height: 44px; }
+    .reset-btn, .bottom-btn { min-height: 44px; }
     .preset-btn, .basemap-btn { min-height: 40px; }
 
     /* Legend + panel tab: hide on mobile */
@@ -815,25 +829,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </head>
 <body class="light-mode">
 
-<!-- Hero Stat Bar -->
-<div class="hero-stats">
-  <div class="stat-item"><span class="stat-value green" id="heroForSale">—</span> For Sale</div>
-  <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value" id="heroOffMarket">—</span> Off-Market Targets</div>
-  <span class="separator">|</span>
-  <div class="stat-item"><span class="stat-value green" id="heroHighMargin">—</span> Deals Above 30% Margin</div>
-  <span class="separator">|</span>
-  <div class="stat-item">Avg Margin: <span class="stat-value" id="heroAvgMargin">—</span></div>
-  <span class="separator" id="heroBtrSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrItem" style="display:none"><span class="stat-value" id="heroBtrDeals" style="color:#f59e0b">—</span> BTR Deals</div>
-  <span class="separator" id="heroBtrYocSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrYocItem" style="display:none">Avg Base YOC: <span class="stat-value" id="heroBtrYoc" style="color:#f59e0b">—</span></div>
-  <span class="separator" id="heroBtrRentSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrRentItem" style="display:none">Avg Base Rent: <span class="stat-value" id="heroBtrRent" style="color:#f59e0b">—</span></div>
-  <span class="separator" id="heroBtrZoriSep" style="display:none">|</span>
-  <div class="stat-item" id="heroBtrZoriItem" style="display:none">Avg ZORI: <span class="stat-value" id="heroBtrZori" style="color:#f59e0b">—</span></div>
-</div>
-
 <div class="app-row">
 <aside class="sidebar">
   <div class="sheet-handle" id="sheetHandle">
@@ -853,113 +848,98 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <p id="marketSubtitle">Townhome development sites in Los Angeles</p>
     <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
+    <div class="stat-pills" id="statPills">
+      <span class="pill"><span class="pill-val" id="pillOnMarket">0</span> On-Market</span>
+      <span class="pill"><span class="pill-val" id="pillComps">0</span> Comps</span>
+      <span class="pill">Min Margin <span class="pill-val" id="pillMinMargin">30%</span></span>
+    </div>
   </div>
 
   <div class="loading-banner" id="loadingBanner">Rendering data...</div>
 
-  <!-- ═══ QUICK ACTIONS ═══ -->
-  <div class="section">
-    <div class="section-title">Quick Actions</div>
-    <div class="section-content">
-      <div class="preset-row">
-        <button class="preset-btn" onclick="toggleNewThisWeek(this)" title="Listed in last 7 days">New This Week</button>
-      </div>
-    </div>
-  </div>
+  <div class="sidebar-scroll">
 
-  <!-- ═══ PRIMARY LAYERS ═══ -->
+  <!-- ═══ LAYERS ═══ -->
   <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Layers <span class="chevron">▼</span></div>
     <div class="section-content">
+      <!-- Primary layers -->
       <button class="layer-btn active" data-layer="listings" onclick="toggleLayer('listings',this)">
-        <span class="icon">●</span> For Sale <span class="layer-count" id="listingCount">0</span>
+        <span class="icon">●</span> On-Market <span class="layer-count" id="listingCount">0</span>
       </button>
       <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
         <span class="icon" style="color:#8b5cf6">▪</span> Sale $/SF <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
-    </div>
-  </div>
 
-  <!-- ═══ SECONDARY LAYERS ═══ -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">More Layers <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
-        <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)">
-        <span class="icon" style="color:#f59e0b">◆</span> Build to Rent <span class="layer-count" id="btrCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)">
-        <span class="icon">○</span> Recent Sales <span class="layer-count" id="compCount">0</span>
-      </button>
-      <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)">
-        <span class="icon" style="color:#f0641e">▪</span> Sale Price Heatmap <span class="layer-count" id="heatCount">0</span>
-      </button>
-      <div id="heatmapModeToggle" style="display:none;padding:2px 12px 6px">
+      <!-- 2×2 grid -->
+      <div class="layer-grid">
+        <button class="layer-btn" data-layer="markers" onclick="toggleLayer('markers',this)">
+          <span class="icon">○</span> Recent Sales <span class="layer-count" id="compCount">0</span>
+        </button>
+        <button class="layer-btn" data-layer="compHeat" onclick="toggleLayer('compHeat',this)">
+          <span class="icon" style="color:#f0641e">▪</span> Heatmap <span class="layer-count" id="heatCount">0</span>
+        </button>
+        <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">
+          <span class="icon" style="color:#ef4444">!</span> Fire Risk
+        </button>
+        <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)">
+          <span class="icon" style="color:#3b82f6">~</span> Flood Risk
+        </button>
+      </div>
+      <div id="heatmapModeToggle" style="display:none;padding:2px 0 6px">
         <div style="display:flex;gap:4px">
           <button class="basemap-btn active" id="heatRaw" onclick="setHeatmapMode('raw')">Raw $/SF</button>
           <button class="basemap-btn" id="heatNorm" onclick="setHeatmapMode('normalized')">Normalized</button>
         </div>
         <div style="font-size:9px;color:var(--text-dim);margin-top:3px" id="heatmapModeLabel">All sales, raw $/SF</div>
       </div>
-      <button class="layer-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)">
-        <span class="icon">◻</span> Parcel Boundaries
-      </button>
-      <button class="layer-btn" data-layer="fireZones" onclick="toggleLayer('fireZones',this)">
-        <span class="icon" style="color:#ef4444">!</span> Fire Risk
-      </button>
-      <button class="layer-btn" data-layer="floodZones" onclick="toggleLayer('floodZones',this)">
-        <span class="icon" style="color:#3b82f6">~</span> Flood Risk
-      </button>
-      <button class="layer-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">
-        <span class="icon" style="color:#a855f7">▪</span> Earthquake Risk
-      </button>
+
+      <!-- Overlay chips -->
+      <div class="overlay-chips">
+        <button class="chip-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)">Parcels</button>
+        <button class="chip-btn" data-layer="liquefaction" onclick="toggleLayer('liquefaction',this)">Earthquake</button>
+        <button class="chip-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">Off-Market <span class="layer-count" id="offMarketCount">0</span></button>
+        <button class="chip-btn" data-layer="btr" onclick="toggleLayer('btr',this)">BTR <span class="layer-count" id="btrCount">0</span></button>
+      </div>
+
+      <!-- Zoning -->
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Zoning</div>
+      <div id="zoneToggles"></div>
+
+      <!-- Condition Tier (shown when comp layer active) -->
+      <div id="tierFilterSection" style="display:none;margin-top:8px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700">Condition Tier</div>
+        <label class="zone-toggle" style="margin:0 0 2px">
+          <input type="checkbox" checked onchange="tierState.t1=this.checked;updateCompPoints()">
+          <span class="check-box"></span>
+          <span class="zone-swatch" style="background:#14b8a6"></span>
+          <span class="zone-label">T1 — New / Remodel</span>
+          <span class="zone-stat" id="tierT1Count">0</span>
+        </label>
+        <label class="zone-toggle" style="margin:0">
+          <input type="checkbox" checked onchange="tierState.t2=this.checked;updateCompPoints()">
+          <span class="check-box"></span>
+          <span class="zone-swatch" style="background:#64748b"></span>
+          <span class="zone-label">T2 — Existing / As-Is</span>
+          <span class="zone-stat" id="tierT2Count">0</span>
+        </label>
+      </div>
+
+      <!-- Basemap -->
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin:8px 0;font-weight:700">Base Map</div>
+      <div class="basemap-group">
+        <button class="basemap-btn active" data-base="light" onclick="setBaseMap('light')">Light</button>
+        <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
+      </div>
     </div>
   </div>
 
-  <!-- ═══ BASEMAP ═══ -->
-  <div class="section">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Base Map</div>
-    <div class="basemap-group" style="padding:0 12px">
-      <button class="basemap-btn active" data-base="light" onclick="setBaseMap('light')">Light</button>
-      <button class="basemap-btn" data-base="satellite" onclick="setBaseMap('satellite')">Satellite</button>
-    </div>
-  </div>
-
-  <!-- ═══ ZONING ═══ (always visible) -->
-  <div class="section">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Zoning</div>
-    <div id="zoneToggles" style="padding:0 12px"></div>
-  </div>
-
-  <!-- ═══ CONDITION TIER ═══ (visible when comp layer active) -->
-  <div class="section" id="tierFilterSection" style="display:none">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:8px;font-weight:700;padding:0 12px">Condition Tier</div>
-    <div style="padding:0 12px">
-      <label class="zone-toggle" style="margin:0 0 2px">
-        <input type="checkbox" checked onchange="tierState.t1=this.checked;updateCompPoints()">
-        <span class="check-box"></span>
-        <span class="zone-swatch" style="background:#14b8a6"></span>
-        <span class="zone-label">T1 — New / Remodel</span>
-        <span class="zone-stat" id="tierT1Count">0</span>
-      </label>
-      <label class="zone-toggle" style="margin:0">
-        <input type="checkbox" checked onchange="tierState.t2=this.checked;updateCompPoints()">
-        <span class="check-box"></span>
-        <span class="zone-swatch" style="background:#64748b"></span>
-        <span class="zone-label">T2 — Existing / As-Is</span>
-        <span class="zone-stat" id="tierT2Count">0</span>
-      </label>
-    </div>
-  </div>
-
-  <!-- ═══ FILTERS ═══ (expanded, but subsections collapsed) -->
+  <!-- ═══ FILTERS ═══ -->
   <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Filters <span class="chevron">▼</span></div>
     <div class="section-content">
 
-  <!-- Margin Filter -->
+  <!-- KEY: Deal Margin -->
   <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Deal Margin <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
@@ -984,7 +964,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
 
-  <!-- Lot Size Filter -->
+  <!-- KEY: Lot Size -->
   <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Lot Size <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
@@ -1004,68 +984,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
 
-  <!-- Lot Width Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Lot Width <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
-        </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="lotwSliderFill"></div>
-          <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
-          <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('lotw')">Reset Lot Width</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- List Price Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="priceMax" step="25000"></div>
-        </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="priceSliderFill"></div>
-          <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
-          <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="3000000">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('price')">Reset Price Filter</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- $/SF Filter -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Price per Sq Ft <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="psfMax" step="50"></div>
-        </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="psfSliderFill"></div>
-          <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
-          <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('psf')">Reset $/SF Filter</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Min Units Filter -->
-  <div class="section collapsed">
+  <!-- KEY: Min Units -->
+  <div class="section">
     <div class="section-title" onclick="toggleSection(this)">Min Units <span class="badge">KEY</span> <span class="chevron">▼</span></div>
     <div class="section-content">
       <div class="range-filter">
@@ -1079,48 +999,116 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
 
-  <!-- Structure Size -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min</div><input type="number" id="sqftMin" step="100"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max</div><input type="number" id="sqftMax" step="100"></div>
-        </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="sqftSliderFill"></div>
-          <input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0">
-          <input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('sqft')">Reset Size Filter</button>
-      </div>
-    </div>
+  <!-- More Filters (collapsed by default) -->
+  <div class="more-filters-toggle collapsed" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed')">
+    More Filters <span class="chevron">▼</span>
   </div>
+  <div class="more-filters-content collapsed">
 
-  <!-- Lot Slope -->
-  <div class="section collapsed">
-    <div class="section-title" onclick="toggleSection(this)">Terrain Slope <span class="badge">NEW</span> <span class="chevron">▼</span></div>
-    <div class="section-content">
-      <div class="range-filter">
-        <div class="range-inputs">
-          <div class="input-group"><div class="input-label">Min %</div><input type="number" id="slopeMin" step="1"></div>
-          <span class="separator">—</span>
-          <div class="input-group"><div class="input-label">Max %</div><input type="number" id="slopeMax" step="1"></div>
+    <!-- Lot Width -->
+    <div class="section">
+      <div class="section-title" onclick="toggleSection(this)">Lot Width <span class="chevron">▼</span></div>
+      <div class="section-content">
+        <div class="range-filter">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="lotwSliderFill"></div>
+            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
+            <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
+          </div>
+          <button class="reset-btn" onclick="resetFilter('lotw')">Reset Lot Width</button>
         </div>
-        <div class="range-slider-track">
-          <div class="range-slider-fill" id="slopeSliderFill"></div>
-          <input type="range" id="slopeSliderMin" min="0" max="100" step="1" value="0">
-          <input type="range" id="slopeSliderMax" min="0" max="100" step="1" value="100">
-        </div>
-        <button class="reset-btn" onclick="resetFilter('slope')">Reset Slope Filter</button>
       </div>
     </div>
-  </div>
+
+    <!-- Asking Price -->
+    <div class="section collapsed">
+      <div class="section-title" onclick="toggleSection(this)">Asking Price <span class="chevron">▼</span></div>
+      <div class="section-content">
+        <div class="range-filter">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max</div><input type="number" id="priceMax" step="25000"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="priceSliderFill"></div>
+            <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
+            <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="3000000">
+          </div>
+          <button class="reset-btn" onclick="resetFilter('price')">Reset Price Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- $/SF -->
+    <div class="section collapsed">
+      <div class="section-title" onclick="toggleSection(this)">$/SF <span class="chevron">▼</span></div>
+      <div class="section-content">
+        <div class="range-filter">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max</div><input type="number" id="psfMax" step="50"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="psfSliderFill"></div>
+            <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
+            <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
+          </div>
+          <button class="reset-btn" onclick="resetFilter('psf')">Reset $/SF Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home Size -->
+    <div class="section collapsed">
+      <div class="section-title" onclick="toggleSection(this)">Home Size <span class="chevron">▼</span></div>
+      <div class="section-content">
+        <div class="range-filter">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min</div><input type="number" id="sqftMin" step="100"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max</div><input type="number" id="sqftMax" step="100"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="sqftSliderFill"></div>
+            <input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0">
+            <input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000">
+          </div>
+          <button class="reset-btn" onclick="resetFilter('sqft')">Reset Size Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terrain Slope -->
+    <div class="section collapsed">
+      <div class="section-title" onclick="toggleSection(this)">Terrain Slope <span class="chevron">▼</span></div>
+      <div class="section-content">
+        <div class="range-filter">
+          <div class="range-inputs">
+            <div class="input-group"><div class="input-label">Min %</div><input type="number" id="slopeMin" step="1"></div>
+            <span class="separator">—</span>
+            <div class="input-group"><div class="input-label">Max %</div><input type="number" id="slopeMax" step="1"></div>
+          </div>
+          <div class="range-slider-track">
+            <div class="range-slider-fill" id="slopeSliderFill"></div>
+            <input type="range" id="slopeSliderMin" min="0" max="100" step="1" value="0">
+            <input type="range" id="slopeSliderMax" min="0" max="100" step="1" value="100">
+          </div>
+          <button class="reset-btn" onclick="resetFilter('slope')">Reset Slope Filter</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /more-filters-content -->
 
   <!-- Burn Zone Toggle -->
-  <div class="section" style="padding:6px 14px" id="burnZoneSection">
+  <div style="padding:6px 0" id="burnZoneSection">
     <label class="zone-toggle" style="margin:0">
       <input type="checkbox" id="hideBurnZones" checked onchange="toggleBurnZoneFilter(this.checked)">
       <span class="check-box"></span>
@@ -1128,6 +1116,14 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </label>
   </div>
 
+  <!-- New This Week -->
+  <div style="padding:6px 0">
+    <label class="zone-toggle" style="margin:0" id="newThisWeekToggle">
+      <input type="checkbox" id="newThisWeekCheckbox" onchange="toggleNewThisWeek()">
+      <span class="check-box"></span>
+      <span class="zone-label">New This Week</span>
+    </label>
+  </div>
 
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
@@ -1135,23 +1131,15 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
 
-  <!-- ═══ SAVED DEALS ═══ -->
-  <div class="section">
-    <button class="fav-toggle" id="favToggle" onclick="toggleFavoritesFilter()">
-      <span style="font-size:14px">★</span> Saved Deals
-      <span class="fav-count" id="favCount">0</span>
+  </div><!-- /sidebar-scroll -->
+
+  <!-- ═══ STICKY BOTTOM BAR ═══ -->
+  <div class="sidebar-bottom">
+    <button class="bottom-btn" id="favToggle" onclick="toggleFavoritesFilter()">
+      <span>Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
     </button>
-  </div>
-
-  <!-- ═══ DEAL ASSUMPTIONS ═══ -->
-  <div class="section" style="display:flex;align-items:center;gap:8px">
-    <span style="font-size:12px;color:var(--text-dim)">Deal Assumptions</span>
-    <button class="gear-icon" onclick="openAssumptionsModal()" title="Edit deal assumptions">⚙</button>
-  </div>
-
-  <!-- ═══ EXPORT ═══ -->
-  <div class="section">
-    <button class="export-btn" onclick="exportCSV()">📊 Export CSV</button>
+    <button class="bottom-btn" onclick="exportCSV()">Export</button>
+    <button class="bottom-btn gear" onclick="openAssumptionsModal()" title="Deal Assumptions">&#9881;</button>
   </div>
 </aside>
 
@@ -3742,75 +3730,12 @@ function closeDataKeyModal(){
 //  HERO STAT BAR (updates with filters)
 // ══════════════════════════════════════════
 
-function updateHeroStats(){
+function updateStatPills(){
   const filtered = getFilteredListings();
-  const forSale = filtered.filter(l=>l.sb1123Eligible);
-  
-  // Count off-market opportunities (must match buildOffMarketLayer filter)
-  const offMarket = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
-    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
-    const structure_sf = l.sqft || 0;
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
-    const est_market_value = hood_psf * structure_sf;
-    const est_offer = est_market_value * 0.95;
-    const exit_psf = hood_psf;
-    const gross_revenue_h = maxUnits * exit_psf * proforma.avgUnitSf;
-    const net_revenue = gross_revenue_h * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const demo = l.sqft > 0 ? proforma.demoCost : 0;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + demo;
-    const h_carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
-    const h_carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
-    const h_insurance = proforma.insurance || 40000;
-    const h_origination = total_build * ((proforma.originationPct || 1) / 100);
-    const total_carry = h_carry_interest + h_carry_prop_tax + h_insurance + h_origination;
-    const total_cost = est_offer + total_build + total_carry;
-    const est_profit = net_revenue - total_cost;
-    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    const spread = hood_psf - land_basis_psf - adjBuildCostPerSf;
-    const lotEff = l.lotEfficiency || 0;
-    const slope = l.slope || 0;
-    return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
-  }).length;
-  
-  const highMargin = forSale.filter(l => l.estMargin >= 30).length;
-  const positiveMargin = forSale.filter(l => l.estMargin > 0);
-  const avgMargin = positiveMargin.length ? Math.round(positiveMargin.reduce((sum,l)=>sum+l.estMargin,0)/positiveMargin.length) : 0;
-  
-  document.getElementById('heroForSale').textContent = forSale.length.toLocaleString();
-  document.getElementById('heroOffMarket').textContent = offMarket.toLocaleString();
-  document.getElementById('heroHighMargin').textContent = highMargin.toLocaleString();
-  document.getElementById('heroAvgMargin').textContent = avgMargin + '%';
-
-  // BTR hero stats — visible when BTR layer is on
-  const showBtr = layerState.btr;
-  ['heroBtrSep','heroBtrItem','heroBtrYocSep','heroBtrYocItem','heroBtrRentSep','heroBtrRentItem','heroBtrZoriSep','heroBtrZoriItem'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.style.display = showBtr ? '' : 'none';
-  });
-  if(showBtr){
-    // Use DSCR gate for BTR-viable deals
-    const btrDeals = LISTINGS.filter(l => {
-      if(!l.sb1123Eligible) return false;
-      if(!(l.estRentMonth > 0 || l.fmr3br > 0 || l.yocBase > 0)) return false;
-      const btrPF = calculateBTRProForma(l);
-      return btrPF.btrPencils;
-    });
-    const btrYocs = btrDeals.map(l => l.yocBase).filter(y => y > 0);
-    const avgYoc = btrYocs.length ? (btrYocs.reduce((a,b)=>a+b,0)/btrYocs.length*100).toFixed(1) : '0.0';
-    const btrRents = btrDeals.map(l => l.rentBase).filter(r => r > 0);
-    const avgRent = btrRents.length ? Math.round(btrRents.reduce((a,b)=>a+b,0)/btrRents.length) : 0;
-    const zoris = btrDeals.map(l => l.zoriBase).filter(z => z > 0);
-    const avgZori = zoris.length ? Math.round(zoris.reduce((a,b)=>a+b,0)/zoris.length) : 0;
-    document.getElementById('heroBtrDeals').textContent = btrDeals.length.toLocaleString();
-    document.getElementById('heroBtrYoc').textContent = avgYoc + '%';
-    document.getElementById('heroBtrRent').textContent = '$' + avgRent.toLocaleString() + '/mo';
-    document.getElementById('heroBtrZori').textContent = avgZori > 0 ? '$' + avgZori.toLocaleString() + '/mo' : 'N/A';
-  }
+  const eligible = filtered.filter(l=>l.sb1123Eligible);
+  document.getElementById('pillOnMarket').textContent = eligible.length.toLocaleString();
+  document.getElementById('pillComps').textContent = (typeof LOADED_COMPS!=='undefined' ? LOADED_COMPS.length : 0).toLocaleString();
+  document.getElementById('pillMinMargin').textContent = filters.margin.min + '%';
 }
 
 // ══════════════════════════════════════════
@@ -3923,8 +3848,14 @@ function toggleListingsPanel(){
 
 // ── Presets ──
 function toggleNewThisWeek(btn){
-  newThisWeekFilter = !newThisWeekFilter;
-  if(btn) btn.classList.toggle('active', newThisWeekFilter);
+  // Support both old button and new checkbox style
+  if(btn && btn.classList) {
+    newThisWeekFilter = !newThisWeekFilter;
+    btn.classList.toggle('active', newThisWeekFilter);
+  } else {
+    const cb = document.getElementById('newThisWeekCheckbox');
+    newThisWeekFilter = cb ? cb.checked : !newThisWeekFilter;
+  }
   applyFilters();
 }
 
@@ -4259,7 +4190,7 @@ function applyFilters(){
   rebuildZoneToggles();
   updateStats();
   updateFilterCount();
-  updateHeroStats();
+  updateStatPills();
   refreshVisibility();
   applyPolygonOpacity();
 }
@@ -4471,6 +4402,7 @@ function resetFilter(key){
   if(key==='all'){
     ['margin','price','psf','sqft','lot','lotw','slope'].forEach(k=>resetFilter(k));
     newThisWeekFilter=false;
+    var ntwCb=document.getElementById('newThisWeekCheckbox'); if(ntwCb) ntwCb.checked=false;
     resetMinUnits();
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     return;
@@ -5108,7 +5040,7 @@ window.addEventListener('DOMContentLoaded', function(){
       updateStats();
       updateFilterCount();
       updateFavCount();
-      updateHeroStats();
+      updateStatPills();
       updatePinLegend();
       initDrawControl();
       showOnboardingIfNeeded();
@@ -5213,7 +5145,11 @@ function setSheetState(state) {
   sidebar.classList.remove('sheet-half', 'sheet-full');
   if (state === 'half') sidebar.classList.add('sheet-half');
   else if (state === 'full') sidebar.classList.add('sheet-full');
-  if (state === 'collapsed') sidebar.scrollTop = 0;
+  if (state === 'collapsed') {
+    sidebar.scrollTop = 0;
+    var scrollEl = sidebar.querySelector('.sidebar-scroll');
+    if(scrollEl) scrollEl.scrollTop = 0;
+  }
 }
 
 function openMobileSheet() {
