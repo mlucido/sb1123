@@ -1216,6 +1216,9 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
     grow = math.floor(lat / RENTAL_GRID_SIZE)
     gcol = math.floor(lng / RENTAL_GRID_SIZE)
 
+    SIZE_ELASTICITY = 0.35  # Power-law decay: $/SF drops as unit size grows
+    MIN_COMPS_FOR_P75 = 8  # Below this, use median instead of P75
+
     def p75(vals):
         vals.sort()
         return vals[int(len(vals) * 0.75)]
@@ -1223,6 +1226,22 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
     def median_val(vals):
         vals.sort()
         return vals[len(vals) // 2]
+
+    def pick_psf(vals):
+        """Use P75 when we have enough comps, median when few."""
+        if len(vals) >= MIN_COMPS_FOR_P75:
+            return p75(vals)
+        return median_val(vals)
+
+    def size_adjust(raw_psf, median_sqft):
+        """Adjust $/SF for size mismatch vs 1,750 SF target unit.
+        Smaller comps have higher $/SF — scale down when extrapolating to larger units.
+        Larger comps have lower $/SF — scale up when extrapolating to smaller units.
+        """
+        if median_sqft <= 0:
+            return raw_psf
+        ratio = (median_sqft / 1750) ** SIZE_ELASTICITY
+        return raw_psf * ratio
 
     def collect_comps(radius, exact_beds, min_beds, min_sqft, max_sqft, types_filter):
         """Collect rental comps within radius matching criteria.
@@ -1261,7 +1280,10 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
             beds_list = [b for _, b, _ in comps]
             sqft_list = [s for _, _, s in comps]
             miles = round(radius * 69, 2)
-            return round(p75(psf_vals), 2), "rental-comp", len(comps), miles, median_val(beds_list), round(median_val(sqft_list))
+            med_sqft = round(median_val(list(sqft_list)))
+            raw_psf = pick_psf(psf_vals)
+            adj_psf = size_adjust(raw_psf, med_sqft)
+            return round(adj_psf, 2), "rental-comp", len(comps), miles, median_val(beds_list), med_sqft
 
     # Tier 2: rental-comp-wide — 2mi, 3BR exact, 800-2500 SF, SFR/TH/Condo/MF2-4
     comps = collect_comps(0.029, 3, 0, 800, 2500, SFR_TH_TYPES)
@@ -1269,7 +1291,10 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
         psf_vals = [rpsf for rpsf, _, _ in comps]
         beds_list = [b for _, b, _ in comps]
         sqft_list = [s for _, _, s in comps]
-        return round(p75(psf_vals), 2), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list), round(median_val(sqft_list))
+        med_sqft = round(median_val(list(sqft_list)))
+        raw_psf = pick_psf(psf_vals)
+        adj_psf = size_adjust(raw_psf, med_sqft)
+        return round(adj_psf, 2), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list), med_sqft
 
     # Tier 3: rental-adj — 1mi, 2+ BR, 800+ SF, ALL types, +15% if median beds < 3
     comps = collect_comps(0.015, None, 2, 800, 0, None)
@@ -1278,10 +1303,12 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
         beds_list = [b for _, b, _ in comps]
         sqft_list = [s for _, _, s in comps]
         med_beds = median_val(list(beds_list))
-        rent_psf = p75(psf_vals)
+        med_sqft = round(median_val(list(sqft_list)))
+        rent_psf = pick_psf(psf_vals)
         if med_beds < 3:
             rent_psf = rent_psf * 1.15
-        return round(rent_psf, 2), "rental-adj", len(comps), round(0.015 * 69, 2), med_beds, round(median_val(sqft_list))
+        adj_psf = size_adjust(rent_psf, med_sqft)
+        return round(adj_psf, 2), "rental-adj", len(comps), round(0.015 * 69, 2), med_beds, med_sqft
 
     # Tier 4: Census tract-level rent — nearest centroid within 0.02° (~1.4 mi)
     # Convert 3BR rent to $/SF: (rent3br × 1.20) / 1200
