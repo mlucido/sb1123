@@ -1081,19 +1081,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           </div>
         </div>
 
-        <div class="sf-row" onclick="this.classList.toggle('expanded')">Home Size <span class="sf-chevron">▸</span></div>
-        <div class="sf-body">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min</div><input type="number" id="sqftMin" step="100"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max</div><input type="number" id="sqftMax" step="100"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="sqftSliderFill"></div>
-            <input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0">
-            <input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000">
-          </div>
-        </div>
+        <!-- Home Size filter inputs hidden for JS compat -->
+        <input type="number" id="sqftMin" step="100" style="display:none">
+        <input type="number" id="sqftMax" step="100" style="display:none">
+        <div style="display:none"><div id="sqftSliderFill"></div><input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0"><input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000"></div>
 
         <div class="sf-row" onclick="this.classList.toggle('expanded')">Lot Width <span class="sf-chevron">▸</span></div>
         <div class="sf-body">
