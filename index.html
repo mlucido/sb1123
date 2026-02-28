@@ -862,9 +862,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <div class="section-title">Quick Actions</div>
     <div class="section-content">
       <div class="preset-row">
-        <button class="preset-btn" onclick="applyPreset('newThisWeek',this)" title="Listed in last 7 days">New This Week</button>
-        <button class="preset-btn" onclick="applyPreset('stale',this)" title="60+ days on market">Stale Listings</button>
-        <button class="preset-btn" onclick="applyPreset('offMarket',this)" title="Show off-market acquisition targets">Off-Market</button>
+        <button class="preset-btn" onclick="toggleNewThisWeek(this)" title="Listed in last 7 days">New This Week</button>
       </div>
     </div>
   </div>
@@ -3939,31 +3937,9 @@ function toggleListingsPanel(){
 })();
 
 // ── Presets ──
-function applyPreset(name,btn){
-  // Clear all first
-  resetFilter('all');
-  sb1123Mode = true;
-  newThisWeekFilter = false;
-
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-
-  if(name === 'stale'){
-    // Stale inventory — negotiation leverage
-    currentSort = {key:'dom', dir:'desc'};
-  } else if(name === 'newThisWeek'){
-    // New listings this week — DOM <= 7
-    newThisWeekFilter = true;
-    currentSort = {key:'dom', dir:'asc'};
-  } else if(name === 'offMarket'){
-    // Toggle Off-Market layer on, zoom to show opportunities
-    if(!layerState.offMarket){
-      layerState.offMarket = true;
-      const btn = document.querySelector('[data-layer="offMarket"]');
-      if(btn) btn.classList.add('active');
-      refreshVisibility();
-    }
-  }
+function toggleNewThisWeek(btn){
+  newThisWeekFilter = !newThisWeekFilter;
+  if(btn) btn.classList.toggle('active', newThisWeekFilter);
   applyFilters();
 }
 
