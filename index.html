@@ -19,10 +19,17 @@ var _urlMarket = new URLSearchParams(window.location.search).get('market') || 'l
 var MARKET_CONFIG = {
   la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:11,
         dataFile:'data.js', listingsFile:'listings.js', rentalDataFile:'rental_data.js',
-        burnZones:true, subtitle:'Townhome development sites in Los Angeles' },
+        burnZones:true, burnZoneLabel:'Palisades + Eaton',
+        hasZimas:true,
+        hazardsUrl:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer',
+        parcelUrl:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer',
+        subtitle:'Townhome development sites in Los Angeles' },
   sd: { name:'San Diego', slug:'sd', center:[32.77,-117.15], zoom:10,
         dataFile:'sd_data.js', listingsFile:'sd_listings.js', rentalDataFile:'sd_rental_data.js',
-        burnZones:false, subtitle:'Townhome development sites in San Diego' }
+        burnZones:false, burnZoneLabel:'',
+        hasZimas:false,
+        hazardsUrl:null, parcelUrl:null,
+        subtitle:'Townhome development sites in San Diego' }
 };
 var MARKET = MARKET_CONFIG[_urlMarket] || MARKET_CONFIG.la;
 document.title = 'SB 1123 Deal Finder — ' + MARKET.name;
@@ -1122,7 +1129,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <label class="zone-toggle" style="margin:0">
       <input type="checkbox" id="hideBurnZones" checked onchange="toggleBurnZoneFilter(this.checked)">
       <span class="check-box"></span>
-      <span class="zone-label" style="color:var(--red)">Hide Burn Zones <small>(Palisades + Eaton)</small></span>
+      <span class="zone-label" style="color:var(--red)" id="burnZoneLabel">Hide Burn Zones</span>
     </label>
   </div>
 
@@ -1748,29 +1755,27 @@ function updateCompPoints(){
 }
 if(L.esri){
   try {
-    fireZoneLayer = L.esri.dynamicMapLayer({
-      url:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer',
-      layers:[2],
-      opacity:0.4
-    });
-    // FEMA 100-year + 500-year flood plains (LA County Hazards service)
-    floodZoneLayer = L.esri.dynamicMapLayer({
-      url:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer',
-      layers:[11,12],
-      opacity:0.4
-    });
-    // CGS Liquefaction zones (CA state service)
+    // Fire zone + flood zone overlays (market-specific hazards service)
+    if(MARKET.hazardsUrl){
+      fireZoneLayer = L.esri.dynamicMapLayer({
+        url:MARKET.hazardsUrl, layers:[2], opacity:0.4
+      });
+      floodZoneLayer = L.esri.dynamicMapLayer({
+        url:MARKET.hazardsUrl, layers:[11,12], opacity:0.4
+      });
+    }
+    // CGS Liquefaction zones (CA state service — works for all markets)
     liquefactionLayer = L.esri.dynamicMapLayer({
       url:'https://services.gis.ca.gov/arcgis/rest/services/GeoscientificInformation/Liquefaction/MapServer',
       layers:[0,3],
       opacity:0.4
     });
-    parcelLayer = L.esri.tiledMapLayer({
-      url:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer',
-      opacity:0.6,
-      maxZoom:20,
-      minZoom:15
-    });
+    // Parcel boundaries (market-specific)
+    if(MARKET.parcelUrl){
+      parcelLayer = L.esri.tiledMapLayer({
+        url:MARKET.parcelUrl, opacity:0.6, maxZoom:20, minZoom:15
+      });
+    }
   } catch(e) {
     console.warn('esri-leaflet layers failed:', e.message);
   }
@@ -1898,7 +1903,7 @@ function actionLinksBar(l){
   return '<div class="popup-links">'
     +'<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&t=k&z=19" target="_blank">Maps &#8599;</a>'
     +(l.url?'<a href="'+l.url+'" target="_blank">Redfin &#8599;</a>':'')
-    +'<a href="'+getZimasUrl(l)+'" target="_blank" style="color:var(--yellow)">ZIMAS &#8599;</a>'
+    +(MARKET.hasZimas?'<a href="'+getZimasUrl(l)+'" target="_blank" style="color:var(--yellow)">ZIMAS &#8599;</a>':'')
     +(l.lw&&l.ld?'<a href="'+lotPlannerUrl(l)+'" target="_blank">Planner &#8599;</a>':'')
     +'</div>';
 }
@@ -3673,7 +3678,7 @@ function buildOffMarketLayer(){
         ` : ''}
 
         <div class="popup-divider"></div>
-        <div class="popup-section-label">ZIMAS Due Diligence</div>
+        <div class="popup-section-label">Due Diligence</div>
         <div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">
           ${l.zimasZone ? (
             '<span style="color:var(--green)">✓</span> ' + l.zimasZone + ' zoning confirmed • ' +
@@ -3684,7 +3689,10 @@ function buildOffMarketLayer(){
             '<span style="color:var(--yellow)">&#9733;</span> Transit Priority Area = 0 parking • ' +
             (l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control/Ellis Act') +
             slopeBadge(l)
-          ) : '<span style="color:var(--yellow)">&#9888;&#65039;</span> No ZIMAS data — zoning unverified (outside LA City)'}
+          ) : (l.fireZone || l.burnZone || l.slope > 0 ? (
+            (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ') +
+            slopeBadge(l)
+          ) : '<span style="color:var(--text-dim)">No zoning verification data available</span>')}
         </div>
         ${l.rsoRisk&&l.zone!=='R1'&&l.zone!=='LAND' ? '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>' : ''}
         ${remainderAnalysis(l)}
@@ -3692,7 +3700,7 @@ function buildOffMarketLayer(){
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;align-items:center">
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
-        <a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>
+        ${MARKET.hasZimas?`<a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>`:''}
         ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; XLS</button>
@@ -5138,12 +5146,42 @@ window.addEventListener('DOMContentLoaded', function(){
   // Market-specific UI setup
   document.getElementById('marketSubtitle').textContent = MARKET.subtitle;
   if(!MARKET.burnZones) document.getElementById('burnZoneSection').style.display='none';
-  var otherSlug = MARKET.slug==='la'?'sd':'la';
-  var otherCfg = MARKET_CONFIG[otherSlug];
+  else if(MARKET.burnZoneLabel) document.getElementById('burnZoneLabel').innerHTML='Hide Burn Zones <small>('+MARKET.burnZoneLabel+')</small>';
+  // Market switcher — cycle through all markets except current
+  var otherSlugs = Object.keys(MARKET_CONFIG).filter(function(s){return s!==MARKET.slug;});
   var switchLink = document.getElementById('marketSwitchLink');
-  switchLink.href = '?market='+otherSlug;
-  switchLink.textContent = otherCfg.name.split(' ').map(function(w){return w[0]}).join('')+' \u2197';
-  switchLink.title = 'Switch to '+otherCfg.name;
+  if(otherSlugs.length === 1){
+    var otherCfg = MARKET_CONFIG[otherSlugs[0]];
+    switchLink.href = '?market='+otherSlugs[0];
+    switchLink.textContent = otherCfg.name.split(' ').map(function(w){return w[0]}).join('')+' \u2197';
+    switchLink.title = 'Switch to '+otherCfg.name;
+  } else if(otherSlugs.length > 1){
+    // Multiple other markets — show dropdown on click
+    switchLink.textContent = '\u2630 Markets';
+    switchLink.title = 'Switch market';
+    switchLink.href = '#';
+    switchLink.onclick = function(e){
+      e.preventDefault();
+      var existing = document.getElementById('marketDropdown');
+      if(existing){ existing.remove(); return; }
+      var dd = document.createElement('div');
+      dd.id = 'marketDropdown';
+      dd.style.cssText = 'position:absolute;top:100%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 0;z-index:999;min-width:140px;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+      otherSlugs.forEach(function(s){
+        var cfg = MARKET_CONFIG[s];
+        var a = document.createElement('a');
+        a.href = '?market='+s;
+        a.textContent = cfg.name;
+        a.style.cssText = 'display:block;padding:6px 14px;color:var(--text);text-decoration:none;font-size:12px';
+        a.onmouseenter = function(){this.style.background='var(--border)'};
+        a.onmouseleave = function(){this.style.background='transparent'};
+        dd.appendChild(a);
+      });
+      switchLink.parentElement.style.position = 'relative';
+      switchLink.parentElement.appendChild(dd);
+      setTimeout(function(){document.addEventListener('click',function close(){dd.remove();document.removeEventListener('click',close)})},0);
+    };
+  }
   var analyticsLink = document.getElementById('analyticsLink');
   if(MARKET.slug!=='la') analyticsLink.href='analytics.html?market='+MARKET.slug;
 
