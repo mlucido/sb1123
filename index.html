@@ -1242,10 +1242,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <h4 style="margin:0 0 8px;font-size:12px;color:var(--accent)">Build-to-Rent Assumptions</h4>
         <div class="proforma-inputs">
           <div class="proforma-group">
-            <label>Vacancy %</label>
-            <input type="number" id="btrVacancy" value="0.04" step="0.01" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
             <label>OpEx Ratio</label>
             <input type="number" id="btrOpex" value="0.30" step="0.05" onchange="onProformaChange()">
           </div>
@@ -1260,10 +1256,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           <div class="proforma-group">
             <label>Refi Rate</label>
             <input type="number" id="btrRate" value="0.0625" step="0.0025" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
-            <label>Min YOC</label>
-            <input type="number" id="btrMinYOC" value="0.04" step="0.005" min="0.03" max="0.08" onchange="onProformaChange()">
           </div>
         </div>
       </div>
@@ -1951,7 +1943,7 @@ function btrBlock(l, btr){
   }
   btrContent += '<div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF × '+proforma.avgUnitSf.toLocaleString()+' SF)</small></div></div>';
   btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
-  btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
+  btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
   btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
   btrContent += '<div><div class="popup-label">Cap Rate</div><div class="popup-value">'+(btr.capRate*100).toFixed(1)+'%</div></div>';
   if(viable){
@@ -2817,12 +2809,10 @@ function calculateBTRProForma(l){
   const pf = calculateProForma(l);
 
   // BTR-specific assumptions (configurable via modal)
-  const vacancyRate = parseFloat((document.getElementById('btrVacancy')||{}).value) || 0.04;
   const opexRatio = parseFloat((document.getElementById('btrOpex')||{}).value) || 0.30;
   const capRate = parseFloat((document.getElementById('btrCapRate')||{}).value) || 0.055;
   const refiLTV = parseFloat((document.getElementById('btrLTV')||{}).value) || 0.70;
   const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.0625;
-  const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
 
   const rentPsf = l.rentPsf || (l.estRentMonth > 0 ? l.estRentMonth / 1750 : 0);
   const hasEstRent = rentPsf > 0;
@@ -2830,29 +2820,32 @@ function calculateBTRProForma(l){
   const units = pf.maxUnits;
   const totalCost = pf.totalCost;
 
-  // Income
+  // Income — opex ratio already includes vacancy allowance
   const grossAnnualRent = rentPerUnit * 12 * units;
-  const effectiveGrossIncome = grossAnnualRent * (1 - vacancyRate);
-  const annualNOI = effectiveGrossIncome * (1 - opexRatio);
+  const annualNOI = grossAnnualRent * (1 - opexRatio);
 
   // Returns
   const yieldOnCost = totalCost > 0 ? annualNOI / totalCost : 0;
   const stabilizedValue = capRate > 0 ? annualNOI / capRate : 0;
 
-  // Refi
-  const loanAmount = stabilizedValue * refiLTV;
-  const annualDebtService = loanAmount * refiRate;
+  // DSCR: can NOI service an I/O loan that takes out construction principal?
+  const loanAmount = pf.constructionCost;
+  const annualDebtService = loanAmount * 0.065;  // 6.5% I/O
   const dscr = annualDebtService > 0 ? annualNOI / annualDebtService : 0;
-  const cashOutRefi = loanAmount - totalCost;
-  const equityAfterRefi = totalCost - loanAmount;
-  const cashFlow = annualNOI - annualDebtService;
+
+  // Refi (stabilized value based)
+  const refiLoanAmount = stabilizedValue * refiLTV;
+  const refiAnnualDS = refiLoanAmount * refiRate;
+  const cashOutRefi = refiLoanAmount - totalCost;
+  const equityAfterRefi = totalCost - refiLoanAmount;
+  const cashFlow = annualNOI - refiAnnualDS;
   const cashOnCash = equityAfterRefi > 0 ? cashFlow / equityAfterRefi : 0;
 
   // GRM: gross sale value / gross annual rent (how many years of rent = sale price)
   const grm = grossAnnualRent > 0 ? pf.grossRevenue / grossAnnualRent : 0;
 
-  // Does it pencil? (DSCR shown as informational, not a gate — it's a constant of cap/LTV/rate)
-  const btrPencils = yieldOnCost >= minYOC && rentPsf > 0;
+  // Does it pencil? DSCR >= 1.25x is lender go/no-go
+  const btrPencils = dscr >= 1.25 && rentPsf > 0;
 
   return {
     ...pf,  // inherit all BTS fields
@@ -2861,19 +2854,17 @@ function calculateBTRProForma(l){
     hasEstRent,
     grm,
     grossAnnualRent,
-    effectiveGrossIncome,
     annualNOI,
     yieldOnCost,
     stabilizedValue,
     loanAmount,
     annualDebtService,
     dscr,
+    refiLoanAmount,
     cashOutRefi,
     cashFlow,
     cashOnCash,
     btrPencils,
-    minYOC,
-    vacancyRate,
     opexRatio,
     capRate,
     refiLTV,
@@ -2928,10 +2919,8 @@ function enrichListings(){
     // NEW listing detection: DOM <= 3 = NEW, DOM <= 7 = new this week
     l.isNew = (l.dom !== null && l.dom !== undefined && l.dom <= 3) ? 1 : 0;
     l.isNewThisWeek = (l.dom !== null && l.dom !== undefined && l.dom <= 7) ? 1 : 0;
-    // BTR viability flag for dual-deal detection
-    if(l.yocBase > 0){
-      l.btrViable = l.yocBase >= 0.04;
-    } else if((l.estRentMonth && l.estRentMonth > 0) || (l.fmr3br && l.fmr3br > 0)){
+    // BTR viability flag for dual-deal detection (DSCR >= 1.25x gate)
+    if((l.estRentMonth && l.estRentMonth > 0) || (l.fmr3br && l.fmr3br > 0) || l.yocBase > 0){
       const btrPF = calculateBTRProForma(l);
       l.btrViable = btrPF.btrPencils;
     } else {
@@ -3167,7 +3156,7 @@ function generateDealCard(l, opts){
     btrSection += '<div class="dp-btr-col">';
     btrSection += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF)</small></span></div>';
     btrSection += '<div class="dp-row"><span class="dp-k">NOI</span><span class="dp-v">'+fmtDollar(btr.annualNOI)+'</span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
+    btrSection += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
     btrSection += '</div>';
     // Right column: Stab Value, Cap Rate, DSCR, Cash Flow
     btrSection += '<div class="dp-btr-col">';
@@ -3259,16 +3248,11 @@ function rebuildListings(){
 function buildBTRLayer(){
   btrLayer.clearLayers();
 
-  // BTR layer shows ALL BTR-viable deals (YoC >= min threshold)
+  // BTR layer shows ALL BTR-viable deals (DSCR >= 1.25x gate)
   // Dual-viable deals (also BTS profitable) show both a BTS circle and BTR diamond
-  const minYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
   const btrListings = getFilteredListings().filter(l => {
     if(!l.sb1123Eligible) return false;
-    // Use pre-computed yocBase from pipeline if available, else fall back to dynamic calc
-    if(l.yocBase > 0){
-      return l.yocBase >= minYOC;
-    }
-    if(!(l.estRentMonth > 0 || l.fmr3br > 0)) return false;
+    if(!(l.estRentMonth > 0 || l.fmr3br > 0 || l.yocBase > 0)) return false;
     const btrPF = calculateBTRProForma(l);
     return btrPF.btrPencils;
   });
@@ -3539,19 +3523,19 @@ function buildOffMarketLayer(){
         <div class="popup-divider"></div>
         <div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>
         ${btr.btrPencils
-          ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+(btr.yieldOnCost*100).toFixed(1)+'% YOC</div>'
+          ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(34,197,94,0.1);color:var(--green);font-weight:600;font-size:11px">&#9989; BTR VIABLE — '+btr.dscr.toFixed(2)+'x DSCR</div>'
           : btr.rentPsf <= 0
             ? '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; BTR — No rent data available</div>'
-            : ''
+            : '<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.1);color:var(--red);font-size:11px">&#10060; BTR — '+btr.dscr.toFixed(2)+'x DSCR (need 1.25x)</div>'
         }
         ${btr.rentPsf > 0 ? `
         <div><div class="popup-label">Rent Source</div><div class="popup-value">${getRentSourceLabel(l)}</div></div>
         ${RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp') ? `<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable(${l.lat},${l.lng});return false" style="color:var(--accent);cursor:pointer">${l.rentCompCount} rental comps within ${l.rentCompRadius}mi &#8599;</a></div>` : ''}
         <div><div class="popup-label">Est. Rent/Unit</div><div class="popup-value">$${btr.rentPerUnit.toLocaleString()}/mo <small style="color:var(--text-dim)">($${btr.rentPsf.toFixed(2)}/SF × ${proforma.avgUnitSf.toLocaleString()} SF)</small></div></div>
         <div><div class="popup-label">Gross Annual Rent</div><div class="popup-value">$${Math.round(btr.grossAnnualRent).toLocaleString()} <small style="color:var(--text-dim)">(${btr.units} units)</small></div></div>
-        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.vacancyRate)*(1-btr.opexRatio)*100)}% of gross)</small></div></div>
-        <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.effectiveGrossIncome*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
-        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=btr.minYOC?'var(--green)':btr.yieldOnCost>=btr.minYOC*0.8?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%${btr.yieldOnCost<btr.minYOC?' <small style="color:var(--text-dim)">(min '+(btr.minYOC*100).toFixed(0)+'% target)</small>':''}</div></div>
+        <div><div class="popup-label">NOI</div><div class="popup-value">$${Math.round(btr.annualNOI).toLocaleString()} <small style="color:var(--text-dim)">(${Math.round((1-btr.opexRatio)*100)}% of gross)</small></div></div>
+        <div><div class="popup-label">OpEx</div><div class="popup-value">${Math.round(btr.opexRatio*100)}% <small style="color:var(--text-dim)">($${Math.round(btr.grossAnnualRent*btr.opexRatio).toLocaleString()}/yr)</small></div></div>
+        <div><div class="popup-label">Yield on Cost</div><div class="popup-value" style="color:${btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)'}">${(btr.yieldOnCost*100).toFixed(1)}%</div></div>
         <div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:${btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)'}">$${(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')}M</div></div>
         <div><div class="popup-label">Cap Rate</div><div class="popup-value">${(btr.capRate*100).toFixed(1)}%</div></div>
         ` : `
@@ -3809,11 +3793,12 @@ function updateHeroStats(){
     if(el) el.style.display = showBtr ? '' : 'none';
   });
   if(showBtr){
-    // Use pre-computed BTR fields from pipeline
+    // Use DSCR gate for BTR-viable deals
     const btrDeals = LISTINGS.filter(l => {
       if(!l.sb1123Eligible) return false;
-      if(!l.yocBase || l.yocBase <= 0) return false;
-      return l.yocBase >= 0.04;
+      if(!(l.estRentMonth > 0 || l.fmr3br > 0 || l.yocBase > 0)) return false;
+      const btrPF = calculateBTRProForma(l);
+      return btrPF.btrPencils;
     });
     const btrYocs = btrDeals.map(l => l.yocBase).filter(y => y > 0);
     const avgYoc = btrYocs.length ? (btrYocs.reduce((a,b)=>a+b,0)/btrYocs.length*100).toFixed(1) : '0.0';
@@ -4009,18 +3994,13 @@ function updateLayerCounts(){
   const omEl = document.getElementById('offMarketCount');
   if(omEl) omEl.textContent = offMarketN.toLocaleString();
 
-  // BTR count — all BTR-viable deals (YoC >= min threshold)
-  const btrMinYOC = parseFloat((document.getElementById('btrMinYOC')||{}).value) || 0.04;
+  // BTR count — all BTR-viable deals (DSCR >= 1.25x gate)
   let btrN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    if(l.yocBase > 0){
-      if(l.yocBase >= btrMinYOC) btrN++;
-    } else {
-      if(!(l.estRentMonth > 0 || l.fmr3br > 0)) continue;
-      const btrPF = calculateBTRProForma(l);
-      if(btrPF.btrPencils) btrN++;
-    }
+    if(!(l.estRentMonth > 0 || l.fmr3br > 0 || l.yocBase > 0)) continue;
+    const btrPF = calculateBTRProForma(l);
+    if(btrPF.btrPencils) btrN++;
   }
   const btrEl = document.getElementById('btrCount');
   if(btrEl) btrEl.textContent = btrN.toLocaleString();
@@ -4713,7 +4693,6 @@ async function exportOM(lat, lng) {
   var SALE_MO = 6;
   var HOLD_MO = PRE_DEV_MO + CONSTR_MO + SALE_MO;
   var TX_COST_PCT = proforma.txnCostPct / 100;
-  var BTR_VACANCY = btr.vacancyRate;
   var BTR_OPEX = btr.opexRatio;
   var BTR_CAP = btr.capRate;
   var BTR_LTV = btr.refiLTV;
@@ -4804,10 +4783,10 @@ async function exportOM(lat, lng) {
 
   // ── BTR ──
   var btrGPI = btr.grossAnnualRent;
-  var btrEGI = btr.effectiveGrossIncome;
+  var btrEGI = btr.grossAnnualRent;
   var btrNOI = btr.annualNOI;
   var btrStabilizedValue = btr.stabilizedValue;
-  var btrRefiLoan = btr.loanAmount;
+  var btrRefiLoan = btr.refiLoanAmount;
   var btrEffectiveLTV = btrStabilizedValue > 0 ? btrRefiLoan / btrStabilizedValue : 0;
   var btrAnnualDS = btr.annualDebtService;
   var btrDSCR = btr.dscr;
@@ -4924,7 +4903,6 @@ async function exportOM(lat, lng) {
 
     // BTR
     btr_rent_monthly: btr.rentPerUnit,
-    btr_vacancy: BTR_VACANCY,
     btr_opex_ratio: BTR_OPEX,
     btr_cap_rate: BTR_CAP,
     btr_refi_ltv: BTR_LTV,
