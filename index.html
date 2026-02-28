@@ -1130,33 +1130,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </label>
   </div>
 
-  <!-- Tenant Risk Toggle -->
-  <div class="section" style="padding:6px 14px">
-    <label class="zone-toggle" style="margin:0">
-      <input type="checkbox" id="hideTenantRisk" onchange="toggleTenantRiskFilter(this.checked)">
-      <span class="check-box"></span>
-      <span class="zone-label" style="color:var(--orange)">Hide High Tenant Risk</span>
-    </label>
-  </div>
-
-  <!-- Steep Slope Toggle -->
-  <div class="section" style="padding:6px 14px">
-    <label class="zone-toggle" style="margin:0">
-      <input type="checkbox" id="hideHighSlope" onchange="toggleHighSlopeFilter(this.checked)">
-      <span class="check-box"></span>
-      <span class="zone-label" style="color:var(--orange)">Hide Steep Lots (score &ge; 60)</span>
-    </label>
-  </div>
-
-  <!-- Structural Viability -->
-  <div class="section" style="padding:6px 14px">
-    <label class="zone-toggle" style="margin:0">
-      <input type="checkbox" id="hideUnviable" checked onchange="toggleUnviableFilter(this.checked)">
-      <span class="check-box"></span>
-      <span class="zone-label" style="color:var(--red)">Hide Unviable Deals</span>
-    </label>
-    <div id="viabilityFloor" style="font-size:10px;color:var(--text-dim);padding:4px 0 0 26px;font-family:'JetBrains Mono',monospace"></div>
-  </div>
 
       <!-- Filter summary -->
       <div class="filter-count" id="filterCount">Showing all</div>
@@ -1491,41 +1464,9 @@ let savedPipelineHeader = '';
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
-let hideTenantRisk = false;
-function toggleTenantRiskFilter(checked){ hideTenantRisk = checked; applyFilters(); }
-let hideHighSlope = false;
-function toggleHighSlopeFilter(checked){ hideHighSlope = checked; applyFilters(); }
-let hideUnviable = true;  // Default ON — hide deals where max_offer <= 0
-function toggleUnviableFilter(checked){ hideUnviable = checked; applyFilters(); }
 let minUnitsFilter = 4;  // Default: require at least 4 units
 function onMinUnitsChange(val){ minUnitsFilter = parseInt(val); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
 function resetMinUnits(){ minUnitsFilter = 4; document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
-
-function computeViabilityFloor(units) {
-  const pf = proforma;
-  if(!units) units = 6;  // Default: median unit count across eligible lots
-  const unitSf = pf.avgUnitSf;
-  const buildableSf = units * unitSf;
-  const construction = buildableSf * pf.allInBuildPsf;
-  const demo = pf.demoCost;
-  const totalBuild = construction + demo;
-  const avgLoan = totalBuild * 0.5;
-  const carryInterest = avgLoan * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  const insurance = pf.insurance || 40000;
-  const origination = totalBuild * ((pf.originationPct || 1) / 100);
-  const totalCarry = carryInterest + insurance + origination;
-  const totalNonLandCost = totalBuild + totalCarry;
-  const txnMult = 1 - pf.txnCostPct / 100;
-  const floor30 = Math.ceil((totalNonLandCost / 0.70 + pf.fixedDispositionCosts) / (units * unitSf * txnMult));
-  const floor20 = Math.ceil((totalNonLandCost / 0.80 + pf.fixedDispositionCosts) / (units * unitSf * txnMult));
-  return { floor30, floor20 };
-}
-
-function updateViabilityLabel() {
-  const floors = computeViabilityFloor();
-  const el = document.getElementById('viabilityFloor');
-  if (el) el.innerHTML = 'Min exit: <span style="color:var(--red)">$'+floors.floor30+'/SF</span> @ 30% · <span style="color:var(--yellow)">$'+floors.floor20+'/SF</span> @ 20%';
-}
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
@@ -3028,10 +2969,9 @@ function getFilteredListings(){
     if(sb1123Mode && !l.sb1123Eligible) return false;
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
-    if(hideTenantRisk && l.tenantRisk >= 3) return false;
-    if(hideHighSlope && l.slopeScore != null && l.slopeScore >= 60) return false;
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
-    if(hideUnviable && (l.maxOffer || 0) <= 0) {
+    // Always hide unviable deals (maxOffer <= 0) unless BTR-viable
+    if((l.maxOffer || 0) <= 0) {
       if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
       else return false;
     }
@@ -4583,7 +4523,6 @@ function onProformaChange(){
   proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
   proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
   enrichListings();
-  updateViabilityLabel();
   applyFilters();
 }
 
@@ -5140,7 +5079,6 @@ window.addEventListener('DOMContentLoaded', function(){
     setTimeout(function(){
       // Enrich listings with deal scores
       enrichListings();
-      updateViabilityLabel();
 
       // Init filters (use comps if available, fall back to listings)
       var filterSource = COMPS.length ? COMPS : LISTINGS;
