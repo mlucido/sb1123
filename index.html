@@ -2991,7 +2991,9 @@ function getFilteredListings(skipZoneFilter){
     const slopeOk = slopeAtDefault ? true : (slopeVal >= filters.slope.min && slopeVal <= filters.slope.max);
     const marginVal = l.estMargin || 0;
     const marginAtDefault = filters.margin.min === filters.margin.dataMin && filters.margin.max === filters.margin.dataMax;
-    const marginOk = marginAtDefault ? true : (marginVal >= filters.margin.min && marginVal <= filters.margin.max);
+    // When BTR layer is on, don't exclude BTR-viable deals via margin filter
+    const marginOk = marginAtDefault ? true : (marginVal >= filters.margin.min && marginVal <= filters.margin.max)
+      || (layerState.btr && l.btrViable);
     return zoneOk && priceOk && psfOk && sqftOk && lotOk && lotwOk && slopeOk && marginOk;
   });
 }
