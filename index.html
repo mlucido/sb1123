@@ -879,8 +879,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <button class="layer-btn" data-layer="offMarket" onclick="toggleLayer('offMarket',this)">
         <span class="icon">◎</span> Off-Market Targets <span class="layer-count" id="offMarketCount">0</span>
       </button>
-      <button class="layer-btn" data-layer="spreadHeat" onclick="toggleLayer('spreadHeat',this)">
-        <span class="icon" style="color:#22c55e">▪</span> Profit Margin Heatmap <span class="layer-count" id="spreadCount">0</span>
+      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
+        <span class="icon" style="color:#8b5cf6">▪</span> Sale $/SF <span class="layer-count" id="neighborhoodCount">0</span>
       </button>
       <button class="layer-btn" data-layer="btr" onclick="toggleLayer('btr',this)">
         <span class="icon" style="color:#f59e0b">◆</span> Build to Rent <span class="layer-count" id="btrCount">0</span>
@@ -905,9 +905,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         </div>
         <div style="font-size:9px;color:var(--text-dim);margin-top:3px" id="heatmapModeLabel">All sales, raw $/SF</div>
       </div>
-      <button class="layer-btn" data-layer="neighborhoods" onclick="toggleLayer('neighborhoods',this)">
-        <span class="icon" style="color:#8b5cf6">▪</span> Neighborhood Scores <span class="layer-count" id="neighborhoodCount">0</span>
-      </button>
       <button class="layer-btn active" data-layer="parcels" onclick="toggleLayer('parcels',this)">
         <span class="icon">◻</span> Parcel Boundaries
       </button>
@@ -1460,9 +1457,8 @@ const markerLayers = {R1:L.layerGroup(),R2:L.layerGroup(),R3:L.layerGroup(),R4:L
 const listingsLayer = L.layerGroup();
 const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
-const neighborhoodLayer = L.layerGroup();  // Priority 3: Neighborhood opportunity scorer
-let spreadHeatLayer = null;  // Priority 2: Spread heatmap
-const layerState = {markers:false,compHeat:false,spreadHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
+const neighborhoodLayer = L.layerGroup();  // Sale $/SF grid overlay
+const layerState = {markers:false,compHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:true};
 
 // ── Polygon Draw State ──
 let drawPolygonLayer = null;   // The drawn polygon L.Polygon on the map
@@ -3358,51 +3354,7 @@ function buildBTRLayer(){
 }
 
 // ══════════════════════════════════════════
-//  PRIORITY 2: SPREAD HEATMAP
-// ══════════════════════════════════════════
-
-function buildSpreadHeatmap(){
-  if(!LISTINGS.length || typeof L.heatLayer !== 'function') return;
-
-  const BUILD_COST_PSF = proforma.allInBuildPsf || 360;
-
-  // Calculate spread for each eligible listing
-  const heatPts = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    const exitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    return exitPsf > 0 && landBasisPsf > 0;
-  }).map(l => {
-    const exitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
-    const landBasisPsf = l.lotSf ? l.price / l.lotSf : 0;
-    const spread = exitPsf - landBasisPsf - BUILD_COST_PSF;
-    
-    // Normalize to 0-1 intensity: ≥$300=1.0, <$0=0.0
-    const intensity = Math.max(0, Math.min(1, (spread + 100) / 400)); // -100 to 300 range
-    return [l.lat, l.lng, intensity];
-  });
-  
-  spreadHeatLayer = L.heatLayer(heatPts, {
-    radius: 25,
-    blur: 15,
-    maxZoom: 17,
-    max: 1.0,
-    minOpacity: 0.25,
-    pane: 'heatmapPane',
-    gradient: {
-      0.0:  '#ef4444',  // <$0 — red (negative spread)
-      0.25: '#f97316',  // $0-100 — orange
-      0.50: '#eab308',  // $100-200 — yellow
-      0.75: '#22c55e',  // $200-300 — green
-      1.0:  '#059669'   // ≥$300 — deep green (maximum spread)
-    }
-  });
-  
-  document.getElementById('spreadCount').textContent = heatPts.length.toLocaleString();
-}
-
-// ══════════════════════════════════════════
-//  PRIORITY 3: NEIGHBORHOOD OPPORTUNITY SCORER
+//  SALE $/SF NEIGHBORHOOD GRID
 // ══════════════════════════════════════════
 
 function buildNeighborhoodLayer(){
@@ -3733,12 +3685,7 @@ function refreshVisibility(){
     map.removeLayer(compPointsLayer);
     map.removeLayer(compLabelsLayer);
   }
-  // Priority 2: Spread heatmap
-  if(spreadHeatLayer){
-    if(layerState.spreadHeat) spreadHeatLayer.addTo(map);
-    else map.removeLayer(spreadHeatLayer);
-  }
-  // Priority 3: Neighborhood opportunity scorer
+  // Sale $/SF neighborhood grid
   if(layerState.neighborhoods){
     if(neighborhoodLayer.getLayers().length === 0) buildNeighborhoodLayer();
     neighborhoodLayer.addTo(map);
@@ -3820,24 +3767,16 @@ function updatePinLegend(){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#64748b"></div> T2 Existing</div>';
   }
 
-  // Neighborhood Scores legend
+  // Sale $/SF grid legend
   if(layerState.neighborhoods){
     if(html) html += '<div class="pin-legend-section"></div>';
-    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Neighborhood Exit $/SF</div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Sale $/SF</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border-radius:2px"></div> $900+</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border-radius:2px"></div> $800–900</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border-radius:2px"></div> $750–800</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border-radius:2px"></div> $700–750</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border-radius:2px"></div> $650–700</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border-radius:2px"></div> &lt;$650</div>';
-  }
-
-  // Profit Spread Heatmap legend
-  if(layerState.spreadHeat){
-    if(html) html += '<div class="pin-legend-section"></div>';
-    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Profit Spread $/SF</div>';
-    html += '<div class="pin-legend-gradient" style="background:linear-gradient(to right,#ef4444,#f97316,#eab308,#22c55e,#059669)"></div>';
-    html += '<div class="pin-legend-gradient-labels"><span>&lt;$0</span><span>$300+</span></div>';
   }
 
   // Risk overlay legends
@@ -4001,22 +3940,10 @@ function setHeatmapMode(mode) {
 }
 
 function toggleLayer(layer,btn){
-  // Priority 2: Make compHeat and spreadHeat mutually exclusive
-  if(layer === 'compHeat' && layerState.spreadHeat){
-    layerState.spreadHeat = false;
-    const spreadBtn = document.querySelector('[data-layer="spreadHeat"]');
-    if(spreadBtn) spreadBtn.classList.remove('active');
-  }
-  if(layer === 'spreadHeat' && layerState.compHeat){
-    layerState.compHeat = false;
-    const compBtn = document.querySelector('[data-layer="compHeat"]');
-    if(compBtn) compBtn.classList.remove('active');
-  }
-  
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
   // Show/hide comp sub-controls when compHeat toggles
-  if(layer === 'compHeat' || layer === 'spreadHeat'){
+  if(layer === 'compHeat'){
     const show = layerState.compHeat;
     document.getElementById('heatmapModeToggle').style.display = show ? 'block' : 'none';
     document.getElementById('tierFilterSection').style.display = show ? 'block' : 'none';
@@ -4657,12 +4584,6 @@ function onProformaChange(){
   proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
   enrichListings();
   updateViabilityLabel();
-  // Rebuild spread heatmap since it depends on build cost
-  if(spreadHeatLayer) {
-    map.removeLayer(spreadHeatLayer);
-    buildSpreadHeatmap();
-    if(layerState.spreadHeat) spreadHeatLayer.addTo(map);
-  }
   applyFilters();
 }
 
@@ -5267,9 +5188,6 @@ window.addEventListener('DOMContentLoaded', function(){
         map.on('zoomend', updateCompPoints);
       }
       
-      // Priority 2: Build spread heatmap
-      buildSpreadHeatmap();
-
       // Set sort BEFORE building table
       currentSort = { key: 'estMargin', dir: 'desc' };
       
