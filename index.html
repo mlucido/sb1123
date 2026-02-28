@@ -1200,12 +1200,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
   <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> &lt;$600/SF</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $600-700</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $700-800</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800-900</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900-1,000</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div> $1,000+</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6366f1;border-radius:50%"></div> &lt;$650/SF</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $650–700</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $700–750</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $750–800</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800–900</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900+</div>
 </div>
 </div><!-- /app-row -->
 
@@ -1423,12 +1423,12 @@ const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'Hi
 // RECENTERED for SFV: $600-$1,000 decision range
 function exitPsfColor(ppsf){
   if(!ppsf || ppsf <= 0) return '#888';
-  if(ppsf < 600) return '#3b82f6';   // Blue — below target range
-  if(ppsf < 700) return '#22d3ee';   // Cyan
-  if(ppsf < 800) return '#22c55e';   // Green
-  if(ppsf < 900) return '#eab308';   // Yellow
-  if(ppsf < 1000) return '#f97316';  // Orange
-  return '#ef4444';                   // Red — premium
+  if(ppsf < 650) return '#6366f1';   // Indigo — weak exit market
+  if(ppsf < 700) return '#3b82f6';   // Blue — below target
+  if(ppsf < 750) return '#22d3ee';   // Teal — break-even zone
+  if(ppsf < 800) return '#22c55e';   // Green — healthy margin
+  if(ppsf < 900) return '#eab308';   // Amber — strong exit
+  return '#f97316';                   // Orange — premium market
 }
 
 function getPinBorder(ppsf){
@@ -3284,22 +3284,20 @@ function rebuildListings(){
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
-    // Color by margin
-    const margin = l.estMargin || 0;
-    let color;
-    if(margin >= 30) color = '#22c55e';       // Green - 30%+ margin
-    else if(margin >= 20) color = '#facc15';  // Yellow - 20-29% margin
-    else color = '#9ca3af';                   // Gray - under 20% margin
-    
+    // Color fill by exit $/SF
+    const ePsf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const fillColor = exitPsfColor(ePsf);
+
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
     const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const markerColor = isNewListing ? '#22c55e' : '#ffffff'; // White border for heatmap contrast
+    const borderColor = isNewListing ? '#22c55e' : '#f97316'; // Orange border = for-sale identifier
     const markerWeight = isNewListing ? 4 : 2;
+    const margin = l.estMargin || 0;
     const isDualViable = margin >= 20 && l.btrViable;
     const cm = L.circleMarker([l.lat,l.lng],{
-      radius, color: isDualViable ? '#f59e0b' : markerColor, fillColor:color,
+      radius, color: isDualViable ? '#f59e0b' : borderColor, fillColor,
       fillOpacity: 0.95,
       weight: isDualViable ? 3 : markerWeight,
       pane:'listingsPane',
@@ -3782,9 +3780,13 @@ function updatePinLegend(){
   
   // Show For Sale legend if listings layer is on
   if(layerState.listings){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e"></div> 30%+ margin</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#facc15"></div> 20-29% margin</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#9ca3af"></div> Under 20% margin</div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Listing Exit $/SF</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border:1.5px solid #f97316"></div> &lt;$650</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $650–700</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border:1.5px solid #f97316"></div> $700–750</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border:1.5px solid #f97316"></div> $750–800</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border:1.5px solid #f97316"></div> $800–900</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $900+</div>';
   }
   
   // Show BTR legend if Build to Rent layer is on
@@ -3793,7 +3795,7 @@ function updatePinLegend(){
   }
   // Show dual-viable legend if both listings and BTR layers are on
   if(layerState.listings && layerState.btr){
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="border:2px solid #f59e0b;background:#22c55e"></div> BTS + BTR viable</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="border:2px solid #f59e0b"></div> BTS + BTR viable (amber ring)</div>';
   }
   
   // Show Off-Market legend if off-market layer is on
