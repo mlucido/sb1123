@@ -233,6 +233,7 @@ MARKETS = {
         "name": "Los Angeles",
         "slug": "la",
         "redfin_market": "socal",
+        "county_fips": "037",
 
         # Bounding box
         "lat_min": 33.70,
@@ -327,6 +328,7 @@ MARKETS = {
         "name": "San Diego",
         "slug": "sd",
         "redfin_market": "socal",
+        "county_fips": "073",
 
         # Bounding box — full SD County
         "lat_min": 32.53,

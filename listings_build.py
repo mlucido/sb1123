@@ -1161,11 +1161,38 @@ if os.path.exists(ZORI_FILE):
 else:
     print(f"   ⚠️  {ZORI_FILE} not found — ZORI tier unavailable")
 
-# 4d-c: 5-tier rental estimate function
+# 4d-b2: Load Census tract-level rents from census_rents.json
+CENSUS_RENTS_FILE = market_file("census_rents.json", market)
+census_rent_grid = {}  # { (row, col): [(lat, lng, rent, rent3br, rent4br), ...] }
+census_rent_count = 0
+if os.path.exists(CENSUS_RENTS_FILE):
+    print(f"   Loading Census tract rents from {CENSUS_RENTS_FILE}...")
+    with open(CENSUS_RENTS_FILE) as f:
+        census_tracts = json.load(f)
+    for ct in census_tracts:
+        clat = ct.get("lat", 0)
+        clng = ct.get("lng", 0)
+        rent = ct.get("rent")
+        rent3br = ct.get("rent3br")
+        if clat == 0 or clng == 0:
+            continue
+        if rent is None and rent3br is None:
+            continue
+        grow = math.floor(clat / RENTAL_GRID_SIZE)
+        gcol = math.floor(clng / RENTAL_GRID_SIZE)
+        census_rent_grid.setdefault((grow, gcol), []).append(
+            (clat, clng, rent, rent3br, ct.get("rent4br"))
+        )
+        census_rent_count += 1
+    print(f"   Census tracts: {census_rent_count:,} in {len(census_rent_grid):,} grid cells")
+else:
+    print(f"   ⚠️  {CENSUS_RENTS_FILE} not found — run: python3 fetch_census_rents.py")
+
+# 4d-c: 6-tier rental estimate function
 SFR_TH_TYPES = {"Single Family Residential", "Townhouse", "Condo/Co-op", "Multi-Family (2-4 Unit)"}
 
 def find_rental_estimate(lat, lng, zipcode, safmr_3br):
-    """Find best rental estimate using 5-tier priority.
+    """Find best rental estimate using 6-tier priority.
 
     Returns: (est_rent, method, comp_count, radius_mi, median_beds)
     """
@@ -1226,12 +1253,34 @@ def find_rental_estimate(lat, lng, zipcode, safmr_3br):
             rent_p75 = round(rent_p75 * 1.20)
         return rent_p75, "rental-adj", len(comps), round(0.015 * 69, 2), med_beds
 
-    # Tier 4: ZORI zip-level × 1.30 premium (new-con townhomes = ~30% above all-stock median)
+    # Tier 4: Census tract-level rent — nearest centroid within 0.02° (~1.4 mi), 3BR × 1.30
+    if census_rent_grid:
+        search_radius = 0.02
+        cells = int(search_radius / RENTAL_GRID_SIZE) + 1
+        best_dist = float("inf")
+        best_rent = None
+        for dr in range(-cells, cells + 1):
+            for dc in range(-cells, cells + 1):
+                for clat, clng, rent, rent3br, rent4br in census_rent_grid.get((grow + dr, gcol + dc), []):
+                    dist = abs(clat - lat) + abs(clng - lng)  # Manhattan distance
+                    if dist < best_dist and dist <= search_radius * 2:
+                        best_dist = dist
+                        # Prefer 3BR, fall back to overall median
+                        best_rent = rent3br if rent3br else rent
+        if best_rent and best_rent > 0:
+            census_est = round(best_rent * 1.30)
+            # Floor at ZORI so census never lowers the estimate vs what ZORI would give
+            if zipcode in zori_by_zip:
+                zori_est = round(zori_by_zip[zipcode] * 1.30)
+                census_est = max(census_est, zori_est)
+            return census_est, "census-tract", 0, round(best_dist * 69, 2), 0
+
+    # Tier 5: ZORI zip-level × 1.30 premium (new-con townhomes = ~30% above all-stock median)
     if zipcode in zori_by_zip:
         zori_rent = round(zori_by_zip[zipcode] * 1.30)
         return zori_rent, "zori", 0, 0, 0
 
-    # Tier 5: SAFMR fallback — fmr3br × 1.25
+    # Tier 6: SAFMR fallback — fmr3br × 1.25
     if safmr_3br and safmr_3br > 0:
         safmr_rent = round(safmr_3br * 1.25)
         return safmr_rent, "safmr", 0, 0, 0
@@ -1240,10 +1289,10 @@ def find_rental_estimate(lat, lng, zipcode, safmr_3br):
 
 # 4d-d: Stamp rental estimates per listing
 if rental_comp_count > 0 or zori_by_zip:
-    print(f"\n   Computing 5-tier rental estimates...")
+    print(f"\n   Computing 6-tier rental estimates...")
     t0 = time.time()
-    tier_counts = {"rental-comp": 0, "rental-comp-wide": 0, "rental-adj": 0, "zori": 0, "safmr": 0, "none": 0}
-    tier_rents = {"rental-comp": [], "rental-comp-wide": [], "rental-adj": [], "zori": [], "safmr": []}
+    tier_counts = {"rental-comp": 0, "rental-comp-wide": 0, "rental-adj": 0, "census-tract": 0, "zori": 0, "safmr": 0, "none": 0}
+    tier_rents = {"rental-comp": [], "rental-comp-wide": [], "rental-adj": [], "census-tract": [], "zori": [], "safmr": []}
 
     for i, l in enumerate(listings):
         safmr = l.get("fmr3br") or 0
@@ -1270,7 +1319,7 @@ if rental_comp_count > 0 or zori_by_zip:
     print(f"\n   Rental estimate tiers (done in {elapsed:.1f}s):")
     total = len(listings)
     spatial_count = tier_counts["rental-comp"] + tier_counts["rental-comp-wide"] + tier_counts["rental-adj"]
-    for method in ["rental-comp", "rental-comp-wide", "rental-adj", "zori", "safmr", "none"]:
+    for method in ["rental-comp", "rental-comp-wide", "rental-adj", "census-tract", "zori", "safmr", "none"]:
         cnt = tier_counts[method]
         pct = cnt / total * 100 if total else 0
         med_str = ""
