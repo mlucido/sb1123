@@ -3176,8 +3176,23 @@ function generateDealCard(l, opts){
     btrSection += '<div class="dp-btr-col">';
     btrSection += '<div class="dp-row"><span class="dp-k">Stabilized Value</span><span class="dp-v" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">'+fmtShort(btr.stabilizedValue)+'</span></div>';
     btrSection += '<div class="dp-row"><span class="dp-k">Cap Rate</span><span class="dp-v">'+(btr.capRate*100).toFixed(1)+'%</span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">DSCR</span><span class="dp-v" style="color:'+(btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)')+'">'+btr.dscr.toFixed(2)+'x</span></div>';
     btrSection += '<div class="dp-row"><span class="dp-k">Cash Flow</span><span class="dp-v" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(btr.cashFlow)+'/yr</span></div>';
+    btrSection += '</div>';
+    btrSection += '</div>';
+    // Loan summary bar
+    var loanAmt = btr.loanAmount;
+    var loanAbbr = loanAmt >= 1e6 ? '$'+(loanAmt/1e6).toFixed(1)+'M' : '$'+(loanAmt/1e3).toFixed(0)+'K';
+    var annualDS = Math.round(loanAmt * 0.065);
+    var dscrOk = btr.dscr >= 1.25;
+    var dscrColor = dscrOk ? '#15803d' : '#dc2626';
+    btrSection += '<div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin:6px 8px 0">';
+    btrSection += '<div>';
+    btrSection += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#64748b;text-transform:uppercase">I/O Takeout Loan</div>';
+    btrSection += '<div style="font-size:12px;color:var(--text)">'+loanAbbr+' @ 6.5% = $'+annualDS.toLocaleString()+'/yr</div>';
+    btrSection += '</div>';
+    btrSection += '<div style="text-align:right">';
+    btrSection += '<div style="font-size:20px;font-weight:700;color:'+dscrColor+'">'+btr.dscr.toFixed(2)+'x</div>';
+    btrSection += '<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:'+dscrColor+';text-transform:uppercase">DSCR '+(dscrOk?'&#10003;':'&#10007;')+'</div>';
     btrSection += '</div>';
     btrSection += '</div>';
   }
