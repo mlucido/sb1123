@@ -3427,14 +3427,14 @@ function buildNeighborhoodLayer(){
     const median = vals.length%2 ? vals[Math.floor(vals.length/2)] : (vals[Math.floor(vals.length/2)-1]+vals[Math.floor(vals.length/2)])/2;
     const min = vals[0], max = vals[vals.length-1];
 
-    // Color by median exit $/SF ($600-$1000 scale matching heatmap)
-    let color, fillOpacity;
-    if(median >= 1000)     { color = '#ef4444'; fillOpacity = 0.4; }
-    else if(median >= 900) { color = '#eab308'; fillOpacity = 0.35; }
-    else if(median >= 800) { color = '#22c55e'; fillOpacity = 0.35; }
-    else if(median >= 700) { color = '#22d3ee'; fillOpacity = 0.3; }
-    else if(median >= 600) { color = '#3b82f6'; fillOpacity = 0.3; }
-    else                   { color = '#6366f1'; fillOpacity = 0.2; }
+    // Color by median exit $/SF — same scale as exitPsfColor() / listing pins
+    const color = exitPsfColor(median);
+    let fillOpacity;
+    if(median >= 900)      fillOpacity = 0.4;
+    else if(median >= 800) fillOpacity = 0.35;
+    else if(median >= 700) fillOpacity = 0.35;
+    else if(median >= 650) fillOpacity = 0.3;
+    else                   fillOpacity = 0.2;
 
     // Create polygon for cell
     const bounds = [
@@ -3816,12 +3816,12 @@ function updatePinLegend(){
   if(layerState.neighborhoods){
     if(html) html += '<div class="pin-legend-section"></div>';
     html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Neighborhood Exit $/SF</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#ef4444;border-radius:2px"></div> $1,000+</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border-radius:2px"></div> $900–1k</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border-radius:2px"></div> $800–900</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border-radius:2px"></div> $700–800</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border-radius:2px"></div> $600–700</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border-radius:2px"></div> &lt;$600</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border-radius:2px"></div> $900+</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border-radius:2px"></div> $800–900</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border-radius:2px"></div> $750–800</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border-radius:2px"></div> $700–750</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border-radius:2px"></div> $650–700</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border-radius:2px"></div> &lt;$650</div>';
   }
 
   // Profit Spread Heatmap legend
