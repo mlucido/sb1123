@@ -1481,6 +1481,23 @@ function getPinBorder(ppsf){
   return '#dc2626';                   // Darker red border
 }
 
+// ── AppState: event-emitting state container ──
+var AppState = (function(){
+  var _s = {}, _l = {};
+  return {
+    get: function(k){ return _s[k]; },
+    set: function(k, v){ _s[k] = v; (_l[k]||[]).forEach(function(f){f(v);}); (_l['*']||[]).forEach(function(f){f(k,v);}); },
+    on: function(k, fn){ (_l[k] = _l[k]||[]).push(fn); },
+    getAll: function(){ return Object.assign({}, _s); },
+  };
+})();
+
+// Persist soft filters across page reloads
+var _PERSIST_KEYS = ['favoritesOnly','newThisWeekFilter','hideBurnZones','minUnitsFilter'];
+AppState.on('*', function(k, v){
+  if(_PERSIST_KEYS.indexOf(k) >= 0) localStorage.setItem('sb1123_'+k, JSON.stringify(v));
+});
+
 // ── State ──
 let COMPS = [];
 let LISTINGS = [];
@@ -1521,12 +1538,35 @@ let rentalCompsTableActive = false;
 let rentalCompsMapLayer = null;
 let rentalCompsRadiusCircle = null;
 let savedPipelineHeader = '';
+
+// Soft filters — restore from localStorage via AppState
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
 let minUnitsFilter = 4;  // Default: require at least 4 units
-function onMinUnitsChange(val){ minUnitsFilter = parseInt(val); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
-function resetMinUnits(){ minUnitsFilter = 4; document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
+
+// Initialize AppState with soft filter defaults, then restore persisted values
+AppState.set('favoritesOnly', false);
+AppState.set('newThisWeekFilter', false);
+AppState.set('hideBurnZones', true);
+AppState.set('minUnitsFilter', 4);
+_PERSIST_KEYS.forEach(function(k){
+  var s = localStorage.getItem('sb1123_'+k);
+  if(s != null){ try{ AppState.set(k, JSON.parse(s)); }catch(e){} }
+});
+// Sync globals from restored state
+favoritesOnly = AppState.get('favoritesOnly');
+newThisWeekFilter = AppState.get('newThisWeekFilter');
+hideBurnZones = AppState.get('hideBurnZones');
+minUnitsFilter = AppState.get('minUnitsFilter');
+
+// Keep globals in sync when AppState changes
+AppState.on('favoritesOnly', function(v){ favoritesOnly = v; });
+AppState.on('newThisWeekFilter', function(v){ newThisWeekFilter = v; });
+AppState.on('hideBurnZones', function(v){ hideBurnZones = v; });
+AppState.on('minUnitsFilter', function(v){ minUnitsFilter = v; });
+function onMinUnitsChange(val){ AppState.set('minUnitsFilter', parseInt(val)); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
+function resetMinUnits(){ AppState.set('minUnitsFilter', 4); document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
@@ -1590,7 +1630,7 @@ function toggleFavoritesFilter(){
   // Guard: check actual count, not just btn.disabled (inline onclick can fire on some browsers)
   if(Object.keys(loadFavorites()).length === 0) return;
   const btn = document.getElementById('favToggle');
-  favoritesOnly=!favoritesOnly;
+  AppState.set('favoritesOnly', !favoritesOnly);
   if(favoritesOnly){
     btn.classList.add('active');
   } else {
@@ -1599,7 +1639,7 @@ function toggleFavoritesFilter(){
   applyFilters();
 }
 function toggleBurnZoneFilter(checked){
-  hideBurnZones = checked;
+  AppState.set('hideBurnZones', checked);
   applyFilters();
 }
 
@@ -4051,11 +4091,11 @@ function toggleListingsPanel(){
 function toggleNewThisWeek(btn){
   // Support both old button and new checkbox style
   if(btn && btn.classList) {
-    newThisWeekFilter = !newThisWeekFilter;
+    AppState.set('newThisWeekFilter', !newThisWeekFilter);
     btn.classList.toggle('active', newThisWeekFilter);
   } else {
     const cb = document.getElementById('newThisWeekCheckbox');
-    newThisWeekFilter = cb ? cb.checked : !newThisWeekFilter;
+    AppState.set('newThisWeekFilter', cb ? cb.checked : !newThisWeekFilter);
   }
   applyFilters();
 }
@@ -4464,9 +4504,9 @@ function decodeFiltersFromHash(){
       if(sp.length === 2) currentSort = { key: sp[0], dir: sp[1] };
       applied = true;
     } else if(k === 'sb1123' && v === '1'){ sb1123Mode = true; applied = true; }
-    else if(k === 'favs' && v === '1'){ favoritesOnly = true; applied = true; }
-    else if(k === 'burn' && v === '1'){ hideBurnZones = false; applied = true; }
-    else if(k === 'new' && v === '1'){ newThisWeekFilter = true; applied = true; }
+    else if(k === 'favs' && v === '1'){ AppState.set('favoritesOnly', true); applied = true; }
+    else if(k === 'burn' && v === '1'){ AppState.set('hideBurnZones', false); applied = true; }
+    else if(k === 'new' && v === '1'){ AppState.set('newThisWeekFilter', true); applied = true; }
   });
   return applied;
 }
@@ -4697,7 +4737,7 @@ function applyPolygonOpacity(){
 function resetFilter(key){
   if(key==='all'){
     ['margin','price','psf','sqft','lot','lotw','slope'].forEach(k=>resetFilter(k));
-    newThisWeekFilter=false;
+    AppState.set('newThisWeekFilter', false);
     var ntwCb=document.getElementById('newThisWeekCheckbox'); if(ntwCb) ntwCb.checked=false;
     resetMinUnits();
     document.querySelectorAll('.preset-btn,.kf-chip').forEach(b=>b.classList.remove('active'));
@@ -6303,6 +6343,26 @@ window.addEventListener('DOMContentLoaded', function(){
 
       // Restore filter state from URL hash if present
       decodeFiltersFromHash();
+
+      // Restore soft filter UI from AppState (localStorage persistence)
+      if(minUnitsFilter !== 4){
+        var muSlider = document.getElementById('minUnitsSlider');
+        var muLabel = document.getElementById('minUnitsLabel');
+        if(muSlider) muSlider.value = minUnitsFilter;
+        if(muLabel) muLabel.textContent = minUnitsFilter;
+      }
+      if(favoritesOnly){
+        var favBtn = document.getElementById('favToggle');
+        if(favBtn) favBtn.classList.add('active');
+      }
+      if(!hideBurnZones){
+        var bzCb = document.getElementById('hideBurnZones');
+        if(bzCb) bzCb.checked = false;
+      }
+      if(newThisWeekFilter){
+        var ntwCb = document.getElementById('newThisWeekCheckbox');
+        if(ntwCb) ntwCb.checked = true;
+      }
 
       // Build $/SF heatmap layer from sold comps
       if(COMPS.length && typeof L.heatLayer === 'function'){
