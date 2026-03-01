@@ -187,7 +187,7 @@ export function calculateBTRProForma(l){
   const refiAnnualDS = refiLoanAmount * refiRate;
   const cashOutRefi = refiLoanAmount - totalCost;
   const equityAfterRefi = totalCost - refiLoanAmount;
-  const cashFlow = annualNOI - refiAnnualDS;
+  const cashFlow = annualNOI - annualDebtService;
   const cashOnCash = equityAfterRefi > 0 ? cashFlow / equityAfterRefi : 0;
 
   const grm = grossAnnualRent > 0 ? pf.grossRevenue / grossAnnualRent : 0;
