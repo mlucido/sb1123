@@ -165,7 +165,7 @@ export function calculateBTRProForma(l){
   const opexRatio = parseFloat((document.getElementById('btrOpex')||{}).value) || 0.30;
   const capRate = parseFloat((document.getElementById('btrCapRate')||{}).value) || 0.055;
   const refiLTV = parseFloat((document.getElementById('btrLTV')||{}).value) || 0.70;
-  const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.0625;
+  const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.065;
 
   const rentPsf = l.rentPsf || (l.estRentMonth > 0 ? l.estRentMonth / 1750 : 0);
   const hasEstRent = rentPsf > 0;
@@ -179,7 +179,7 @@ export function calculateBTRProForma(l){
   const yieldOnCost = totalCost > 0 ? annualNOI / totalCost : 0;
   const stabilizedValue = capRate > 0 ? annualNOI / capRate : 0;
 
-  const loanAmount = pf.constructionCost;
+  const loanAmount = pf.totalProjectCost * 0.70;
   const annualDebtService = loanAmount * 0.065;
   const dscr = annualDebtService > 0 ? annualNOI / annualDebtService : 0;
 
