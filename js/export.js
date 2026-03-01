@@ -232,26 +232,28 @@ function buildScorecardTab(wb, l, pf, btr, exitPSF, monthlyRent) {
   ws.getCell('G21').fill = _hdrFill;
 
   labelCell(ws, 22, 6, 'Rent / Unit / Mo');  setVal(ws, 'G22', btr.rentPerUnit || 0, '$#,##0');
-  labelCell(ws, 23, 6, 'Rent $/SF');         setVal(ws, 'G23', rentPsf, '$#,##0.00');
-  labelCell(ws, 24, 6, 'Annual NOI');         setVal(ws, 'G24', Math.round(annualNOI), '$#,##0');
-  labelCell(ws, 25, 6, 'Yield on Cost');      setVal(ws, 'G25', yieldOnCost, '0.0%');
-  labelCell(ws, 26, 6, 'Stabilized Value');   setVal(ws, 'G26', Math.round(stabilizedValue), '$#,##0');
-  labelCell(ws, 27, 6, 'DSCR');               setVal(ws, 'G27', dscr, '0.00x');
+  labelCell(ws, 23, 6, 'Annual NOI');         setVal(ws, 'G23', Math.round(annualNOI), '$#,##0');
+  labelCell(ws, 24, 6, 'Yield on Cost');      setVal(ws, 'G24', yieldOnCost, '0.0%');
+  labelCell(ws, 25, 6, 'I/O Loan Amount');    setVal(ws, 'G25', Math.round(btr.loanAmount), '$#,##0');
+  labelCell(ws, 26, 6, 'Annual Debt Service');setVal(ws, 'G26', Math.round(btr.annualDebtService), '$#,##0');
+  labelCell(ws, 27, 6, 'Stabilized Value');   setVal(ws, 'G27', Math.round(stabilizedValue), '$#,##0');
+  labelCell(ws, 28, 6, 'DSCR');               setVal(ws, 'G28', dscr, '0.00x');
+  labelCell(ws, 29, 6, 'Cash Flow');          setVal(ws, 'G29', Math.round(btr.cashFlow), '$#,##0');
 
   // RISK FLAGS
-  ws.getCell('F29').value = 'RISK FLAGS';
-  ws.getCell('F29').font = _hdrFont; ws.getCell('F29').fill = _hdrFill;
-  ws.getCell('G29').fill = _hdrFill;
+  ws.getCell('F31').value = 'RISK FLAGS';
+  ws.getCell('F31').font = _hdrFont; ws.getCell('F31').fill = _hdrFill;
+  ws.getCell('G31').fill = _hdrFill;
 
   var fireZone = l.fireZone || 'None';
   var tenantRisk = l.tenantRisk != null ? ['None','Low','Medium','High'][l.tenantRisk] || 'Unknown' : 'N/A';
   var rsoFlag = l.rsoRisk ? 'Yes' : 'No';
   var urbanFlag = l.urban ? 'Yes' : 'No';
 
-  labelCell(ws, 30, 6, 'Fire Zone');      setVal(ws, 'G30', fireZone);
-  labelCell(ws, 31, 6, 'Tenant Risk');    setVal(ws, 'G31', tenantRisk);
-  labelCell(ws, 32, 6, 'RSO');            setVal(ws, 'G32', rsoFlag);
-  labelCell(ws, 33, 6, 'Urban Area');     setVal(ws, 'G33', urbanFlag);
+  labelCell(ws, 32, 6, 'Fire Zone');      setVal(ws, 'G32', fireZone);
+  labelCell(ws, 33, 6, 'Tenant Risk');    setVal(ws, 'G33', tenantRisk);
+  labelCell(ws, 34, 6, 'RSO');            setVal(ws, 'G34', rsoFlag);
+  labelCell(ws, 35, 6, 'Urban Area');     setVal(ws, 'G35', urbanFlag);
 
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
@@ -355,7 +357,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 50, 2, 'BTR OpEx Ratio');  inputCell(ws, 'C50', 0.30, '0.0%');
   labelCell(ws, 51, 2, 'BTR Cap Rate');    inputCell(ws, 'C51', 0.055, '0.0%');
   labelCell(ws, 52, 2, 'BTR Refi LTV');    inputCell(ws, 'C52', 0.70, '0.0%');
-  labelCell(ws, 53, 2, 'BTR Perm Rate');   inputCell(ws, 'C53', 0.0625, '0.00%');
+  labelCell(ws, 53, 2, 'BTR Perm Rate');   inputCell(ws, 'C53', 0.065, '0.0%');
   labelCell(ws, 54, 2, 'BTR Rent Growth'); inputCell(ws, 'C54', 0.03, '0.0%');
 
   // ── Right: Timeline & Capital ──
