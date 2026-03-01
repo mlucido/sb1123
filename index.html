@@ -1456,6 +1456,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </div>
 
 <script type="module">
+// ── Module imports ──
+import { fmtDollar, fmtShort, commas } from './js/format.js';
+
 // ── Constants ──
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
 const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',LAND:'Vacant Land'};
@@ -3155,10 +3158,7 @@ function toggleDealCard(el){
   card.classList.toggle('expanded');
 }
 
-// ── Format helpers (shared by deal card + mobile cards) ──
-function fmtDollar(n){ return '$'+Math.round(n).toLocaleString(); }
-function fmtShort(n){ return n>=1000000?'$'+(n/1000000).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'M':n>=1000?'$'+Math.round(n/1000)+'k':'$'+Math.round(n); }
-function commas(n){ return n!=null?Math.round(n).toLocaleString():'—'; }
+// ── Format helpers — see js/format.js ──
 
 function dealCardBadges(l, ctx, isDualViable){
   // Inline badges (zone, BTS/BTR, DEMO — shown inside strip)
