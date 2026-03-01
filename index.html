@@ -2541,12 +2541,12 @@ function dealCardProForma(l, pf){
 }
 
 function dealCardCompButtons(l){
-  var cc = compConfidence(l);
+  var saleCount = l.compCount || 0;
   var h = '<div class="dp-comps">';
-  h += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
+  h += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+saleCount+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   var hasRentalComps = typeof RENTAL_COMPS!=='undefined'&&RENTAL_COMPS.length>0&&l.rentMethod&&l.rentMethod.startsWith('rental-comp');
   if(hasRentalComps){
-    h += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">'+(l.rentCompCount||'')+' Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
+    h += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   }
   h += '</div>';
   return h;
