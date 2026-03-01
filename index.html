@@ -1461,6 +1461,7 @@ import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
 import { initExport, exportCSV, exportModel, exportOM } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
+import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive } from './js/comps.js';
 
 // ── Constants ──
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
@@ -1533,13 +1534,7 @@ const filters = {
 
 let currentSort = { key:null, dir:'desc' };
 let listingsPanelOpen = false;
-let compsTableActive = false;
-let compsMapLayer = null;
-let compsRadiusCircle = null;
-let rentalCompsTableActive = false;
-let rentalCompsMapLayer = null;
-let rentalCompsRadiusCircle = null;
-let savedPipelineHeader = '';
+// Comp table state — see js/comps.js
 
 // Soft filters — restore from localStorage via AppState
 let favoritesOnly = false;
@@ -2073,458 +2068,7 @@ function proFormaBlock(l, pf, opts){
   return h;
 }
 
-// ── View Comps ──
-
-const COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500; // Match listings_build.py size band
-const ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',LAND:'Land'};
-const PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
-const ADJ_ZONES = {R1:['R2'],R2:['R1','R3'],R3:['R2','R4'],R4:['R3'],LAND:['R1']};
-
-function distMi(lat1,lng1,lat2,lng2){
-  const dlat=(lat2-lat1)*69, dlng=(lng2-lng1)*69*Math.cos(lat1*Math.PI/180);
-  return Math.sqrt(dlat*dlat+dlng*dlng);
-}
-
-function searchCompsInRadius(lat,lng,radiusMi){
-  if(!compSpatialGrid || !COMPS.length) return [];
-  const radiusDeg=radiusMi/69, S=0.005;
-  const rMin=Math.floor((lat-radiusDeg)/S), rMax=Math.floor((lat+radiusDeg)/S);
-  const cMin=Math.floor((lng-radiusDeg)/S), cMax=Math.floor((lng+radiusDeg)/S);
-  const out=[];
-  for(let r=rMin;r<=rMax;r++){
-    for(let c=cMin;c<=cMax;c++){
-      const cell=compSpatialGrid[r+','+c];
-      if(cell) cell.forEach(comp=>{
-        // Use box check matching Python: abs(dlat)<=radius && abs(dlng)<=radius
-        if(Math.abs(comp.lat-lat)<=radiusDeg && Math.abs(comp.lng-lng)<=radiusDeg){
-          out.push(Object.assign({},comp,{dist:distMi(lat,lng,comp.lat,comp.lng)}));
-        }
-      });
-    }
-  }
-  return out;
-}
-
-function findCompsForListing(l){
-  if(!COMPS.length) return {used:[],ref:[],source:'none',radius:0};
-
-  let source,searchRadius,targetCount;
-
-  if(l.subdivExitPsf){
-    source='subdiv'; searchRadius=l.subdivCompRadius||2; targetCount=l.subdivCompCount||0;
-  } else if(l.newconPpsf){
-    source='newcon'; searchRadius=2; targetCount=l.newconCount||0;
-  } else if(l.exitPsf){
-    source='zone'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
-  } else {
-    return {used:[],ref:[],source:'none',radius:0};
-  }
-
-  // Wider search for reference comps
-  const wideRadius = Math.min(searchRadius*2, 5);
-  const all = searchCompsInRadius(l.lat,l.lng,wideRadius);
-
-  const used=[], ref=[];
-  for(const c of all){
-    const inRadius = c.dist <= searchRadius + 0.05; // small tolerance
-    let isUsed = false;
-
-    if(source==='newcon'){
-      // New-con: yb>=2021, zone-matched or cross-zone
-      const isNewcon = c.yb && c.yb >= 2021;
-      const zmOrAdj = l.newconZoneMatch
-        ? c.zone===l.zone
-        : (c.zone===l.zone || (ADJ_ZONES[l.zone]||[]).includes(c.zone));
-      const inBand = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
-      isUsed = inRadius && isNewcon && zmOrAdj && inBand;
-    } else if(source==='subdiv'){
-      // Subdiv: zone-matched, recent sales
-      isUsed = inRadius && c.zone===l.zone && c.yb && c.yb>=2021;
-    } else {
-      // Zone/all comps
-      const method = l.compMethod||'';
-      const zoneMatch = method.startsWith('zone') ? c.zone===l.zone : true;
-      const inBand = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
-      // Try size-band match first
-      isUsed = inRadius && zoneMatch && inBand;
-    }
-
-    c.isUsed = isUsed;
-    c.isOutlier = c.sqft<400 || c.ppsf>2000;
-    if(isUsed && !c.isOutlier) used.push(c);
-    else ref.push(c);
-  }
-
-  // If zone comps and size-band gave too few, widen to all-size (matching Python fallback)
-  if(source==='zone' && used.length < targetCount){
-    const method = l.compMethod||'';
-    const zoneMatch = method.startsWith('zone');
-    // Move non-band, in-radius, zone-matched comps from ref to used
-    for(let i=ref.length-1;i>=0;i--){
-      const c=ref[i];
-      if(c.dist<=searchRadius+0.05 && !c.isOutlier && (zoneMatch?c.zone===l.zone:true)){
-        c.isUsed=true;
-        used.push(ref.splice(i,1)[0]);
-      }
-    }
-  }
-
-  used.sort((a,b)=>a.dist-b.dist);
-  ref.sort((a,b)=>a.dist-b.dist);
-  return {used,ref,source,radius:searchRadius};
-}
-
-function formatCompDate(d){
-  if(!d) return '—';
-  const parts = d.split('-');
-  if(parts.length>=3) return parts[0].substring(0,3)+' '+parts[2];
-  return d;
-}
-
-function compRow(c){
-  const outlier = c.isOutlier;
-  const style = outlier ? 'opacity:0.4' : c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  const tag = outlier ? ' <span style="color:var(--orange);font-size:9px">&#9888; outlier</span>' : '';
-  return `<tr style="cursor:pointer;${style}" onclick="map.flyTo([${c.lat},${c.lng}],17)">
-    <td style="text-align:center">${c.isUsed&&!outlier?'<span style="color:var(--green)">&#10003;</span>':''}</td>
-    <td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}${tag}</td>
-    <td>$${c.price.toLocaleString()}</td>
-    <td style="color:${c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)'}">$${c.ppsf}</td>
-    <td>${c.sqft.toLocaleString()}</td>
-    <td>${c.bd||'—'}/${c.ba||'—'}</td>
-    <td${c.pt===3?' style="color:var(--green);font-weight:600"':''}>${PT_LABEL[c.pt]||ZONE_TYPE_MAP[c.zone]||c.zone||'—'}</td>
-    <td>${c.zone||'—'}</td>
-    <td>${c.yb||'—'}</td>
-    <td style="color:${c.t===1?'var(--green)':'var(--text-dim)'}">T${c.t||'?'}</td>
-    <td>${formatCompDate(c.date)}</td>
-    <td>${c.dist.toFixed(2)}mi</td>
-  </tr>`;
-}
-
-function showCompsTable(lat,lng){
-  const l = LISTINGS.find(ll=>ll.lat===lat&&ll.lng===lng);
-  if(!l || !COMPS.length) return;
-  if(!listingsPanelOpen) toggleListingsPanel();
-
-  // Hide any existing rental comps table first
-  if(rentalCompsTableActive) hideRentalCompsTable();
-
-  const {used,ref,source,radius} = findCompsForListing(l);
-  const sourceLabel = {subdiv:'Subdivision',newcon:'New Construction',zone:'Zone-Matched'}[source]||source;
-
-  // Hide pipeline elements
-  document.getElementById('tableWrap').style.display='none';
-  document.getElementById('mobileCards').style.display='none';
-  const header = document.querySelector('.listings-panel-header');
-  savedPipelineHeader = header.innerHTML;
-  header.innerHTML = `
-    <button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; ${l.address}</div>
-      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sourceLabel} &bull; ${used.length} used / ${used.length+ref.length} nearby within ${radius.toFixed(1)}mi</div>
-    </div>
-    <button class="listings-panel-close" onclick="hideCompsTable()">x</button>
-  `;
-
-  // Create or reuse comps container
-  let wrap = document.getElementById('compsTableWrap');
-  if(!wrap){
-    wrap = document.createElement('div');
-    wrap.id = 'compsTableWrap';
-    wrap.className = 'listings-table-wrap';
-    const panel = document.getElementById('listingsPanel');
-    panel.insertBefore(wrap, document.getElementById('tableWrap'));
-  }
-  wrap.style.display = '';
-
-  const thead = `<table class="listings-table"><thead><tr>
-    <th style="width:30px">Used</th>
-    <th onclick="sortCompsTable('address')">Address</th>
-    <th onclick="sortCompsTable('price')">Sale Price</th>
-    <th onclick="sortCompsTable('ppsf')">$/SF</th>
-    <th onclick="sortCompsTable('sqft')">SqFt</th>
-    <th>Bd/Ba</th>
-    <th>Type</th>
-    <th onclick="sortCompsTable('zone')">Zone</th>
-    <th onclick="sortCompsTable('yb')">Yr Built</th>
-    <th onclick="sortCompsTable('t')">Tier</th>
-    <th onclick="sortCompsTable('date')">Sale Date</th>
-    <th onclick="sortCompsTable('dist')">Dist</th>
-  </tr></thead>`;
-
-  const dividerRow = ref.length ? `<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${ref.length}) &mdash;</td></tr>` : '';
-  const tbody = `<tbody>${used.map(c=>compRow(c)).join('')}${dividerRow}${ref.filter(c=>!c.isOutlier).map(c=>compRow(c)).join('')}</tbody></table>`;
-  wrap.innerHTML = thead + tbody;
-
-  // Store data for sorting
-  wrap._used = used;
-  wrap._ref = ref;
-  wrap._listing = l;
-
-  // Map markers — used=green, reference=gray
-  if(compsMapLayer){ map.removeLayer(compsMapLayer); }
-  if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); }
-  compsMapLayer = L.layerGroup();
-  used.forEach(c=>{
-    L.circleMarker([c.lat,c.lng],{
-      radius:6, color:'#22c55e', fillColor:'#22c55e', fillOpacity:0.8, weight:1
-    }).bindPopup(`<b>${c.address||'—'}</b><br>$${c.price.toLocaleString()} &bull; $${c.ppsf}/sf &bull; ${c.sqft}sf<br>${c.date||'—'} &bull; T${c.t||'?'} &bull; ${c.zone}`).addTo(compsMapLayer);
-  });
-  ref.filter(c=>!c.isOutlier).forEach(c=>{
-    L.circleMarker([c.lat,c.lng],{
-      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
-    }).addTo(compsMapLayer);
-  });
-  compsRadiusCircle = L.circle([l.lat,l.lng],{
-    radius: radius*1609.34, color:'#22c55e', fillColor:'#22c55e',
-    fillOpacity:0.04, weight:1, dashArray:'6,4'
-  });
-  compsMapLayer.addTo(map);
-  compsRadiusCircle.addTo(map);
-  compsTableActive = true;
-}
-
-function sortCompsTable(key){
-  const wrap = document.getElementById('compsTableWrap');
-  if(!wrap || !wrap._used) return;
-  const prev = wrap.getAttribute('data-sort-key');
-  const dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
-  wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
-  const sorter = (a,b)=>{
-    let va=a[key],vb=b[key];
-    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
-    va=va||0;vb=vb||0;
-    return dir==='asc'?va-vb:vb-va;
-  };
-  wrap._used.sort(sorter);
-  wrap._ref.sort(sorter);
-  const dividerRow = wrap._ref.length ? `<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${wrap._ref.length}) &mdash;</td></tr>` : '';
-  wrap.querySelector('tbody').innerHTML = wrap._used.map(c=>compRow(c)).join('') + dividerRow + wrap._ref.filter(c=>!c.isOutlier).map(c=>compRow(c)).join('');
-}
-
-function hideCompsTable(){
-  // Restore pipeline
-  document.getElementById('tableWrap').style.display='';
-  document.getElementById('mobileCards').style.display='';
-  const header = document.querySelector('.listings-panel-header');
-  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
-  const wrap = document.getElementById('compsTableWrap');
-  if(wrap) wrap.remove();
-  // Remove map markers
-  if(compsMapLayer){ map.removeLayer(compsMapLayer); compsMapLayer=null; }
-  if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); compsRadiusCircle=null; }
-  compsTableActive = false;
-}
-
-// ── Rental Comps Table ──
-
-function buildRentalCompGrid(comps){
-  const grid = {};
-  const S = 0.005;
-  comps.forEach(c=>{
-    const key = Math.floor(c.lat/S)+','+Math.floor(c.lng/S);
-    if(!grid[key]) grid[key]=[];
-    grid[key].push(c);
-  });
-  return grid;
-}
-
-function searchRentalCompsInRadius(lat,lng,radiusMi){
-  if(!rentalCompGrid || !RENTAL_COMPS.length) return [];
-  const radiusDeg=radiusMi/69, S=0.005;
-  const rMin=Math.floor((lat-radiusDeg)/S), rMax=Math.floor((lat+radiusDeg)/S);
-  const cMin=Math.floor((lng-radiusDeg)/S), cMax=Math.floor((lng+radiusDeg)/S);
-  const out=[];
-  for(let r=rMin;r<=rMax;r++){
-    for(let c=cMin;c<=cMax;c++){
-      const cell=rentalCompGrid[r+','+c];
-      if(cell) cell.forEach(comp=>{
-        if(Math.abs(comp.lat-lat)<=radiusDeg && Math.abs(comp.lng-lng)<=radiusDeg){
-          out.push(Object.assign({},comp,{dist:distMi(lat,lng,comp.lat,comp.lng)}));
-        }
-      });
-    }
-  }
-  return out;
-}
-
-const RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
-const SFR_TH_TYPES = [1,2,3,4]; // SFR, Condo, TH, MF 2-4
-
-function findRentalCompsForListing(l){
-  if(!RENTAL_COMPS.length) return {used:[],ref:[],radius:0,method:'none'};
-  const method = l.rentMethod||'';
-
-  // Determine search radius from listing data
-  let usedRadius = l.rentCompRadius || 1;
-  // Widen for reference comps
-  const wideRadius = Math.min(usedRadius * 2, 5);
-  const all = searchRentalCompsInRadius(l.lat, l.lng, wideRadius);
-
-  const used=[], ref=[];
-  for(const c of all){
-    const inRadius = c.dist <= usedRadius + 0.05;
-    let isUsed = false;
-
-    if(method === 'rental-comp' || method === 'rental-comp-wide'){
-      // Tier 1/2: 3BR exact, 800-2500 SF, SFR/TH/Condo/MF types
-      const bdOk = (c.bd||0) === 3;
-      const sfOk = (c.sqft||0) >= 800 && (c.sqft||0) <= 2500;
-      const ptOk = SFR_TH_TYPES.includes(c.pt||0);
-      isUsed = inRadius && bdOk && sfOk && ptOk;
-    } else if(method === 'rental-adj'){
-      // Tier 3: 2+ BR, 800+ SF, all types
-      const bdOk = (c.bd||0) >= 2;
-      const sfOk = (c.sqft||0) >= 800;
-      isUsed = inRadius && bdOk && sfOk;
-    } else {
-      // ZORI/SAFMR — show nearby for reference but none "used"
-      isUsed = false;
-    }
-
-    c.isUsed = isUsed;
-    if(isUsed) used.push(c);
-    else ref.push(c);
-  }
-
-  used.sort((a,b)=>a.dist-b.dist);
-  ref.sort((a,b)=>a.dist-b.dist);
-  return {used, ref, radius:usedRadius, method};
-}
-
-function rentalCompRow(c){
-  const rentPsf = (c.sqft && c.sqft > 0) ? (c.rent / c.sqft).toFixed(2) : '—';
-  const style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  return `<tr style="cursor:pointer;${style}" onclick="map.flyTo([${c.lat},${c.lng}],17)">
-    <td style="text-align:center">${c.isUsed?'<span style="color:var(--green)">&#10003;</span>':''}</td>
-    <td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.addr||'—'}</td>
-    <td>$${c.rent.toLocaleString()}</td>
-    <td>${rentPsf==='—'?'—':'$'+rentPsf}</td>
-    <td>${c.bd||'—'}</td>
-    <td>${c.ba||'—'}</td>
-    <td>${c.sqft?c.sqft.toLocaleString():'—'}</td>
-    <td>${RENTAL_PT_LABEL[c.pt]||'—'}</td>
-    <td>${c.dist.toFixed(2)}mi</td>
-  </tr>`;
-}
-
-function showRentalCompsTable(lat,lng){
-  const l = LISTINGS.find(ll=>ll.lat===lat&&ll.lng===lng);
-  if(!l || !RENTAL_COMPS.length) return;
-  if(!listingsPanelOpen) toggleListingsPanel();
-
-  // Hide any existing comps table first
-  if(compsTableActive) hideCompsTable();
-
-  const {used,ref,radius,method} = findRentalCompsForListing(l);
-
-  // Hide pipeline elements
-  document.getElementById('tableWrap').style.display='none';
-  document.getElementById('mobileCards').style.display='none';
-  const header = document.querySelector('.listings-panel-header');
-  if(!rentalCompsTableActive && !compsTableActive) savedPipelineHeader = header.innerHTML;
-  header.innerHTML = `
-    <button onclick="hideRentalCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">RENTAL COMPS &mdash; ${l.address}</div>
-      <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${used.length} used / ${used.length+ref.length} nearby within ${radius.toFixed(1)}mi</div>
-    </div>
-    <button class="listings-panel-close" onclick="hideRentalCompsTable()">x</button>
-  `;
-
-  // Create or reuse rental comps container
-  let wrap = document.getElementById('rentalCompsTableWrap');
-  if(!wrap){
-    wrap = document.createElement('div');
-    wrap.id = 'rentalCompsTableWrap';
-    wrap.className = 'listings-table-wrap';
-    const panel = document.getElementById('listingsPanel');
-    panel.insertBefore(wrap, document.getElementById('tableWrap'));
-  }
-  wrap.style.display = '';
-
-  const thead = `<table class="listings-table"><thead><tr>
-    <th style="width:30px">Used</th>
-    <th onclick="sortRentalCompsTable('addr')">Address</th>
-    <th onclick="sortRentalCompsTable('rent')">Rent $/mo</th>
-    <th onclick="sortRentalCompsTable('rentPsf')">$/SF/mo</th>
-    <th onclick="sortRentalCompsTable('bd')">Beds</th>
-    <th onclick="sortRentalCompsTable('ba')">Baths</th>
-    <th onclick="sortRentalCompsTable('sqft')">SqFt</th>
-    <th>Type</th>
-    <th onclick="sortRentalCompsTable('dist')">Dist</th>
-  </tr></thead>`;
-
-  const dividerRow = ref.length ? `<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${ref.length}) &mdash;</td></tr>` : '';
-  const tbody = `<tbody>${used.map(c=>rentalCompRow(c)).join('')}${dividerRow}${ref.map(c=>rentalCompRow(c)).join('')}</tbody></table>`;
-  wrap.innerHTML = thead + tbody;
-
-  // Store data for sorting
-  wrap._used = used;
-  wrap._ref = ref;
-  wrap._listing = l;
-
-  // Map markers — used=blue, reference=gray
-  if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); }
-  if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); }
-  rentalCompsMapLayer = L.layerGroup();
-  used.forEach(c=>{
-    L.circleMarker([c.lat,c.lng],{
-      radius:6, color:'#3b82f6', fillColor:'#3b82f6', fillOpacity:0.8, weight:1
-    }).bindPopup(`<b>${c.addr||'—'}</b><br>$${c.rent.toLocaleString()}/mo &bull; ${c.bd||'?'}bd/${c.ba||'?'}ba &bull; ${c.sqft?c.sqft.toLocaleString()+'sf':'—'}`).addTo(rentalCompsMapLayer);
-  });
-  ref.forEach(c=>{
-    L.circleMarker([c.lat,c.lng],{
-      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
-    }).addTo(rentalCompsMapLayer);
-  });
-  rentalCompsRadiusCircle = L.circle([l.lat,l.lng],{
-    radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
-    fillOpacity:0.04, weight:1, dashArray:'6,4'
-  });
-  rentalCompsMapLayer.addTo(map);
-  rentalCompsRadiusCircle.addTo(map);
-  rentalCompsTableActive = true;
-}
-
-function sortRentalCompsTable(key){
-  const wrap = document.getElementById('rentalCompsTableWrap');
-  if(!wrap || !wrap._used) return;
-  const prev = wrap.getAttribute('data-sort-key');
-  const dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
-  wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
-  const sorter = (a,b)=>{
-    let va,vb;
-    if(key==='rentPsf'){
-      va=(a.sqft&&a.sqft>0)?a.rent/a.sqft:0;
-      vb=(b.sqft&&b.sqft>0)?b.rent/b.sqft:0;
-    } else {
-      va=a[key]; vb=b[key];
-    }
-    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
-    va=va||0;vb=vb||0;
-    return dir==='asc'?va-vb:vb-va;
-  };
-  wrap._used.sort(sorter);
-  wrap._ref.sort(sorter);
-  const dividerRow = wrap._ref.length ? `<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference (${wrap._ref.length}) &mdash;</td></tr>` : '';
-  wrap.querySelector('tbody').innerHTML = wrap._used.map(c=>rentalCompRow(c)).join('') + dividerRow + wrap._ref.map(c=>rentalCompRow(c)).join('');
-}
-
-function hideRentalCompsTable(){
-  document.getElementById('tableWrap').style.display='';
-  document.getElementById('mobileCards').style.display='';
-  const header = document.querySelector('.listings-panel-header');
-  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
-  const wrap = document.getElementById('rentalCompsTableWrap');
-  if(wrap) wrap.remove();
-  if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); rentalCompsMapLayer=null; }
-  if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); rentalCompsRadiusCircle=null; }
-  rentalCompsTableActive = false;
-}
-
+// ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
   // Prefer calibrated T1 normalized from CLUSTERS
@@ -3661,8 +3205,8 @@ document.addEventListener('keydown', function(e){
   if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
   else if(document.getElementById('dataKeyModal').classList.contains('active')) closeDataKeyModal();
   else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
-  else if(compsTableActive) hideCompsTable();
-  else if(rentalCompsTableActive) hideRentalCompsTable();
+  else if(isCompsTableActive()) hideCompsTable();
+  else if(isRentalCompsTableActive()) hideRentalCompsTable();
   else if(listingsPanelOpen) toggleListingsPanel();
 });
 
@@ -4362,6 +3906,18 @@ window.tierState = tierState;
 // ══════════════════════════════════════════
 //  INITIALIZATION
 // ══════════════════════════════════════════
+
+// Wire comps module dependencies
+initComps({
+  getMap: function(){ return map; },
+  getLISTINGS: function(){ return LISTINGS; },
+  getCOMPS: function(){ return COMPS; },
+  getRENTAL_COMPS: function(){ return RENTAL_COMPS; },
+  getCompSpatialGrid: function(){ return compSpatialGrid; },
+  getRentalCompGrid: function(){ return rentalCompGrid; },
+  isListingsPanelOpen: function(){ return listingsPanelOpen; },
+  toggleListingsPanel: function(){ toggleListingsPanel(); },
+});
 
 // Wire draw module dependencies
 initDraw({
