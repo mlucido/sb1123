@@ -40,3 +40,4 @@ data_sd.js
 # OS files
 .DS_Store
 .claude/
+*_cache.json
