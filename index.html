@@ -2376,11 +2376,6 @@ function getFilteredListings(skipZoneFilter){
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
-    // Always hide unviable deals (maxOffer <= 0) unless BTR-viable
-    if((l.maxOffer || 0) <= 0) {
-      if(layerState.btr && l.btrViable) { /* keep — BTR economics work */ }
-      else return false;
-    }
     const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND';
@@ -2511,7 +2506,7 @@ function dealCardEconomics(l, pf, el){
   h += '<div class="dp-row"><span class="dp-k">Soft Costs</span><span class="dp-v">'+fmtDollar(pf.softCosts)+psfSuffix(pf.softCosts)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Build</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+psfSuffix(pf.constructionCost)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Project</span><span class="dp-v">'+fmtDollar(pf.totalProjectCost)+psfSuffix(pf.totalProjectCost)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+psfSuffix(pf.carryInterest)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+'</span></div>';
   if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
   h += '<div class="dp-sep"></div>';
   h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
