@@ -102,19 +102,19 @@ function inputCell(ws, addr, value, numFmt) {
   cell.value = value;
   cell.fill = _inputFill;
   cell.border = _borders;
-  cell.font = { color: { argb: 'FF1F4E79' } };
+  cell.font = { color: { argb: 'FF003078' } };
   if (numFmt) cell.numFmt = numFmt;
 }
 
 function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var ws = wb.addWorksheet('Assumptions');
   ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 20;
-  ws.getColumn(3).width = 18;
+  ws.getColumn(2).width = 28;
+  ws.getColumn(3).width = 20;
   ws.getColumn(4).width = 3;
   ws.getColumn(5).width = 2;
-  ws.getColumn(6).width = 20;
-  ws.getColumn(7).width = 18;
+  ws.getColumn(6).width = 24;
+  ws.getColumn(7).width = 20;
 
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
@@ -165,14 +165,14 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 20, 2, 'Units');           inputCell(ws, 'C20', units, '#,##0');
   labelCell(ws, 21, 2, 'Avg Unit SF');     inputCell(ws, 'C21', avgUnitSF, '#,##0');
   labelCell(ws, 22, 2, 'Buildable SF');    setFormula(ws, 'C22', 'C20*C21', buildableSF, '#,##0');
-  labelCell(ws, 23, 2, 'Build Cost $/SF'); inputCell(ws, 'C23', buildCostPSF, '$#,##0');
+  labelCell(ws, 23, 2, 'Build Cost $/SF incl. 5% cont.'); inputCell(ws, 'C23', buildCostPSF, '$#,##0');
   labelCell(ws, 24, 2, 'Hard Costs');      setFormula(ws, 'C24', 'C22*C23', hardCosts, '$#,##0');
   labelCell(ws, 25, 2, 'Soft Cost %');     inputCell(ws, 'C25', 0.25, '0.0%');
   labelCell(ws, 26, 2, 'Soft Costs');      setFormula(ws, 'C26', 'C24*C25', hardCosts * 0.25, '$#,##0');
   labelCell(ws, 27, 2, 'Demo');            inputCell(ws, 'C27', 55000, '$#,##0');
-  labelCell(ws, 28, 2, 'Subdivision');     inputCell(ws, 'C28', 100000, '$#,##0');
+  labelCell(ws, 28, 2, 'Subdivision');     setFormula(ws, 'C28', '10*C22', 10 * buildableSF, '$#,##0');
   labelCell(ws, 29, 2, 'A&E');             inputCell(ws, 'C29', 150000, '$#,##0');
-  labelCell(ws, 30, 2, 'Total Dev Costs'); setFormula(ws, 'C30', 'C24+C26+C27+C28+C29', hardCosts + hardCosts * 0.25 + 55000 + 100000 + 150000, '$#,##0');
+  labelCell(ws, 30, 2, 'Total Dev Costs'); setFormula(ws, 'C30', 'C24+C26+C27+C28+C29', hardCosts + hardCosts * 0.25 + 55000 + 10 * buildableSF + 150000, '$#,##0');
   ws.getCell('C30').font = { bold: true };
 
   ws.getCell('B34').value = 'EXIT';
@@ -185,7 +185,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 38, 2, 'Net Proceeds');    setFormula(ws, 'C38', 'C36*(1-C37)', grossRevenue * (1 - txCostPct), '$#,##0');
   ws.getCell('C38').font = { bold: true };
 
-  ws.getCell('B41').value = 'WATERFALL';
+  ws.getCell('B41').value = 'FUND STRUCTURE';
   ws.getCell('B41').font = _hdrFont; ws.getCell('B41').fill = _hdrFill;
   ws.getCell('C41').fill = _hdrFill;
 
@@ -254,6 +254,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 38, 6, 'Disp Fee $');      setFormula(ws, 'G38', 'C36*G37', grossRevenue * 0.015, '$#,##0');
 
   // Print setup
+  ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -261,12 +262,12 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
 function buildSourcesUsesTab(wb, l, ed, pf) {
   var ws = wb.addWorksheet('Sources & Uses');
   ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 22;
-  ws.getColumn(3).width = 16;
+  ws.getColumn(2).width = 26;
+  ws.getColumn(3).width = 18;
   ws.getColumn(4).width = 12;
   ws.getColumn(5).width = 3;
-  ws.getColumn(6).width = 22;
-  ws.getColumn(7).width = 16;
+  ws.getColumn(6).width = 26;
+  ws.getColumn(7).width = 18;
   ws.getColumn(8).width = 12;
 
   var units = pf.maxUnits;
@@ -295,7 +296,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   labelCell(ws, 7, 2, '  Origination Fee');
   setFormula(ws, 'C7', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
   ws.getCell('C7').font = { color: { argb: 'FF999999' }, italic: true };
-  labelCell(ws, 8, 2, '  PIK Interest Reserve');
+  labelCell(ws, 8, 2, '  Interest Payments');
   setFormula(ws, 'C8', "'Cash Flow'!AA39", 0, '$#,##0');
 
   sectionHeader(ws, 10, 2, 'Equity');
@@ -342,8 +343,8 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'G14', 'Assumptions!C29', 150000, '$#,##0');
 
   sectionHeader(ws, 16, 6, 'Carry');
-  labelCell(ws, 17, 6, '  Interest Reserve');
-  setFormula(ws, 'G17', "'Cash Flow'!AA39", 0, '$#,##0'); // Total cumulative interest from CF
+  labelCell(ws, 17, 6, '  Interest Payments');
+  setFormula(ws, 'G17', "'Cash Flow'!AA39", 0, '$#,##0'); // Total interest paid from CF
   labelCell(ws, 18, 6, '  Property Tax');
   setFormula(ws, 'G18', 'Assumptions!G27*Assumptions!G8', monthlyTax * 24, '$#,##0');
   labelCell(ws, 19, 6, '  Insurance');
@@ -384,6 +385,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'C28', 'C14-G26', 0, '$#,##0');
   ws.getCell('C28').font = { bold: true, color: { argb: 'FFFF0000' } };
 
+  ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -395,7 +397,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var totalLtr = colLetter(totalCol); // AA
 
   ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 24;
+  ws.getColumn(2).width = 28;
   for (var mi = 3; mi <= totalCol; mi++) ws.getColumn(mi).width = 12;
 
   var price = l.price || 0;
@@ -617,7 +619,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   labelCell(ws, 32, 2, 'TOTAL USES');
   ws.getCell('B32').font = { bold: true, size: 11 };
   monthFormula(32,
-    function(m, cl) { return cl + '18+' + cl + '25+' + cl + '30'; },
+    function(m, cl) { return cl + '18+' + cl + '25+' + cl + '30+' + cl + '38'; },
     function() { return 0; }
   );
   // Double top border on total
@@ -661,11 +663,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     setFormula(ws, cl + '37', cl + '35+' + cl + '36', 0, '$#,##0');
   }
 
-  // Row 38: Interest Accrual (PIK)
-  labelCell(ws, 38, 2, '  Interest Accrual (PIK)');
+  // Row 38: Interest Payment (cash pay on opening balance)
+  labelCell(ws, 38, 2, '  Interest Payment');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '38', cl + '37*Assumptions!$G$18/12', 0, '$#,##0');
+    setFormula(ws, cl + '38', cl + '35*Assumptions!$G$18/12', 0, '$#,##0');
   }
   setFormula(ws, totalLtr + '38', 'SUM(C38:' + colLetter(MONTHS + 2) + '38)', 0, '$#,##0');
   ws.getCell(totalLtr + '38').font = { bold: true };
@@ -718,11 +720,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return m === 23 ? grossRevenue * 0.015 : 0; }
   );
 
-  // Row 47: Loan Repayment (principal + accrued interest)
+  // Row 47: Loan Repayment (closing balance only — interest already paid monthly)
   labelCell(ws, 47, 2, '  Loan Repayment');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '37+' + cl + '39,0)', 0, '$#,##0');
+    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '37,0)', 0, '$#,##0');
   }
   setFormula(ws, totalLtr + '47', 'SUM(C47:' + colLetter(MONTHS + 2) + '47)', 0, '$#,##0');
   ws.getCell(totalLtr + '47').font = { bold: true };
@@ -829,7 +831,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   }
 
   // Freeze panes: B column labels + header rows
-  ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 3 }];
+  ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -837,8 +839,8 @@ function buildCashFlowTab(wb, l, ed, pf) {
 function buildOutputsTab(wb, ed) {
   var ws = wb.addWorksheet('Outputs');
   ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 22;
-  ws.getColumn(3).width = 18;
+  ws.getColumn(2).width = 26;
+  ws.getColumn(3).width = 20;
 
   // Title
   ws.mergeCells('B2:C2');
@@ -928,9 +930,30 @@ function buildOutputsTab(wb, ed) {
   var buildDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
   var exitDeltas = [-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15];
 
-  // ── Table 1: Margin vs Exit $/SF x Build Cost $/SF ──
+  // LP waterfall formula helpers using LET()
+  function irrFormula(revExpr, costExpr, monthsExpr) {
+    return 'IF(Assumptions!G17=0,0,LET(' +
+      'rev,' + revExpr + ',' +
+      'cost,' + costExpr + ',' +
+      'eq,cost*Assumptions!G17,' +
+      'prof,rev-cost,' +
+      'pref,eq*Assumptions!C42*' + monthsExpr + '/12,' +
+      'moic,1+(MIN(prof,pref)+(1-Assumptions!C43)*MAX(0,prof-pref))/eq,' +
+      'IF(moic<=0,-1,moic^(12/' + monthsExpr + ')-1)))';
+  }
+  function moicFormula(revExpr, costExpr, monthsExpr) {
+    return 'IF(Assumptions!G17=0,0,LET(' +
+      'rev,' + revExpr + ',' +
+      'cost,' + costExpr + ',' +
+      'eq,cost*Assumptions!G17,' +
+      'prof,rev-cost,' +
+      'pref,eq*Assumptions!C42*' + monthsExpr + '/12,' +
+      '1+(MIN(prof,pref)+(1-Assumptions!C43)*MAX(0,prof-pref))/eq))';
+  }
+
+  // ── Table 1: Investor IRR vs Exit $/SF × Build Cost $/SF ──
   ws.mergeCells('B31:G31');
-  ws.getCell('B31').value = 'Project Margin: Exit $/SF vs Build Cost $/SF';
+  ws.getCell('B31').value = 'Investor IRR: Exit $/SF vs Build Cost $/SF';
   ws.getCell('B31').font = { italic: true, size: 11 };
 
   ws.getCell('B32').value = 'Exit \u2193 / Build \u2192';
@@ -953,8 +976,9 @@ function buildOutputsTab(wb, ed) {
 
     for (var bi2 = 0; bi2 < buildDeltas.length; bi2++) {
       var cl2 = colLetter(bi2 + 3);
-      var mf = 'IF($B' + row + '=0,0,1-(Assumptions!G16+(' + cl2 + '$32-Assumptions!C23)*Assumptions!C22*(1+Assumptions!C25))/(Assumptions!C20*Assumptions!C21*$B' + row + '*(1-Assumptions!C37)))';
-      setFormula(ws, cl2 + row, mf, 0, '0.0%');
+      var revE = 'Assumptions!C20*Assumptions!C21*$B' + row + '*(1-Assumptions!C37)';
+      var costE = 'Assumptions!G16+(' + cl2 + '$32-Assumptions!C23)*Assumptions!C22*(1+Assumptions!C25)';
+      setFormula(ws, cl2 + row, irrFormula(revE, costE, 'Assumptions!G8'), 0, '0.0%');
       if (exitDeltas[ei] === 0 && buildDeltas[bi2] === 0) {
         ws.getCell(cl2 + row).fill = baseFill;
         ws.getCell(cl2 + row).font = { bold: true };
@@ -964,10 +988,10 @@ function buildOutputsTab(wb, ed) {
     }
   }
 
-  // ── Table 2: Margin vs Exit $/SF x Purchase Price ──
+  // ── Table 2: Investor MOIC vs Exit $/SF × Purchase Price ──
   var t2 = 33 + exitDeltas.length + 2; // row 42
   ws.mergeCells('B' + t2 + ':G' + t2);
-  ws.getCell('B' + t2).value = 'Project Margin: Exit $/SF vs Purchase Price';
+  ws.getCell('B' + t2).value = 'Investor MOIC: Exit $/SF vs Purchase Price';
   ws.getCell('B' + t2).font = { italic: true, size: 11 };
 
   var h2 = t2 + 1; // row 43
@@ -992,8 +1016,9 @@ function buildOutputsTab(wb, ed) {
 
     for (var pi2 = 0; pi2 < priceDeltas.length; pi2++) {
       var cl4 = colLetter(pi2 + 3);
-      var mf2 = 'IF($B' + row2 + '=0,0,1-(Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C16)*(1+Assumptions!G33))/(Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37)))';
-      setFormula(ws, cl4 + row2, mf2, 0, '0.0%');
+      var revE2 = 'Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37)';
+      var costE2 = 'Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C16)*(1+Assumptions!G33)';
+      setFormula(ws, cl4 + row2, moicFormula(revE2, costE2, 'Assumptions!G8'), 0, '0.00x');
       if (exitDeltas[ei2] === 0 && priceDeltas[pi2] === 0) {
         ws.getCell(cl4 + row2).fill = baseFill;
         ws.getCell(cl4 + row2).font = { bold: true };
@@ -1003,6 +1028,47 @@ function buildOutputsTab(wb, ed) {
     }
   }
 
+  // ── Table 3: Investor IRR vs Hold Period × Exit $/SF ──
+  var t3 = h2 + 1 + exitDeltas.length + 2;
+  ws.mergeCells('B' + t3 + ':G' + t3);
+  ws.getCell('B' + t3).value = 'Investor IRR: Hold Period vs Exit $/SF';
+  ws.getCell('B' + t3).font = { italic: true, size: 11 };
+
+  var h3 = t3 + 1;
+  var exitDeltas3 = [-0.15, -0.075, 0, 0.075, 0.15];
+  var holdMonths = [18, 20, 22, 24, 26, 28, 30];
+  ws.getCell('B' + h3).value = 'Months \u2193 / Exit \u2192';
+  ws.getCell('B' + h3).font = { bold: true, size: 9 };
+  for (var xi = 0; xi < exitDeltas3.length; xi++) {
+    var cl5 = colLetter(xi + 3);
+    var xf = exitDeltas3[xi] === 0 ? 'Assumptions!C35' : 'Assumptions!C35*' + (1 + exitDeltas3[xi]);
+    setFormula(ws, cl5 + h3, xf, 0, '$#,##0');
+    ws.getCell(cl5 + h3).font = { bold: true };
+    ws.getCell(cl5 + h3).alignment = { horizontal: 'center' };
+    if (exitDeltas3[xi] === 0) ws.getCell(cl5 + h3).fill = baseFill;
+  }
+
+  for (var hi = 0; hi < holdMonths.length; hi++) {
+    var row3 = h3 + 1 + hi;
+    var months = holdMonths[hi];
+    setVal(ws, 'B' + row3, months, '#,##0');
+    ws.getCell('B' + row3).font = { bold: true };
+    if (months === 24) ws.getCell('B' + row3).fill = baseFill;
+
+    for (var xi2 = 0; xi2 < exitDeltas3.length; xi2++) {
+      var cl6 = colLetter(xi2 + 3);
+      var revE3 = 'Assumptions!C20*Assumptions!C21*' + cl6 + '$' + h3 + '*(1-Assumptions!C37)';
+      setFormula(ws, cl6 + row3, irrFormula(revE3, 'Assumptions!G16', '$B' + row3), 0, '0.0%');
+      if (months === 24 && exitDeltas3[xi2] === 0) {
+        ws.getCell(cl6 + row3).fill = baseFill;
+        ws.getCell(cl6 + row3).font = { bold: true };
+      } else if (months === 24 || exitDeltas3[xi2] === 0) {
+        ws.getCell(cl6 + row3).fill = crossFill;
+      }
+    }
+  }
+
+  ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -1010,8 +1076,8 @@ function buildOutputsTab(wb, ed) {
 function buildBTRTab(wb) {
   var ws = wb.addWorksheet('BTR Hold');
   ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 24;
-  ws.getColumn(3).width = 18;
+  ws.getColumn(2).width = 28;
+  ws.getColumn(3).width = 20;
 
   ws.mergeCells('B2:C2');
   ws.getCell('B2').value = 'Build-to-Rent Analysis';
@@ -1093,6 +1159,7 @@ function buildBTRTab(wb) {
   labelCell(ws, 27, 2, 'Cash-Out at Refi');
   setFormula(ws, 'C27', 'C18-Assumptions!G16', 0, '$#,##0');
 
+  ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -1161,6 +1228,7 @@ function buildExitCompsTab(wb, l) {
       for (var k = 1; k <= 12; k++) row.getCell(k).fill = greenFill;
     }
   }
+  cs.views = [{ showGridLines: false }];
   return cs;
 }
 
