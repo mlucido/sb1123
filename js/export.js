@@ -8,9 +8,8 @@ export function initExport(deps) {
 
 function sizeEquityAndDebt(askingPrice, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent) {
   const SOFT_PCT = 0.25;
-  const DEMO = 55000;
-  const SUBDIV = 100000;
-  const AE = 150000;
+  const SUBDIV_PSF = 10;
+  const AE_PSF = 5;
   const TAX_RATE = 0.011;
   const INS_ANNUAL = 20000;
   const AM_MONTHLY = 3000;
@@ -25,7 +24,10 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, buildCostPSF, exitPSF,
   const buildableSF = units * avgUnitSF;
   const hardCosts = buildableSF * buildCostPSF;
   const softCosts = hardCosts * SOFT_PCT;
-  const totalDev = hardCosts + softCosts + DEMO + SUBDIV + AE;
+  const demo = proforma.demoCost || 55000;
+  const subdiv = buildableSF * SUBDIV_PSF;
+  const ae = buildableSF * AE_PSF;
+  const totalDev = hardCosts + softCosts + demo + subdiv + ae;
 
   const monthlyTax = askingPrice * TAX_RATE / 12;
   const monthlyIns = INS_ANNUAL / 12;
@@ -105,15 +107,60 @@ function inputCell(ws, addr, value, numFmt) {
   cell.font = { color: { argb: 'FF003078' } };
   if (numFmt) cell.numFmt = numFmt;
 }
+function autoFitColumns(ws, opts) {
+  opts = opts || {};
+  var padding = opts.padding != null ? opts.padding : 3;
+  var maxWidth = opts.maxWidth || 50;
+  var fixed = opts.fixed || {};
+  var uniformFrom = opts.uniformFrom || 0;
+  var uniformTo = opts.uniformTo || 0;
+  var maxLens = {};
+  ws.eachRow({ includeEmpty: false }, function(row) {
+    row.eachCell({ includeEmpty: false }, function(cell, colNumber) {
+      if (fixed[colNumber]) return;
+      var v = cell.value;
+      if (v && typeof v === 'object' && v.formula != null) v = v.result;
+      if (v == null) return;
+      var len;
+      if (typeof v === 'string') {
+        len = v.length;
+      } else if (v instanceof Date) {
+        len = 12;
+      } else if (typeof v === 'number') {
+        var fmt = cell.numFmt || '';
+        if (fmt.indexOf('$') >= 0) {
+          var s = Math.abs(Math.round(v)).toString();
+          len = s.length + Math.floor((s.length - 1) / 3) + 2;
+        } else if (fmt.indexOf('%') >= 0) {
+          len = 7;
+        } else if (fmt.indexOf('x') >= 0) {
+          len = 6;
+        } else {
+          var s = Math.abs(Math.round(v)).toString();
+          len = s.length + Math.floor((s.length - 1) / 3);
+        }
+      } else {
+        len = String(v).length;
+      }
+      if (!maxLens[colNumber] || len > maxLens[colNumber]) maxLens[colNumber] = len;
+    });
+  });
+  if (uniformFrom && uniformTo) {
+    var uMax = 0;
+    for (var c = uniformFrom; c <= uniformTo; c++) {
+      if (maxLens[c] && maxLens[c] > uMax) uMax = maxLens[c];
+    }
+    for (var c = uniformFrom; c <= uniformTo; c++) maxLens[c] = uMax;
+  }
+  for (var col in maxLens) {
+    var c = parseInt(col);
+    if (fixed[c]) continue;
+    ws.getColumn(c).width = Math.min(Math.max(maxLens[c] + padding, 4), maxWidth);
+  }
+  for (var col in fixed) ws.getColumn(parseInt(col)).width = fixed[col];
+}
 function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var ws = wb.addWorksheet('Assumptions');
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 28;
-  ws.getColumn(3).width = 20;
-  ws.getColumn(4).width = 3;
-  ws.getColumn(5).width = 2;
-  ws.getColumn(6).width = 24;
-  ws.getColumn(7).width = 20;
 
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
@@ -170,10 +217,10 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 24, 2, 'Hard Costs');      setFormula(ws, 'C24', 'C22*C23', hardCosts, '$#,##0');
   labelCell(ws, 25, 2, 'Soft Cost %');     inputCell(ws, 'C25', 0.25, '0.0%');
   labelCell(ws, 26, 2, 'Soft Costs');      setFormula(ws, 'C26', 'C24*C25', hardCosts * 0.25, '$#,##0');
-  labelCell(ws, 27, 2, 'Demo');            inputCell(ws, 'C27', 55000, '$#,##0');
+  labelCell(ws, 27, 2, 'Demo');            inputCell(ws, 'C27', pf.demo || 0, '$#,##0');
   labelCell(ws, 28, 2, 'Subdivision');     setFormula(ws, 'C28', '10*C22', 10 * buildableSF, '$#,##0');
-  labelCell(ws, 29, 2, 'A&E');             inputCell(ws, 'C29', 150000, '$#,##0');
-  labelCell(ws, 30, 2, 'Total Dev Costs'); setFormula(ws, 'C30', 'C24+C26+C27+C28+C29', hardCosts + hardCosts * 0.25 + 55000 + 10 * buildableSF + 150000, '$#,##0');
+  labelCell(ws, 29, 2, 'A&E');             setFormula(ws, 'C29', '5*C22', 5 * buildableSF, '$#,##0');
+  labelCell(ws, 30, 2, 'Total Dev Costs'); setFormula(ws, 'C30', 'C24+C26+C27+C28+C29', hardCosts + hardCosts * 0.25 + (pf.demo || 0) + 15 * buildableSF, '$#,##0');
   ws.getCell('C30').font = { bold: true };
 
   ws.getCell('B34').value = 'EXIT';
@@ -255,6 +302,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 38, 6, 'Disp Fee $');      setFormula(ws, 'G38', 'C36*G37', grossRevenue * 0.015, '$#,##0');
 
   // Print setup
+  autoFitColumns(ws, { fixed: { 1: 2, 4: 3, 5: 2 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -262,14 +310,6 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
 
 function buildSourcesUsesTab(wb, l, ed, pf) {
   var ws = wb.addWorksheet('Sources & Uses');
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 26;
-  ws.getColumn(3).width = 18;
-  ws.getColumn(4).width = 12;
-  ws.getColumn(5).width = 3;
-  ws.getColumn(6).width = 26;
-  ws.getColumn(7).width = 18;
-  ws.getColumn(8).width = 12;
 
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
@@ -389,6 +429,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'C28', 'C14-G26', 0, '$#,##0');
   ws.getCell('C28').font = { bold: true, color: { argb: 'FFFF0000' } };
 
+  autoFitColumns(ws, { fixed: { 1: 2, 5: 3 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -399,10 +440,6 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var MONTHS = 24;
   var totalCol = MONTHS + 3; // col index for TOTAL (months in cols 3..26, total in 27 = AA)
   var totalLtr = colLetter(totalCol); // AA
-
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 28;
-  for (var mi = 3; mi <= totalCol; mi++) ws.getColumn(mi).width = 12;
 
   var price = l.price || 0;
   var units = pf.maxUnits;
@@ -835,6 +872,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   }
 
   // Freeze panes: B column labels + header rows
+  autoFitColumns(ws, { fixed: { 1: 2 }, uniformFrom: 3, uniformTo: totalCol });
   ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -842,9 +880,6 @@ function buildCashFlowTab(wb, l, ed, pf) {
 
 function buildOutputsTab(wb, ed) {
   var ws = wb.addWorksheet('Outputs');
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 26;
-  ws.getColumn(3).width = 20;
 
   // Title
   ws.mergeCells('B2:C2');
@@ -920,11 +955,6 @@ function buildOutputsTab(wb, ed) {
   ws.getCell('C26').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
 
   // ── Sensitivity Analysis ──
-  ws.getColumn(4).width = 14;
-  ws.getColumn(5).width = 14;
-  ws.getColumn(6).width = 14;
-  ws.getColumn(7).width = 14;
-
   ws.getCell('B29').value = 'SENSITIVITY ANALYSIS';
   ws.getCell('B29').font = _hdrFont; ws.getCell('B29').fill = _hdrFill;
   ['C29','D29','E29','F29','G29'].forEach(function(a){ ws.getCell(a).fill = _hdrFill; });
@@ -1060,6 +1090,7 @@ function buildOutputsTab(wb, ed) {
     }
   }
 
+  autoFitColumns(ws, { fixed: { 1: 2 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -1067,9 +1098,6 @@ function buildOutputsTab(wb, ed) {
 
 function buildBTRTab(wb) {
   var ws = wb.addWorksheet('BTR Hold');
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 28;
-  ws.getColumn(3).width = 20;
 
   ws.mergeCells('B2:C2');
   ws.getCell('B2').value = 'Build-to-Rent Analysis';
@@ -1151,6 +1179,7 @@ function buildBTRTab(wb) {
   labelCell(ws, 27, 2, 'Cash-Out at Refi');
   setFormula(ws, 'C27', 'C18-Assumptions!G16', 0, '$#,##0');
 
+  autoFitColumns(ws, { fixed: { 1: 2 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -1178,19 +1207,6 @@ function buildExitCompsTab(wb, l) {
     cell.font = { bold: true };
     cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE0E0E0' } };
   });
-
-  cs.getColumn(1).width = 8;
-  cs.getColumn(2).width = 35;
-  cs.getColumn(3).width = 14;
-  cs.getColumn(4).width = 10;
-  cs.getColumn(5).width = 10;
-  cs.getColumn(6).width = 6;
-  cs.getColumn(7).width = 6;
-  cs.getColumn(8).width = 8;
-  cs.getColumn(9).width = 11;
-  cs.getColumn(10).width = 6;
-  cs.getColumn(11).width = 12;
-  cs.getColumn(12).width = 12;
 
   var greenFill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE8F5E9' } };
   var allComps = compResult.used.concat(compResult.ref);
@@ -1220,6 +1236,7 @@ function buildExitCompsTab(wb, l) {
       for (var k = 1; k <= 12; k++) row.getCell(k).fill = greenFill;
     }
   }
+  autoFitColumns(cs, {});
   cs.views = [{ showGridLines: false }];
   return cs;
 }
@@ -1274,16 +1291,17 @@ async function exportOM(lat, lng) {
   var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
   var units = pf.maxUnits;
+  var buildableSF_om = units * avgUnitSF;
+  var buildCostPSF = buildableSF_om > 0 ? Math.round(pf.hardCosts / buildableSF_om) : 0;
 
   var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
 
   // ── Constants (must match sizeEquityAndDebt) ──
   var SOFT_PCT = 0.25;
-  var DEMO = 55000;
-  var SUBDIV = 100000;
-  var AE = 150000;
+  var DEMO = pf.demo || 0;
+  var SUBDIV = buildableSF_om * 10;
+  var AE = buildableSF_om * 5;
   var TAX_RATE = 0.011;
   var INS_ANNUAL = 20000;
   var AM_MONTHLY = 3000;
