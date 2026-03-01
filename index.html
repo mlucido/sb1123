@@ -4695,6 +4695,7 @@ function inputCell(ws, addr, value, numFmt) {
   cell.value = value;
   cell.fill = _inputFill;
   cell.border = _borders;
+  cell.font = { color: { argb: 'FF1F4E79' } };
   if (numFmt) cell.numFmt = numFmt;
 }
 
@@ -4812,11 +4813,13 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('F13').font = _hdrFont; ws.getCell('F13').fill = _hdrFill;
   ws.getCell('G13').fill = _hdrFill;
 
-  labelCell(ws, 14, 6, 'Equity');              inputCell(ws, 'G14', ed.equity, '$#,##0');
-  labelCell(ws, 15, 6, 'Debt');                inputCell(ws, 'G15', ed.debt, '$#,##0');
+  labelCell(ws, 14, 6, 'Equity');              setFormula(ws, 'G14', 'CEILING((C16+C30+G30+G34)/(1-(1-G17)*G19)*G17,10000)', ed.equity, '$#,##0');
+  ws.getCell('G14').font = { bold: true };
+  labelCell(ws, 15, 6, 'Debt');                setFormula(ws, 'G15', '(C16+C30+G30+G34)/(1-(1-G17)*G19)-G14', ed.debt, '$#,##0');
+  ws.getCell('G15').font = { bold: true };
   labelCell(ws, 16, 6, 'Total Project Cost');  setFormula(ws, 'G16', 'G14+G15', ed.equity + ed.debt, '$#,##0');
   ws.getCell('G16').font = { bold: true };
-  labelCell(ws, 17, 6, 'Equity %');            setFormula(ws, 'G17', 'G14/G16', ed.equity / (ed.equity + ed.debt), '0.0%');
+  labelCell(ws, 17, 6, 'Target Equity %');     inputCell(ws, 'G17', 0.26, '0.0%');
   labelCell(ws, 18, 6, 'Interest Rate');       inputCell(ws, 'G18', 0.09, '0.0%');
   labelCell(ws, 19, 6, 'Orig Fee %');          inputCell(ws, 'G19', 0.02, '0.0%');
   labelCell(ws, 20, 6, 'Orig Fee $');          setFormula(ws, 'G20', 'G15*G19', ed.debt * 0.02, '$#,##0');
@@ -4829,6 +4832,8 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 27, 6, 'Monthly Tax');      setFormula(ws, 'G27', 'C16*G26/12', (l.price || 0) * 0.011 / 12, '$#,##0');
   labelCell(ws, 28, 6, 'Insurance Annual'); inputCell(ws, 'G28', 20000, '$#,##0');
   labelCell(ws, 29, 6, 'Monthly Insurance'); setFormula(ws, 'G29', 'G28/12', 20000 / 12, '$#,##0');
+  labelCell(ws, 30, 6, 'Total Carry');       setFormula(ws, 'G30', '(G27+G29+G35)*(G5+G7)+(G27+G29+G35+G36)*G6', 0, '$#,##0');
+  ws.getCell('G30').font = { bold: true };
 
   ws.getCell('F32').value = 'FEES';
   ws.getCell('F32').font = _hdrFont; ws.getCell('F32').fill = _hdrFill;
@@ -5498,6 +5503,96 @@ function buildOutputsTab(wb, ed) {
   ws.getCell('C26').font = { bold: true };
   ws.getCell('C26').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
 
+  // ── Sensitivity Analysis ──
+  ws.getColumn(4).width = 14;
+  ws.getColumn(5).width = 14;
+  ws.getColumn(6).width = 14;
+  ws.getColumn(7).width = 14;
+
+  ws.getCell('B29').value = 'SENSITIVITY ANALYSIS';
+  ws.getCell('B29').font = _hdrFont; ws.getCell('B29').fill = _hdrFill;
+  ['C29','D29','E29','F29','G29'].forEach(function(a){ ws.getCell(a).fill = _hdrFill; });
+
+  var baseFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCE6F1' } };
+  var crossFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+  var buildDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
+  var exitDeltas = [-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15];
+
+  // ── Table 1: Margin vs Exit $/SF × Build Cost $/SF ──
+  ws.mergeCells('B31:G31');
+  ws.getCell('B31').value = 'Project Margin: Exit $/SF vs Build Cost $/SF';
+  ws.getCell('B31').font = { italic: true, size: 11 };
+
+  ws.getCell('B32').value = 'Exit \u2193 / Build \u2192';
+  ws.getCell('B32').font = { bold: true, size: 9 };
+  for (var bi = 0; bi < buildDeltas.length; bi++) {
+    var cl = colLetter(bi + 3);
+    var f = buildDeltas[bi] === 0 ? 'Assumptions!C23' : 'Assumptions!C23*' + (1 + buildDeltas[bi]);
+    setFormula(ws, cl + '32', f, 0, '$#,##0');
+    ws.getCell(cl + '32').font = { bold: true };
+    ws.getCell(cl + '32').alignment = { horizontal: 'center' };
+    if (buildDeltas[bi] === 0) ws.getCell(cl + '32').fill = baseFill;
+  }
+
+  for (var ei = 0; ei < exitDeltas.length; ei++) {
+    var row = 33 + ei;
+    var ef = exitDeltas[ei] === 0 ? 'Assumptions!C35' : 'Assumptions!C35*' + (1 + exitDeltas[ei]);
+    setFormula(ws, 'B' + row, ef, 0, '$#,##0');
+    ws.getCell('B' + row).font = { bold: true };
+    if (exitDeltas[ei] === 0) ws.getCell('B' + row).fill = baseFill;
+
+    for (var bi2 = 0; bi2 < buildDeltas.length; bi2++) {
+      var cl2 = colLetter(bi2 + 3);
+      var mf = 'IF($B' + row + '=0,0,1-(Assumptions!G16+(' + cl2 + '$32-Assumptions!C23)*Assumptions!C22*(1+Assumptions!C25))/(Assumptions!C20*Assumptions!C21*$B' + row + '*(1-Assumptions!C37)))';
+      setFormula(ws, cl2 + row, mf, 0, '0.0%');
+      if (exitDeltas[ei] === 0 && buildDeltas[bi2] === 0) {
+        ws.getCell(cl2 + row).fill = baseFill;
+        ws.getCell(cl2 + row).font = { bold: true };
+      } else if (exitDeltas[ei] === 0 || buildDeltas[bi2] === 0) {
+        ws.getCell(cl2 + row).fill = crossFill;
+      }
+    }
+  }
+
+  // ── Table 2: Margin vs Exit $/SF × Purchase Price ──
+  var t2 = 33 + exitDeltas.length + 2; // row 42
+  ws.mergeCells('B' + t2 + ':G' + t2);
+  ws.getCell('B' + t2).value = 'Project Margin: Exit $/SF vs Purchase Price';
+  ws.getCell('B' + t2).font = { italic: true, size: 11 };
+
+  var h2 = t2 + 1; // row 43
+  var priceDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
+  ws.getCell('B' + h2).value = 'Exit \u2193 / Price \u2192';
+  ws.getCell('B' + h2).font = { bold: true, size: 9 };
+  for (var pi = 0; pi < priceDeltas.length; pi++) {
+    var cl3 = colLetter(pi + 3);
+    var pf2 = priceDeltas[pi] === 0 ? 'Assumptions!C16' : 'Assumptions!C16*' + (1 + priceDeltas[pi]);
+    setFormula(ws, cl3 + h2, pf2, 0, '$#,##0');
+    ws.getCell(cl3 + h2).font = { bold: true };
+    ws.getCell(cl3 + h2).alignment = { horizontal: 'center' };
+    if (priceDeltas[pi] === 0) ws.getCell(cl3 + h2).fill = baseFill;
+  }
+
+  for (var ei2 = 0; ei2 < exitDeltas.length; ei2++) {
+    var row2 = h2 + 1 + ei2;
+    var ef2 = exitDeltas[ei2] === 0 ? 'Assumptions!C35' : 'Assumptions!C35*' + (1 + exitDeltas[ei2]);
+    setFormula(ws, 'B' + row2, ef2, 0, '$#,##0');
+    ws.getCell('B' + row2).font = { bold: true };
+    if (exitDeltas[ei2] === 0) ws.getCell('B' + row2).fill = baseFill;
+
+    for (var pi2 = 0; pi2 < priceDeltas.length; pi2++) {
+      var cl4 = colLetter(pi2 + 3);
+      var mf2 = 'IF($B' + row2 + '=0,0,1-(Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C16)*(1+Assumptions!G33))/(Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37)))';
+      setFormula(ws, cl4 + row2, mf2, 0, '0.0%');
+      if (exitDeltas[ei2] === 0 && priceDeltas[pi2] === 0) {
+        ws.getCell(cl4 + row2).fill = baseFill;
+        ws.getCell(cl4 + row2).font = { bold: true };
+      } else if (exitDeltas[ei2] === 0 || priceDeltas[pi2] === 0) {
+        ws.getCell(cl4 + row2).fill = crossFill;
+      }
+    }
+  }
+
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
 }
@@ -5541,8 +5636,8 @@ function buildBTRTab(wb) {
   labelCell(ws, 12, 2, 'Cap Rate');
   setFormula(ws, 'C12', 'Assumptions!C51', 0, '0.0%');
 
-  labelCell(ws, 13, 2, 'Stabilized Value');
-  setFormula(ws, 'C13', 'IF(C12=0,0,C9/C12)', 0, '$#,##0');
+  labelCell(ws, 13, 2, 'Market Value');
+  setFormula(ws, 'C13', 'Assumptions!C36', 0, '$#,##0');
   ws.getCell('C13').font = { bold: true };
 
   labelCell(ws, 14, 2, 'Yield on Cost');
