@@ -930,25 +930,13 @@ function buildOutputsTab(wb, ed) {
   var buildDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
   var exitDeltas = [-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15];
 
-  // LP waterfall formula helpers using LET()
-  function irrFormula(revExpr, costExpr, monthsExpr) {
-    return 'IF(Assumptions!G17=0,0,LET(' +
-      'rev,' + revExpr + ',' +
-      'cost,' + costExpr + ',' +
-      'eq,cost*Assumptions!G17,' +
-      'prof,rev-cost,' +
-      'pref,eq*Assumptions!C42*' + monthsExpr + '/12,' +
-      'moic,1+(MIN(prof,pref)+(1-Assumptions!C43)*MAX(0,prof-pref))/eq,' +
-      'IF(moic<=0,-1,moic^(12/' + monthsExpr + ')-1)))';
+  // Inline LP return formulas (no LET — compatible with all Excel versions)
+  // Simplified waterfall: LP gets equity back + (1-promote%) × profit
+  function irrFormula(R, K, M) {
+    return 'IF((' + K + ')*Assumptions!G17=0,0,IFERROR((1+(1-Assumptions!C43)*(' + R + '-(' + K + '))/((' + K + ')*Assumptions!G17))^(12/' + M + ')-1,-1))';
   }
-  function moicFormula(revExpr, costExpr, monthsExpr) {
-    return 'IF(Assumptions!G17=0,0,LET(' +
-      'rev,' + revExpr + ',' +
-      'cost,' + costExpr + ',' +
-      'eq,cost*Assumptions!G17,' +
-      'prof,rev-cost,' +
-      'pref,eq*Assumptions!C42*' + monthsExpr + '/12,' +
-      '1+(MIN(prof,pref)+(1-Assumptions!C43)*MAX(0,prof-pref))/eq))';
+  function moicFormula(R, K, M) {
+    return 'IF((' + K + ')*Assumptions!G17=0,0,1+(1-Assumptions!C43)*(' + R + '-(' + K + '))/((' + K + ')*Assumptions!G17))';
   }
 
   // ── Table 1: Investor IRR vs Exit $/SF × Build Cost $/SF ──
