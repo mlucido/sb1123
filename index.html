@@ -1060,12 +1060,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="marginMax" step="5" style="display:none">
         <div class="kf-range-labels">
           <span id="marginRangeMin">30%</span>
-          <span id="marginRangeMax">100%</span>
+          <span id="marginRangeMax">85%</span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="marginSliderFill"></div>
           <input type="range" id="marginSliderMin" min="-100" max="100" step="5" value="30">
-          <input type="range" id="marginSliderMax" min="-100" max="100" step="5" value="100">
+          <input type="range" id="marginSliderMax" min="-100" max="100" step="5" value="85">
         </div>
       </div>
 
@@ -1074,14 +1074,14 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <div class="kf-header"><span class="kf-label">Lot Size</span></div>
         <div class="kf-range-labels">
           <span id="lotRangeMin">12K sf</span>
-          <span id="lotRangeMax">45K sf</span>
+          <span id="lotRangeMax">65K sf</span>
         </div>
         <!-- Hidden inputs for JS compat -->
         <input type="number" id="lotMin" step="500" style="display:none">
         <input type="number" id="lotMax" step="500" style="display:none">
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotSliderFill"></div>
-          <input type="range" id="lotSliderMin" min="0" max="65000" step="500" value="0">
+          <input type="range" id="lotSliderMin" min="0" max="65000" step="500" value="12000">
           <input type="range" id="lotSliderMax" min="0" max="65000" step="500" value="65000">
         </div>
       </div>
@@ -1090,9 +1090,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header">
           <span class="kf-label">Min Units</span>
-          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">2</span>
+          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">4</span>
         </div>
-        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="2" oninput="onMinUnitsChange(this.value)">
+        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="4" oninput="onMinUnitsChange(this.value)">
       </div>
 
       <!-- Secondary filters -->
@@ -1526,10 +1526,10 @@ const filters = {
   price:{ min:0, max:3000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:3000000 },
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
-  lot:  { min:0, max:65000, dataMin:0, dataMax:65000, step:500, cap:65000, defaultMin:null, defaultMax:null },
+  lot:  { min:0, max:65000, dataMin:0, dataMax:65000, step:500, cap:65000, defaultMin:12000, defaultMax:null },
   lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:null, defaultMax:null },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
-  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:null, defaultMax:null },
+  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:85 },
 };
 
 let currentSort = { key:null, dir:'desc' };
@@ -1540,13 +1540,13 @@ let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
-let minUnitsFilter = 2;  // Default: require at least 2 units
+let minUnitsFilter = 4;  // Default: require at least 4 units
 
 // Initialize AppState with soft filter defaults, then restore persisted values
 AppState.set('favoritesOnly', false);
 AppState.set('newThisWeekFilter', false);
 AppState.set('hideBurnZones', true);
-AppState.set('minUnitsFilter', 2);
+AppState.set('minUnitsFilter', 4);
 _PERSIST_KEYS.forEach(function(k){
   var s = localStorage.getItem('sb1123_'+k);
   if(s != null){ try{ AppState.set(k, JSON.parse(s)); }catch(e){} }
@@ -1563,7 +1563,7 @@ AppState.on('newThisWeekFilter', function(v){ newThisWeekFilter = v; });
 AppState.on('hideBurnZones', function(v){ hideBurnZones = v; });
 AppState.on('minUnitsFilter', function(v){ minUnitsFilter = v; });
 function onMinUnitsChange(val){ AppState.set('minUnitsFilter', parseInt(val)); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
-function resetMinUnits(){ AppState.set('minUnitsFilter', 2); document.getElementById('minUnitsSlider').value = 2; document.getElementById('minUnitsLabel').textContent = '2'; applyFilters(); }
+function resetMinUnits(){ AppState.set('minUnitsFilter', 4); document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
