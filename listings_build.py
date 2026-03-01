@@ -22,6 +22,26 @@ from datetime import datetime, timezone
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from market_config import get_market, market_file, TYPE_TO_ZONE
 
+
+def recency_weight(sale_date_str):
+    """Compute time-decay weight for a comp based on sale date."""
+    if not sale_date_str:
+        return 0.5
+    try:
+        sale = datetime.strptime(sale_date_str, "%B-%d-%Y")  # Redfin: "January-15-2025"
+    except Exception:
+        try:
+            sale = datetime.strptime(sale_date_str, "%Y-%m-%d")
+        except Exception:
+            return 0.5
+    months_ago = (datetime.now() - sale).days / 30.44
+    if months_ago <= 6: return 1.0
+    elif months_ago <= 12: return 0.85
+    elif months_ago <= 18: return 0.65
+    elif months_ago <= 24: return 0.50
+    elif months_ago <= 36: return 0.35
+    else: return 0.20
+
 market = get_market()
 LAT_MIN, LAT_MAX = market["lat_min"], market["lat_max"]
 LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
@@ -99,12 +119,13 @@ for c in comps:
         newcon_all_grid.setdefault((grow, gcol), []).append((clat, clng, cppsf, csqft, yb, czone))
         newcon_count += 1
 
-    # Zip-level fallbacks (carry pt for townhome weighting)
+    # Zip-level fallbacks (carry pt for townhome weighting + recency)
     cpt = c.get("pt", 0)
+    crw = recency_weight(c.get("date", ""))
     if czip:
         if czone:
-            zip_zone_ppsfs.setdefault((czip, czone), []).append((cppsf, cpt))
-        zip_all_ppsfs.setdefault(czip, []).append((cppsf, cpt))
+            zip_zone_ppsfs.setdefault((czip, czone), []).append((cppsf, cpt, crw))
+        zip_all_ppsfs.setdefault(czip, []).append((cppsf, cpt, crw))
 
 zone_comp_counts = {z: sum(len(v) for v in g.values()) for z, g in zone_grid.items()}
 print(f"   Spatial index: {len(all_grid):,} grid cells")
@@ -123,22 +144,30 @@ print(f"   Zip+zone fallbacks: {len(zip_zone_ppsfs)} combos")
 TH_PT = 3
 TH_WEIGHT = 1.5
 comp_pt_map = {}
+comp_date_map = {}
 th_count = 0
 for c in comps:
+    key = f"{c['lat']},{c['lng']}"
     pt = c.get("pt", 0)
     if pt:
-        comp_pt_map[f"{c['lat']},{c['lng']}"] = pt
+        comp_pt_map[key] = pt
         if pt == TH_PT:
             th_count += 1
+    comp_date_map[key] = c.get("date", "")
 print(f"   Townhome comps (pt=3, weighted {TH_WEIGHT}x): {th_count:,}")
 
 
 def wp75(vals):
-    """Weighted P75 — townhome comps (pt=3) get 1.5x weight in percentile calc."""
+    """Weighted P75 — townhome comps (pt=3) get 1.5x weight, recency-weighted.
+    vals: list of (ppsf, pt) or (ppsf, pt, rw) tuples."""
     if not vals:
         return 0
-    # vals: list of (ppsf, pt) tuples
-    weighted = [(ppsf, TH_WEIGHT if pt == TH_PT else 1.0) for ppsf, pt in vals]
+    weighted = []
+    for item in vals:
+        ppsf, pt = item[0], item[1]
+        rw = item[2] if len(item) > 2 else 1.0
+        w = (TH_WEIGHT if pt == TH_PT else 1.0) * rw
+        weighted.append((ppsf, w))
     weighted.sort(key=lambda x: x[0])
     total = sum(w for _, w in weighted)
     target = total * 0.75
@@ -172,17 +201,19 @@ def find_exit_ppsf(lat, lng, zone, zipcode):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
     def _collect(grid, radius):
-        """Collect (ppsf, pt) tuples from grid within radius, split by size band."""
+        """Collect (ppsf, pt, rw) tuples from grid within radius, split by size band."""
         cells = int(radius / GRID_SIZE) + 1
         band, all_ = [], []
         for dr in range(-cells, cells + 1):
             for dc in range(-cells, cells + 1):
                 for clat, clng, cppsf, csqft in grid.get((grow + dr, gcol + dc), []):
                     if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        cpt = comp_pt_map.get(f"{clat},{clng}", 0)
-                        all_.append((cppsf, cpt))
+                        key = f"{clat},{clng}"
+                        cpt = comp_pt_map.get(key, 0)
+                        rw = recency_weight(comp_date_map.get(key, ""))
+                        all_.append((cppsf, cpt, rw))
                         if in_band(csqft):
-                            band.append((cppsf, cpt))
+                            band.append((cppsf, cpt, rw))
         return band, all_
 
     # Try same-zone spatial search
@@ -283,26 +314,29 @@ def find_newcon_ppsf(lat, lng, zone, exit_psf):
         return result
 
     def try_tiers(raw_comps):
-        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,pt)_list, tier_label, has_stale)."""
+        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,pt,rw)_list, tier_label, has_stale)."""
         # Tier 1: 2024-2025 only
-        t1 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0))
+        t1 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0),
+               recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
               for clat, clng, cppsf, csqft, yb in raw_comps
               if yb >= 2024 and in_band(csqft)]
         if len(t1) >= MIN_COMPS:
-            return [(p, pt) for p, _, pt in t1], "2024-25", False
+            return [(p, pt, rw) for p, _, pt, rw in t1], "2024-25", False
 
         # Tier 2: 2023+ (includes tier 1)
-        t2 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0))
+        t2 = [(cppsf, csqft, comp_pt_map.get(f"{clat},{clng}", 0),
+               recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
               for clat, clng, cppsf, csqft, yb in raw_comps
               if yb >= 2023 and in_band(csqft)]
         if len(t2) >= MIN_COMPS:
-            return [(p, pt) for p, _, pt in t2], "2023+", False
+            return [(p, pt, rw) for p, _, pt, rw in t2], "2023+", False
 
         # Tier 3: 2021-2022 with -10% haircut, added to tier 2 comps
-        t3_adj = [(round(cppsf * 0.90), comp_pt_map.get(f"{clat},{clng}", 0))
+        t3_adj = [(round(cppsf * 0.90), comp_pt_map.get(f"{clat},{clng}", 0),
+                   recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
                   for clat, clng, cppsf, csqft, yb in raw_comps
                   if 2021 <= yb <= 2022 and in_band(csqft)]
-        combined = [(p, pt) for p, _, pt in t2] + t3_adj
+        combined = [(p, pt, rw) for p, _, pt, rw in t2] + t3_adj
         if len(combined) >= NEWCON_MIN:
             tier = "2021-22 adj" if t3_adj else "2023+"
             return combined, tier, bool(t3_adj)
