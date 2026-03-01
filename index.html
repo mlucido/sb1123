@@ -1299,6 +1299,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           <label>Origination %</label>
           <input type="number" id="pfOrigination" value="1" step="0.25" onchange="onProformaChange()">
         </div>
+        <div class="proforma-group">
+          <label>Ellis $/Unit</label>
+          <input type="number" id="pfEllisPerUnit" value="20000" step="5000" onchange="onProformaChange()">
+        </div>
       </div>
       <p style="font-size:10px;color:var(--text-dim);margin-top:12px;line-height:1.4">
         SB 1123 ground-up: demolish existing, build all new townhome units.
@@ -1610,6 +1614,7 @@ let proforma = {
   carryRatePct: 9,       // Annual carry rate on construction loan
   insurance: 40000,      // Builder's risk insurance for hold period
   originationPct: 1,     // Loan origination fee as % of construction loan
+  ellisPerUnit: 20000,   // Ellis Act relocation cost per unit (RSO properties)
 };
 
 // Pro forma memo caches — cleared when assumptions change
@@ -2595,13 +2600,17 @@ function calculateProForma(l){
 
   const acquisition = l.price;
   const demo = l.sqft > 0 ? pf.demoCost : 0;
+  const ellisRelocation = (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND')
+    ? maxUnits * (pf.ellisPerUnit || 20000) : 0;
+  const ellisHoldMonths = ellisRelocation > 0 ? 4 : 0;
   const constructionCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
-  const totalBuildCost = constructionCost + demo;
+  const totalBuildCost = constructionCost + demo + ellisRelocation;
 
   // Carry costs: interest on construction loan only (cash acquisition)
+  const holdMonths = pf.holdMonths + ellisHoldMonths;
   const avgLoanOutstanding = totalBuildCost * 0.5;
-  const carryInterest = avgLoanOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
-  const carryPropTax = acquisition * 0.011 * (pf.holdMonths / 12);
+  const carryInterest = avgLoanOutstanding * (pf.carryRatePct / 100) * (holdMonths / 12);
+  const carryPropTax = acquisition * 0.011 * (holdMonths / 12);
   const insurance = pf.insurance || 40000;
   const originationFee = totalBuildCost * ((pf.originationPct || 1) / 100);
   const totalCarry = carryInterest + carryPropTax + insurance + originationFee;
@@ -2622,10 +2631,10 @@ function calculateProForma(l){
   // Since propTax depends on acq, iterate or approximate
   const nr = netRevenue;  // Reuse same revenue as economics block
   const target_total_cost = nr * (1 - target_margin);
-  const build_carry = avgLoanOutstanding * (pf.carryRatePct / 100) * (pf.holdMonths / 12);
+  const build_carry = avgLoanOutstanding * (pf.carryRatePct / 100) * (holdMonths / 12);
   const build_plus_soft = totalBuildCost + build_carry + insurance + originationFee;
   // max_acq + max_acq * propTaxRate * holdYears = target_total_cost - build_plus_soft
-  const propTaxFactor = 0.011 * (pf.holdMonths / 12);
+  const propTaxFactor = 0.011 * (holdMonths / 12);
   const max_offer = (target_total_cost - build_plus_soft) / (1 + propTaxFactor);
 
   const lot_efficiency = l.lotSf > 0 ? (effective_buildable_sf / l.lotSf) : 0;
@@ -2658,6 +2667,8 @@ function calculateProForma(l){
     carryPropTax: Math.round(carryPropTax),
     insurance: Math.round(insurance),
     originationFee: Math.round(originationFee),
+    ellisRelocation: Math.round(ellisRelocation),
+    ellisHoldMonths,
   };
   _proformaCache[cacheKey] = result;
   return result;
@@ -3165,7 +3176,7 @@ function dealCardStrip(l, pf, el, inlineBadges){
 function dealCardEconomics(l, pf, el){
   var allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalCost/pf.effective_buildable_sf) : 0;
   var spread = el.psf - allInPsf;
-  var carryTotal = pf.carryInterest+pf.carryPropTax+pf.insurance+pf.originationFee+(pf.demo>0?pf.demo:0);
+  var carryTotal = pf.carryInterest+pf.carryPropTax+pf.insurance+pf.originationFee+(pf.demo>0?pf.demo:0)+(pf.ellisRelocation||0);
   var moColor = pf.max_offer>=l.price?'var(--green)':'var(--red)';
 
   var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
@@ -3174,6 +3185,7 @@ function dealCardEconomics(l, pf, el){
   h += '<div class="dp-row"><span class="dp-k">All-In $/SF</span><span class="dp-v">'+fmtDollar(allInPsf)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Cost</span><span class="dp-v">'+fmtDollar(pf.totalCost)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Carry + Soft</span><span class="dp-v">'+fmtDollar(carryTotal)+'</span></div>';
+  if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
   h += '<div class="dp-sep"></div>';
   h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Max Offer</span><span class="dp-v" style="color:'+moColor+'">'+fmtDollar(pf.max_offer)+'</span></div>';
@@ -4706,6 +4718,7 @@ function onProformaChange(){
   proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;
   proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
   proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
+  proforma.ellisPerUnit = parseInt(document.getElementById('pfEllisPerUnit').value)||20000;
   enrichListings();
   applyFilters();
 }
