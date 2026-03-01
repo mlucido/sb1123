@@ -1042,6 +1042,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <!-- Hidden inputs for JS compat -->
         <input type="number" id="marginMin" step="5" style="display:none">
         <input type="number" id="marginMax" step="5" style="display:none">
+        <div class="kf-range-labels">
+          <span id="marginRangeMin">30%</span>
+          <span id="marginRangeMax">100%</span>
+        </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="marginSliderFill"></div>
           <input type="range" id="marginSliderMin" min="-100" max="100" step="5" value="30">
@@ -1560,6 +1564,10 @@ let proforma = {
   insurance: 40000,      // Builder's risk insurance for hold period
   originationPct: 1,     // Loan origination fee as % of construction loan
 };
+
+// Pro forma memo caches — cleared when assumptions change
+var _proformaCache = {};
+var _btrCache = {};
 
 // ── Map ──
 const map = L.map('map',{center:MARKET.center,zoom:MARKET.zoom,zoomControl:false});
@@ -2499,6 +2507,8 @@ function exitLabel(l){
 }
 
 function calculateProForma(l){
+  var cacheKey = l.lat + ',' + l.lng;
+  if(_proformaCache[cacheKey]) return _proformaCache[cacheKey];
   const densityUnits = getMaxUnits(l);
   let maxUnits = densityUnits;
   let layoutMax = null, layoutNote = null;
@@ -2574,7 +2584,7 @@ function calculateProForma(l){
   const lot_efficiency = l.lotSf > 0 ? (effective_buildable_sf / l.lotSf) : 0;
   const return_on_cost = totalCost > 0 ? ((profit / totalCost) * 100) : 0;
 
-  return {
+  var result = {
     maxUnits,
     densityUnits,
     layoutMax,
@@ -2602,6 +2612,8 @@ function calculateProForma(l){
     insurance: Math.round(insurance),
     originationFee: Math.round(originationFee),
   };
+  _proformaCache[cacheKey] = result;
+  return result;
 }
 
 function sizeEquityAndDebt(askingPrice, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent) {
@@ -2822,6 +2834,8 @@ function getRentSourceLabel(l) {
 }
 
 function calculateBTRProForma(l){
+  var cacheKey = l.lat + ',' + l.lng;
+  if(_btrCache[cacheKey]) return _btrCache[cacheKey];
   // Inherit all BTS (build-to-sell) numbers for shared inputs
   const pf = calculateProForma(l);
 
@@ -2864,7 +2878,7 @@ function calculateBTRProForma(l){
   // Does it pencil? DSCR >= 1.25x is lender go/no-go
   const btrPencils = dscr >= 1.25 && rentPsf > 0;
 
-  return {
+  var btrResult = {
     ...pf,  // inherit all BTS fields
     rentPerUnit,
     rentPsf,
@@ -2887,6 +2901,8 @@ function calculateBTRProForma(l){
     refiLTV,
     units,
   };
+  _btrCache[cacheKey] = btrResult;
+  return btrResult;
 }
 
 // Generate ZIMAS lookup URL for LA City properties
@@ -3006,9 +3022,9 @@ function getFilteredListings(skipZoneFilter){
 //  MAP RENDERING
 // ══════════════════════════════════════════
 
-function rebuildMarkers(){
+function rebuildMarkers(cachedComps){
   Object.values(markerLayers).forEach(l=>l.clearLayers());
-  const filtered = getFilteredComps();
+  const filtered = cachedComps || getFilteredComps();
   filtered.forEach(comp => {
     const psf = comp.ppsf || Math.round(comp.price / comp.sqft);
     const cm = L.circleMarker([comp.lat,comp.lng],{
@@ -3100,10 +3116,15 @@ function generateDealCard(l, opts){
   var strip = '<div class="dp-strip" onclick="toggleDealCard(this)">';
   strip += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
   strip += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
-  strip += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+'</div></div>';
+  // P0-4: Color-code Max Offer vs Asking — green if deal works at ask, red if needs discount
+  var moColor2 = pf.max_offer >= l.price ? 'var(--green)' : 'var(--red)';
+  var moLabel = pf.max_offer >= l.price ? '\u2713' : '\u2717';
+  strip += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+' <span style="font-size:9px;color:'+moColor2+'">'+moLabel+'</span></div></div>';
   strip += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
   strip += '<div class="dp-metric"><div class="dp-lbl">Lot Size</div><div class="dp-val">'+(l.lotSf?commas(l.lotSf):'—')+'</div></div>';
-  strip += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+pf.maxUnits+'</div></div>';
+  // P0-3: Show layout constraint — "6 of 8" when layout limits below density
+  var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
+  strip += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+unitsLabel+'</div></div>';
   strip += '<div class="dp-toggle">&#9650;</div>';
   strip += '</div>';
 
@@ -3240,11 +3261,11 @@ function generateDealCard(l, opts){
   return h;
 }
 
-function rebuildListings(){
+function rebuildListings(cachedListings){
   listingsLayer.clearLayers();
   // Clear for-sale flags so off-market layer can exclude visible for-sale listings
   LISTINGS.forEach(l => { l._onForSaleLayer = false; });
-  const filtered = getFilteredListings();
+  const filtered = cachedListings || getFilteredListings();
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
@@ -3276,12 +3297,12 @@ function rebuildListings(){
   rebuildTable(filtered);
 }
 
-function buildBTRLayer(){
+function buildBTRLayer(cachedListings){
   btrLayer.clearLayers();
 
   // BTR layer shows ALL BTR-viable deals (DSCR >= 1.25x gate)
   // Dual-viable deals (also BTS profitable) show both a BTS circle and BTR diamond
-  const btrListings = getFilteredListings().filter(l => {
+  const btrListings = (cachedListings || getFilteredListings()).filter(l => {
     if(!l.sb1123Eligible) return false;
     if(!(l.estRentMonth > 0 || l.fmr3br > 0 || l.yocBase > 0)) return false;
     const btrPF = calculateBTRProForma(l);
@@ -3773,11 +3794,11 @@ function closeDataKeyModal(){
 //  HERO STAT BAR (updates with filters)
 // ══════════════════════════════════════════
 
-function updateStatPills(){
-  const filtered = getFilteredListings();
+function updateStatPills(cachedListings, cachedComps){
+  const filtered = cachedListings || getFilteredListings();
   const eligible = filtered.filter(l=>l.sb1123Eligible);
   document.getElementById('pillOnMarket').textContent = eligible.length.toLocaleString();
-  const compN = getFilteredComps().length;
+  const compN = (cachedComps || getFilteredComps()).length;
   document.getElementById('pillComps').textContent = compN >= 1000 ? (compN/1000).toFixed(1).replace(/\.0$/,'') + 'K' : compN.toLocaleString();
   document.getElementById('pillMinMargin').textContent = filters.margin.min + '%';
 }
@@ -3959,19 +3980,19 @@ function setFilter(key, min, max){
 }
 
 // ── Stats ──
-function updateStats(){
-  const filtered = getFilteredListings();
+function updateStats(cachedListings, cachedComps){
+  const filtered = cachedListings || getFilteredListings();
 
   // Listing count in layers panel
   const listingCountEl = document.getElementById('listingCount');
   if(listingCountEl) listingCountEl.textContent = filtered.length.toLocaleString();
 
   // Comp stats
-  const compFiltered = getFilteredComps();
+  const compFiltered = cachedComps || getFilteredComps();
   const compCountEl = document.getElementById('compCount');
   if(compCountEl) compCountEl.textContent = compFiltered.length.toLocaleString();
 
-  updatePeekStats();
+  updatePeekStats(filtered);
   updateLayerCounts();
 }
 
@@ -4021,9 +4042,9 @@ function updateLayerCounts(){
   if(btrEl) btrEl.textContent = btrN.toLocaleString();
 }
 
-function updateFilterCount(){
-  const comps = getFilteredComps().length;
-  const listings = getFilteredListings().length;
+function updateFilterCount(cachedComps, cachedListings){
+  const comps = (cachedComps || getFilteredComps()).length;
+  const listings = (cachedListings || getFilteredListings()).length;
   const fc = document.getElementById('filterCount');
   if(fc) fc.textContent = `${comps.toLocaleString()} comps | ${listings.toLocaleString()} listings`;
   const lpc = document.getElementById('listingPanelCount');
@@ -4031,13 +4052,13 @@ function updateFilterCount(){
 }
 
 let _otherZonesExpanded = false;
-function rebuildZoneToggles(){
+function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
   const el=document.getElementById('zoneToggles');
   if(!el){ console.error('zoneToggles element not found!'); return; }
   el.innerHTML='';
-  const filtered = getFilteredComps();
+  const filtered = cachedComps || getFilteredComps();
   // Count listings per zone ignoring zone toggle state (all other filters apply)
-  const allFiltered = getFilteredListings(true);
+  const allFiltered = cachedListingsAllZones || getFilteredListings(true);
 
   function makeRow(zone){
     const zc=filtered.filter(c=>c.zone===zone);
@@ -4258,11 +4279,15 @@ function updateFill(key){
   const range=f.dataMax-f.dataMin; if(range<=0) return;
   fill.style.left=((f.min-f.dataMin)/range)*100+'%';
   fill.style.width=((f.max-f.min)/range)*100+'%';
-  // Update lot range labels
+  // Update range labels
   if(key==='lot'){
     var lm=document.getElementById('lotRangeMin'),lx=document.getElementById('lotRangeMax');
     if(lm) lm.textContent=fmtSf(f.min);
     if(lx) lx.textContent=fmtSf(f.max);
+  } else if(key==='margin'){
+    var mm=document.getElementById('marginRangeMin'),mx=document.getElementById('marginRangeMax');
+    if(mm) mm.textContent=f.min+'%';
+    if(mx) mx.textContent=f.max+'%';
   }
 }
 function fmtSf(v){return v>=1000?(v/1000).toFixed(v%1000?1:0).replace(/\.0$/,'')+'K sf':v+' sf'}
@@ -4282,18 +4307,92 @@ function setMarginPreset(minPct,btn){
   applyFilters();
 }
 
+// ── URL Hash Filter State ──
+function encodeFiltersToHash(){
+  var parts = [];
+  var keys = ['price','margin','lot','lotw','slope','psf','sqft'];
+  keys.forEach(function(k){
+    var f = filters[k];
+    if(f.min !== f.dataMin || f.max !== f.dataMax){
+      parts.push(k + '=' + f.min + ',' + f.max);
+    }
+  });
+  var zones = ['R1','R2','R3','R4','LAND'].filter(function(z){ return zoneState[z]; });
+  if(zones.join(',') !== 'R1') parts.push('zone=' + zones.join(','));
+  if(minUnitsFilter !== 4) parts.push('units=' + minUnitsFilter);
+  if(currentSort && currentSort.key) parts.push('sort=' + currentSort.key + ',' + currentSort.dir);
+  if(sb1123Mode) parts.push('sb1123=1');
+  if(favoritesOnly) parts.push('favs=1');
+  if(!hideBurnZones) parts.push('burn=1');
+  if(newThisWeekFilter) parts.push('new=1');
+  var hash = parts.length ? '#' + parts.join('&') : '';
+  if(window.location.hash !== hash) window.history.replaceState(null, '', hash || window.location.pathname + window.location.search);
+}
+
+function decodeFiltersFromHash(){
+  if(!location.hash || location.hash.length < 2) return false;
+  var pairs = location.hash.slice(1).split('&');
+  var applied = false;
+  pairs.forEach(function(pair){
+    var eq = pair.indexOf('=');
+    if(eq < 0) return;
+    var k = pair.slice(0, eq), v = pair.slice(eq + 1);
+    if(filters[k]){
+      var vals = v.split(',');
+      if(vals.length === 2){
+        var mn = parseFloat(vals[0]), mx = parseFloat(vals[1]);
+        if(!isNaN(mn) && !isNaN(mx)){
+          filters[k].min = mn;
+          filters[k].max = mx;
+          var sMin = document.getElementById(k+'SliderMin'), sMax = document.getElementById(k+'SliderMax');
+          var iMin = document.getElementById(k+'Min'), iMax = document.getElementById(k+'Max');
+          if(sMin){ sMin.value = mn; } if(sMax){ sMax.value = mx; }
+          if(iMin){ iMin.value = mn; } if(iMax){ iMax.value = mx; }
+          updateFill(k);
+          applied = true;
+        }
+      }
+    } else if(k === 'zone'){
+      var zList = v.split(',');
+      ['R1','R2','R3','R4','LAND'].forEach(function(z){ zoneState[z] = zList.indexOf(z) >= 0; });
+      applied = true;
+    } else if(k === 'units'){
+      minUnitsFilter = parseInt(v) || 4;
+      var slider = document.getElementById('minUnitsSlider');
+      var label = document.getElementById('minUnitsLabel');
+      if(slider) slider.value = minUnitsFilter;
+      if(label) label.textContent = minUnitsFilter;
+      applied = true;
+    } else if(k === 'sort'){
+      var sp = v.split(',');
+      if(sp.length === 2) currentSort = { key: sp[0], dir: sp[1] };
+      applied = true;
+    } else if(k === 'sb1123' && v === '1'){ sb1123Mode = true; applied = true; }
+    else if(k === 'favs' && v === '1'){ favoritesOnly = true; applied = true; }
+    else if(k === 'burn' && v === '1'){ hideBurnZones = false; applied = true; }
+    else if(k === 'new' && v === '1'){ newThisWeekFilter = true; applied = true; }
+  });
+  return applied;
+}
+
 function applyFilters(){
-  rebuildMarkers();
-  rebuildListings();
-  if(layerState.btr) buildBTRLayer();
+  // Cache filtered results once — avoid re-filtering on every sub-call
+  var _cachedComps = getFilteredComps();
+  var _cachedListings = getFilteredListings();
+  var _cachedListingsAllZones = getFilteredListings(true);
+
+  rebuildMarkers(_cachedComps);
+  rebuildListings(_cachedListings);
+  if(layerState.btr) buildBTRLayer(_cachedListings);
   if(layerState.neighborhoods) buildNeighborhoodLayer();
   if(layerState.offMarket) buildOffMarketLayer();
-  rebuildZoneToggles();
-  updateStats();
-  updateFilterCount();
-  updateStatPills();
+  rebuildZoneToggles(_cachedComps, _cachedListingsAllZones);
+  updateStats(_cachedListings, _cachedComps);
+  updateFilterCount(_cachedComps, _cachedListings);
+  updateStatPills(_cachedListings, _cachedComps);
   refreshVisibility();
   applyPolygonOpacity();
+  encodeFiltersToHash();
 }
 
 // ══════════════════════════════════════════
@@ -4523,6 +4622,8 @@ function resetFilter(key){
 }
 
 function onProformaChange(){
+  _proformaCache = {};
+  _btrCache = {};
   proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
   proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
   proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
@@ -6005,6 +6106,9 @@ window.addEventListener('DOMContentLoaded', function(){
       const withMargin = LISTINGS.filter(l=>l.estMargin!=null);
       if(withMargin.length) initRangeFilter('margin', l=>l.estMargin||0, withMargin);
 
+      // Restore filter state from URL hash if present
+      decodeFiltersFromHash();
+
       // Build $/SF heatmap layer from sold comps
       if(COMPS.length && typeof L.heatLayer === 'function'){
         // **CRITICAL FIX**: Clamp heatmap to $600-$1,000 decision range
@@ -6165,11 +6269,11 @@ function openMobileSheet() {
   setSheetState('full');
 }
 
-function updatePeekStats() {
+function updatePeekStats(cachedListings) {
   var el = document.getElementById('peekEligible');
   var ml = document.getElementById('peekMargin');
   if (!el || !ml) return;
-  var filtered = getFilteredListings();
+  var filtered = cachedListings || getFilteredListings();
   var eligible = filtered.filter(function(l){ return l.sb1123Eligible; });
   var positiveMargin = eligible.filter(function(l){ return l.estMargin > 0; });
   var avgM = positiveMargin.length ? Math.round(positiveMargin.reduce(function(s,l){ return s+l.estMargin; },0)/positiveMargin.length) : 0;
