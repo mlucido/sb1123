@@ -1891,7 +1891,7 @@ function compConfidence(l){
 // ── Deal Scorecard (hero metrics banner) ──
 function dealScorecard(l, pf, btr){
   const exitPsf = exitLabel(l).psf;
-  const allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalCost/pf.effective_buildable_sf) : 0;
+  const allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalProjectCost/pf.effective_buildable_sf) : 0;
   const spread = exitPsf - allInPsf;
   const spreadColor = spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)';
   const marginColor = pf.margin>=30?'var(--green)':pf.margin>=15?'var(--yellow)':'var(--red)';
@@ -2496,7 +2496,7 @@ function dealCardEconomics(l, pf, el){
   var bsf = pf.effective_buildable_sf || 1;
   var psfSuffix = function(v){ return ' <small style="color:var(--text-dim)">($'+Math.round(v/bsf)+'/sf)</small>'; };
   var moColor = pf.max_offer>=l.price?'var(--green)':'var(--red)';
-  var allInPsf = Math.round(pf.totalCost/bsf);
+  var allInPsf = Math.round(pf.totalProjectCost/bsf);
   var spread = el.psf - allInPsf;
 
   var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
@@ -2505,7 +2505,6 @@ function dealCardEconomics(l, pf, el){
   h += '<div class="dp-row"><span class="dp-k">Soft Costs</span><span class="dp-v">'+fmtDollar(pf.softCosts)+psfSuffix(pf.softCosts)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Build</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+psfSuffix(pf.constructionCost)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Project</span><span class="dp-v">'+fmtDollar(pf.totalProjectCost)+psfSuffix(pf.totalProjectCost)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+'</span></div>';
   if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
   h += '<div class="dp-sep"></div>';
   h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
@@ -2551,6 +2550,7 @@ function dealCardProForma(l, pf){
   h += '<div class="dp-row"><span class="dp-k">Sell / Unit</span><span class="dp-v">'+fmtDollar(sellPerUnit)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Profit / Unit</span><span class="dp-v" style="color:'+(profitPerUnit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(profitPerUnit)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Land Basis</span><span class="dp-v" style="color:'+lbColor+'">'+fmtDollar(pf.land_basis_psf)+'/sf</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+'</span></div>';
   h += '</div>';
   return h;
 }
@@ -2920,7 +2920,7 @@ function buildOffMarketLayer(){
         <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
         <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
-        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0)}/sf</div></div>
+        <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0)}/sf</div></div>
 
         ${l.lotSf?lotLabel(l,Math.round(pf.lot_efficiency*100)):'<div></div>'}
         ${l.city?'<div><div class="popup-label">City</div><div class="popup-value">'+l.city+'</div></div>':'<div></div>'}
