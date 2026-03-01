@@ -2,11 +2,14 @@
 // Exported config object is mutated by main module when assumptions change.
 
 export const proforma = {
-  allInBuildPsf: 360,
+  allInBuildPsf: 450,          // truly all-in: hard + soft + demo + subdiv + A&E
   avgUnitSf: 1750,
   txnCostPct: 4.7,
   fixedDispositionCosts: 40000,
-  demoCost: 55000,
+  demoCost: 55000,             // flat demo cost (included in allInBuildPsf)
+  subdivisionPsf: 10,
+  aePsf: 5,
+  softCostPct: 25,             // soft % of hard construction
   holdMonths: 24,
   carryRatePct: 9,
   insurance: 40000,
@@ -73,12 +76,22 @@ export function calculateProForma(l){
   const netRevenue = grossRevenue * (1 - pf.txnCostPct / 100) - pf.fixedDispositionCosts;
 
   const acquisition = l.price;
-  const demo = l.sqft > 0 ? pf.demoCost : 0;
   const ellisRelocation = (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND')
     ? maxUnits * (pf.ellisPerUnit || 20000) : 0;
   const ellisHoldMonths = ellisRelocation > 0 ? 4 : 0;
+
+  // All-in build: $450/SF includes hard, soft, demo, subdivision, A&E
   const constructionCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
-  const totalBuildCost = constructionCost + demo + ellisRelocation;
+  const totalBuildCost = constructionCost + ellisRelocation;
+
+  // Component breakdown (for display — sums back to constructionCost)
+  const demo = l.sqft > 0 ? pf.demoCost : 0;
+  const subdivision = (pf.subdivisionPsf || 10) * effective_buildable_sf;
+  const ae = (pf.aePsf || 5) * effective_buildable_sf;
+  const constructionRemaining = constructionCost - demo - subdivision - ae;
+  const hardCosts = constructionRemaining / (1 + (pf.softCostPct || 25) / 100);
+  const softConstruction = constructionRemaining - hardCosts;
+  const softCosts = softConstruction + demo + subdivision + ae;
 
   const holdMonths = pf.holdMonths + ellisHoldMonths;
   const avgLoanOutstanding = totalBuildCost * 0.5;
@@ -105,6 +118,8 @@ export function calculateProForma(l){
   const lot_efficiency = l.lotSf > 0 ? (effective_buildable_sf / l.lotSf) : 0;
   const return_on_cost = totalCost > 0 ? ((profit / totalCost) * 100) : 0;
 
+  const totalProjectCost = acquisition + totalBuildCost;
+
   var result = {
     maxUnits,
     densityUnits,
@@ -115,7 +130,10 @@ export function calculateProForma(l){
     acquisition,
     demo,
     constructionCost,
+    hardCosts: Math.round(hardCosts),
+    softCosts: Math.round(softCosts),
     totalBuildCost,
+    totalProjectCost,
     totalCost,
     profit,
     margin: margin_on_revenue,

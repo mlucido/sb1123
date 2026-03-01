@@ -1081,8 +1081,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="lotMax" step="500" style="display:none">
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotSliderFill"></div>
-          <input type="range" id="lotSliderMin" min="0" max="45000" step="500" value="12000">
-          <input type="range" id="lotSliderMax" min="0" max="45000" step="500" value="45000">
+          <input type="range" id="lotSliderMin" min="0" max="65000" step="500" value="0">
+          <input type="range" id="lotSliderMax" min="0" max="65000" step="500" value="65000">
         </div>
       </div>
 
@@ -1090,9 +1090,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header">
           <span class="kf-label">Min Units</span>
-          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">4</span>
+          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">2</span>
         </div>
-        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="4" oninput="onMinUnitsChange(this.value)">
+        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="2" oninput="onMinUnitsChange(this.value)">
       </div>
 
       <!-- Secondary filters -->
@@ -1139,7 +1139,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           </div>
           <div class="range-slider-track">
             <div class="range-slider-fill" id="lotwSliderFill"></div>
-            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="50">
+            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="0">
             <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
           </div>
         </div>
@@ -1264,13 +1264,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="proforma-inputs">
         <div class="proforma-group">
           <label>All-In Build $/SF</label>
-          <input type="number" id="pfBuildCost" value="360" step="25" onchange="onProformaChange()">
+          <input type="number" id="pfBuildCost" value="450" step="25" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Unit SF (avg)</label>
           <input type="number" id="pfUnitSize" value="1750" step="50" onchange="onProformaChange()">
         </div>
-        <!-- Soft cost removed: allInBuildPsf includes hard + soft -->
+        <!-- allInBuildPsf ($450) is truly all-in: hard + soft + demo + subdivision + A&E -->
         <div class="proforma-group">
           <label>Txn Costs %</label>
           <input type="number" id="pfTxnCost" value="4.7" step="0.5" onchange="onProformaChange()">
@@ -1519,17 +1519,17 @@ const layerState = {markers:false,compHeat:false,neighborhoods:false,listings:tr
 
 // ── Polygon Draw State ──
 // Draw state — see js/draw.js
-const zoneState = {R1:true,R2:false,R3:false,R4:false,LAND:false};
+const zoneState = {R1:true,R2:true,R3:true,R4:true,LAND:true};
 let sb1123Mode = true;  // Default ON — we only care about 1123 deals
 
 const filters = {
   price:{ min:0, max:3000000, dataMin:0, dataMax:5000000, step:25000, cap:5000000, defaultMin:null, defaultMax:3000000 },
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
-  lot:  { min:0, max:45000, dataMin:0, dataMax:45000, step:500, cap:45000, defaultMin:12000, defaultMax:45000 },
-  lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:200 },
+  lot:  { min:0, max:65000, dataMin:0, dataMax:65000, step:500, cap:65000, defaultMin:null, defaultMax:null },
+  lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:null, defaultMax:null },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
-  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:null },
+  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:null, defaultMax:null },
 };
 
 let currentSort = { key:null, dir:'desc' };
@@ -1540,13 +1540,13 @@ let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
-let minUnitsFilter = 4;  // Default: require at least 4 units
+let minUnitsFilter = 2;  // Default: require at least 2 units
 
 // Initialize AppState with soft filter defaults, then restore persisted values
 AppState.set('favoritesOnly', false);
 AppState.set('newThisWeekFilter', false);
 AppState.set('hideBurnZones', true);
-AppState.set('minUnitsFilter', 4);
+AppState.set('minUnitsFilter', 2);
 _PERSIST_KEYS.forEach(function(k){
   var s = localStorage.getItem('sb1123_'+k);
   if(s != null){ try{ AppState.set(k, JSON.parse(s)); }catch(e){} }
@@ -1563,7 +1563,7 @@ AppState.on('newThisWeekFilter', function(v){ newThisWeekFilter = v; });
 AppState.on('hideBurnZones', function(v){ hideBurnZones = v; });
 AppState.on('minUnitsFilter', function(v){ minUnitsFilter = v; });
 function onMinUnitsChange(val){ AppState.set('minUnitsFilter', parseInt(val)); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
-function resetMinUnits(){ AppState.set('minUnitsFilter', 4); document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
+function resetMinUnits(){ AppState.set('minUnitsFilter', 2); document.getElementById('minUnitsSlider').value = 2; document.getElementById('minUnitsLabel').textContent = '2'; applyFilters(); }
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
@@ -1949,14 +1949,15 @@ function economicsBlock(pf, opts){
   opts = opts || {};
   var collapseId = 'econ-'+Math.random().toString(36).slice(2,8);
   var h = '<div class="popup-section-label">'+(opts.label||'Economics')+'</div>';
-  // Always visible: Build $/SF + Construction
+  // Always visible: Build $/SF + Hard/Soft/Total Build
   h += '<div><div class="popup-label">Build $/SF'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope)</span>':'')+'</div><div class="popup-value"'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':'')+'>$'+pf.adjBuildCostPerSf+'/sf</div></div>';
-  h += '<div><div class="popup-label">Construction</div><div class="popup-value">$'+Math.round(pf.constructionCost).toLocaleString()+'</div></div>';
-  // Collapsible: remaining cost items
-  var carryTotal = pf.carryInterest + pf.carryPropTax + pf.insurance + pf.originationFee + (pf.demo>0?pf.demo:0);
-  h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Cost breakdown &mdash; $'+Math.round(carryTotal).toLocaleString()+' carry+soft</div>';
+  h += '<div><div class="popup-label">Hard Costs</div><div class="popup-value">$'+pf.hardCosts.toLocaleString()+'</div></div>';
+  h += '<div><div class="popup-label">Soft Costs</div><div class="popup-value">$'+pf.softCosts.toLocaleString()+'</div></div>';
+  h += '<div><div class="popup-label">Total Build</div><div class="popup-value">$'+Math.round(pf.constructionCost).toLocaleString()+'</div></div>';
+  // Collapsible: financing/carry items
+  var carryTotal = pf.carryInterest + pf.carryPropTax + pf.insurance + pf.originationFee;
+  h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Financing &mdash; $'+Math.round(carryTotal).toLocaleString()+' carry</div>';
   h += '<div class="popup-collapse-body" id="'+collapseId+'" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;padding-top:4px">';
-  if(pf.demo>0) h += '<div><div class="popup-label">Demo</div><div class="popup-value">$'+pf.demo.toLocaleString()+'</div></div><div></div>';
   h += '<div><div class="popup-label">Insurance</div><div class="popup-value">$'+pf.insurance.toLocaleString()+'</div></div>';
   h += '<div><div class="popup-label">Origination ('+proforma.originationPct+'%)</div><div class="popup-value">$'+pf.originationFee.toLocaleString()+'</div></div>';
   h += '<div><div class="popup-label">Carry Interest ('+proforma.holdMonths+'mo)</div><div class="popup-value">$'+pf.carryInterest.toLocaleString()+'</div></div>';
@@ -2498,17 +2499,19 @@ function dealCardStrip(l, pf, el, inlineBadges){
 }
 
 function dealCardEconomics(l, pf, el){
-  var allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalCost/pf.effective_buildable_sf) : 0;
-  var spread = el.psf - allInPsf;
-  var carryTotal = pf.carryInterest+pf.carryPropTax+pf.insurance+pf.originationFee+(pf.demo>0?pf.demo:0)+(pf.ellisRelocation||0);
+  var bsf = pf.effective_buildable_sf || 1;
+  var psfSuffix = function(v){ return ' <small style="color:var(--text-dim)">($'+Math.round(v/bsf)+'/sf)</small>'; };
   var moColor = pf.max_offer>=l.price?'var(--green)':'var(--red)';
+  var allInPsf = Math.round(pf.totalCost/bsf);
+  var spread = el.psf - allInPsf;
 
   var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
-  h += '<div class="dp-row"><span class="dp-k">Construction</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Build $/SF</span><span class="dp-v"'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':'')+'>'+fmtDollar(pf.adjBuildCostPerSf)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">All-In $/SF</span><span class="dp-v">'+fmtDollar(allInPsf)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Total Cost</span><span class="dp-v">'+fmtDollar(pf.totalCost)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Carry + Soft</span><span class="dp-v">'+fmtDollar(carryTotal)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Acquisition</span><span class="dp-v">'+fmtDollar(pf.acquisition)+psfSuffix(pf.acquisition)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Hard Costs</span><span class="dp-v">'+fmtDollar(pf.hardCosts)+psfSuffix(pf.hardCosts)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Soft Costs</span><span class="dp-v">'+fmtDollar(pf.softCosts)+psfSuffix(pf.softCosts)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Total Build</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+psfSuffix(pf.constructionCost)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Total Project</span><span class="dp-v">'+fmtDollar(pf.totalProjectCost)+psfSuffix(pf.totalProjectCost)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+psfSuffix(pf.carryInterest)+'</span></div>';
   if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
   h += '<div class="dp-sep"></div>';
   h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
@@ -2528,6 +2531,7 @@ function dealCardSite(l, pf){
   if(l.slope!=null) h += '<div class="dp-row"><span class="dp-k">Slope</span><span class="dp-v" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</span></div>';
   if(l.dom!=null) h += '<div class="dp-row"><span class="dp-k">DOM</span><span class="dp-v">'+l.dom+'</span></div>';
   if(l.beds) h += '<div class="dp-row"><span class="dp-k">Beds / Baths</span><span class="dp-v">'+l.beds+' / '+l.baths+'</span></div>';
+  if(l.existingUnits) h += '<div class="dp-row"><span class="dp-k">Existing Units</span><span class="dp-v">'+l.existingUnits+'</span></div>';
   if(l.lw&&l.ld&&pf.maxUnits>0&&pf.max_offer>0){
     var lotId = 'dp-lot-'+Math.random().toString(36).slice(2,8);
     h += '<div class="dp-lot-toggle" onclick="var b=document.getElementById(\''+lotId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\');event.stopPropagation()"><span class="tri">&#9654;</span> Layout &middot; '+pf.maxUnits+'u</div>';
@@ -2822,7 +2826,7 @@ function buildOffMarketLayer(){
     const exit_psf = hood_psf;
     const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
+    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
     const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
     const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
     const f_insurance = proforma.insurance || 40000;
@@ -2859,7 +2863,7 @@ function buildOffMarketLayer(){
     const exit_psf = hood_psf;
     const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
+    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
     const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
     const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
     const om_insurance = proforma.insurance || 40000;
@@ -2948,8 +2952,9 @@ function buildOffMarketLayer(){
         <div class="popup-section-label">Economics (at Est. Offer $${Math.round(est_offer).toLocaleString()})</div>
 
         <div><div class="popup-label">Build $/SF${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope adj)</span>':''}</div><div class="popup-value"${pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':''}>$${pf.adjBuildCostPerSf}/sf</div></div>
-        <div><div class="popup-label">Construction</div><div class="popup-value">$${Math.round(pf.constructionCost).toLocaleString()}</div></div>
-        ${pf.demo>0?'<div><div class="popup-label">Demo</div><div class="popup-value">$'+pf.demo.toLocaleString()+'</div></div><div></div>':''}
+        <div><div class="popup-label">Hard Costs</div><div class="popup-value">$${pf.hardCosts.toLocaleString()}</div></div>
+        <div><div class="popup-label">Soft Costs</div><div class="popup-value">$${pf.softCosts.toLocaleString()}</div></div>
+        <div><div class="popup-label">Total Build</div><div class="popup-value">$${Math.round(pf.constructionCost).toLocaleString()}</div></div>
         <div><div class="popup-label">Insurance</div><div class="popup-value">$${pf.insurance.toLocaleString()}</div></div>
         <div><div class="popup-label">Loan Origination (${proforma.originationPct}%)</div><div class="popup-value">$${pf.originationFee.toLocaleString()}</div></div>
         <div><div class="popup-label">Carry Interest (${proforma.holdMonths}mo)</div><div class="popup-value">$${pf.carryInterest.toLocaleString()}</div></div>
@@ -3432,7 +3437,7 @@ function updateLayerCounts(){
     const exit_psf = hood_psf;
     const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
     const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf + (l.sqft > 0 ? proforma.demoCost : 0);
+    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
     const carry_interest = (total_build * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
     const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
     const f_insurance = proforma.insurance || 40000;
