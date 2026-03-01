@@ -4295,20 +4295,24 @@ function resetFilter(key){
   applyFilters();
 }
 
+var _proformaTimer = null;
 function onProformaChange(){
-  clearProformaCaches();
-  proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
-  proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
-  proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
-  proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
-  proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
-  proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
-  proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;
-  proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
-  proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
-  proforma.ellisPerUnit = parseInt(document.getElementById('pfEllisPerUnit').value)||20000;
-  enrichListings();
-  applyFilters();
+  clearTimeout(_proformaTimer);
+  _proformaTimer = setTimeout(function(){
+    clearProformaCaches();
+    proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
+    proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
+    proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
+    proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
+    proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
+    proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
+    proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;
+    proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
+    proforma.originationPct = parseFloat(document.getElementById('pfOrigination').value)||1;
+    proforma.ellisPerUnit = parseInt(document.getElementById('pfEllisPerUnit').value)||20000;
+    enrichListings();
+    applyFilters();
+  }, 300);
 }
 
 // Export — see js/export.js
