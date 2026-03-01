@@ -4888,24 +4888,27 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   labelCell(ws, 7, 2, '  Origination Fee');
   setFormula(ws, 'C7', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
   ws.getCell('C7').font = { color: { argb: 'FF999999' }, italic: true };
+  labelCell(ws, 8, 2, '  PIK Interest Reserve');
+  setFormula(ws, 'C8', "'Cash Flow'!AA39", 0, '$#,##0');
 
-  sectionHeader(ws, 9, 2, 'Equity');
-  labelCell(ws, 10, 2, '  LP Equity');
-  setFormula(ws, 'C10', 'Assumptions!G14*(1-Assumptions!C44)', ed.equity * 0.95, '$#,##0');
-  labelCell(ws, 11, 2, '  GP Co-Invest');
-  setFormula(ws, 'C11', 'Assumptions!G14*Assumptions!C44', ed.equity * 0.05, '$#,##0');
+  sectionHeader(ws, 10, 2, 'Equity');
+  labelCell(ws, 11, 2, '  LP Equity');
+  setFormula(ws, 'C11', 'Assumptions!G14*(1-Assumptions!C44)', ed.equity * 0.95, '$#,##0');
+  labelCell(ws, 12, 2, '  GP Co-Invest');
+  setFormula(ws, 'C12', 'Assumptions!G14*Assumptions!C44', ed.equity * 0.05, '$#,##0');
 
-  labelCell(ws, 13, 2, 'TOTAL SOURCES');
-  ws.getCell('B13').font = { bold: true };
-  setFormula(ws, 'C13', 'C6+C10+C11', ed.debt + ed.equity, '$#,##0');
-  ws.getCell('C13').font = { bold: true };
-  ws.getCell('C13').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
-  setFormula(ws, 'D13', 'C13/C13', 1, '0.0%');
+  labelCell(ws, 14, 2, 'TOTAL SOURCES');
+  ws.getCell('B14').font = { bold: true };
+  setFormula(ws, 'C14', 'C6+C8+C11+C12', ed.debt + ed.equity, '$#,##0');
+  ws.getCell('C14').font = { bold: true };
+  ws.getCell('C14').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
+  setFormula(ws, 'D14', 'C14/C14', 1, '0.0%');
 
   // Source % of total
-  setFormula(ws, 'D6', 'C6/C$13', ed.debt / (ed.debt + ed.equity), '0.0%');
-  setFormula(ws, 'D10', 'C10/C$13', ed.equity * 0.95 / (ed.debt + ed.equity), '0.0%');
-  setFormula(ws, 'D11', 'C11/C$13', ed.equity * 0.05 / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D6', 'C6/C$14', ed.debt / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D8', 'C8/C$14', 0, '0.0%');
+  setFormula(ws, 'D11', 'C11/C$14', ed.equity * 0.95 / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D12', 'C12/C$14', ed.equity * 0.05 / (ed.debt + ed.equity), '0.0%');
 
   // ── USES ──
   ws.getCell('F4').value = 'USES';
@@ -4971,7 +4974,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
 
   // Check row
   labelCell(ws, 28, 2, 'CHECK (Sources - Uses)');
-  setFormula(ws, 'C28', 'C13-G26', 0, '$#,##0');
+  setFormula(ws, 'C28', 'C14-G26', 0, '$#,##0');
   ws.getCell('C28').font = { bold: true, color: { argb: 'FFFF0000' } };
 
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
