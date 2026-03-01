@@ -923,7 +923,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 <body class="light-mode">
 
 <div class="app-row">
-<aside class="sidebar">
+<aside class="sidebar" role="complementary" aria-label="Filters and controls">
   <div class="sheet-handle" id="sheetHandle">
     <div class="handle-bar"></div>
     <div class="peek-stats">
@@ -936,12 +936,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <h1><span>SB 1123</span> Deal Finder</h1>
       <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
       <a href="" class="analytics-btn" id="marketSwitchLink" title="Switch market"></a>
-      <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard">&#8635; Refresh</button>
+      <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard" aria-label="Copy refresh command">&#8635; Refresh</button>
     </div>
     <p id="marketSubtitle">Townhome development sites in Los Angeles</p>
     <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
-    <div class="stat-pills" id="statPills">
+    <div class="stat-pills" id="statPills" aria-live="polite">
       <span class="pill"><span class="pill-val" id="pillOnMarket">0</span><span class="pill-label">on-mkt</span></span>
       <span class="pill"><span class="pill-val" id="pillComps">0</span><span class="pill-label">comps</span></span>
       <span class="pill"><span class="pill-val" id="pillMinMargin">30%</span><span class="pill-label">min margin</span></span>
@@ -1010,7 +1010,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <button class="zone-expand" id="zoningExpandBtn" onclick="document.getElementById('zoneTogglesWrap').style.display=this.textContent.indexOf('+')>=0?'block':'none';this.textContent=this.textContent.indexOf('+')>=0?'− zones':'+ zones'">+ zones</button>
       </div>
       <div id="zoneTogglesWrap" style="display:none;margin-top:6px">
-        <div id="zoneToggles"></div>
+        <div id="zoneToggles" role="group" aria-label="Zone filters"></div>
       </div>
 
       <!-- Condition Tier (shown when comp layer active) -->
@@ -1097,7 +1097,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
       <!-- Secondary filters -->
       <div class="sf-list">
-        <div class="sf-row" onclick="this.classList.toggle('expanded')">Asking Price <span class="sf-chevron">▸</span></div>
+        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Asking Price <span class="sf-chevron">▸</span></div>
         <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
@@ -1111,7 +1111,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           </div>
         </div>
 
-        <div class="sf-row" onclick="this.classList.toggle('expanded')">$/SF <span class="sf-chevron">▸</span></div>
+        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">$/SF <span class="sf-chevron">▸</span></div>
         <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
@@ -1130,7 +1130,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="sqftMax" step="100" style="display:none">
         <div style="display:none"><div id="sqftSliderFill"></div><input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0"><input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000"></div>
 
-        <div class="sf-row" onclick="this.classList.toggle('expanded')">Lot Width <span class="sf-chevron">▸</span></div>
+        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Lot Width <span class="sf-chevron">▸</span></div>
         <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
@@ -1144,7 +1144,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           </div>
         </div>
 
-        <div class="sf-row" onclick="this.classList.toggle('expanded')">Slope <span class="sf-chevron">▸</span></div>
+        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Slope <span class="sf-chevron">▸</span></div>
         <div class="sf-body">
           <div class="range-inputs">
             <div class="input-group"><div class="input-label">Min %</div><input type="number" id="slopeMin" step="1"></div>
@@ -1179,8 +1179,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <button class="bottom-btn" id="favToggle" onclick="toggleFavoritesFilter()">
         <span>&#9733; Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
       </button>
-      <button class="bottom-btn" onclick="exportCSV()">&#128202; Export</button>
-      <button class="bottom-btn gear" onclick="openAssumptionsModal()" title="Deal Assumptions">&#9881;</button>
+      <button class="bottom-btn" onclick="exportCSV()" aria-label="Export to CSV">&#128202; Export</button>
+      <button class="bottom-btn gear" onclick="openAssumptionsModal()" title="Deal Assumptions" aria-label="Deal assumptions">&#9881;</button>
     </div>
     <div class="basemap-row">
       <button class="basemap-link active" data-base="light" onclick="setBaseMap('light')">Light</button>
@@ -1194,7 +1194,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <span class="filter-icon">&#9776;</span> Filters
 </button>
 
-<div id="onboardOverlay" class="onboard-overlay">
+<div id="onboardOverlay" class="onboard-overlay" role="dialog" aria-modal="true" aria-label="Welcome walkthrough">
   <div class="onboard-backdrop" onclick="dismissOnboarding()"></div>
   <div class="onboard-card">
     <div class="onboard-step active" data-step="0">
@@ -1229,7 +1229,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
 </div>
-<div id="map">
+<div id="map" role="main" aria-label="Map">
   <!-- Pin Color Legend (bottom-left of map, always visible, dynamic) -->
   <div class="pin-legend" id="pinLegend">
     <!-- Dynamically populated based on active layers -->
@@ -1254,10 +1254,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </div><!-- /app-row -->
 
 <!-- Deal Assumptions Modal -->
-<div class="modal-overlay" id="assumptionsModal" onclick="if(event.target===this) closeAssumptionsModal()">
+<div class="modal-overlay" id="assumptionsModal" role="dialog" aria-modal="true" aria-labelledby="assumptionsTitle" onclick="if(event.target===this) closeAssumptionsModal()">
   <div class="modal-panel">
     <div class="modal-header">
-      <h3>Deal Assumptions</h3>
+      <h3 id="assumptionsTitle">Deal Assumptions</h3>
       <button class="modal-close" onclick="closeAssumptionsModal()">×</button>
     </div>
     <div class="modal-body">
@@ -1334,10 +1334,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </div>
 
 <!-- Data Key Modal -->
-<div class="modal-overlay" id="dataKeyModal" onclick="if(event.target===this) closeDataKeyModal()">
+<div class="modal-overlay" id="dataKeyModal" role="dialog" aria-modal="true" aria-labelledby="dataKeyTitle" onclick="if(event.target===this) closeDataKeyModal()">
   <div class="modal-panel data-key-panel">
     <div class="modal-header">
-      <h3>Data Key</h3>
+      <h3 id="dataKeyTitle">Data Key</h3>
       <button class="modal-close" onclick="closeDataKeyModal()">&times;</button>
     </div>
     <div class="modal-body">
@@ -3875,6 +3875,17 @@ function closeDataKeyModal(){
   document.getElementById('dataKeyModal').classList.remove('active');
 }
 
+// ── Escape key: close topmost modal/panel ──
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
+  else if(document.getElementById('dataKeyModal').classList.contains('active')) closeDataKeyModal();
+  else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
+  else if(compsTableActive) hideCompsTable();
+  else if(rentalCompsTableActive) hideRentalCompsTable();
+  else if(listingsPanelOpen) toggleListingsPanel();
+});
+
 // ══════════════════════════════════════════
 //  HERO STAT BAR (updates with filters)
 // ══════════════════════════════════════════
@@ -4266,9 +4277,9 @@ function rebuildTable(filtered){
       <td class="col-hood mono">${exitPpsf?'$'+exitPpsf:'—'}</td>
       <td class="col-sale mono">${l.salePerUnit?'$'+(l.salePerUnit).toLocaleString():'—'}</td>
       <td class="col-ppu mono">$${(l.pricePerUnit||0).toLocaleString()}</td>
-      <td class="col-profit mono ${profitClass}">$${Math.round(l.estProfit||0).toLocaleString()}</td>
-      <td class="col-margin mono ${marginClass}">${(l.estMargin||0).toFixed(0)}%</td>
-      <td class="col-slope mono" style="color:${l.slope!=null?(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'):'var(--text-dim)'}">${l.slope!=null?l.slope+'%':'—'}${l.slopeScore!=null?' <span style="font-size:9px;color:'+(l.slopeScore<=20?'var(--green)':l.slopeScore<=50?'var(--yellow)':l.slopeScore<=75?'var(--orange)':'var(--red)')+'">S'+l.slopeScore+'</span>':''}</td>
+      <td class="col-profit mono ${profitClass}">${(l.estProfit||0)>=0?'\u2713':'\u2717'} $${Math.round(l.estProfit||0).toLocaleString()}</td>
+      <td class="col-margin mono ${marginClass}">${(l.estMargin||0)>=0?'\u2713':'\u2717'} ${(l.estMargin||0).toFixed(0)}%</td>
+      <td class="col-slope mono" style="color:${l.slope!=null?(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)'):'var(--text-dim)'}">${l.slope!=null?(l.slope>=15?'\u25B2 ':'')+l.slope+'%':'—'}${l.slopeScore!=null?' <span style="font-size:9px;color:'+(l.slopeScore<=20?'var(--green)':l.slopeScore<=50?'var(--yellow)':l.slopeScore<=75?'var(--orange)':'var(--red)')+'">S'+l.slopeScore+'</span>':''}</td>
       <td class="col-dom mono">${l.dom!==null&&l.dom!==undefined?l.dom:'—'}</td>
       <td class="col-new">${l.isNew?'<span class="new-badge">NEW</span>':l.isNewThisWeek?'<span class="new-badge week">7d</span>':''}</td>
       <td class="col-link">${l.url?'<a class="redfin-link" href="'+l.url+'" target="_blank" onclick="event.stopPropagation()">View</a>':''}</td>
