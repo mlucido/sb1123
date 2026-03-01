@@ -105,161 +105,6 @@ function inputCell(ws, addr, value, numFmt) {
   cell.font = { color: { argb: 'FF003078' } };
   if (numFmt) cell.numFmt = numFmt;
 }
-function linkedCell(ws, addr, formula, result, numFmt) {
-  var cell = ws.getCell(addr);
-  cell.value = { formula: formula, result: result != null ? result : 0 };
-  cell.fill = _inputFill;
-  cell.border = _borders;
-  cell.font = { color: { argb: 'FF003078' } };
-  if (numFmt) cell.numFmt = numFmt;
-}
-
-function buildScorecardTab(wb, l, pf, btr, exitPSF, monthlyRent) {
-  var ws = wb.addWorksheet('Deal Scorecard');
-  ws.getColumn(1).width = 2;
-  ws.getColumn(2).width = 24;
-  ws.getColumn(3).width = 24;
-  ws.getColumn(4).width = 3;
-  ws.getColumn(5).width = 2;
-  ws.getColumn(6).width = 24;
-  ws.getColumn(7).width = 24;
-
-  var units = pf.maxUnits;
-  var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
-  var lotWidth = l.lw || Math.round(Math.sqrt((l.lotSf || 10000) * 0.33));
-  var lotDepth = l.ld || Math.round((l.lotSf || 10000) / lotWidth);
-  var slopeDecimal = (l.slope || 0) / 100;
-  var bedsBaths = (l.beds || '') + ' / ' + (l.baths || '');
-  var buildableSF = units * avgUnitSF;
-  var lotEfficiency = l.lotSf > 0 ? buildableSF / l.lotSf : 0;
-  var grossRevenue = pf.grossRevenue;
-  var netRevenue = pf.netRevenue;
-  var totalCost = pf.totalCost;
-  var allInPSF = buildableSF > 0 ? totalCost / buildableSF : 0;
-  var spreadPSF = exitPSF - allInPSF;
-  var netMargin = pf.margin_on_revenue;
-  var roc = pf.return_on_cost;
-  var profit = pf.profit;
-  var profitPerUnit = units > 0 ? profit / units : 0;
-  var el = _deps.exitLabel(l);
-  var compMethod = el.short || '';
-  var compCount = l.clusterT1n || l.subdivCompCount || l.newconCount || l.compCount || 0;
-  var annualNOI = btr.annualNOI || 0;
-  var yieldOnCost = btr.yieldOnCost || 0;
-  var stabilizedValue = btr.stabilizedValue || 0;
-  var dscr = btr.dscr || 0;
-  var rentPsf = btr.rentPsf || 0;
-
-  // Title
-  ws.mergeCells('B2:G2');
-  var titleCell = ws.getCell('B2');
-  titleCell.value = 'Deal Scorecard — ' + (l.address || '');
-  titleCell.font = { bold: true, size: 14 };
-
-  // ── Left Column: Property / Acquisition / Development ──
-
-  // PROPERTY
-  ws.getCell('B4').value = 'PROPERTY';
-  ws.getCell('B4').font = _hdrFont; ws.getCell('B4').fill = _hdrFill;
-  ws.getCell('C4').fill = _hdrFill;
-
-  labelCell(ws, 5, 2, 'Address');         setVal(ws, 'C5', l.address || '');
-  labelCell(ws, 6, 2, 'City, Zip');       setVal(ws, 'C6', (l.city || '') + (l.zip ? ', ' + l.zip : ''));
-  labelCell(ws, 7, 2, 'Zoning');          setVal(ws, 'C7', (l.zone || 'R1').toUpperCase());
-  labelCell(ws, 8, 2, 'Lot SF');          setVal(ws, 'C8', l.lotSf || 0, '#,##0');
-  labelCell(ws, 9, 2, 'Lot Source');      setVal(ws, 'C9', l.lotSource || 'mls');
-  labelCell(ws, 10, 2, 'Lot Width');      setVal(ws, 'C10', lotWidth, '#,##0');
-  labelCell(ws, 11, 2, 'Lot Depth');      setVal(ws, 'C11', lotDepth, '#,##0');
-  labelCell(ws, 12, 2, 'Slope %');        setVal(ws, 'C12', slopeDecimal, '0.0%');
-  labelCell(ws, 13, 2, 'Beds / Baths');   setVal(ws, 'C13', bedsBaths);
-  labelCell(ws, 14, 2, 'DOM');            setVal(ws, 'C14', l.dom || 0, '#,##0');
-  labelCell(ws, 15, 2, 'Existing SF');    setVal(ws, 'C15', l.sqft || 0, '#,##0');
-  labelCell(ws, 16, 2, 'Year Built');     setVal(ws, 'C16', l.yb || '');
-
-  // ACQUISITION
-  ws.getCell('B18').value = 'ACQUISITION';
-  ws.getCell('B18').font = _hdrFont; ws.getCell('B18').fill = _hdrFill;
-  ws.getCell('C18').fill = _hdrFill;
-
-  labelCell(ws, 19, 2, 'List Price');     setVal(ws, 'C19', l.price || 0, '$#,##0');
-  labelCell(ws, 20, 2, 'Price / Unit');   setVal(ws, 'C20', pf.pricePerUnit || 0, '$#,##0');
-  labelCell(ws, 21, 2, 'Land Basis $/SF'); setVal(ws, 'C21', pf.land_basis_psf || 0, '$#,##0');
-
-  // DEVELOPMENT
-  ws.getCell('B23').value = 'DEVELOPMENT';
-  ws.getCell('B23').font = _hdrFont; ws.getCell('B23').fill = _hdrFill;
-  ws.getCell('C23').fill = _hdrFill;
-
-  var unitLabel = units + (pf.layoutNote ? ' (' + pf.layoutNote + ')' : ' (density)');
-  labelCell(ws, 24, 2, 'Units');             setVal(ws, 'C24', units, '#,##0');
-  labelCell(ws, 25, 2, 'Unit Note');         setVal(ws, 'C25', pf.layoutNote || 'by density');
-  labelCell(ws, 26, 2, 'Avg Unit SF');       setVal(ws, 'C26', avgUnitSF, '#,##0');
-  labelCell(ws, 27, 2, 'Buildable SF');      setVal(ws, 'C27', buildableSF, '#,##0');
-  labelCell(ws, 28, 2, 'Lot Efficiency %');  setVal(ws, 'C28', lotEfficiency, '0.0%');
-  labelCell(ws, 29, 2, 'Build $/SF (adj)');  setVal(ws, 'C29', buildCostPSF, '$#,##0');
-
-  // ── Right Column: Exit Comps / Economics / BTR / Risk ──
-
-  // EXIT COMPS
-  ws.getCell('F4').value = 'EXIT COMPS';
-  ws.getCell('F4').font = _hdrFont; ws.getCell('F4').fill = _hdrFill;
-  ws.getCell('G4').fill = _hdrFill;
-
-  labelCell(ws, 5, 6, 'Exit $/SF');       setVal(ws, 'G5', exitPSF, '$#,##0');
-  labelCell(ws, 6, 6, 'Comp Method');     setVal(ws, 'G6', compMethod);
-  labelCell(ws, 7, 6, 'Comp Count');      setVal(ws, 'G7', compCount, '#,##0');
-  labelCell(ws, 8, 6, 'Gross Revenue');   setVal(ws, 'G8', Math.round(grossRevenue), '$#,##0');
-  labelCell(ws, 9, 6, 'Net Revenue');     setVal(ws, 'G9', Math.round(netRevenue), '$#,##0');
-
-  // ECONOMICS
-  ws.getCell('F11').value = 'ECONOMICS';
-  ws.getCell('F11').font = _hdrFont; ws.getCell('F11').fill = _hdrFill;
-  ws.getCell('G11').fill = _hdrFill;
-
-  labelCell(ws, 12, 6, 'Total Cost');       setVal(ws, 'G12', Math.round(totalCost), '$#,##0');
-  labelCell(ws, 13, 6, 'All-In $/SF');      setVal(ws, 'G13', Math.round(allInPSF), '$#,##0');
-  labelCell(ws, 14, 6, 'Spread $/SF');      setVal(ws, 'G14', Math.round(spreadPSF), '$#,##0');
-  labelCell(ws, 15, 6, 'Net Margin %');     setVal(ws, 'G15', netMargin / 100, '0.0%');
-  labelCell(ws, 16, 6, 'Return on Cost %'); setVal(ws, 'G16', roc / 100, '0.0%');
-  labelCell(ws, 17, 6, 'Max Offer');        setVal(ws, 'G17', pf.max_offer || 0, '$#,##0');
-  labelCell(ws, 18, 6, 'Est Profit');       setVal(ws, 'G18', Math.round(profit), '$#,##0');
-  labelCell(ws, 19, 6, 'Profit / Unit');    setVal(ws, 'G19', Math.round(profitPerUnit), '$#,##0');
-
-  // BTR
-  ws.getCell('F21').value = 'BTR';
-  ws.getCell('F21').font = _hdrFont; ws.getCell('F21').fill = _hdrFill;
-  ws.getCell('G21').fill = _hdrFill;
-
-  labelCell(ws, 22, 6, 'Rent / Unit / Mo');  setVal(ws, 'G22', btr.rentPerUnit || 0, '$#,##0');
-  labelCell(ws, 23, 6, 'Annual NOI');         setVal(ws, 'G23', Math.round(annualNOI), '$#,##0');
-  labelCell(ws, 24, 6, 'Yield on Cost');      setVal(ws, 'G24', yieldOnCost, '0.0%');
-  labelCell(ws, 25, 6, 'I/O Loan Amount');    setVal(ws, 'G25', Math.round(btr.loanAmount), '$#,##0');
-  labelCell(ws, 26, 6, 'Annual Debt Service');setVal(ws, 'G26', Math.round(btr.annualDebtService), '$#,##0');
-  labelCell(ws, 27, 6, 'Stabilized Value');   setVal(ws, 'G27', Math.round(stabilizedValue), '$#,##0');
-  labelCell(ws, 28, 6, 'DSCR');               setVal(ws, 'G28', dscr, '0.00x');
-  labelCell(ws, 29, 6, 'Cash Flow');          setVal(ws, 'G29', Math.round(btr.cashFlow), '$#,##0');
-
-  // RISK FLAGS
-  ws.getCell('F31').value = 'RISK FLAGS';
-  ws.getCell('F31').font = _hdrFont; ws.getCell('F31').fill = _hdrFill;
-  ws.getCell('G31').fill = _hdrFill;
-
-  var fireZone = l.fireZone || 'None';
-  var tenantRisk = l.tenantRisk != null ? ['None','Low','Medium','High'][l.tenantRisk] || 'Unknown' : 'N/A';
-  var rsoFlag = l.rsoRisk ? 'Yes' : 'No';
-  var urbanFlag = l.urban ? 'Yes' : 'No';
-
-  labelCell(ws, 32, 6, 'Fire Zone');      setVal(ws, 'G32', fireZone);
-  labelCell(ws, 33, 6, 'Tenant Risk');    setVal(ws, 'G33', tenantRisk);
-  labelCell(ws, 34, 6, 'RSO');            setVal(ws, 'G34', rsoFlag);
-  labelCell(ws, 35, 6, 'Urban Area');     setVal(ws, 'G35', urbanFlag);
-
-  ws.views = [{ showGridLines: false }];
-  ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
-  return ws;
-}
-
 function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var ws = wb.addWorksheet('Assumptions');
   ws.getColumn(1).width = 2;
@@ -272,12 +117,12 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
 
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
   var lotWidth = l.lw || Math.round(Math.sqrt((l.lotSf || 10000) * 0.33));
   var lotDepth = l.ld || Math.round((l.lotSf || 10000) / lotWidth);
   var slopeDecimal = (l.slope || 0) / 100;
   var bedsBaths = (l.beds || '') + ' / ' + (l.baths || '');
   var buildableSF = units * avgUnitSF;
+  var buildCostPSF = buildableSF > 0 ? Math.round(pf.hardCosts / buildableSF) : 0;
   var hardCosts = buildableSF * buildCostPSF;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
@@ -296,21 +141,21 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('B4').font = _hdrFont; ws.getCell('B4').fill = _hdrFill;
   ws.getCell('C4').fill = _hdrFill;
 
-  labelCell(ws, 5, 2, 'Address');       linkedCell(ws, 'C5', "'Deal Scorecard'!C5", l.address || '');
-  labelCell(ws, 6, 2, 'City, Zip');     linkedCell(ws, 'C6', "'Deal Scorecard'!C6", (l.city || '') + (l.zip ? ', ' + l.zip : ''));
-  labelCell(ws, 7, 2, 'Zoning');        linkedCell(ws, 'C7', "'Deal Scorecard'!C7", (l.zone || 'R1').toUpperCase());
-  labelCell(ws, 8, 2, 'Lot SF');        linkedCell(ws, 'C8', "'Deal Scorecard'!C8", l.lotSf || 0, '#,##0');
-  labelCell(ws, 9, 2, 'Lot Width');     linkedCell(ws, 'C9', "'Deal Scorecard'!C10", lotWidth, '#,##0');
-  labelCell(ws, 10, 2, 'Lot Depth');    linkedCell(ws, 'C10', "'Deal Scorecard'!C11", lotDepth, '#,##0');
-  labelCell(ws, 11, 2, 'Slope');        linkedCell(ws, 'C11', "'Deal Scorecard'!C12", slopeDecimal, '0.0%');
-  labelCell(ws, 12, 2, 'Beds / Baths'); linkedCell(ws, 'C12', "'Deal Scorecard'!C13", bedsBaths);
-  labelCell(ws, 13, 2, 'DOM');          linkedCell(ws, 'C13', "'Deal Scorecard'!C14", l.dom || 0, '#,##0');
+  labelCell(ws, 5, 2, 'Address');       inputCell(ws, 'C5', l.address || '');
+  labelCell(ws, 6, 2, 'City, Zip');     inputCell(ws, 'C6', (l.city || '') + (l.zip ? ', ' + l.zip : ''));
+  labelCell(ws, 7, 2, 'Zoning');        inputCell(ws, 'C7', (l.zone || 'R1').toUpperCase());
+  labelCell(ws, 8, 2, 'Lot SF');        inputCell(ws, 'C8', l.lotSf || 0, '#,##0');
+  labelCell(ws, 9, 2, 'Lot Width');     inputCell(ws, 'C9', lotWidth, '#,##0');
+  labelCell(ws, 10, 2, 'Lot Depth');    inputCell(ws, 'C10', lotDepth, '#,##0');
+  labelCell(ws, 11, 2, 'Slope');        inputCell(ws, 'C11', slopeDecimal, '0.0%');
+  labelCell(ws, 12, 2, 'Beds / Baths'); inputCell(ws, 'C12', bedsBaths);
+  labelCell(ws, 13, 2, 'DOM');          inputCell(ws, 'C13', l.dom || 0, '#,##0');
 
   ws.getCell('B15').value = 'ACQUISITION';
   ws.getCell('B15').font = _hdrFont; ws.getCell('B15').fill = _hdrFill;
   ws.getCell('C15').fill = _hdrFill;
 
-  labelCell(ws, 16, 2, 'Purchase Price'); linkedCell(ws, 'C16', "'Deal Scorecard'!C19", l.price || 0, '$#,##0');
+  labelCell(ws, 16, 2, 'Purchase Price'); inputCell(ws, 'C16', l.price || 0, '$#,##0');
   labelCell(ws, 17, 2, 'Txn Cost %');     inputCell(ws, 'C17', 0.01, '0.0%');
   labelCell(ws, 18, 2, 'Txn Cost $');     setFormula(ws, 'C18', 'C16*C17', (l.price || 0) * 0.01, '$#,##0');
 
@@ -318,10 +163,10 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('B19').font = _hdrFont; ws.getCell('B19').fill = _hdrFill;
   ws.getCell('C19').fill = _hdrFill;
 
-  labelCell(ws, 20, 2, 'Units');           linkedCell(ws, 'C20', "'Deal Scorecard'!C24", units, '#,##0');
+  labelCell(ws, 20, 2, 'Units');           inputCell(ws, 'C20', units, '#,##0');
   labelCell(ws, 21, 2, 'Avg Unit SF');     inputCell(ws, 'C21', avgUnitSF, '#,##0');
   labelCell(ws, 22, 2, 'Buildable SF');    setFormula(ws, 'C22', 'C20*C21', buildableSF, '#,##0');
-  labelCell(ws, 23, 2, 'Build Cost $/SF incl. 5% cont.'); linkedCell(ws, 'C23', "'Deal Scorecard'!C29", buildCostPSF, '$#,##0');
+  labelCell(ws, 23, 2, 'Hard Cost $/SF');  inputCell(ws, 'C23', buildCostPSF, '$#,##0');
   labelCell(ws, 24, 2, 'Hard Costs');      setFormula(ws, 'C24', 'C22*C23', hardCosts, '$#,##0');
   labelCell(ws, 25, 2, 'Soft Cost %');     inputCell(ws, 'C25', 0.25, '0.0%');
   labelCell(ws, 26, 2, 'Soft Costs');      setFormula(ws, 'C26', 'C24*C25', hardCosts * 0.25, '$#,##0');
@@ -335,7 +180,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('B34').font = _hdrFont; ws.getCell('B34').fill = _hdrFill;
   ws.getCell('C34').fill = _hdrFill;
 
-  labelCell(ws, 35, 2, 'Exit $/SF');       linkedCell(ws, 'C35', "'Deal Scorecard'!G5", exitPSF, '$#,##0');
+  labelCell(ws, 35, 2, 'Exit $/SF');       inputCell(ws, 'C35', exitPSF, '$#,##0');
   labelCell(ws, 36, 2, 'Gross Revenue');   setFormula(ws, 'C36', 'C20*C21*C35', grossRevenue, '$#,##0');
   labelCell(ws, 37, 2, 'Txn Cost %');      inputCell(ws, 'C37', txCostPct, '0.0%');
   labelCell(ws, 38, 2, 'Net Proceeds');    setFormula(ws, 'C38', 'C36*(1-C37)', grossRevenue * (1 - txCostPct), '$#,##0');
@@ -353,7 +198,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('B47').font = _hdrFont; ws.getCell('B47').fill = _hdrFill;
   ws.getCell('C47').fill = _hdrFill;
 
-  labelCell(ws, 48, 2, 'BTR Rent/Mo');     linkedCell(ws, 'C48', "'Deal Scorecard'!G22", monthlyRent, '$#,##0');
+  labelCell(ws, 48, 2, 'BTR Rent/Mo');     inputCell(ws, 'C48', monthlyRent, '$#,##0');
   labelCell(ws, 50, 2, 'BTR OpEx Ratio');  inputCell(ws, 'C50', 0.30, '0.0%');
   labelCell(ws, 51, 2, 'BTR Cap Rate');    inputCell(ws, 'C51', 0.055, '0.0%');
   labelCell(ws, 52, 2, 'BTR Refi LTV');    inputCell(ws, 'C52', 0.70, '0.0%');
@@ -1388,7 +1233,8 @@ async function exportModel(lat, lng) {
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
+  var buildableSF = units * avgUnitSF;
+  var buildCostPSF = buildableSF > 0 ? Math.round(pf.hardCosts / buildableSF) : 0;
 
   var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
   var btr = calculateBTRProForma(l);
@@ -1397,7 +1243,6 @@ async function exportModel(lat, lng) {
   var wb = new ExcelJS.Workbook();
   wb.creator = 'SB 1123 Deal Finder';
 
-  buildScorecardTab(wb, l, pf, btr, exitPSF, monthlyRent);
   buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent);
   buildSourcesUsesTab(wb, l, ed, pf);
   buildCashFlowTab(wb, l, ed, pf);
