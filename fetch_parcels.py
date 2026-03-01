@@ -214,7 +214,7 @@ def query_parcel(lat, lng, market, retries=2):
                     geom = chosen.get("geometry")
                     lot_w, lot_d, lot_shape = compute_lot_dimensions(geom, lot_sf) if geom else (None, None, None)
 
-                    return {
+                    result = {
                         "lotSf": lot_sf,
                         "ain": attrs.get(field_map["ain"], ""),
                         "landValue": attrs.get(field_map["land_value"]),
@@ -224,6 +224,15 @@ def query_parcel(lat, lng, market, retries=2):
                         "lotDepth": lot_d,
                         "lotShape": lot_shape,
                     }
+
+                    # Extract existing dwelling units from assessor data
+                    units_fields = field_map.get("units_fields", [])
+                    if units_fields:
+                        total_units = sum(attrs.get(f) or 0 for f in units_fields)
+                        if total_units > 0:
+                            result["existingUnits"] = total_units
+
+                    return result
                 return None  # No parcel found at this location
             elif resp.status_code in (429, 503):
                 time.sleep(3 + attempt * 3)
@@ -293,6 +302,8 @@ def fetch_parcel_data(lat, lng, market):
             result["lotDepth"] = parcel["lotDepth"]
         if parcel.get("lotShape"):
             result["lotShape"] = parcel["lotShape"]
+        if parcel.get("existingUnits"):
+            result["existingUnits"] = parcel["existingUnits"]
     if fire is not None:
         result["fireZone"] = fire
 
@@ -348,7 +359,7 @@ def main():
     work = []
     for lat, lng in listings:
         key = f"{lat},{lng}"
-        if key not in existing or "lotWidth" not in existing[key] or "lotShape" not in existing[key]:
+        if key not in existing or "lotWidth" not in existing[key] or "lotShape" not in existing[key] or "existingUnits" not in existing.get(key, {}):
             work.append((lat, lng, key))
 
     if test_mode:

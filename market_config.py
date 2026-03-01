@@ -252,7 +252,7 @@ MARKETS = {
         ),
         "parcel_query_type": "envelope",  # LA uses small envelope, not point
         "parcel_envelope_offset": 0.00002,
-        "parcel_out_fields": "AIN,Roll_LandValue,Roll_ImpValue,SitusAddress,Shape.STArea()",
+        "parcel_out_fields": "AIN,Roll_LandValue,Roll_ImpValue,SitusAddress,Shape.STArea(),Units1,Units2,Units3,Units4,Units5",
         "parcel_field_map": {
             "lot_sf": "Shape.STArea()",      # Already in sq ft
             "lot_sf_multiplier": 1,           # No conversion needed
@@ -260,6 +260,7 @@ MARKETS = {
             "land_value": "Roll_LandValue",
             "imp_value": "Roll_ImpValue",
             "situs_address": "SitusAddress",
+            "units_fields": ["Units1", "Units2", "Units3", "Units4", "Units5"],
         },
 
         # Fire zone (legacy LA County endpoint — will migrate to statewide)
@@ -371,7 +372,7 @@ MARKETS = {
         ),
         "parcel_query_type": "envelope",
         "parcel_envelope_offset": 0.0003,  # Wider than LA — SD parcels are larger
-        "parcel_out_fields": "APN,ACREAGE,ASR_LAND,ASR_IMPR,ASR_TOTAL,TOTAL_LVG_AREA,BEDROOMS,BATHS",
+        "parcel_out_fields": "APN,ACREAGE,ASR_LAND,ASR_IMPR,ASR_TOTAL,TOTAL_LVG_AREA,BEDROOMS,BATHS,UNITQTY",
         "parcel_field_map": {
             "lot_sf": "ACREAGE",
             "lot_sf_multiplier": 43560,   # Acres → sq ft
@@ -379,6 +380,7 @@ MARKETS = {
             "land_value": "ASR_LAND",
             "imp_value": "ASR_IMPR",
             "situs_address": None,         # Not available in this layer
+            "units_fields": ["UNITQTY"],
         },
 
         # Fire zone — use statewide CAL FIRE (same as all new markets)

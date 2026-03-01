@@ -564,6 +564,8 @@ if os.path.exists(PARCEL_FILE):
             if p.get("lotShape"):
                 l["lotShape"] = p["lotShape"]
             # Assessor data for popup display
+            if p.get("existingUnits"):
+                l["existingUnits"] = p["existingUnits"]
             if p.get("ain"):
                 l["ain"] = p["ain"]
             if p.get("landValue") is not None:
