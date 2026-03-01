@@ -1490,7 +1490,35 @@ if with_exit:
 # ── Write listings.js ──
 output_file = market_file("listings.js", market)
 build_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-js = f"const LISTINGS_META = {{builtAt:\"{build_ts}\",count:{len(listings)}}};\n"
+
+# Source file ages (days since last modified)
+def file_age_days(path):
+    try:
+        return round((time.time() - os.path.getmtime(path)) / 86400, 1)
+    except OSError:
+        return -1
+
+source_ages = {
+    "compsAge": file_age_days(market_file("data.js", market)),
+    "parcelsAge": file_age_days(market_file("parcels.json", market)),
+    "slopesAge": file_age_days(market_file("slopes.json", market)),
+    "listingsAge": file_age_days(market_file("redfin_merged.csv", market)),
+}
+ages_js = ",".join(f'{k}:{v}' for k, v in source_ages.items())
+
+# Strip debug-only fields not used by the frontend (saves ~1-2% payload)
+PRUNE_FIELDS = {"subdivAvgCluster", "rentCompMedianBeds", "rentCompMedianSqft"}
+if "--debug" not in sys.argv:
+    pruned = 0
+    for l in listings:
+        for f in PRUNE_FIELDS:
+            if f in l:
+                del l[f]
+                pruned += 1
+    if pruned:
+        print(f"   Pruned {pruned} debug fields ({len(PRUNE_FIELDS)} types)")
+
+js = f"const LISTINGS_META = {{builtAt:\"{build_ts}\",count:{len(listings)},{ages_js}}};\n"
 js += "const LOADED_LISTINGS = " + json.dumps(listings, separators=(",", ":")) + ";"
 with open(output_file, "w") as f:
     f.write(js)

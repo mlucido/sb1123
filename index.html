@@ -68,10 +68,27 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .app-row{display:flex;flex:1;overflow:hidden}
 
   /* (hero-stats removed — stats now in sidebar pills) */
-  .onboarding-tip{position:absolute;top:140px;left:50%;transform:translateX(-50%);max-width:500px;background:#fff;border:2px solid var(--green);border-radius:8px;padding:12px 40px 12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:13px;line-height:1.5;animation:slideIn 0.3s ease-out}
-  .onboarding-tip .close-btn{position:absolute;top:8px;right:8px;background:none;border:none;font-size:20px;color:var(--text-dim);cursor:pointer;padding:4px 8px;line-height:1}
-  .onboarding-tip .close-btn:hover{color:var(--text)}
-  @keyframes slideIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  /* ── Onboarding walkthrough ── */
+  .onboard-overlay{position:fixed;inset:0;z-index:9000;display:none}
+  .onboard-overlay.active{display:block}
+  .onboard-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.55)}
+  .onboard-card{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:420px;max-width:calc(100vw - 32px);background:#fff;border-radius:12px;padding:24px 24px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);font-size:13px;line-height:1.6;animation:slideIn 0.3s ease-out}
+  .onboard-step{display:none}
+  .onboard-step.active{display:block}
+  .onboard-title{font-size:15px;font-weight:700;margin-bottom:8px}
+  .onboard-body{color:#475569;margin-bottom:16px}
+  .onboard-body .key{display:inline-block;padding:1px 6px;border-radius:4px;font-weight:600;font-size:12px}
+  .onboard-footer{display:flex;justify-content:space-between;align-items:center}
+  .onboard-dots{display:flex;gap:6px}
+  .onboard-dots span{width:8px;height:8px;border-radius:50%;background:#cbd5e1}
+  .onboard-dots span.active{background:var(--green)}
+  .onboard-btns{display:flex;gap:8px}
+  .onboard-btns button{padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none}
+  .onboard-skip{background:none;color:#94a3b8}
+  .onboard-skip:hover{color:#475569}
+  .onboard-next{background:var(--green);color:#fff}
+  .onboard-next:hover{opacity:0.9}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
   /* ── Sidebar ── */
   .sidebar{width:360px;min-width:360px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:1000;overflow:hidden}
@@ -687,8 +704,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     /* Pin legend: above bottom sheet */
     .pin-legend { bottom: 70px; }
 
-    /* Onboarding tip: constrain to viewport */
-    .onboarding-tip { max-width: calc(100vw - 24px); }
+    .onboard-card { bottom: 40px; width: calc(100vw - 32px); }
 
     /* Listings panel: full-screen overlay */
     .listings-panel {
@@ -1178,9 +1194,40 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <span class="filter-icon">&#9776;</span> Filters
 </button>
 
-<div id="onboarding-tip" class="onboarding-tip" style="display:none">
-  <button class="close-btn" onclick="dismissOnboarding()">×</button>
-  👋 <strong>First time here?</strong> Click any <span style="color:var(--green);font-weight:700">green pin</span> to see a profitable deal. Yellow = moderate margin, Gray = below target.
+<div id="onboardOverlay" class="onboard-overlay">
+  <div class="onboard-backdrop" onclick="dismissOnboarding()"></div>
+  <div class="onboard-card">
+    <div class="onboard-step active" data-step="0">
+      <div class="onboard-title">Welcome to SB 1123 Deal Finder</div>
+      <div class="onboard-body">
+        Each pin is a lot for sale. Size = lot area. Color = exit $/SF from <span class="key" style="background:#dbeafe;color:#2563eb">low</span> to <span class="key" style="background:#fee2e2;color:#dc2626">high</span>.<br>
+        <span class="key" style="background:#dcfce7;color:#16a34a">Green border</span> = new listing. <span class="key" style="background:#fff7ed;color:#f97316">Orange border</span> = for-sale.
+      </div>
+    </div>
+    <div class="onboard-step" data-step="1">
+      <div class="onboard-title">Click a Pin to See the Deal</div>
+      <div class="onboard-body">
+        The deal card strip shows key metrics at a glance:<br>
+        <strong>List Price</strong> &middot; <strong>Exit $/SF</strong> &middot; <strong>Lot Size</strong> &middot; <strong>Units</strong><br>
+        <span style="color:var(--green)">Green price</span> = 30%+ margin. <span style="color:#facc15">Yellow</span> = 20-30%. <span style="color:#9ca3af">Gray</span> = below target.
+      </div>
+    </div>
+    <div class="onboard-step" data-step="2">
+      <div class="onboard-title">Expand for Full Economics</div>
+      <div class="onboard-body">
+        Click the strip to expand three columns: <strong>Economics</strong>, <strong>Site</strong>, and <strong>Pro Forma</strong>.<br>
+        <strong>Max Offer</strong> = highest price where you still make your target margin (default 30%).<br>
+        Use the <strong>gear icon</strong> in the sidebar to adjust assumptions.
+      </div>
+    </div>
+    <div class="onboard-footer">
+      <div class="onboard-dots" id="onboardDots"><span class="active"></span><span></span><span></span></div>
+      <div class="onboard-btns">
+        <button class="onboard-skip" onclick="dismissOnboarding()">Skip</button>
+        <button class="onboard-next" id="onboardNext" onclick="advanceOnboarding()">Next</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="map">
   <!-- Pin Color Legend (bottom-left of map, always visible, dynamic) -->
@@ -3057,43 +3104,27 @@ function toggleDealCard(el){
   card.classList.toggle('expanded');
 }
 
-function generateDealCard(l, opts){
-  opts = opts || {};
-  var ctx = opts.context || 'bts';
-  var pf = calculateProForma(l);
-  var btr = calculateBTRProForma(l);
-  var el = exitLabel(l);
-  var cc = compConfidence(l);
-  var margin = pf.margin;
-  var marginColor = margin>=30?'#22c55e':margin>=20?'#facc15':'#9ca3af';
-  var isDualViable = margin >= 20 && l.btrViable;
+// ── Format helpers (shared by deal card + mobile cards) ──
+function fmtDollar(n){ return '$'+Math.round(n).toLocaleString(); }
+function fmtShort(n){ return n>=1000000?'$'+(n/1000000).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'M':n>=1000?'$'+Math.round(n/1000)+'k':'$'+Math.round(n); }
+function commas(n){ return n!=null?Math.round(n).toLocaleString():'—'; }
 
-  // Format helpers
-  function fmtDollar(n){ return '$'+Math.round(n).toLocaleString(); }
-  function fmtShort(n){ return n>=1000000?'$'+(n/1000000).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'M':n>=1000?'$'+Math.round(n/1000)+'k':'$'+Math.round(n); }
-  function commas(n){ return n!=null?Math.round(n).toLocaleString():'—'; }
-
-  var effPct = pf.lot_efficiency ? Math.round(pf.lot_efficiency*100) : 0;
-  var allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalCost/pf.effective_buildable_sf) : 0;
-  var spread = el.psf - allInPsf;
-  var sellPerUnit = pf.maxUnits>0 ? Math.round(pf.netRevenue/pf.maxUnits) : 0;
-  var profitPerUnit = pf.maxUnits>0 ? Math.round(pf.profit/pf.maxUnits) : 0;
-
-  // ── Inline badges (zone, BTS/BTR, DEMO — shown inside strip) ──
-  var inlineBadges = '';
-  inlineBadges += '<div class="popup-badge" style="background:'+(ZONE_COLORS[l.zone]||'#666')+'22;color:'+(ZONE_COLORS[l.zone]||'#666')+'">'+(l.zone||'?')+'</div>';
+function dealCardBadges(l, ctx, isDualViable){
+  // Inline badges (zone, BTS/BTR, DEMO — shown inside strip)
+  var inline = '';
+  inline += '<div class="popup-badge" style="background:'+(ZONE_COLORS[l.zone]||'#666')+'22;color:'+(ZONE_COLORS[l.zone]||'#666')+'">'+(l.zone||'?')+'</div>';
   if(ctx==='btr'){
-    inlineBadges += (l.estMargin||0)<=0
+    inline += (l.estMargin||0)<=0
       ? '<div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">BTR-ONLY</div>'
       : '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">BTR</div>';
   } else {
-    inlineBadges += '<div class="popup-badge" style="background:rgba(34,197,94,0.15);color:#22c55e">BTS</div>';
-    if(isDualViable) inlineBadges += '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">BTR</div>';
+    inline += '<div class="popup-badge" style="background:rgba(34,197,94,0.15);color:#22c55e">BTS</div>';
+    if(isDualViable) inline += '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">BTR</div>';
   }
-  if(l.hasStructure) inlineBadges += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO</div>';
-  if(l.isNew) inlineBadges += '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW</div>';
+  if(l.hasStructure) inline += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO</div>';
+  if(l.isNew) inline += '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW</div>';
 
-  // ── Alert badges (burn zone, tenant risk, etc — shown above strip) ──
+  // Alert badges (burn zone, tenant risk, etc — shown above strip)
   var alerts = '';
   if(l.burnZone) alerts += '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:2px 8px">&#128293; BURN ZONE — '+l.burnZone+' Fire</div>';
   if(l.urbanArea===false) alerts += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>';
@@ -3106,121 +3137,136 @@ function generateDealCard(l, opts){
   }
   if(l.remainderViable) alerts += '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+commas(l.remainderSf)+' SF &#8594; '+l.remainderUnits+' units</div>';
   else if(l.remainderUnits>0) alerts += '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+commas(l.remainderSf)+' SF ('+l.remainderUnits+')</div>';
+  return {inline: inline, alerts: alerts};
+}
 
-  // ── Strip ──
-  // Extract city from address (after last comma) or use zip
+function dealCardStrip(l, pf, el, inlineBadges){
+  var margin = pf.margin;
+  var marginColor = margin>=30?'#22c55e':margin>=20?'#facc15':'#9ca3af';
   var addrParts = (l.address||'N/A').split(',');
   var mainAddr = addrParts.length > 1 ? addrParts.slice(0,-1).join(',').trim() : l.address||'N/A';
   var cityLine = addrParts.length > 1 ? addrParts[addrParts.length-1].trim() : '';
-
-  var strip = '<div class="dp-strip" onclick="toggleDealCard(this)">';
-  strip += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
-  strip += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
-  // P0-4: Color-code Max Offer vs Asking — green if deal works at ask, red if needs discount
   var moColor2 = pf.max_offer >= l.price ? 'var(--green)' : 'var(--red)';
   var moLabel = pf.max_offer >= l.price ? '\u2713' : '\u2717';
-  strip += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+' <span style="font-size:9px;color:'+moColor2+'">'+moLabel+'</span></div></div>';
-  strip += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
-  strip += '<div class="dp-metric"><div class="dp-lbl">Lot Size</div><div class="dp-val">'+(l.lotSf?commas(l.lotSf):'—')+'</div></div>';
-  // P0-3: Show layout constraint — "6 of 8" when layout limits below density
   var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
-  strip += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+unitsLabel+'</div></div>';
-  strip += '<div class="dp-toggle">&#9650;</div>';
-  strip += '</div>';
 
-  // ── Drawer body: 3 columns ──
+  var s = '<div class="dp-strip" onclick="toggleDealCard(this)">';
+  s += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
+  s += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
+  s += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+' <span style="font-size:9px;color:'+moColor2+'">'+moLabel+'</span></div></div>';
+  s += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
+  s += '<div class="dp-metric"><div class="dp-lbl">Lot Size</div><div class="dp-val">'+(l.lotSf?commas(l.lotSf):'—')+'</div></div>';
+  s += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+unitsLabel+'</div></div>';
+  s += '<div class="dp-toggle">&#9650;</div>';
+  s += '</div>';
+  return s;
+}
 
-  // Column 1: Economics
+function dealCardEconomics(l, pf, el){
+  var allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalCost/pf.effective_buildable_sf) : 0;
+  var spread = el.psf - allInPsf;
   var carryTotal = pf.carryInterest+pf.carryPropTax+pf.insurance+pf.originationFee+(pf.demo>0?pf.demo:0);
-  var col1 = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Construction</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Build $/SF</span><span class="dp-v"'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':'')+'>'+fmtDollar(pf.adjBuildCostPerSf)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">All-In $/SF</span><span class="dp-v">'+fmtDollar(allInPsf)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Total Cost</span><span class="dp-v">'+fmtDollar(pf.totalCost)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Carry + Soft</span><span class="dp-v">'+fmtDollar(carryTotal)+'</span></div>';
-  col1 += '<div class="dp-sep"></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
   var moColor = pf.max_offer>=l.price?'var(--green)':'var(--red)';
-  col1 += '<div class="dp-row"><span class="dp-k">Max Offer</span><span class="dp-v" style="color:'+moColor+'">'+fmtDollar(pf.max_offer)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Est Profit</span><span class="dp-v" style="color:'+(pf.profit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(pf.profit)+'</span></div>';
-  col1 += '<div class="dp-row"><span class="dp-k">Net Revenue</span><span class="dp-v">'+fmtDollar(pf.netRevenue)+'</span></div>';
-  col1 += '</div>';
 
-  // Column 2: Site
-  var col2 = '<div class="dp-col"><div class="dp-col-head">Site</div>';
-  col2 += '<div class="dp-row"><span class="dp-k">Lot Size</span><span class="dp-v">'+(l.lotSf?commas(l.lotSf)+' sf':'—')+'</span></div>';
-  if(l.lw&&l.ld) col2 += '<div class="dp-row"><span class="dp-k">Dimensions</span><span class="dp-v">'+l.lw+'\' &times; '+l.ld+'\'</span></div>';
-  col2 += '<div class="dp-row"><span class="dp-k">Efficiency</span><span class="dp-v" style="color:'+(effPct>=100?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)')+'">'+effPct+'%</span></div>';
-  if(l.slope!=null) col2 += '<div class="dp-row"><span class="dp-k">Slope</span><span class="dp-v" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</span></div>';
-  if(l.dom!=null) col2 += '<div class="dp-row"><span class="dp-k">DOM</span><span class="dp-v">'+l.dom+'</span></div>';
-  if(l.beds) col2 += '<div class="dp-row"><span class="dp-k">Beds / Baths</span><span class="dp-v">'+l.beds+' / '+l.baths+'</span></div>';
-  // Lot layout toggle
+  var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
+  h += '<div class="dp-row"><span class="dp-k">Construction</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Build $/SF</span><span class="dp-v"'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':'')+'>'+fmtDollar(pf.adjBuildCostPerSf)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">All-In $/SF</span><span class="dp-v">'+fmtDollar(allInPsf)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Total Cost</span><span class="dp-v">'+fmtDollar(pf.totalCost)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Carry + Soft</span><span class="dp-v">'+fmtDollar(carryTotal)+'</span></div>';
+  h += '<div class="dp-sep"></div>';
+  h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Max Offer</span><span class="dp-v" style="color:'+moColor+'">'+fmtDollar(pf.max_offer)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Est Profit</span><span class="dp-v" style="color:'+(pf.profit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(pf.profit)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Net Revenue</span><span class="dp-v">'+fmtDollar(pf.netRevenue)+'</span></div>';
+  h += '</div>';
+  return h;
+}
+
+function dealCardSite(l, pf){
+  var effPct = pf.lot_efficiency ? Math.round(pf.lot_efficiency*100) : 0;
+  var h = '<div class="dp-col"><div class="dp-col-head">Site</div>';
+  h += '<div class="dp-row"><span class="dp-k">Lot Size</span><span class="dp-v">'+(l.lotSf?commas(l.lotSf)+' sf':'—')+'</span></div>';
+  if(l.lw&&l.ld) h += '<div class="dp-row"><span class="dp-k">Dimensions</span><span class="dp-v">'+l.lw+'\' &times; '+l.ld+'\'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Efficiency</span><span class="dp-v" style="color:'+(effPct>=100?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)')+'">'+effPct+'%</span></div>';
+  if(l.slope!=null) h += '<div class="dp-row"><span class="dp-k">Slope</span><span class="dp-v" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</span></div>';
+  if(l.dom!=null) h += '<div class="dp-row"><span class="dp-k">DOM</span><span class="dp-v">'+l.dom+'</span></div>';
+  if(l.beds) h += '<div class="dp-row"><span class="dp-k">Beds / Baths</span><span class="dp-v">'+l.beds+' / '+l.baths+'</span></div>';
   if(l.lw&&l.ld&&pf.maxUnits>0&&pf.max_offer>0){
     var lotId = 'dp-lot-'+Math.random().toString(36).slice(2,8);
-    col2 += '<div class="dp-lot-toggle" onclick="var b=document.getElementById(\''+lotId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\');event.stopPropagation()"><span class="tri">&#9654;</span> Layout &middot; '+pf.maxUnits+'u</div>';
-    col2 += '<div class="dp-lot-body" id="'+lotId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
+    h += '<div class="dp-lot-toggle" onclick="var b=document.getElementById(\''+lotId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\');event.stopPropagation()"><span class="tri">&#9654;</span> Layout &middot; '+pf.maxUnits+'u</div>';
+    h += '<div class="dp-lot-body" id="'+lotId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
   }
-  col2 += '</div>';
+  h += '</div>';
+  return h;
+}
 
-  // Column 3: Pro Forma
+function dealCardProForma(l, pf){
+  var margin = pf.margin;
+  var sellPerUnit = pf.maxUnits>0 ? Math.round(pf.netRevenue/pf.maxUnits) : 0;
+  var profitPerUnit = pf.maxUnits>0 ? Math.round(pf.profit/pf.maxUnits) : 0;
   var lbColor = pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)';
-  var col3 = '<div class="dp-col"><div class="dp-col-head">Pro Forma</div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Units</span><span class="dp-v">'+pf.maxUnits+'</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Buildable SF</span><span class="dp-v">'+commas(pf.effective_buildable_sf)+'</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Net Margin</span><span class="dp-v" style="color:'+(margin>=30?'var(--green)':margin>=15?'var(--yellow)':'var(--red)')+'">'+margin.toFixed(1)+'%</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Return on Cost</span><span class="dp-v" style="color:'+(pf.return_on_cost>=0?'var(--green)':'var(--red)')+'">'+pf.return_on_cost.toFixed(1)+'%</span></div>';
-  col3 += '<div class="dp-sep"></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Buy / Unit</span><span class="dp-v">'+fmtDollar(pf.pricePerUnit)+'</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Sell / Unit</span><span class="dp-v">'+fmtDollar(sellPerUnit)+'</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Profit / Unit</span><span class="dp-v" style="color:'+(profitPerUnit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(profitPerUnit)+'</span></div>';
-  col3 += '<div class="dp-row"><span class="dp-k">Land Basis</span><span class="dp-v" style="color:'+lbColor+'">'+fmtDollar(pf.land_basis_psf)+'/sf</span></div>';
-  col3 += '</div>';
 
-  // ── Comp buttons ──
-  var compBtns = '<div class="dp-comps">';
-  compBtns += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
+  var h = '<div class="dp-col"><div class="dp-col-head">Pro Forma</div>';
+  h += '<div class="dp-row"><span class="dp-k">Units</span><span class="dp-v">'+pf.maxUnits+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Buildable SF</span><span class="dp-v">'+commas(pf.effective_buildable_sf)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Net Margin</span><span class="dp-v" style="color:'+(margin>=30?'var(--green)':margin>=15?'var(--yellow)':'var(--red)')+'">'+margin.toFixed(1)+'%</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Return on Cost</span><span class="dp-v" style="color:'+(pf.return_on_cost>=0?'var(--green)':'var(--red)')+'">'+pf.return_on_cost.toFixed(1)+'%</span></div>';
+  h += '<div class="dp-sep"></div>';
+  h += '<div class="dp-row"><span class="dp-k">Buy / Unit</span><span class="dp-v">'+fmtDollar(pf.pricePerUnit)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Sell / Unit</span><span class="dp-v">'+fmtDollar(sellPerUnit)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Profit / Unit</span><span class="dp-v" style="color:'+(profitPerUnit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(profitPerUnit)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Land Basis</span><span class="dp-v" style="color:'+lbColor+'">'+fmtDollar(pf.land_basis_psf)+'/sf</span></div>';
+  h += '</div>';
+  return h;
+}
+
+function dealCardCompButtons(l){
+  var cc = compConfidence(l);
+  var h = '<div class="dp-comps">';
+  h += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   var hasRentalComps = typeof RENTAL_COMPS!=='undefined'&&RENTAL_COMPS.length>0&&l.rentMethod&&l.rentMethod.startsWith('rental-comp');
   if(hasRentalComps){
-    compBtns += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">'+(l.rentCompCount||'')+' Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
+    h += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">'+(l.rentCompCount||'')+' Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   }
-  compBtns += '</div>';
+  h += '</div>';
+  return h;
+}
 
-  // ── BTR section (2-column) ──
-  var btrSection = '';
-  if(btr.rentPsf>0){
-    btrSection = '<div class="dp-btr">';
-    // Left column: Rent, NOI, YoC
-    btrSection += '<div class="dp-btr-col">';
-    btrSection += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF)</small></span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">NOI</span><span class="dp-v">'+fmtDollar(btr.annualNOI)+'</span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
-    btrSection += '</div>';
-    // Right column: Stab Value, Cap Rate, DSCR, Cash Flow
-    btrSection += '<div class="dp-btr-col">';
-    btrSection += '<div class="dp-row"><span class="dp-k">Stabilized Value</span><span class="dp-v" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">'+fmtShort(btr.stabilizedValue)+'</span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">Cap Rate</span><span class="dp-v">'+(btr.capRate*100).toFixed(1)+'%</span></div>';
-    btrSection += '<div class="dp-row"><span class="dp-k">Cash Flow</span><span class="dp-v" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(btr.cashFlow)+'/yr</span></div>';
-    btrSection += '</div>';
-    btrSection += '</div>';
-    // Loan summary bar
-    var loanAmt = btr.loanAmount;
-    var loanAbbr = loanAmt >= 1e6 ? '$'+(loanAmt/1e6).toFixed(1)+'M' : '$'+(loanAmt/1e3).toFixed(0)+'K';
-    var annualDS = Math.round(loanAmt * 0.065);
-    var dscrOk = btr.dscr >= 1.25;
-    var dscrColor = dscrOk ? '#15803d' : '#dc2626';
-    btrSection += '<div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin:6px 8px 0">';
-    btrSection += '<div>';
-    btrSection += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#64748b;text-transform:uppercase">I/O Takeout Loan</div>';
-    btrSection += '<div style="font-size:12px;color:var(--text)">'+loanAbbr+' @ 6.5% = $'+annualDS.toLocaleString()+'/yr</div>';
-    btrSection += '</div>';
-    btrSection += '<div style="text-align:right">';
-    btrSection += '<div style="font-size:20px;font-weight:700;color:'+dscrColor+'">'+btr.dscr.toFixed(2)+'x</div>';
-    btrSection += '<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:'+dscrColor+';text-transform:uppercase">DSCR '+(dscrOk?'&#10003;':'&#10007;')+'</div>';
-    btrSection += '</div>';
-    btrSection += '</div>';
-  }
+function dealCardBTR(l, btr){
+  if(btr.rentPsf<=0) return '';
+  var h = '<div class="dp-btr">';
+  h += '<div class="dp-btr-col">';
+  h += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo <small style="color:var(--text-dim)">($'+btr.rentPsf.toFixed(2)+'/SF)</small></span></div>';
+  h += '<div class="dp-row"><span class="dp-k">NOI</span><span class="dp-v">'+fmtDollar(btr.annualNOI)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
+  h += '</div>';
+  h += '<div class="dp-btr-col">';
+  h += '<div class="dp-row"><span class="dp-k">Stabilized Value</span><span class="dp-v" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">'+fmtShort(btr.stabilizedValue)+'</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Cap Rate</span><span class="dp-v">'+(btr.capRate*100).toFixed(1)+'%</span></div>';
+  h += '<div class="dp-row"><span class="dp-k">Cash Flow</span><span class="dp-v" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(btr.cashFlow)+'/yr</span></div>';
+  h += '</div>';
+  h += '</div>';
+  // Loan summary bar
+  var loanAmt = btr.loanAmount;
+  var loanAbbr = loanAmt >= 1e6 ? '$'+(loanAmt/1e6).toFixed(1)+'M' : '$'+(loanAmt/1e3).toFixed(0)+'K';
+  var annualDS = Math.round(loanAmt * 0.065);
+  var dscrOk = btr.dscr >= 1.25;
+  var dscrColor = dscrOk ? '#15803d' : '#dc2626';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin:6px 8px 0">';
+  h += '<div>';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#64748b;text-transform:uppercase">I/O Takeout Loan</div>';
+  h += '<div style="font-size:12px;color:var(--text)">'+loanAbbr+' @ 6.5% = $'+annualDS.toLocaleString()+'/yr</div>';
+  h += '</div>';
+  h += '<div style="text-align:right">';
+  h += '<div style="font-size:20px;font-weight:700;color:'+dscrColor+'">'+btr.dscr.toFixed(2)+'x</div>';
+  h += '<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:'+dscrColor+';text-transform:uppercase">DSCR '+(dscrOk?'&#10003;':'&#10007;')+'</div>';
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
 
-  // ── Due Diligence (one-liner) ──
+function dealCardDD(l){
   var ddItems = [];
   if(l.burnZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> Burn zone');
   else if(l.fireZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> VHFHSZ');
@@ -3229,35 +3275,46 @@ function generateDealCard(l, opts){
   if(sb&&sb.includes('&#10007;')) ddItems.push(sb.replace(/^ • /,'').replace(/<br>.*/,''));
   if(ddItems.length===0) ddItems.push('<span style="color:var(--green)">&#10003;</span> All checks passed');
   ddItems.push('<span style="color:var(--yellow)">&#9888;</span> TPA = 0 parking');
-  var ddLine = '<div class="dp-dd">'+ddItems.join(' &nbsp;&middot;&nbsp; ')+'</div>';
+  return '<div class="dp-dd">'+ddItems.join(' &nbsp;&middot;&nbsp; ')+'</div>';
+}
 
-  // ── Action buttons (7-button toolbar with icons) ──
+function dealCardActions(l){
   var isSaved = isFavorite(l);
-  var actions = '<div class="dp-actions">';
-  actions += '<button onclick="exportModel('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#8595;</span>XLS</button>';
-  actions += '<button onclick="exportOM('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#128196;</span>OM</button>';
-  actions += '<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&amp;t=k&amp;z=19" target="_blank"><span class="dp-icon">&#128205;</span>Maps</a>';
-  if(l.url) actions += '<a href="'+l.url+'" target="_blank"><span class="dp-icon">&#127968;</span>Redfin</a>';
-  else actions += '<span></span>';
-  if(l.lw&&l.ld) actions += '<a href="'+lotPlannerUrl(l)+'" target="_blank"><span class="dp-icon">&#128208;</span>Planner</a>';
-  else actions += '<span></span>';
-  actions += '<button class="'+(isSaved?'active':'')+'" onclick="toggleFavorite('+l.lat+','+l.lng+');this.classList.toggle(\'active\');this.querySelector(\'span:last-child\').textContent=this.classList.contains(\'active\')?\'Saved\':\'Save\'"><span class="dp-icon">&#9733;</span><span>'+(isSaved?'Saved':'Save')+'</span></button>';
-  actions += '<button onclick="sharePin('+l.lat+','+l.lng+',event)"><span class="dp-icon">&#8599;</span>Share</button>';
-  actions += '</div>';
+  var h = '<div class="dp-actions">';
+  h += '<button onclick="exportModel('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#8595;</span>XLS</button>';
+  h += '<button onclick="exportOM('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#128196;</span>OM</button>';
+  h += '<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&amp;t=k&amp;z=19" target="_blank"><span class="dp-icon">&#128205;</span>Maps</a>';
+  if(l.url) h += '<a href="'+l.url+'" target="_blank"><span class="dp-icon">&#127968;</span>Redfin</a>';
+  else h += '<span></span>';
+  if(l.lw&&l.ld) h += '<a href="'+lotPlannerUrl(l)+'" target="_blank"><span class="dp-icon">&#128208;</span>Planner</a>';
+  else h += '<span></span>';
+  h += '<button class="'+(isSaved?'active':'')+'" onclick="toggleFavorite('+l.lat+','+l.lng+');this.classList.toggle(\'active\');this.querySelector(\'span:last-child\').textContent=this.classList.contains(\'active\')?\'Saved\':\'Save\'"><span class="dp-icon">&#9733;</span><span>'+(isSaved?'Saved':'Save')+'</span></button>';
+  h += '<button onclick="sharePin('+l.lat+','+l.lng+',event)"><span class="dp-icon">&#8599;</span>Share</button>';
+  h += '</div>';
+  return h;
+}
 
-  // ── Assemble ──
+function generateDealCard(l, opts){
+  opts = opts || {};
+  var ctx = opts.context || 'bts';
+  var pf = calculateProForma(l);
+  var btr = calculateBTRProForma(l);
+  var el = exitLabel(l);
+  var isDualViable = (pf.margin >= 20) && l.btrViable;
+
+  var badges = dealCardBadges(l, ctx, isDualViable);
   var autoExpand = ctx==='btr' ? ' expanded' : '';
   var h = '<div class="dp-card'+autoExpand+'">';
-  if(alerts) h += '<div class="dp-alerts">'+alerts+'</div>';
-  h += strip;
+  if(badges.alerts) h += '<div class="dp-alerts">'+badges.alerts+'</div>';
+  h += dealCardStrip(l, pf, el, badges.inline);
   h += '<div class="dp-drawer">';
-  h += '<div class="dp-body">'+col1+col2+col3+'</div>';
-  h += compBtns;
-  h += btrSection;
-  h += ddLine;
-  h += actions;
-  h += '</div>';  // end dp-drawer
-  h += '</div>';  // end dp-card
+  h += '<div class="dp-body">'+dealCardEconomics(l, pf, el)+dealCardSite(l, pf)+dealCardProForma(l, pf)+'</div>';
+  h += dealCardCompButtons(l);
+  h += dealCardBTR(l, btr);
+  h += dealCardDD(l);
+  h += dealCardActions(l);
+  h += '</div>';
+  h += '</div>';
   return h;
 }
 
@@ -3766,17 +3823,33 @@ function updatePinLegend(){
 //  DEAL ASSUMPTIONS MODAL
 // ══════════════════════════════════════════
 
-// ── Onboarding ──
+// ── Onboarding walkthrough ──
 const ONBOARD_KEY = 'sb1123_onboarded';
+var _onboardStep = 0;
 function showOnboardingIfNeeded(){
   if(localStorage.getItem(ONBOARD_KEY)) return;
-  const tip = document.getElementById('onboarding-tip');
-  if(tip) tip.style.display = 'block';
+  var ov = document.getElementById('onboardOverlay');
+  if(ov) ov.classList.add('active');
+  _onboardStep = 0;
+  updateOnboardStep();
+}
+function advanceOnboarding(){
+  _onboardStep++;
+  if(_onboardStep >= 3){ dismissOnboarding(); return; }
+  updateOnboardStep();
+}
+function updateOnboardStep(){
+  var steps = document.querySelectorAll('.onboard-step');
+  var dots = document.querySelectorAll('#onboardDots span');
+  steps.forEach(function(s,i){ s.classList.toggle('active', i===_onboardStep); });
+  dots.forEach(function(d,i){ d.classList.toggle('active', i===_onboardStep); });
+  var btn = document.getElementById('onboardNext');
+  if(btn) btn.textContent = _onboardStep === 2 ? 'Got it' : 'Next';
 }
 function dismissOnboarding(){
   localStorage.setItem(ONBOARD_KEY, '1');
-  const tip = document.getElementById('onboarding-tip');
-  if(tip) tip.style.display = 'none';
+  var ov = document.getElementById('onboardOverlay');
+  if(ov) ov.classList.remove('active');
 }
 
 function openAssumptionsModal(){
@@ -6284,7 +6357,14 @@ window.addEventListener('DOMContentLoaded', function(){
         const built = new Date(LISTINGS_META.builtAt);
         const ago = Math.floor((Date.now() - built.getTime()) / 3600000);
         const freshEl = document.getElementById('dataFreshness');
-        if(ago < 24) freshEl.innerHTML = '<span style="color:var(--green)">&#9679;</span> Data updated ' + ago + 'h ago';
+        function ageDot(days){ return days<0?'':'<span style="color:'+(days<1?'var(--green)':days<3?'var(--yellow)':days<30?'var(--orange)':'var(--red)')+'">&#9679;</span>'; }
+        function ageStr(days){ return days<0?'?':days<1?'<1d':Math.round(days)+'d'; }
+        var parts = [];
+        if(LISTINGS_META.listingsAge!=null) parts.push(ageDot(LISTINGS_META.listingsAge)+' Listings: '+ageStr(LISTINGS_META.listingsAge));
+        if(LISTINGS_META.compsAge!=null) parts.push(ageDot(LISTINGS_META.compsAge)+' Comps: '+ageStr(LISTINGS_META.compsAge));
+        if(LISTINGS_META.parcelsAge!=null&&LISTINGS_META.parcelsAge>=0) parts.push(ageDot(LISTINGS_META.parcelsAge)+' Parcels: '+ageStr(LISTINGS_META.parcelsAge));
+        if(parts.length) freshEl.innerHTML = parts.join(' &middot; ');
+        else if(ago < 24) freshEl.innerHTML = '<span style="color:var(--green)">&#9679;</span> Data updated ' + ago + 'h ago';
         else if(ago < 72) freshEl.innerHTML = '<span style="color:var(--yellow)">&#9679;</span> Data is ' + Math.floor(ago/24) + ' day(s) old';
         else freshEl.innerHTML = '<span style="color:var(--red)">&#9679;</span> Data is ' + Math.floor(ago/24) + ' days stale — re-run fetch';
       }
