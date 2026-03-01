@@ -360,9 +360,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   /* Strip (always visible) */
   .dp-strip{display:grid;grid-template-columns:1.8fr repeat(4,1fr) 40px;align-items:center;gap:0;padding:10px 12px;cursor:pointer;border:1px solid var(--border);border-radius:6px;margin:6px 6px 0}
   .dp-strip:hover{background:var(--surface2)}
-  .dp-addr{font-weight:700;font-size:14px;line-height:1.25}
-  .dp-addr .dp-city{display:block;font-weight:400;font-size:11px;color:var(--text-dim);margin-top:1px}
-  .dp-addr .dp-badges-inline{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .dp-addr{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;line-height:1.25;text-transform:capitalize}
+  .dp-addr .dp-city{font-weight:400;font-size:11px;color:var(--text-dim)}
+  .dp-addr .dp-zip{color:#888;font-weight:500;font-size:11px}
+  .dp-addr .dp-badges-inline{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
   .dp-addr .dp-badges-inline .popup-badge{margin:0;font-size:9px;padding:1px 6px}
   .dp-metric{text-align:center}
   .dp-metric .dp-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px}
@@ -388,9 +389,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-sep{border-top:1px solid var(--border);margin:4px 0}
 
   /* Comp buttons */
-  .dp-comps{display:flex;gap:6px;padding:6px 8px 0;align-items:center}
-  .dp-comp-btn{display:inline-flex;align-items:center;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;line-height:1.3}
-  .dp-comp-btn:hover{border-color:var(--accent);background:rgba(96,165,250,0.08)}
+  .dp-comps{display:flex;gap:16px;padding:6px 8px 0;align-items:center}
+  .dp-comp-btn{display:inline-flex;align-items:center;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;color:#2563eb;text-decoration:none;white-space:nowrap;line-height:1.3}
+  .dp-comp-btn:hover{text-decoration:underline}
+  .dp-comp-arrow{font-size:10px}
 
   /* BTR section */
   .dp-btr{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:8px 8px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -402,12 +404,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-dd{padding:8px 12px;font-size:11px;color:var(--text-dim);margin:8px 6px 0;line-height:1.5}
 
   /* Action buttons toolbar */
-  .dp-actions{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 6px 10px;margin-top:4px}
-  .dp-actions a,.dp-actions button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:10px;cursor:pointer;text-decoration:none;line-height:1.2}
-  .dp-actions a:hover,.dp-actions button:hover{border-color:var(--accent);color:var(--accent)}
-  .dp-actions .dp-icon{font-size:16px;line-height:1}
-  .dp-actions .active{border-color:var(--green);background:var(--green);color:#fff}
-  .dp-actions .active:hover{background:#16a34a}
+  .dp-actions{display:flex;justify-content:space-around;background:#fafafa;border-top:1px solid #e5e7eb;border-radius:0 0 6px 6px;padding:6px 8px;margin-top:4px;gap:0}
+  .dp-actions a,.dp-actions button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 10px;background:none;border:none;border-radius:6px;color:#64748b;font-family:inherit;font-size:8px;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;text-decoration:none;line-height:1.2}
+  .dp-actions a:hover,.dp-actions button:hover{background:#e5e7eb}
+  .dp-actions .dp-icon{font-size:13px;line-height:1}
+  .dp-actions .active{border:none;background:none;color:#f59e0b}
+  .dp-actions .active:hover{background:#e5e7eb}
+  .dp-actions .active .dp-icon{color:#f59e0b}
 
   /* Lot layout toggle in drawer */
   .dp-lot-toggle{cursor:pointer;user-select:none;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:5px}
@@ -426,7 +429,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     .dp-strip .dp-metric:nth-child(4),.dp-strip .dp-metric:nth-child(5){display:none}
     .dp-btr{grid-template-columns:1fr}
     .dp-btr-col+.dp-btr-col{border-left:none;border-top:1px solid var(--border)}
-    .dp-actions{grid-template-columns:repeat(4,1fr)}
+    .dp-actions{flex-wrap:wrap}
   }
 
   /* Pin Color Legend */
@@ -3095,8 +3098,7 @@ function generateDealCard(l, opts){
   var cityLine = addrParts.length > 1 ? addrParts[addrParts.length-1].trim() : '';
 
   var strip = '<div class="dp-strip" onclick="toggleDealCard(this)">';
-  strip += '<div class="dp-addr">'+mainAddr;
-  if(cityLine) strip += '<span class="dp-city">'+cityLine+'</span>';
+  strip += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
   strip += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
   strip += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+'</div></div>';
   strip += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
@@ -3155,10 +3157,10 @@ function generateDealCard(l, opts){
 
   // ── Comp buttons ──
   var compBtns = '<div class="dp-comps">';
-  compBtns += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps &#8599;</a>';
+  compBtns += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+cc.count+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   var hasRentalComps = typeof RENTAL_COMPS!=='undefined'&&RENTAL_COMPS.length>0&&l.rentMethod&&l.rentMethod.startsWith('rental-comp');
   if(hasRentalComps){
-    compBtns += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">Rent Comps &#8599;</a>';
+    compBtns += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">'+(l.rentCompCount||'')+' Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
   }
   compBtns += '</div>';
 
