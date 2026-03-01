@@ -156,7 +156,7 @@ for pt_code in sorted(pt_counts.keys()):
 
 # ── Write rental_data.js ──
 output_file = market_file("rental_data.js", market)
-js = "const LOADED_RENTAL_COMPS = " + json.dumps(comps, separators=(",", ":")) + ";"
+js = "var LOADED_RENTAL_COMPS = " + json.dumps(comps, separators=(",", ":")) + ";"
 with open(output_file, "w") as f:
     f.write(js)
 

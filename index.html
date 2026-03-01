@@ -1455,7 +1455,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="mobile-cards" id="mobileCards"></div>
 </div>
 
-<script>
+<script type="module">
 // ── Constants ──
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
 const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',LAND:'Vacant Land'};
@@ -6244,6 +6244,48 @@ async function exportOM(lat, lng) {
     alert('OM export failed: ' + err.message);
   }
 }
+
+// ══════════════════════════════════════════
+//  EXPOSE FUNCTIONS FOR INLINE onclick/onchange HANDLERS
+// ══════════════════════════════════════════
+window.advanceOnboarding = advanceOnboarding;
+window.closeAssumptionsModal = closeAssumptionsModal;
+window.closeDataKeyModal = closeDataKeyModal;
+window.copyRefreshCmd = copyRefreshCmd;
+window.dismissOnboarding = dismissOnboarding;
+window.exportCSV = exportCSV;
+window.exportModel = exportModel;
+window.exportOM = exportOM;
+window.flyToListing = flyToListing;
+window.hideCompsTable = hideCompsTable;
+window.hideRentalCompsTable = hideRentalCompsTable;
+window.highlightMarker = highlightMarker;
+window.onMinUnitsChange = onMinUnitsChange;
+window.onProformaChange = onProformaChange;
+window.openAssumptionsModal = openAssumptionsModal;
+window.openMobileSheet = openMobileSheet;
+window.resetFilter = resetFilter;
+window.setBaseMap = setBaseMap;
+window.setMarginPreset = setMarginPreset;
+window.sharePin = sharePin;
+window.showCompsTable = showCompsTable;
+window.showRentalCompsTable = showRentalCompsTable;
+window.sortCompsTable = sortCompsTable;
+window.sortRentalCompsTable = sortRentalCompsTable;
+window.sortTable = sortTable;
+window.toggleBurnZoneFilter = toggleBurnZoneFilter;
+window.toggleDealCard = toggleDealCard;
+window.toggleFavorite = toggleFavorite;
+window.toggleFavoritesFilter = toggleFavoritesFilter;
+window.toggleLayerRow = toggleLayerRow;
+window.toggleListingsPanel = toggleListingsPanel;
+window.toggleZone = toggleZone;
+window.unhighlightMarker = unhighlightMarker;
+window.updateCompPoints = updateCompPoints;
+
+// Variables referenced by inline handlers
+window.map = map;
+window.tierState = tierState;
 
 // ══════════════════════════════════════════
 //  INITIALIZATION

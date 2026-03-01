@@ -1552,8 +1552,8 @@ if "--debug" not in sys.argv:
     if pruned:
         print(f"   Pruned {pruned} debug fields ({len(PRUNE_FIELDS)} types)")
 
-js = f"const LISTINGS_META = {{builtAt:\"{build_ts}\",count:{len(listings)},{ages_js}}};\n"
-js += "const LOADED_LISTINGS = " + json.dumps(listings, separators=(",", ":")) + ";"
+js = f"var LISTINGS_META = {{builtAt:\"{build_ts}\",count:{len(listings)},{ages_js}}};\n"
+js += "var LOADED_LISTINGS = " + json.dumps(listings, separators=(",", ":")) + ";"
 with open(output_file, "w") as f:
     f.write(js)
 size_kb = len(js) / 1024
