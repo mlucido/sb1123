@@ -436,7 +436,7 @@ print(f"  Fallback levels: {fb_counts}")
 
 # Sample validation: spot-check known ZIPs
 CELL = ARV_CONFIG["cell_size"]
-sample_zips = ['91367', '91316', '91356'] if market["slug"] == "la" else ['92129', '92127', '92130']
+sample_zips = market.get("sample_zips", ['91367', '91316', '91356'])
 for z in sample_zips:
     z_comps = [c for c in comps if c['zip'] == z and c.get('t') == 1]
     if z_comps:

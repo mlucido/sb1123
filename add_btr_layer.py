@@ -15,6 +15,7 @@ import csv, json, re, os
 from datetime import datetime
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from market_config import get_market
 
 # ── BTR Configuration ──
 BTR_CONFIG = {
@@ -35,30 +36,9 @@ BTR_CONFIG = {
 }
 
 # ── New Construction Premium Factors ──
-# Empirically derived: median_new_3BR_rent / ZORI_all_types_median
-# 'validated' = 5+ direct comps verified
-# 'estimated' = <5 comps, preliminary
-# 'default'   = no local data, regional average
-NEWCON_PREMIUM = {
-    # Validated ZIPs (manual comp analysis completed)
-    '91367': {'factor': 1.40, 'confidence': 'validated'},   # Woodland Hills
-
-    # Estimated ZIPs (preliminary data)
-    '91364': {'factor': 1.35, 'confidence': 'estimated'},   # Woodland Hills south
-    '91303': {'factor': 1.30, 'confidence': 'estimated'},   # Canoga Park
-    '91304': {'factor': 1.30, 'confidence': 'estimated'},   # West Hills
-    '91306': {'factor': 1.25, 'confidence': 'estimated'},   # Winnetka
-    '91307': {'factor': 1.35, 'confidence': 'estimated'},   # West Hills north
-    '91316': {'factor': 1.45, 'confidence': 'estimated'},   # Encino
-    '91335': {'factor': 1.25, 'confidence': 'estimated'},   # Reseda
-    '91356': {'factor': 1.35, 'confidence': 'estimated'},   # Tarzana
-    '91403': {'factor': 1.40, 'confidence': 'estimated'},   # Sherman Oaks
-    '91423': {'factor': 1.40, 'confidence': 'estimated'},   # Sherman Oaks south
-    '91436': {'factor': 1.50, 'confidence': 'estimated'},   # Encino hills
-
-    # Default for any ZIP not listed
-    '_default': {'factor': 1.25, 'confidence': 'default'},
-}
+# Loaded from market_config.py; fallback to hardcoded defaults
+_market = get_market()
+NEWCON_PREMIUM = _market.get("btr_premium_factors", {"_default": {"factor": 1.25, "confidence": "default"}})
 
 def get_premium(zip_code):
     """Return (factor, confidence) for a ZIP code."""

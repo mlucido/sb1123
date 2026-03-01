@@ -322,6 +322,30 @@ MARKETS = {
         "avg_unit_sf": 1200,
         "sale_discount_pct": 0.05,
         "demo_cost": 25000,
+
+        # RSO (Rent Stabilization Ordinance) — LA specific
+        "has_rso": True,
+        "rso_eligible_cities": ["los angeles", "la", ""],
+
+        # Sample zips for validation (build_comps.py spot-check)
+        "sample_zips": ["91367", "91316", "91356"],
+
+        # BTR new-construction premium factors by ZIP
+        "btr_premium_factors": {
+            "91367": {"factor": 1.40, "confidence": "validated"},
+            "91364": {"factor": 1.35, "confidence": "estimated"},
+            "91303": {"factor": 1.30, "confidence": "estimated"},
+            "91304": {"factor": 1.30, "confidence": "estimated"},
+            "91306": {"factor": 1.25, "confidence": "estimated"},
+            "91307": {"factor": 1.35, "confidence": "estimated"},
+            "91316": {"factor": 1.45, "confidence": "estimated"},
+            "91335": {"factor": 1.25, "confidence": "estimated"},
+            "91356": {"factor": 1.35, "confidence": "estimated"},
+            "91403": {"factor": 1.40, "confidence": "estimated"},
+            "91423": {"factor": 1.40, "confidence": "estimated"},
+            "91436": {"factor": 1.50, "confidence": "estimated"},
+            "_default": {"factor": 1.25, "confidence": "default"},
+        },
     },
 
     "sd": {
@@ -397,6 +421,18 @@ MARKETS = {
         "avg_unit_sf": 1200,
         "sale_discount_pct": 0.05,
         "demo_cost": 25000,
+
+        # RSO — San Diego has no rent stabilization
+        "has_rso": False,
+        "rso_eligible_cities": [],
+
+        # Sample zips for validation
+        "sample_zips": ["92129", "92127", "92130"],
+
+        # BTR premium factors — SD has no local data yet, use defaults
+        "btr_premium_factors": {
+            "_default": {"factor": 1.25, "confidence": "default"},
+        },
     },
 }
 

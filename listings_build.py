@@ -694,10 +694,10 @@ for l in listings:
             risk_score += 1
             risk_factors.append("pre-2000")
 
-    # RSO/Ellis Act assessment (LA market only)
-    if market["slug"] == "la" and l.get("hasStructure"):
+    # RSO/Ellis Act assessment (market-specific)
+    if market.get("has_rso") and l.get("hasStructure"):
         is_pre_1978 = yb_int > 0 and yb_int < 1979
-        is_la_city = (l.get("city") or "").lower() in ("los angeles", "la", "")
+        is_la_city = (l.get("city") or "").lower() in market.get("rso_eligible_cities", [])
         is_multi = l.get("track") == "MF" or beds_int >= 3
         if is_pre_1978 and is_la_city and is_multi:
             l["rsoRisk"] = True
