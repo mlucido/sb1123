@@ -375,8 +375,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-card{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text)}
 
   /* Strip (always visible) */
-  .dp-strip{display:grid;grid-template-columns:1.8fr repeat(4,1fr) 40px;align-items:center;gap:0;padding:10px 12px;cursor:pointer;border:1px solid var(--border);border-radius:6px;margin:6px 6px 0}
-  .dp-strip:hover{background:var(--surface2)}
+  .dp-strip{display:grid;grid-template-columns:1.8fr repeat(4,1fr);align-items:center;gap:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin:6px 6px 0}
   .dp-addr{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;line-height:1.25;text-transform:capitalize}
   .dp-addr .dp-city{font-weight:400;font-size:11px;color:var(--text-dim)}
   .dp-addr .dp-zip{color:#888;font-weight:500;font-size:11px}
@@ -385,15 +384,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dp-metric{text-align:center}
   .dp-metric .dp-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px}
   .dp-metric .dp-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;line-height:1.2}
-  .dp-toggle{display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);transition:transform 0.2s}
-  .dp-card.expanded .dp-toggle{transform:rotate(180deg)}
-
   /* Alert badges row (burn zone, tenant risk etc) */
   .dp-alerts{display:flex;gap:4px;flex-wrap:wrap;padding:4px 8px 0}
-
-  /* Drawer (hidden until expanded) */
-  .dp-drawer{max-height:0;overflow:hidden;transition:max-height 0.35s ease-out}
-  .dp-card.expanded .dp-drawer{max-height:3000px;transition:max-height 0.4s ease-in}
 
   /* 3-column body */
   .dp-body{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;margin:6px 6px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -442,7 +434,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     .deal-popup .leaflet-popup-content{min-width:320px}
     .dp-body{grid-template-columns:1fr;gap:0}
     .dp-col+.dp-col{border-left:none;border-top:1px solid var(--border)}
-    .dp-strip{grid-template-columns:1.5fr repeat(2,1fr) 36px;font-size:11px}
+    .dp-strip{grid-template-columns:1.5fr repeat(2,1fr);font-size:11px}
     .dp-strip .dp-metric:nth-child(4),.dp-strip .dp-metric:nth-child(5){display:none}
     .dp-btr{grid-template-columns:1fr}
     .dp-btr-col+.dp-btr-col{border-left:none;border-top:1px solid var(--border)}
@@ -1213,9 +1205,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       </div>
     </div>
     <div class="onboard-step" data-step="2">
-      <div class="onboard-title">Expand for Full Economics</div>
+      <div class="onboard-title">Deal Card Economics</div>
       <div class="onboard-body">
-        Click the strip to expand three columns: <strong>Economics</strong>, <strong>Site</strong>, and <strong>Pro Forma</strong>.<br>
+        Each deal card shows three columns: <strong>Economics</strong>, <strong>Site</strong>, and <strong>Pro Forma</strong>.<br>
         <strong>Max Offer</strong> = highest price where you still make your target margin (default 30%).<br>
         Use the <strong>gear icon</strong> in the sidebar to adjust assumptions.
       </div>
@@ -2431,12 +2423,6 @@ function rebuildMarkers(cachedComps){
   refreshVisibility();
 }
 
-function toggleDealCard(el){
-  var card = el.closest('.dp-card');
-  if(!card) return;
-  card.classList.toggle('expanded');
-}
-
 // ── Format helpers — see js/format.js ──
 
 function dealCardBadges(l, ctx, isDualViable){
@@ -2480,14 +2466,13 @@ function dealCardStrip(l, pf, el, inlineBadges){
   var moLabel = pf.max_offer >= l.price ? '\u2713' : '\u2717';
   var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
 
-  var s = '<div class="dp-strip" onclick="toggleDealCard(this)">';
+  var s = '<div class="dp-strip">';
   s += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
   s += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+' <span style="font-size:9px;color:'+moColor2+'">'+moLabel+'</span></div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">Lot Size</div><div class="dp-val">'+(l.lotSf?commas(l.lotSf):'—')+'</div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+unitsLabel+'</div></div>';
-  s += '<div class="dp-toggle">&#9650;</div>';
   s += '</div>';
   return s;
 }
@@ -2625,17 +2610,14 @@ function generateDealCard(l, opts){
   var isDualViable = (pf.margin >= 20) && l.btrViable;
 
   var badges = dealCardBadges(l, ctx, isDualViable);
-  var autoExpand = ctx==='btr' ? ' expanded' : '';
-  var h = '<div class="dp-card'+autoExpand+'">';
+  var h = '<div class="dp-card">';
   if(badges.alerts) h += '<div class="dp-alerts">'+badges.alerts+'</div>';
   h += dealCardStrip(l, pf, el, badges.inline);
-  h += '<div class="dp-drawer">';
   h += '<div class="dp-body">'+dealCardEconomics(l, pf, el)+dealCardSite(l, pf)+dealCardProForma(l, pf)+'</div>';
   h += dealCardCompButtons(l);
   h += dealCardBTR(l, btr);
   h += dealCardDD(l);
   h += dealCardActions(l);
-  h += '</div>';
   h += '</div>';
   return h;
 }
@@ -3877,7 +3859,6 @@ window.sortCompsTable = sortCompsTable;
 window.sortRentalCompsTable = sortRentalCompsTable;
 window.sortTable = sortTable;
 window.toggleBurnZoneFilter = toggleBurnZoneFilter;
-window.toggleDealCard = toggleDealCard;
 window.toggleFavorite = toggleFavorite;
 window.toggleFavoritesFilter = toggleFavoritesFilter;
 window.toggleLayerRow = toggleLayerRow;
