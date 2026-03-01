@@ -309,6 +309,8 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('C15').fill = _hdrFill;
 
   labelCell(ws, 16, 2, 'Purchase Price'); linkedCell(ws, 'C16', "'Deal Scorecard'!C19", l.price || 0, '$#,##0');
+  labelCell(ws, 17, 2, 'Txn Cost %');     inputCell(ws, 'C17', 0.01, '0.0%');
+  labelCell(ws, 18, 2, 'Txn Cost $');     setFormula(ws, 'C18', 'C16*C17', (l.price || 0) * 0.01, '$#,##0');
 
   ws.getCell('B19').value = 'DEVELOPMENT';
   ws.getCell('B19').font = _hdrFont; ws.getCell('B19').fill = _hdrFill;
@@ -372,9 +374,9 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('F13').font = _hdrFont; ws.getCell('F13').fill = _hdrFill;
   ws.getCell('G13').fill = _hdrFill;
 
-  labelCell(ws, 14, 6, 'Equity');              setFormula(ws, 'G14', 'CEILING((C16+C30+G30+G34)/(1-(1-G17)*G19)*G17,10000)', ed.equity, '$#,##0');
+  labelCell(ws, 14, 6, 'Equity');              setFormula(ws, 'G14', 'CEILING((C16+C18+C30+G30+G34)/(1-(1-G17)*G19)*G17,10000)', ed.equity, '$#,##0');
   ws.getCell('G14').font = { bold: true };
-  labelCell(ws, 15, 6, 'Debt');                setFormula(ws, 'G15', '(C16+C30+G30+G34)/(1-(1-G17)*G19)-G14', ed.debt, '$#,##0');
+  labelCell(ws, 15, 6, 'Debt');                setFormula(ws, 'G15', '(C16+C18+C30+G30+G34)/(1-(1-G17)*G19)-G14', ed.debt, '$#,##0');
   ws.getCell('G15').font = { bold: true };
   labelCell(ws, 16, 6, 'Total Project Cost');  setFormula(ws, 'G16', 'G14+G15', ed.equity + ed.debt, '$#,##0');
   ws.getCell('G16').font = { bold: true };
@@ -481,6 +483,8 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'G6', 'Assumptions!C16', price, '$#,##0');
   labelCell(ws, 7, 6, '  Acq Fee');
   setFormula(ws, 'G7', 'Assumptions!G34', price * 0.02, '$#,##0');
+  labelCell(ws, 8, 6, '  Txn Costs');
+  setFormula(ws, 'G8', 'Assumptions!C18', price * 0.01, '$#,##0');
 
   sectionHeader(ws, 9, 6, 'Development');
   labelCell(ws, 10, 6, '  Hard Costs');
@@ -512,7 +516,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
 
   labelCell(ws, 26, 6, 'TOTAL USES');
   ws.getCell('F26').font = { bold: true };
-  setFormula(ws, 'G26', 'G6+G7+G10+G11+G12+G13+G14+G17+G18+G19+G20+G21+G24', 0, '$#,##0');
+  setFormula(ws, 'G26', 'G6+G7+G8+G10+G11+G12+G13+G14+G17+G18+G19+G20+G21+G24', 0, '$#,##0');
   ws.getCell('G26').font = { bold: true };
   ws.getCell('G26').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
   setFormula(ws, 'H26', 'G26/G26', 1, '0.0%');
@@ -520,6 +524,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   // Uses % of total
   setFormula(ws, 'H6', 'G6/G$26', 0, '0.0%');
   setFormula(ws, 'H7', 'G7/G$26', 0, '0.0%');
+  setFormula(ws, 'H8', 'G8/G$26', 0, '0.0%');
   setFormula(ws, 'H10', 'G10/G$26', 0, '0.0%');
   setFormula(ws, 'H11', 'G11/G$26', 0, '0.0%');
   setFormula(ws, 'H12', 'G12/G$26', 0, '0.0%');
@@ -647,11 +652,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
   for (var m = 0; m < MONTHS; m++) { ws.getCell(colLetter(m+3) + '11').fill = _hdrFill; }
   ws.getCell(totalLtr + '11').fill = _hdrFill;
 
-  // Row 12: Land Acquisition — Month 0
-  labelCell(ws, 12, 2, '  Land Acquisition');
+  // Row 12: Land Acquisition + Txn Costs — Month 0
+  labelCell(ws, 12, 2, '  Land Acquisition + Txn');
   monthFormula(12,
-    function(m) { return m === 0 ? 'Assumptions!C16' : '0'; },
-    function(m) { return m === 0 ? price : 0; }
+    function(m) { return m === 0 ? 'Assumptions!C16+Assumptions!C18' : '0'; },
+    function(m) { return m === 0 ? price + price * 0.01 : 0; }
   );
 
   // Row 13: Hard Costs — construction months, spread evenly
