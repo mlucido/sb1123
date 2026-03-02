@@ -5,12 +5,100 @@
     "last_updated": "2026-03-02",
     "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code"
   },
-
   "Los Angeles": {
     "is_baseline": true,
-    "notes": "All app defaults (proforma.js, listings_build.py) assume LA City rules"
+    "notes": "All app defaults (proforma.js, listings_build.py) assume LA City rules",
+    "zone_mapping": {
+      "R1": "R1",
+      "R2": "R2",
+      "R3": "R3",
+      "R4": "R4"
+    },
+    "height_ft": {
+      "_note": "LAMC 12.21.1 B. Height District 1 (most residential parcels). R1 has flat-roof penalty.",
+      "R1_pitched": 33,
+      "R1_flat": 28,
+      "R2": 33,
+      "R3": 45,
+      "R4": "no limit in HD1"
+    },
+    "height_notes": {
+      "R1": "33 ft when roof slope >= 25%. 28 ft with flat roof. No story limit — 3-story possible within 33 ft (~10 ft floors).",
+      "R2": "33 ft, no flat-roof penalty. No story limit.",
+      "R3": "45 ft in Height District 1. 36 ft in 1L, 33 ft in 1VL, 30 ft in 1XL.",
+      "R4": "No height limit in HD1 (FAR-controlled). 36 ft in 1L.",
+      "measurement": "Grade to highest point of roof/parapet."
+    },
+    "setbacks_ft": {
+      "R1": {
+        "front": 20,
+        "side": 5,
+        "rear": 15
+      },
+      "R2": {
+        "front": 20,
+        "side": 5,
+        "rear": 15
+      },
+      "R3": {
+        "front": 15,
+        "side": 5,
+        "rear": 15
+      },
+      "R4": {
+        "front": 15,
+        "side": 5,
+        "rear": 15
+      },
+      "_notes": "Side: +1 ft per story above 2nd. Lots <50 ft: 10% width, min 3 ft."
+    },
+    "far": {
+      "_note": "R1 capped by BMO. R2-R4 HD1 = 3:1 but density/setbacks are real constraints.",
+      "R1": 0.45,
+      "R2": 3.0,
+      "R3": 3.0,
+      "R4": 3.0,
+      "R1_note": "BMO: 45% of lot area + 200 SF garage exemption per parking space."
+    },
+    "density_lot_area_per_unit_sf": {
+      "R1": 5000,
+      "R2": 2500,
+      "R3": 800,
+      "R4": 400
+    },
+    "parking": {
+      "_note": "LAMC 12.21 A.4(a). Based on habitable rooms.",
+      "less_than_3_rooms": 1.0,
+      "3_rooms": 1.5,
+      "more_than_3_rooms": 2.0,
+      "single_family": 2,
+      "ab2097_transit_exemption": true
+    },
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "LA City RSO",
+      "year_built_threshold": 1978,
+      "year_built_note": "Certificate of occupancy before Oct 1, 1978",
+      "unit_count_threshold": 2
+    },
+    "impact_fees": {
+      "affordable_housing_linkage_fee": {
+        "_note": "LAMC 19.18. Projects under 40,000 SF EXEMPT — most SB 1123 projects qualify.",
+        "high_market_per_sf": 15.0,
+        "medium_market_per_sf": 10.0,
+        "low_market_per_sf": 8.0
+      },
+      "school_fee_per_sf": 5.17,
+      "school_district": "LAUSD"
+    },
+    "sources": [
+      "LAMC §12.08-12.11 (R1-R4)",
+      "LAMC §12.21.1 (Height)",
+      "LAMC §12.21 A.4(a) (Parking)",
+      "LAMC §19.18 (Linkage Fee)",
+      "Baseline Mansionization Ordinance (Ord. 179,883)"
+    ]
   },
-
   "Pasadena": {
     "zone_mapping": {
       "_note": "Pasadena uses RS (single-family) and RM (multi-family) with density-per-acre suffixes",
@@ -23,7 +111,6 @@
       "RM-32": "R3",
       "RM-48": "R4"
     },
-
     "height_ft": {
       "_note": "RS/RM-12 height per Ordinance 7371 (Feb 2021) Table 2-3. Varies by lot width, not zone.",
       "RS_under_75ft_wide": 28,
@@ -44,7 +131,6 @@
       "hillside_overlay": "28 ft max at any point if HD/HL overlay applies; 35 ft from lowest grade",
       "hl1_overlay": "HL-1 overlay limits rear structures to 23 ft plate / 32 ft ridge on 60 ft+ lots"
     },
-
     "plate_heights": {
       "_note": "Per Ordinance 7371, Table 2-3 (§17.22.040). Plate = top of wall framing, not ridge.",
       "RS_1st_story_max_ft": 10,
@@ -53,7 +139,6 @@
       "RS_3rd_story": "not defined — effectively prohibited",
       "measurement": "From front plane of structure (1st story) or floor level (2nd story)"
     },
-
     "roof_requirements": {
       "_note": "RS zone roof slope per §17.22.040. Much less restrictive than LA City's pitched-roof penalty.",
       "min_slope_pct": 6,
@@ -61,13 +146,11 @@
       "flat_roof_penalty": false,
       "la_comparison": "LA City penalizes flat roofs with lower height limit; Pasadena has no such penalty"
     },
-
     "floor_area_limits": {
       "_note": "RS zone upper-story area restriction per §17.22.050",
       "2nd_story_max_pct_of_1st": 50,
       "impact": "Limits 2nd story to half of 1st story footprint — forces wider, shorter buildings"
     },
-
     "encroachment_plane": {
       "_note": "Side setback daylight plane per §17.40.160",
       "angle_from_vertical_deg": 30,
@@ -75,14 +158,23 @@
       "start_at": "side property line",
       "impact": "Building must fit below a plane starting 6 ft high at the side lot line, angled inward at 30° — constrains upper-story width on narrow lots"
     },
-
     "setbacks_ft": {
       "_note": "RS zone setbacks unconfirmed — need Table 2-3. RM values partially confirmed.",
-      "RS": { "front": 25, "side": null, "rear": null },
-      "RM": { "front": 20, "side": 5, "rear": null },
-      "sb9_override": { "side": 4, "rear": 4 }
+      "RS": {
+        "front": 25,
+        "side": null,
+        "rear": null
+      },
+      "RM": {
+        "front": 20,
+        "side": 5,
+        "rear": null
+      },
+      "sb9_override": {
+        "side": 4,
+        "rear": 4
+      }
     },
-
     "far": {
       "_note": "RS zones use context-sensitive FAR: max floor area = 135% of median house size within 500-ft radius. No fixed FAR number.",
       "RS": "context_sensitive",
@@ -91,17 +183,22 @@
       "RM-32": null,
       "RM-48": null
     },
-
     "parking": {
       "standard_per_unit": 2,
       "townhouse_guest_per_10_units": 1,
       "sb9_per_unit": 1,
       "transit_half_mile": 0,
       "ab2097_applies": true,
-      "transit_stops": ["Lake", "Allen", "Del Mar", "Memorial Park", "Fillmore", "Sierra Madre Villa"],
+      "transit_stops": [
+        "Lake",
+        "Allen",
+        "Del Mar",
+        "Memorial Park",
+        "Fillmore",
+        "Sierra Madre Villa"
+      ],
       "transit_line": "Metro L Line (Gold)"
     },
-
     "rent_stabilization": {
       "has_rso": true,
       "name": "Measure H (Fair and Equitable Housing Charter Amendment)",
@@ -122,7 +219,6 @@
       },
       "difference_from_la": "LA RSO: pre-Oct 1978, 2+ units. Pasadena: pre-Feb 1995, 2+ units — covers far more properties"
     },
-
     "impact_fees": {
       "residential_impact_fee": {
         "studio": 19622,
@@ -135,14 +231,17 @@
       "school_district": "PUSD",
       "notes": "RIF is notably higher than LA City linkage fee. New RIF ordinance adopted Jul 2025 — amounts may have changed."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "Planning Commission reviewed Aug 2025, directed staff to prepare zoning amendments",
       "current_rules": "State defaults apply (ministerial approval, 1200 SF min parcel, up to 10 units)",
-      "eligible_zones": ["RS-1", "RS-2", "RS-4", "RS-6"]
+      "eligible_zones": [
+        "RS-1",
+        "RS-2",
+        "RS-4",
+        "RS-6"
+      ]
     },
-
     "unconfirmed": [
       "RS zone side/rear setbacks (need PMC Table 2-3)",
       "RM-16/32/48 FAR values (need PMC Table 2-4)",
@@ -150,7 +249,6 @@
       "Updated RIF amounts from Jul 2025 ordinance",
       "Affordable housing in-lieu fee amount"
     ],
-
     "sources": [
       "PMC Title 17 (Zoning Code) — Sections 17.22.040, 17.22.050, 17.22.060, 17.22.070",
       "Ordinance No. 7371 (Feb 22, 2021) — amends Table 2-3 RS/RM-12 height limits",
@@ -159,7 +257,6 @@
       "Pasadena Fee Schedules (FY 2026)"
     ]
   },
-
   "San Marino": {
     "zone_mapping": {
       "_note": "San Marino is almost entirely R-1 single-family, split into 7 area districts by min lot size. No R-2/R-3/R-4. New RM1/MU zones added Nov 2024 (Ordinance O-24-1415) for Housing Element compliance.",
@@ -173,7 +270,6 @@
       "R-1-VII": "R1",
       "RM1": "R4"
     },
-
     "height_ft": {
       "_note": "R-1 height varies by area district, not lot width (unlike Pasadena). SMMC §23.02.09.",
       "R-1-IE": 35,
@@ -192,20 +288,17 @@
       "R1_measurement": "Height measured from datum plane (avg of high/low existing grade on street-facing wall) to highest point including roof structures (§23.01.01)",
       "sb9": "SB 9 units limited to 16 ft / 1 story / 8 ft 6 in plate height (§23.02.33)"
     },
-
     "plate_heights": {
       "_note": "No explicit plate height limits for standard R-1 construction — controlled by overall height cap + 2-story limit. DRC reviews plate height on case-by-case basis (§23.15.13).",
       "R1_standard": "not specified in code",
       "sb9_max_ft": 8.5,
       "sb9_note": "SB 9 two-unit developments: 8 ft 6 in plate height max (§23.02.33)"
     },
-
     "roof_requirements": {
       "_note": "No minimum roof pitch or flat-roof penalty found in San Marino zoning code.",
       "min_slope_pct": null,
       "flat_roof_penalty": false
     },
-
     "floor_area_limits": {
       "_note": "San Marino uses lot coverage + livable area percentages instead of FAR. No explicit 2nd-story area restriction like Pasadena's 50% rule.",
       "2nd_story_max_pct_of_1st": null,
@@ -227,7 +320,6 @@
       "large_lot_bonus": "Coverage/livable area may increase by 10% of the difference between actual and statutory lot area",
       "corner_lot_reduction": "Districts V-VII: cannot exceed 90% of max without CUP"
     },
-
     "encroachment_plane": {
       "_note": "30-degree structural encroachment line per §23.02.13. Identical to Pasadena's daylight plane.",
       "angle_from_vertical_deg": 30,
@@ -236,21 +328,54 @@
       "exception": "Garages/accessory buildings under 12 ft with no attached livable area are exempt",
       "impact": "Same as Pasadena — building must fit below plane starting 6 ft high at side lot line, angled inward at 30°"
     },
-
     "setbacks_ft": {
       "_note": "R-1 setbacks per SMMC §23.02.09. Very generous — much larger than Pasadena or LA.",
-      "R-1-IE": { "front": 40, "side": 20, "rear": 40 },
-      "R-1-I": { "front": 40, "side": 20, "rear": 40 },
-      "R-1-II": { "front": 40, "side": 12, "rear": 40 },
-      "R-1-III": { "front": 40, "side": 12, "rear": 40 },
-      "R-1-IV": { "front": 35, "side": 10, "rear": 35 },
-      "R-1-V": { "front": 30, "side": 8, "rear": 30 },
-      "R-1-VI": { "front": 25, "side": 5, "rear": 25 },
-      "R-1-VII": { "front": 25, "side": 5, "rear": 25 },
-      "sb9_override": { "side": 4, "rear": 4 },
+      "R-1-IE": {
+        "front": 40,
+        "side": 20,
+        "rear": 40
+      },
+      "R-1-I": {
+        "front": 40,
+        "side": 20,
+        "rear": 40
+      },
+      "R-1-II": {
+        "front": 40,
+        "side": 12,
+        "rear": 40
+      },
+      "R-1-III": {
+        "front": 40,
+        "side": 12,
+        "rear": 40
+      },
+      "R-1-IV": {
+        "front": 35,
+        "side": 10,
+        "rear": 35
+      },
+      "R-1-V": {
+        "front": 30,
+        "side": 8,
+        "rear": 30
+      },
+      "R-1-VI": {
+        "front": 25,
+        "side": 5,
+        "rear": 25
+      },
+      "R-1-VII": {
+        "front": 25,
+        "side": 5,
+        "rear": 25
+      },
+      "sb9_override": {
+        "side": 4,
+        "rear": 4
+      },
       "corner_lot_street_side_min": 15
     },
-
     "lot_size_minimums_sf": {
       "_note": "Per SMMC §23.02.09. Most San Marino lots are well above 10K SF SB 1123 threshold.",
       "R-1-IE": 60000,
@@ -262,12 +387,10 @@
       "R-1-VI": 10000,
       "R-1-VII": 9000
     },
-
     "far": {
       "_note": "San Marino does not use FAR. Building size controlled by lot coverage + livable area percentage system. See floor_area_limits.",
       "R1": "not used — see floor_area_limits"
     },
-
     "parking": {
       "R1_1_to_4_bed": 2,
       "R1_5_to_6_bed": 3,
@@ -281,24 +404,30 @@
       "RM1_3plus_bed": 1.5,
       "RM1_guest_per_5_units": 1
     },
-
     "rent_stabilization": {
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only (5% + CPI cap, max 10%, on units 15+ years old)."
     },
-
     "impact_fees": {
       "residential_impact_fee": null,
       "school_fee_per_sf": 4.79,
       "school_district": "SMUSD",
       "notes": "No city-level RIF found. School fee ($4.79/SF) is notably higher than Pasadena ($2.24/SF) and LA."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "No local SB 1123 ordinance adopted. City is resistant to densification — SB 9 ordinance includes 99-year affordability covenant.",
       "current_rules": "State defaults apply (ministerial approval, 1200 SF min parcel, up to 10 units)",
-      "eligible_zones": ["R-1-IE", "R-1-I", "R-1-II", "R-1-III", "R-1-IV", "R-1-V", "R-1-VI", "R-1-VII"],
+      "eligible_zones": [
+        "R-1-IE",
+        "R-1-I",
+        "R-1-II",
+        "R-1-III",
+        "R-1-IV",
+        "R-1-V",
+        "R-1-VI",
+        "R-1-VII"
+      ],
       "sb9_local_restrictions": {
         "max_unit_sf": 800,
         "max_stories": 1,
@@ -308,7 +437,6 @@
         "note": "These SB 9 restrictions should NOT apply to SB 1123 (different state law), but city may attempt to extend them"
       }
     },
-
     "unconfirmed": [
       "R-1 plate height limits (may be DRC discretion only — no code standard found)",
       "R-1 roof pitch requirements (none found in code)",
@@ -317,7 +445,6 @@
       "City-level development impact fees beyond school fee",
       "Whether 99-year affordability covenant from SB 9 ordinance would be applied to SB 1123 projects"
     ],
-
     "sources": [
       "SMMC Title 23 (Zoning) — Sections 23.01.01, 23.01.05, 23.02.09-23.02.33",
       "SMMC §23.02.10-11 (Lot coverage and livable area)",
@@ -329,7 +456,6 @@
       "HCD Review of San Marino ADU Ordinance (Aug 26, 2024)"
     ]
   },
-
   "Long Beach": {
     "rent_stabilization": {
       "has_rso": true,
@@ -341,9 +467,51 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "Long Beach uses suffix system: -L(large), -M(moderate), -N(normal), -S(small). LBMC Title 21.",
+      "R-1-N": "R1",
+      "R-1-S": "R1",
+      "R-1-M": "R1",
+      "R-1-L": "R1",
+      "R-2-N": "R2",
+      "R-2-S": "R2",
+      "R-3-S": "R3",
+      "R-4-N": "R4",
+      "R-4-R": "R4"
+    },
+    "height_ft": {
+      "_note": "Dual format: midpoint/peak. Both must be met (LBMC 21.31.220).",
+      "R-1_midpoint": 25,
+      "R-1_peak": 30
+    },
+    "height_notes": {
+      "R1": "25 ft midpoint / 30 ft peak. Effectively 2 stories.",
+      "R3_R4_adjacency": "Buildings >25 ft height AND >50 ft length facing low-density: half facade must be set back 40 ft."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": 20,
+        "side": 5,
+        "rear": 10
+      }
+    },
+    "far": {
+      "_note": "Long Beach does NOT use fixed FAR. Bulk controlled by height + setbacks + coverage + open space."
+    },
+    "parking": {
+      "R1_per_unit": 2
+    },
+    "unconfirmed": [
+      "R-2/R-3/R-4 heights, setbacks, parking, lot coverage — locked in Table 31-2A PDF"
+    ],
+    "sources": [
+      "LBMC Title 21, Ch. 21.31",
+      "LBMC 21.31.220 (Height)",
+      "LBMC 21.31.215 (Yards)",
+      "Table 31-2A (Residential Development Standards)"
+    ]
   },
-
   "Beverly Hills": {
     "rent_stabilization": {
       "has_rso": true,
@@ -355,9 +523,65 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "No R-2. R-1 split into Central/Hillside/Trousdale. MF zones use height districts A/B/C.",
+      "R-1": "R1",
+      "R-3": "R3",
+      "R-4": "R4",
+      "R-4X1": "R4",
+      "R-4X2": "R4"
+    },
+    "height_ft": {
+      "R-1_Central_flat": 28,
+      "R-1_Central_sloped": 28,
+      "R-1_Central_flat_10ft_side": 30,
+      "R-1_Central_sloped_10ft_side": 32,
+      "R-1_Hillside": 26,
+      "MF_HD_A": 33,
+      "MF_HD_B": 45,
+      "MF_HD_C": 55
+    },
+    "height_notes": {
+      "R1": "28-32 ft (bonus for 10 ft side yards). Max plate 22 ft. Effectively 2 stories.",
+      "MF": "HD A: 33 ft / 3 stories. HD B: 45 ft / 4 stories. HD C: 55 ft / 5 stories.",
+      "three_story": "3-story by-right in MF Height District A (33 ft). R-1 effectively 2 stories."
+    },
+    "setbacks_ft": {
+      "R-1_Central": {
+        "front": "per block average",
+        "side_north_SM": "7.5 min, sum >= 15 + 30% of width over 70",
+        "side_south": "5",
+        "rear": "30% of depth minus 9"
+      },
+      "MF": {
+        "front": "per setback map (default 15)",
+        "rear": 15
+      }
+    },
+    "far": {
+      "R-1_formula": "1,500 SF + 40% of site area",
+      "R-1_min_floor_sf": 1600
+    },
+    "parking": {
+      "R-1_up_to_4bed": 3,
+      "R-1_5_to_6bed": 4,
+      "MF_per_unit": 2.5
+    },
+    "unconfirmed": [
+      "MF side setbacks",
+      "MF FAR",
+      "Lot coverage % (R-1 and MF)",
+      "R-3 vs R-4 density differences"
+    ],
+    "sources": [
+      "BHMC 10-3-2402 (Floor Area)",
+      "BHMC 10-3-2403 (Height)",
+      "BHMC 10-3-2804 (MF Height)",
+      "BHMC Article 24 (Central R-1)",
+      "BHMC Article 28 (MF Standards)"
+    ]
   },
-
   "West Hollywood": {
     "rent_stabilization": {
       "has_rso": true,
@@ -370,9 +594,46 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "WeHo uses R1 (SFR/Two-Unit), R2 (Low Density), R3 (Medium MF), R4 (High Density MF). Sub-zones by GP designation.",
+      "R1-A": "R1",
+      "R1-B": "R1",
+      "R1-C": "R1",
+      "R2": "R2",
+      "R3-A": "R3",
+      "R3-B": "R3",
+      "R3-C": "R3",
+      "R4-A": "R4",
+      "R4-B": "R4"
+    },
+    "height_ft": {
+      "_note": "Locked in Table 2-3 (WHMC 19.06.040). Not accessible online."
+    },
+    "height_notes": {
+      "all": "Heights in Table 2-3 (WHMC 19.06.040) — could not be machine-read."
+    },
+    "setbacks_ft": {
+      "general_front_min": 15,
+      "upper_story_additional": 6
+    },
+    "unit_size_limits": {
+      "R3_max_avg_unit_sf": 1500,
+      "R4_max_avg_unit_sf": 1200
+    },
+    "unconfirmed": [
+      "All height limits",
+      "All FAR values",
+      "Side and rear setbacks",
+      "Parking ratios",
+      "Density by sub-zone"
+    ],
+    "sources": [
+      "WHMC 19.06.040 (Table 2-3)",
+      "WHMC 19.06.050 (R1/R2 Density, Table 2-4)",
+      "WHMC 19.06.070 (Max Unit Sizes)"
+    ]
   },
-
   "Glendale": {
     "rent_stabilization": {
       "has_rso": true,
@@ -384,9 +645,52 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "R1 for single-family. R-XXXX suffix = min lot SF/unit for multi-family.",
+      "R1": "R1",
+      "R-3050": "R2",
+      "R-2250": "R3",
+      "R-1650": "R3",
+      "R-1250": "R4"
+    },
+    "height_ft": {
+      "_note": "Values in Table 30.11-A/B (GMC 30.30.050) — not accessible online."
+    },
+    "height_notes": {
+      "multi_family": "Lots over 90 ft wide allow additional story.",
+      "SFMU": "75 ft / 6 stories (up to 100 du/acre)"
+    },
+    "setbacks_ft": {
+      "R1": {
+        "front": 25,
+        "side": 6,
+        "rear": null
+      }
+    },
+    "density": {
+      "R-3050": "3,050 SF/unit (~14 du/acre)",
+      "R-2250": "2,250 SF/unit (~19 du/acre)",
+      "R-1650": "1,650 SF/unit (~26 du/acre)",
+      "R-1250": "1,250 SF/unit (~35 du/acre)"
+    },
+    "parking": {
+      "standard_per_unit": 2,
+      "3br_per_unit": 2.5,
+      "4br_per_unit": 3,
+      "type": "subterranean required"
+    },
+    "unconfirmed": [
+      "R1 height, FAR, lot coverage, rear setback",
+      "All MF height/FAR/setback/coverage (Table 30.11-A/B)"
+    ],
+    "sources": [
+      "GMC Title 30, Chapter 30.11",
+      "GMC 30.11.030 (Table 30.11-A/B)",
+      "GMC 30.11.050 (MF additional standards)",
+      "GMC 30.11.070 (Setback requirements)"
+    ]
   },
-
   "Burbank": {
     "rent_stabilization": {
       "has_rso": true,
@@ -398,9 +702,54 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-1-H": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4"
+    },
+    "height_ft": {
+      "R-1_to_plate": 20,
+      "R-1_pitched_roof": 30,
+      "R-1_flat_roof": 23
+    },
+    "height_notes": {
+      "R-1": "20 ft plate, 30 ft pitched roof, 23 ft flat roof. Effectively 2 stories.",
+      "R-3_R-4": "Described as 'low-rise (1-3 stories)' in zone purpose statements.",
+      "three_story": "R-1: No. R-3/R-4: Likely yes (1-3 stories)."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": "avg blockface",
+        "side": "10% width, min 3, max 10",
+        "rear": 15
+      },
+      "MF_buffer_adj_R1_R2": 20,
+      "MF_buffer_adj_R3_R4": 10
+    },
+    "far": {
+      "R-1_up_to_7500sf": 0.4,
+      "R-1_7500_to_15000sf": 0.3,
+      "R-1_over_15000sf": 0.2
+    },
+    "lot_coverage_pct": {
+      "R-1": 50
+    },
+    "parking": {
+      "R-1_up_to_3400sf": 2,
+      "R-1_over_3400sf": 3
+    },
+    "unconfirmed": [
+      "R-2/R-3/R-4 height, FAR, setbacks, lot coverage, parking (BMC 10-1-628)"
+    ],
+    "sources": [
+      "BMC Title 10, Ch. 1, Article 6",
+      "BMC 10-1-603 (R-1 Standards)",
+      "BMC 10-1-628 (MF Standards — not accessible)"
+    ]
   },
-
   "Santa Monica": {
     "rent_stabilization": {
       "has_rso": true,
@@ -413,9 +762,69 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R1": "R1",
+      "R2": "R2",
+      "R3": "R3",
+      "R4": "R4"
+    },
+    "height_ft": {
+      "R1": 28,
+      "R1_flat_wall": 23,
+      "R2": 30,
+      "R3": 40,
+      "R4": 45
+    },
+    "height_notes": {
+      "R1": "28 ft max, 23 ft flat-roof wall. Effectively 2 stories.",
+      "R2": "30 ft max. Daylight plane at 23 ft / 45°.",
+      "R3": "40 ft max. 3 stories by-right.",
+      "R4": "45 ft max. 3-4 stories by-right."
+    },
+    "setbacks_ft": {
+      "MF_street_side": "15% of width, min 6, max 10",
+      "adjacent_R1_interior_side": 10,
+      "adjacent_R1_rear": 20
+    },
+    "lot_coverage_pct": {
+      "R1_new": 45,
+      "R1_addition": 55,
+      "R2_ground": 45,
+      "R3_ground": 50
+    },
+    "daylight_plane": {
+      "R2": {
+        "start_height_ft": 23,
+        "angle_deg": 45
+      },
+      "R3": {
+        "start_height_ft": 35,
+        "angle_deg": 45
+      },
+      "R4": {
+        "start_height_ft": 40,
+        "angle_deg": 45
+      }
+    },
+    "density": {
+      "R2": "2,000 SF/unit or 4 max",
+      "R3": "1,500 SF/unit or 5 max",
+      "R4": "1,250 SF/unit or 6 max"
+    },
+    "unconfirmed": [
+      "R1 FAR, setbacks, min lot",
+      "R2-R4 FAR",
+      "Standard (non-R1-adjacent) side/rear setbacks",
+      "Parking per unit"
+    ],
+    "sources": [
+      "SMMC 9.07.030 (R1 Standards)",
+      "SMMC 9.08.030 (Multi-Unit Standards)",
+      "SM R1 Development Standards Guide (Mar 2022)",
+      "SM Housing Element 2021-2029 Appendix E"
+    ]
   },
-
   "Culver City": {
     "rent_stabilization": {
       "has_rso": true,
@@ -428,9 +837,49 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "R1 SFR, R2 duplex, R3 triplex. Higher density in mixed-use zones.",
+      "R1": "R1",
+      "R2": "R2",
+      "R3": "R3"
+    },
+    "height_ft": {
+      "R1_flat": 27,
+      "R1_sloped": 30
+    },
+    "height_notes": {
+      "R1": "27 ft flat roof, 30 ft sloped (>= 3:12 pitch). 2 stories max.",
+      "three_story": "No — all R zones limited to 2 stories."
+    },
+    "setbacks_ft": {
+      "R1": {
+        "front": 20,
+        "front_2nd": 25,
+        "side": 5,
+        "rear": 15
+      },
+      "R2": {
+        "side": 5,
+        "rear": 15
+      }
+    },
+    "far": {
+      "R1": 0.45,
+      "R1_note": "Reduced from 0.60 in Oct 2024 code update."
+    },
+    "parking": {
+      "_note": "2024 update eliminated parking minimums.",
+      "all_zones": "no minimum required"
+    },
+    "unconfirmed": [
+      "R2/R3 FAR, height, lot coverage (Table 2-3 in PDF)"
+    ],
+    "sources": [
+      "Culver City Zoning Code Title 17 (Oct 2024)",
+      "§17.210.020 Table 2-3"
+    ]
   },
-
   "Inglewood": {
     "rent_stabilization": {
       "has_rso": true,
@@ -442,9 +891,64 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4",
+      "R-M": "R4"
+    },
+    "height_ft": {
+      "R-1": 35,
+      "R-2": 35,
+      "R-3": 40,
+      "R-4_small": 52,
+      "R-4_large": 75
+    },
+    "height_notes": {
+      "R-1": "35 ft / 2.5 stories.",
+      "R-2": "35 ft / 2.5 stories.",
+      "R-3": "40 ft / 3 stories. 3-story by-right.",
+      "R-4": "52 ft / 4 stories (small lots). 75 ft / 6 stories on lots >= 12K SF & >= 80 ft wide."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": "25% of depth, max 25",
+        "side": "10% width, min 3, max 5",
+        "rear": "25% of depth, max 25"
+      },
+      "R-3": {
+        "front": "20% of depth, max 20",
+        "side": "7 min, +3 per story above 2",
+        "rear": "20% of depth, max 20"
+      },
+      "R-4": {
+        "front": 15,
+        "side": "7 min, +3 per story above 2",
+        "rear": 15
+      }
+    },
+    "far": {
+      "_note": "Inglewood does NOT use FAR. Density controlled by lot-area-per-unit."
+    },
+    "density_lot_area_per_unit_sf": {
+      "R-1": 6000,
+      "R-2": 2500,
+      "R-3_small": 1400,
+      "R-3_large": 1100,
+      "R-4_small": 1250,
+      "R-4_large": 800
+    },
+    "parking": {
+      "all_zones": 2,
+      "type": "enclosed required"
+    },
+    "sources": [
+      "IMC Chapter 12, Articles 2-5",
+      "ecode360.com/43786276 (R-1 through R-4)"
+    ]
   },
-
   "Torrance": {
     "rent_stabilization": {
       "has_rso": false,
@@ -453,9 +957,69 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4",
+      "R-5": "R4"
+    },
+    "height_ft": {
+      "R-1_1story": 18,
+      "R-1_2story": 27,
+      "R-2": 27,
+      "R-3": 35
+    },
+    "height_notes": {
+      "R-1": "18 ft 1-story, 27 ft 2-story.",
+      "R-2": "27 ft / 2 stories.",
+      "R-3": "35 ft / 2 stories (story limit despite height allowing 3).",
+      "three_story": "No in R-1/R-2/R-3. R-4 likely allows 3+."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": 20,
+        "side": "10% width, min 3, max 5",
+        "rear": "15 (1-story), 20 (2-story)"
+      },
+      "R-2": {
+        "front": 20,
+        "side": "10% width, min 3, max 5",
+        "rear": 10
+      },
+      "R-3": {
+        "front": 20,
+        "side": "10% width, min 3, max 5",
+        "rear": 10
+      }
+    },
+    "far": {
+      "R-1": 0.6,
+      "R-2": 0.65,
+      "R-3_base": 0.6,
+      "R-3_3to7units": 1.0,
+      "R-3_8to10units": 1.25
+    },
+    "lot_coverage_pct": {
+      "R-1_1story": 50,
+      "R-1_2story": 40
+    },
+    "parking": {
+      "sfr": 2,
+      "duplex_per_unit": 2,
+      "mf_2bed_or_less": 2,
+      "mf_3bed_plus": 3,
+      "visitor_per_5_units": 1
+    },
+    "unconfirmed": [
+      "R-4 height, FAR, setbacks"
+    ],
+    "sources": [
+      "TMC Division 9, Chapter 1, Articles 4-9",
+      "TMC Division 9, Chapter 3 (Parking)"
+    ]
   },
-
   "Alhambra": {
     "rent_stabilization": {
       "has_rso": false,
@@ -464,9 +1028,72 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "RL": "R1",
+      "RM": "R3",
+      "RH": "R4"
+    },
+    "height_ft": {
+      "RL": 25,
+      "RM": 35,
+      "RH": 45,
+      "RH_special_area": 75
+    },
+    "height_notes": {
+      "RL": "25 ft, 2 stories max.",
+      "RM": "35 ft, 3 stories max. 3-story by-right.",
+      "RH": "45 ft / 5 stories (75 ft / 6 stories in special area near Atlantic/Woodward)."
+    },
+    "setbacks_ft": {
+      "RL": {
+        "front": 25,
+        "street_side": 10,
+        "interior_side_1st": 5,
+        "interior_side_upper": 6,
+        "rear": "20% of depth, max 15"
+      },
+      "RM": {
+        "front": "avg of adjacent or 20",
+        "street_side": 10,
+        "interior_side_1st": 5,
+        "interior_side_upper": 6,
+        "rear": 10
+      },
+      "RH": {
+        "front": "avg of adjacent or 15",
+        "street_side": 10,
+        "interior_side_1st": 5,
+        "interior_side_upper": 6,
+        "rear": 10
+      }
+    },
+    "far": {
+      "RL": 0.4
+    },
+    "lot_coverage_pct": {
+      "RM": 45,
+      "RH": 55
+    },
+    "density": {
+      "RL": "5 du/ac",
+      "RM": "18 du/ac",
+      "RH": "24 du/ac (43 on 10K+ lots, 64 in special area)"
+    },
+    "parking": {
+      "sfr": 2,
+      "type": "enclosed garage"
+    },
+    "unconfirmed": [
+      "RL lot coverage",
+      "RM/RH FAR",
+      "Multi-family parking ratios"
+    ],
+    "sources": [
+      "AMC Chapter 23.04",
+      "alhambraca.gov RL/RM/RH zone pages"
+    ]
   },
-
   "Whittier": {
     "rent_stabilization": {
       "has_rso": false,
@@ -475,9 +1102,53 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-E": "R1",
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4"
+    },
+    "height_ft": {
+      "R-E": 30,
+      "R-1": 35
+    },
+    "height_notes": {
+      "R-1": "35 ft — may allow 3 stories (no explicit story limit found).",
+      "R-E": "30 ft."
+    },
+    "setbacks_ft": {
+      "R-E": {
+        "front": 25,
+        "side": 10,
+        "rear": 10
+      },
+      "R-1": {
+        "front": 20,
+        "side": 5,
+        "rear": 5
+      }
+    },
+    "lot_coverage_pct": {
+      "R-E": 40,
+      "R-1": 40
+    },
+    "lot_size_minimums_sf": {
+      "R-E": 15000,
+      "R-1": 7000
+    },
+    "unconfirmed": [
+      "R-1 FAR",
+      "R-2/R-3/R-4 all standards (WMC 18.18-18.22)",
+      "Story limits",
+      "Parking ratios"
+    ],
+    "sources": [
+      "WMC Title 18, §18.16.030 (R-1)",
+      "WMC 18.14 (R-E)"
+    ]
   },
-
   "Downey": {
     "rent_stabilization": {
       "has_rso": false,
@@ -486,9 +1157,45 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "R-1 split by min lot: R-1-5000 through R-1-10000.",
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3"
+    },
+    "far": {
+      "R-1": 0.45,
+      "R-1_renewable_bonus": 0.5
+    },
+    "lot_coverage_pct": {
+      "R-1": 45
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": 25
+      }
+    },
+    "lot_size_minimums_sf": {
+      "R-1-5000": 5000,
+      "R-1-6000": 6000,
+      "R-1-7500": 7500,
+      "R-1-8500": 8500,
+      "R-1-10000": 10000
+    },
+    "density": {
+      "R-3": "0-13 du/ac, 1-3 stories"
+    },
+    "unconfirmed": [
+      "R-1 height, story limits",
+      "R-1 side/rear setbacks",
+      "R-2/R-3 complete standards (Table 9.3.4)",
+      "Parking ratios"
+    ],
+    "sources": [
+      "DMC Section 9312.08, Table 9.3.3"
+    ]
   },
-
   "Arcadia": {
     "rent_stabilization": {
       "has_rso": false,
@@ -497,9 +1204,38 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-M": "R1",
+      "R-0": "R1",
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R4"
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": "greater of 25 or avg of 2 nearest lots"
+      },
+      "R-0": {
+        "front": "greater of 35 or avg of 2 nearest"
+      }
+    },
+    "density": {
+      "R-2": "6-12 du/ac",
+      "R-3": "40 du/ac (increased from 30)"
+    },
+    "unconfirmed": [
+      "All height limits",
+      "All FAR values",
+      "All lot coverage %",
+      "Side/rear setbacks",
+      "Parking",
+      "Story limits — data locked in PDF Tables 2-2 and 2-6"
+    ],
+    "sources": [
+      "Arcadia Development Code, Tables 2-2 and 2-6 (PDF)"
+    ]
   },
-
   "Monrovia": {
     "zone_mapping": {
       "_note": "Monrovia uses RF/RE/RL for single-family (foothill/estate/low-density) and RM/RH for multi-family. No standard R-1/R-2 naming. MMC Title 17, Chapter 17.12.",
@@ -509,7 +1245,6 @@
       "RM": "R3",
       "RH": "R4"
     },
-
     "height_ft": {
       "_note": "Height varies by lot width in RE/RL (per table in 17.12.020). RF has pad-edge based height. RM = 27 ft / 2 stories. RH allows 3+ stories.",
       "RF": "varies by pad — 2 stories max, 27 ft typical",
@@ -524,18 +1259,41 @@
       "RH": "Second story setback = 6 ft or required 1st story setback (whichever greater). Each story over 2 requires additional 5 ft setback.",
       "27ft_threshold": "For structures over 27 ft in RF/RE/RL zones, 2nd story setback increases 2 ft per additional 1 ft of height."
     },
-
     "setbacks_ft": {
       "_note": "RF: 15 ft second-story setback from pad edge. RE/RL: second-story setback = 12 ft or first-floor setback (whichever greater). RM: second-story setback = 8 ft. RH: second-story setback = 6 ft. Front/side/rear first-floor setbacks per code table (not fully available online).",
-      "RF": { "front": "per avg setback rule", "side": 15, "rear": 15, "2nd_story": 15 },
-      "RE": { "front": "per avg setback rule", "side": null, "rear": null, "2nd_story": 12 },
-      "RL": { "front": "per avg setback rule", "side": null, "rear": null, "2nd_story": 12 },
-      "RM": { "front": null, "side": null, "rear": null, "2nd_story": 8 },
-      "RH": { "front": null, "side": null, "rear": null, "2nd_story": 6 },
+      "RF": {
+        "front": "per avg setback rule",
+        "side": 15,
+        "rear": 15,
+        "2nd_story": 15
+      },
+      "RE": {
+        "front": "per avg setback rule",
+        "side": null,
+        "rear": null,
+        "2nd_story": 12
+      },
+      "RL": {
+        "front": "per avg setback rule",
+        "side": null,
+        "rear": null,
+        "2nd_story": 12
+      },
+      "RM": {
+        "front": null,
+        "side": null,
+        "rear": null,
+        "2nd_story": 8
+      },
+      "RH": {
+        "front": null,
+        "side": null,
+        "rear": null,
+        "2nd_story": 6
+      },
       "corner_lot_garage_min": 20,
       "avg_setback_rule": "Average of structures on same side of street in same block (up to 400 ft each side), excluding largest and smallest"
     },
-
     "far": {
       "_note": "RE/RL use a sliding-scale FAR formula based on net lot area (MMC 17.12.020). Not a fixed percentage.",
       "RE_RL_formula": "40% of first 5,000 SF + 35% of next 5,000 SF + 15% of remainder",
@@ -545,7 +1303,6 @@
       "RM": null,
       "RH": null
     },
-
     "lot_size_minimums_sf": {
       "_note": "Per MMC 17.16.010 table. Exact values for RE and RL from code table not accessible online.",
       "RF": null,
@@ -554,7 +1311,6 @@
       "RM": null,
       "RH": null
     },
-
     "floor_area_limits": {
       "_note": "Min dwelling unit floor area per MMC 17.12.020/030.",
       "RE_RL_min_dwelling_sf": 1250,
@@ -562,18 +1318,15 @@
       "RM_min_dwelling_sf_single": 1250,
       "accessory_max_pct_of_main": 80
     },
-
     "recreation_space": {
       "RM_pct_of_gross_dwelling": 40,
       "RH_pct_of_gross_dwelling": 20
     },
-
     "density": {
       "_note": "RH max density is 54 units/acre per housing element. RM density per code table (not accessible online).",
       "RH_max_units_per_acre": 54,
       "RM_max_units_per_acre": null
     },
-
     "parking": {
       "_note": "Per MMC 17.24.030. Garage dimensions: min 18 ft wide x 20 ft deep (enclosed), 9 ft wide x 20 ft deep (open). No tandem for required parking.",
       "standard_per_unit": null,
@@ -583,18 +1336,19 @@
       "open_space_depth_ft": 20,
       "tandem_permitted": false
     },
-
     "rent_stabilization": {
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply",
-      "eligible_zones": ["RF", "RE", "RL"]
+      "eligible_zones": [
+        "RF",
+        "RE",
+        "RL"
+      ]
     },
-
     "unconfirmed": [
       "RF/RE/RL height-by-lot-width table (17.12.010/020 — behind Cloudflare, not accessible)",
       "RE/RL first-floor front/side/rear setbacks (code table not accessible)",
@@ -605,7 +1359,6 @@
       "Parking spaces per unit (17.24.030 table not accessible)",
       "Minimum lot sizes per zone (17.16.010 table not accessible)"
     ],
-
     "sources": [
       "MMC Title 17 (Zoning) — Chapter 17.12 Residential Development Standards",
       "MMC §17.12.010 RF Development Standards",
@@ -615,7 +1368,6 @@
       "Monrovia 6th Cycle Housing Element (RH max 54 du/acre)"
     ]
   },
-
   "Redondo Beach": {
     "zone_mapping": {
       "_note": "Redondo Beach uses R-1/R-1A for single-family, R-2 (low-density MF), R-3/R-3A (low-density MF), RMD (medium-density MF), RH-1/RH-2/RH-3 (high-density MF). Two parallel code chapters: Ch 2 (North) and Ch 5 (South Redondo). Standards shown are from Chapter 2/5 combined.",
@@ -629,7 +1381,6 @@
       "RH-2": "R4",
       "RH-3": "R4"
     },
-
     "height_ft": {
       "_note": "Per Redondo Beach Municipal Code. All residential zones except RH-2/RH-3 are 30 ft / 2 stories.",
       "R-1": 30,
@@ -648,7 +1399,6 @@
       "RH-3": "35 ft standard, up to 45 ft with density bonus. 3 stories max.",
       "three_story": "Only RH-2 and RH-3 allow 3 stories by-right."
     },
-
     "max_stories": {
       "R-1": 2,
       "R-1A": 2,
@@ -660,31 +1410,82 @@
       "RH-2": 3,
       "RH-3": 3
     },
-
     "setbacks_ft": {
       "_note": "Per RBMC. Setbacks use averaging rules (min at any point shown). Second-story front setback in R-1 is 10 ft more than first-story average.",
-      "R-1": { "front_avg": 25, "front_min": 20, "side": 5, "rear_avg": "20% of lot depth", "rear_min": 15, "2nd_story_front_additional": 10 },
-      "R-1A": { "front_min": 25, "side": "3 ft or 10% of lot width (whichever greater)", "rear_avg": 16, "rear_min": 10 },
-      "R-2": { "front_avg": 20, "front_min": 15, "side": "5 ft + 1 ft per 50 ft frontage over 50 ft", "rear_avg": 15, "rear_min": 10 },
-      "R-3": { "front_avg": 18, "front_min": 14, "side": "5 ft + 1 ft per 50 ft frontage over 50 ft", "rear_avg": 15, "rear_min": 10 },
-      "R-3A": { "front_avg": 18, "front_min": 14, "side": "5 ft (same as R-3)", "rear_avg": 15, "rear_min": 10 },
-      "RMD": { "front_avg": 18, "front_min": 12, "side": "5 ft / 6 ft (50-100 ft) / 10 ft (100-150 ft) / 15 ft (>150 ft)", "rear_avg": 15, "rear_min": 10 },
-      "RH-1": { "front_avg": 15, "front_min": 12, "side": "5 ft (scales with frontage)", "rear_avg": 15, "rear_min": 10 },
-      "RH-2": { "front_avg": 15, "front_min": 12, "side": "5 ft (scales with frontage)", "rear_avg": 15, "rear_min": 10 },
-      "RH-3": { "front_avg": 15, "front_min": 12, "side": "5 ft (scales with frontage)", "rear_avg": 15, "rear_min": 10 }
+      "R-1": {
+        "front_avg": 25,
+        "front_min": 20,
+        "side": 5,
+        "rear_avg": "20% of lot depth",
+        "rear_min": 15,
+        "2nd_story_front_additional": 10
+      },
+      "R-1A": {
+        "front_min": 25,
+        "side": "3 ft or 10% of lot width (whichever greater)",
+        "rear_avg": 16,
+        "rear_min": 10
+      },
+      "R-2": {
+        "front_avg": 20,
+        "front_min": 15,
+        "side": "5 ft + 1 ft per 50 ft frontage over 50 ft",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "R-3": {
+        "front_avg": 18,
+        "front_min": 14,
+        "side": "5 ft + 1 ft per 50 ft frontage over 50 ft",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "R-3A": {
+        "front_avg": 18,
+        "front_min": 14,
+        "side": "5 ft (same as R-3)",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "RMD": {
+        "front_avg": 18,
+        "front_min": 12,
+        "side": "5 ft / 6 ft (50-100 ft) / 10 ft (100-150 ft) / 15 ft (>150 ft)",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "RH-1": {
+        "front_avg": 15,
+        "front_min": 12,
+        "side": "5 ft (scales with frontage)",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "RH-2": {
+        "front_avg": 15,
+        "front_min": 12,
+        "side": "5 ft (scales with frontage)",
+        "rear_avg": 15,
+        "rear_min": 10
+      },
+      "RH-3": {
+        "front_avg": 15,
+        "front_min": 12,
+        "side": "5 ft (scales with frontage)",
+        "rear_avg": 15,
+        "rear_min": 10
+      }
     },
-
     "far": {
       "_note": "R-1 base FAR = 0.65, with design bonuses up to 0.15 additional (max 0.80). Other zones do not specify FAR in code excerpts — controlled by density + setbacks + height.",
       "R-1": 0.65,
-      "R-1_max_with_bonus": 0.80,
+      "R-1_max_with_bonus": 0.8,
       "R-1A": null,
       "R-2": null,
       "R-3": null,
       "RMD": null,
       "RH": null
     },
-
     "density_sf_per_unit": {
       "_note": "Minimum lot area per dwelling unit. Smaller number = higher density.",
       "R-1": "1 unit per lot",
@@ -698,7 +1499,6 @@
       "RH-3_max": 1452,
       "RH-3_min": 2179
     },
-
     "outdoor_living_space_sf": {
       "_note": "Required outdoor living space per unit. Varies by zone and housing type.",
       "R-1_single_family": 800,
@@ -713,7 +1513,6 @@
       "RH_single_family": 800,
       "RH_condo_multi": 200
     },
-
     "parking": {
       "_note": "Per RBMC Article 5. Two-unit projects (SB 9): 1 space per unit with transit/carshare exceptions.",
       "standard_per_unit": null,
@@ -721,18 +1520,18 @@
       "two_unit_max_sf": 800,
       "two_unit_max_height_ft": "16-18 ft (detached)"
     },
-
     "rent_stabilization": {
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply",
-      "eligible_zones": ["R-1", "R-1A"]
+      "eligible_zones": [
+        "R-1",
+        "R-1A"
+      ]
     },
-
     "unconfirmed": [
       "R-1A FAR (not specified in code excerpt)",
       "Multi-family zone FARs (R-2, R-3, RMD, RH — not specified in code excerpts)",
@@ -740,7 +1539,6 @@
       "R-1/R-1A lot coverage percentage (not specified in code excerpts — controlled by outdoor living space + setbacks)",
       "Minimum lot sizes for R-1 and R-1A zones"
     ],
-
     "sources": [
       "RBMC Title 10, Chapter 2 (North Redondo) and Chapter 5 (South Redondo) — residential zone development standards",
       "RBMC §10-2.503 / §10-5.503: R-1 standards (30 ft / 2 stories, FAR 0.65 base / 0.80 max, 25 ft avg front / 20 ft min, 5 ft side, 15 ft min rear)",
@@ -749,7 +1547,6 @@
       "ecode360.com/42654131 (Single-Family), ecode360.com/42658101 (Multi-Family)"
     ]
   },
-
   "Hermosa Beach": {
     "zone_mapping": {
       "_note": "Hermosa Beach uses R-1 (single-family), R-2 (two-family), R-3 (multiple-family), R-2B (limited MF), R-P (residential professional — same standards as R-3). HBMC Title 17.",
@@ -759,7 +1556,6 @@
       "R-3": "R3",
       "R-P": "R3"
     },
-
     "height_ft": {
       "_note": "Per HBMC. R-1 = 25 ft. R-2/R-3/R-P = 30 ft (up to 35 ft by exception).",
       "R-1": 25,
@@ -774,7 +1570,6 @@
       "R-P": "Same as R-3: 30 ft max, up to 35 ft by exception.",
       "three_story": "3-story is possible within 30 ft envelope in R-2/R-3 zones but tight. R-1 at 25 ft effectively limits to 2 stories."
     },
-
     "max_stories": {
       "_note": "Code does not explicitly set story limits — controlled by height cap. 25 ft = 2 stories practical max. 30 ft could accommodate 3 tight stories.",
       "R-1": "2 (practical)",
@@ -782,15 +1577,37 @@
       "R-3": "2-3 (within 30 ft)",
       "R-P": "2-3 (within 30 ft)"
     },
-
     "setbacks_ft": {
       "_note": "Per HBMC. R-1 front = 10% of lot depth (min 5 ft, max 10 ft). R-2/R-3 front per official zoning map. Side = 10% of lot width (min 3 ft, max 5 ft) for all zones. Rear = 5 ft (3 ft on alley ground floor, 1 ft on alley upper floor).",
-      "R-1": { "front": "10% of lot depth (min 5, max 10)", "side": "10% of lot width (min 3, max 5)", "rear": 5, "rear_alley_1st": 3, "rear_alley_upper": 1, "rear_2nd_floor": 3 },
-      "R-2": { "front": "5 ft (or greater per zoning map)", "side": "10% of lot width (min 3, max 5)", "rear": 5, "rear_alley_1st": 3, "rear_alley_upper": 1, "rear_2nd_floor": 3 },
-      "R-3": { "front": "per Front Yard Requirements map", "side": "10% of lot width (min 3, max 5)", "rear": 5, "rear_alley_1st": 3, "rear_alley_upper": 1 },
-      "R-P": { "front": "per Front Yard Requirements map", "side": "10% of lot width (min 3, max 5)", "rear": 5 }
+      "R-1": {
+        "front": "10% of lot depth (min 5, max 10)",
+        "side": "10% of lot width (min 3, max 5)",
+        "rear": 5,
+        "rear_alley_1st": 3,
+        "rear_alley_upper": 1,
+        "rear_2nd_floor": 3
+      },
+      "R-2": {
+        "front": "5 ft (or greater per zoning map)",
+        "side": "10% of lot width (min 3, max 5)",
+        "rear": 5,
+        "rear_alley_1st": 3,
+        "rear_alley_upper": 1,
+        "rear_2nd_floor": 3
+      },
+      "R-3": {
+        "front": "per Front Yard Requirements map",
+        "side": "10% of lot width (min 3, max 5)",
+        "rear": 5,
+        "rear_alley_1st": 3,
+        "rear_alley_upper": 1
+      },
+      "R-P": {
+        "front": "per Front Yard Requirements map",
+        "side": "10% of lot width (min 3, max 5)",
+        "rear": 5
+      }
     },
-
     "lot_coverage_pct": {
       "_note": "Per HBMC. All residential zones = 65% max. R-P = 70%. Small lots (<=2,100 SF in R-1) = 70%.",
       "R-1": 65,
@@ -799,7 +1616,6 @@
       "R-3": 65,
       "R-P": 70
     },
-
     "lot_size_minimums_sf": {
       "_note": "Per HBMC. All residential zones = 4,000 SF minimum for new lots.",
       "R-1": 4000,
@@ -807,7 +1623,6 @@
       "R-3": 4000,
       "R-P": 4000
     },
-
     "density_sf_per_unit": {
       "_note": "Minimum lot area per dwelling unit.",
       "R-1": "1 unit per lot",
@@ -815,14 +1630,12 @@
       "R-3": 1320,
       "R-P": 1320
     },
-
     "lot_width_min_ft": {
       "R-2": 40,
       "R-3": null,
       "R-P": 40,
       "substandard_below_30ft": "single-family only"
     },
-
     "open_space_sf_per_unit": {
       "_note": "R-1 = 400 SF (25% may be balcony). R-2/R-3 = 300 SF (100 SF must be accessible to primary living area). Min dimension 7x7 ft.",
       "R-1": 400,
@@ -831,7 +1644,6 @@
       "R-3": 300,
       "R-P": null
     },
-
     "building_separation_ft": {
       "R-1_habitable": 8,
       "R-1_accessory": 6,
@@ -840,12 +1652,10 @@
       "R-3_habitable": 8,
       "R-3_accessory": 6
     },
-
     "far": {
       "_note": "Hermosa Beach does not use FAR. Building size is controlled by lot coverage (65%) + height + setbacks. No FAR specified in any residential zone.",
       "all_zones": "not used"
     },
-
     "parking": {
       "_note": "Per HBMC 17.44.020. SFR = 2 spaces + 1 guest. Duplex = 2 per unit + 1 guest + replace lost on-street. Multi (3+): 0-1 BR = 1.5, 2 BR = 2, 3+ BR = 2.5 per unit + replace lost on-street.",
       "single_family": "2 + 1 guest",
@@ -857,24 +1667,22 @@
       "density_bonus_2_3br": 1.5,
       "density_bonus_4plus_br": 2.5
     },
-
     "rent_stabilization": {
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply",
-      "eligible_zones": ["R-1"]
+      "eligible_zones": [
+        "R-1"
+      ]
     },
-
     "unconfirmed": [
       "R-3 front yard setback (per official Front Yard Requirements map — not available online)",
       "R-2B zone development standards (limited content available)",
       "Whether R-1 has explicit 2-story limit or only the 25 ft height cap"
     ],
-
     "sources": [
       "HBMC Title 17 (Zoning) — Chapters 17.08 (R-1), 17.12 (R-2), 17.16 (R-3), 17.20 (R-P), 17.44 (Parking)",
       "HBMC §17.08.030: R-1 standards (25 ft, 65% coverage, 4,000 SF min lot, 400 SF open space)",
@@ -886,7 +1694,6 @@
       "HBMC §17.44.020: Parking (SFR: 2+1 guest, duplex: 2/unit+1 guest, MF: 1.5-2.5/unit by bedroom count)"
     ]
   },
-
   "Manhattan Beach": {
     "zone_mapping": {
       "_note": "Manhattan Beach uses RS (single-family), RM (medium-density), RH (high-density). Standards vary dramatically by Area District (I-IV). Area Districts I & II are the Hill Section / Tree Section (inland); III & IV are the Sand Section (near beach). MBMC Title 10, Chapter 10.12.",
@@ -894,7 +1701,6 @@
       "RM": "R3",
       "RH": "R4"
     },
-
     "height_ft": {
       "_note": "Per MBMC 10.12.030. Area Districts I & II = 26 ft (RS/RM), 30 ft (RH). Area Districts III & IV = 30 ft (all zones).",
       "RS_area_I_II": 26,
@@ -910,7 +1716,6 @@
       "three_story": "3 stories by-right in RH (all areas) and all zones in Area Districts III & IV. RS/RM in Area I & II limited to 2 stories.",
       "voter_protection": "MBMC amendments cannot increase max height or max floor area, or reduce min setbacks/lot area, without city-wide voter approval."
     },
-
     "max_stories": {
       "RS_area_I_II": 2,
       "RM_area_I_II": 2,
@@ -919,38 +1724,82 @@
       "RM_area_III_IV": 3,
       "RH_area_III_IV": 3
     },
-
     "setbacks_ft": {
       "_note": "Per MBMC 10.12.030. Side = 10% of lot width, min 3 ft. RM/RH side need not exceed 10 ft, corner side need not exceed 5 ft. Rear varies by formula in Area I/II.",
       "area_I_II": {
-        "RS": { "front": 20, "side": "10% of lot width (min 3)", "rear": "0.3 x lot_depth - 20 (min 12)", "rear_min": 12 },
-        "RM": { "front": 20, "side": "10% of lot width (min 3, max 10)", "rear": "0.3 x lot_depth - 20 (min 12)", "rear_min": 12 },
-        "RH": { "front": 20, "side": "10% of lot width (min 3, max 10)", "rear": "0.3 x lot_depth - 20 (min 12)", "rear_min": 12 }
+        "RS": {
+          "front": 20,
+          "side": "10% of lot width (min 3)",
+          "rear": "0.3 x lot_depth - 20 (min 12)",
+          "rear_min": 12
+        },
+        "RM": {
+          "front": 20,
+          "side": "10% of lot width (min 3, max 10)",
+          "rear": "0.3 x lot_depth - 20 (min 12)",
+          "rear_min": 12
+        },
+        "RH": {
+          "front": 20,
+          "side": "10% of lot width (min 3, max 10)",
+          "rear": "0.3 x lot_depth - 20 (min 12)",
+          "rear_min": 12
+        }
       },
       "area_III_IV": {
-        "RS": { "front": 5, "side": "10% of lot width (min 3)", "rear": "5 or 10" },
-        "RM": { "front": 5, "side": "10% of lot width (min 3, max 10)", "rear": 5 },
-        "RH": { "front": 5, "side": "10% of lot width (min 3, max 10)", "rear": 5 }
+        "RS": {
+          "front": 5,
+          "side": "10% of lot width (min 3)",
+          "rear": "5 or 10"
+        },
+        "RM": {
+          "front": 5,
+          "side": "10% of lot width (min 3, max 10)",
+          "rear": 5
+        },
+        "RH": {
+          "front": 5,
+          "side": "10% of lot width (min 3, max 10)",
+          "rear": 5
+        }
       },
       "height_24ft_adjustment": "Side/corner/rear yard width increases 3 ft over basic requirement for walls exceeding 24 ft"
     },
-
     "floor_area_factor": {
       "_note": "Manhattan Beach uses Floor Area Factor (FAF) instead of FAR. Max buildable floor area = lot_area x FAF, or base_floor_area + (lot_area - threshold) x secondary_FAF for larger lots.",
       "area_I_II": {
-        "RS": { "FAF": 1.0, "threshold_sf": 4800, "base_sf_above_threshold": null },
-        "RM": { "FAF": 1.2, "threshold_sf": 7500, "base_sf_above_threshold": 2250, "secondary_FAF": 0.9 },
-        "RH": { "FAF": 1.0, "threshold_sf": 7500, "base_sf_above_threshold": 2250, "secondary_FAF": 0.7 }
+        "RS": {
+          "FAF": 1.0,
+          "threshold_sf": 4800,
+          "base_sf_above_threshold": null
+        },
+        "RM": {
+          "FAF": 1.2,
+          "threshold_sf": 7500,
+          "base_sf_above_threshold": 2250,
+          "secondary_FAF": 0.9
+        },
+        "RH": {
+          "FAF": 1.0,
+          "threshold_sf": 7500,
+          "base_sf_above_threshold": 2250,
+          "secondary_FAF": 0.7
+        }
       },
       "area_III_IV": {
-        "RS": { "FAF": 1.6 },
-        "RM": { "FAF": 1.6 },
-        "RH": { "FAF": 1.7 }
+        "RS": {
+          "FAF": 1.6
+        },
+        "RM": {
+          "FAF": 1.6
+        },
+        "RH": {
+          "FAF": 1.7
+        }
       },
       "example_RS_area_I_II_7500sf": "7,500 x 1.0 = 7,500 SF max buildable",
       "example_RS_area_III_IV_3400sf": "3,400 x 1.6 = 5,440 SF max buildable"
     },
-
     "lot_size_minimums_sf": {
       "_note": "Per MBMC 10.12.030.",
       "area_I_II_RS": 7500,
@@ -960,12 +1809,10 @@
       "area_III_IV_RM": 2700,
       "area_III_IV_RH": 2700
     },
-
     "lot_width_min_ft": {
       "area_I_II": 50,
       "area_III_IV": 30
     },
-
     "density_sf_per_unit": {
       "_note": "Minimum lot area per dwelling unit.",
       "area_I_II": {
@@ -979,36 +1826,32 @@
         "RH": 850
       }
     },
-
     "open_space": {
       "_note": "Per MBMC. SF in Area III/IV and all MF: 15% of buildable floor area per unit, min 220 SF.",
       "area_III_IV_and_MF": "15% of buildable floor area per unit (min 220 SF)"
     },
-
     "parking": {
       "_note": "Per MBMC Chapter 10.64 (referenced but not detailed in residential chapter). Specific per-unit requirements need verification.",
       "standard_per_unit": null
     },
-
     "rent_stabilization": {
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only."
     },
-
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply",
-      "eligible_zones": ["RS"],
+      "eligible_zones": [
+        "RS"
+      ],
       "notes": "Area Districts III/IV (Sand Section) lots are mostly <10K SF and unlikely to meet SB 1123 lot minimums. Area Districts I/II (Hill/Tree Section) have larger lots more likely to qualify."
     },
-
     "unconfirmed": [
       "Parking requirements per unit (MBMC Chapter 10.64 — not fetched)",
       "RS area I/II rear setback formula verification (0.3 x depth - 20 needs code confirmation)",
       "RS area I/II FAF for lots above 4,800 SF (tiered formula needs verification)",
       "Lot coverage percentages (not specified in code excerpt — may be controlled by FAF + setbacks only)"
     ],
-
     "sources": [
       "MBMC Title 10 (Planning and Zoning), Chapter 10.12 — Residential Districts §10.12.030",
       "Zoneomics code extract: Full development standards table for RS, RM, RH by Area District",
@@ -1016,7 +1859,6 @@
       "manhattanbeach.gov/departments/community-development/planning-zoning/zoning-development-regulations"
     ]
   },
-
   "El Segundo": {
     "rent_stabilization": {
       "has_rso": false,
@@ -1025,9 +1867,61 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3"
+    },
+    "height_ft": {
+      "R-1_pitched": 32,
+      "R-1_flat": 26,
+      "R-2_pitched": 32,
+      "R-2_flat": 26,
+      "R-3_pitched": 32,
+      "R-3_flat": 26
+    },
+    "height_notes": {
+      "all": "All residential: 2 stories max. Pitched 32 ft, flat 26 ft. No 3-story by-right."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": 22,
+        "side": "10% width, min 3, max 6",
+        "rear": 5
+      },
+      "R-2": {
+        "front": 20,
+        "side": "10% width, min 3, max 5",
+        "rear": 5
+      },
+      "R-3": {
+        "front": 15,
+        "side": "10% width, min 3, max 5",
+        "rear": 10
+      }
+    },
+    "far": {
+      "R-1": 0.6,
+      "R-1_2nd_floor": 0.25
+    },
+    "lot_coverage_pct": {
+      "R-2": 50,
+      "R-3": 53
+    },
+    "lot_size_minimums_sf": {
+      "R-1": 5000,
+      "R-2": 7000,
+      "R-3": 7000
+    },
+    "unconfirmed": [
+      "R-2/R-3 FAR",
+      "R-1 lot coverage (wider lots)"
+    ],
+    "sources": [
+      "ESMC Title 15 §15-4A-6, §15-4B, §15-4C-3, §15-4D"
+    ]
   },
-
   "South Pasadena": {
     "rent_stabilization": {
       "has_rso": false,
@@ -1036,9 +1930,68 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "RE": "R1",
+      "RS": "R1",
+      "RM": "R3",
+      "RH": "R4"
+    },
+    "height_ft": {
+      "RE": 35,
+      "RS": 45,
+      "RM": 45,
+      "RH": 45
+    },
+    "height_notes": {
+      "RS": "45 ft — notably permissive. 3 stories likely achievable by-right.",
+      "RE": "35 ft, likely 2-story max."
+    },
+    "setbacks_ft": {
+      "RE": {
+        "front": "25% of depth, min 25, max 35",
+        "side": "10% of width",
+        "rear": 25
+      },
+      "RS": {
+        "front": 10,
+        "side": "10% of width, min 4",
+        "rear": 15,
+        "rear_alley": 5
+      },
+      "RM": {
+        "front": 7.5,
+        "side": "4, +1 per story above 2nd",
+        "rear": 15,
+        "rear_alley": 5
+      },
+      "RH": {
+        "front": 7.5,
+        "side": "4, +1 per story above 2nd",
+        "rear": 15,
+        "rear_alley": 5
+      }
+    },
+    "far": {
+      "RE": 0.35
+    },
+    "lot_coverage_pct": {
+      "RE": 40
+    },
+    "density": {
+      "RE": "3 du/ac",
+      "RS": "5 du/ac",
+      "RM": "5.1-30 du/ac (up to 70 in HOO)",
+      "RH": "30.1-45 du/ac (up to 70 in HOO)"
+    },
+    "unconfirmed": [
+      "RS/RM/RH FAR and lot coverage",
+      "Parking ratios (SPMC 36.310)"
+    ],
+    "sources": [
+      "SPMC Chapter 36, Article 2 — Tables 2-1, 2-3, 2-5"
+    ]
   },
-
   "Hawthorne": {
     "rent_stabilization": {
       "has_rso": false,
@@ -1047,9 +2000,40 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4"
+    },
+    "height_ft": {
+      "R-1": 22,
+      "R-1_small_lot": 12
+    },
+    "height_notes": {
+      "R-1": "22 ft max, 2 stories. Small lots (<40 ft wide & <5K SF): 12 ft.",
+      "three_story": "Not by-right in R-1. R-2/R-3/R-4 height not confirmed."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "side": "10% width, min 3.5, max 5"
+      }
+    },
+    "far": {
+      "R-4": "1:3 (0.33) excluding parking"
+    },
+    "unconfirmed": [
+      "R-1 front/rear setbacks, lot area min, lot coverage",
+      "R-2/R-3/R-4 height, setbacks, coverage",
+      "All parking ratios",
+      "R-1/R-2/R-3 FAR"
+    ],
+    "sources": [
+      "HMC Title 17, Chapters 17.14-17.19",
+      "HMC §17.20 (Residential Development Standards)"
+    ]
   },
-
   "Compton": {
     "rent_stabilization": {
       "has_rso": false,
@@ -1058,9 +2042,56 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "_note": "Not standard R-1/R-2. Uses R-A, R-L, R-M, R-H.",
+      "R-A": "R1",
+      "R-L": "R1",
+      "R-M": "R3",
+      "R-H": "R4"
+    },
+    "height_ft": {
+      "R-A": 35,
+      "R-L": 35,
+      "R-M": 35,
+      "R-H": 35
+    },
+    "height_notes": {
+      "all": "35 ft all zones. Story limit not confirmed — 3 stories may be achievable."
+    },
+    "setbacks_ft": {
+      "R-A": {
+        "front": 20,
+        "side_interior": 3,
+        "side_street": 5,
+        "side_2plus_stories": 5,
+        "rear": "20% depth, min 10"
+      },
+      "R-L": {
+        "front": 20,
+        "side_interior": 3,
+        "side_street": 5,
+        "side_2plus_stories": 5
+      }
+    },
+    "lot_size_minimums_sf": {
+      "R-A": 10000,
+      "R-L": 5000,
+      "R-M_per_unit": 2500
+    },
+    "parking": {
+      "condo_per_unit": 2
+    },
+    "unconfirmed": [
+      "R-M/R-H side/rear setbacks",
+      "FAR all zones",
+      "Lot coverage all zones",
+      "Standard parking ratios"
+    ],
+    "sources": [
+      "Compton MC Chapter 30 §30-7.4 (R-A) through §30-10.3 (R-H)"
+    ]
   },
-
   "La Canada Flintridge": {
     "rent_stabilization": {
       "has_rso": false,
@@ -1069,9 +2100,65 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "State defaults apply"
-    }
+    },
+    "zone_mapping": {
+      "R-1": "R1",
+      "R-3": "R3",
+      "RPD": "R4",
+      "MU": "R4"
+    },
+    "height_ft": {
+      "R-1_small": 28,
+      "R-1_large": 32,
+      "RPD_wall": 30,
+      "RPD_roof": 35
+    },
+    "height_notes": {
+      "R-1": "28 ft (lots <= 10K SF or <= 65 ft wide). 32 ft larger lots. 2 stories.",
+      "RPD": "30 ft wall / 35 ft roof. 3 stories may be possible.",
+      "three_story": "R-1: No. RPD: Maybe within 35 ft roof."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": "25 min (avg of neighbors)",
+        "side": "10% of width, min 5, max 20",
+        "rear": 15
+      },
+      "RPD": {
+        "front_arterial": 25,
+        "front_local": 20,
+        "rear": 25,
+        "interior_side": 10,
+        "adj_sfr_upper": 20
+      }
+    },
+    "far": {
+      "MU_commercial": 0.5,
+      "MU_residential": 1.5
+    },
+    "lot_coverage_pct": {
+      "RPD": 50,
+      "R-3": 80
+    },
+    "density": {
+      "RPD": "20-30 du/ac",
+      "R-3": "25-30 du/ac"
+    },
+    "parking": {
+      "R-1": 2,
+      "RPD_0_1bed": 1.0,
+      "RPD_2bed": 2.0,
+      "RPD_3bed": 2.25
+    },
+    "unconfirmed": [
+      "R-1 FAR and lot coverage",
+      "R-3 height and setbacks",
+      "R-3 parking"
+    ],
+    "sources": [
+      "LCF MC Title 11, Chapters 11.11 (R-1), 11.12/11.13 (R-3/MF), 11.15 (RPD)"
+    ]
   },
-
   "Unincorporated LA County": {
     "rent_stabilization": {
       "has_rso": true,
@@ -1083,6 +2170,68 @@
     "sb1123": {
       "local_standards_adopted": false,
       "status": "County defaults — state SB 1123 standards apply. Planning processed through LA County Dept of Regional Planning."
-    }
+    },
+    "zone_mapping": {
+      "A-1": "R1",
+      "R-A": "R1",
+      "R-1": "R1",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4"
+    },
+    "height_ft": {
+      "R-1": 35,
+      "R-2": 35,
+      "R-3": 35
+    },
+    "height_notes": {
+      "all": "35 ft from grade. No explicit story limit — 3 stories potentially achievable.",
+      "CSD": "Community Standards Districts may impose stricter limits."
+    },
+    "setbacks_ft": {
+      "R-1": {
+        "front": 20,
+        "side": "5 or 10% width, min 3",
+        "rear": "15 or 20% depth, min 10"
+      },
+      "R-2": {
+        "front": 20,
+        "side": "5 or 10% width, min 3",
+        "rear": "15 or 20% depth, min 10"
+      },
+      "R-3": {
+        "front": 15,
+        "side": "5 or 10% width, min 3",
+        "rear": "15 or 20% depth, min 10"
+      }
+    },
+    "far": {
+      "_note": "Title 22 does NOT specify FAR. Building size controlled by setbacks, height, coverage."
+    },
+    "lot_size_minimums_sf": {
+      "R-1": 5000,
+      "R-2": 5000,
+      "R-2_per_unit": 2500,
+      "R-3": 5000,
+      "R-3_per_unit": 1452
+    },
+    "parking": {
+      "R-1": 2,
+      "R-2_per_unit": 1.5,
+      "R-3_1bed": 1.5,
+      "R-3_2bed": 2.0,
+      "guest_10plus": "1 per 4 units"
+    },
+    "unconfirmed": [
+      "R-4 height/setbacks/density",
+      "FAR (may not exist in base code)",
+      "Lot coverage (varies by CSD)"
+    ],
+    "sources": [
+      "LA County Code Title 22 §22.20.110 (height)",
+      "§22.20.120 (setbacks)",
+      "§22.52.1180 (parking)",
+      "LA County DRP zone summaries"
+    ]
   }
 }
