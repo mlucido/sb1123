@@ -337,7 +337,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   labelCell(ws, 7, 2, '  Origination Fee');
   setFormula(ws, 'C7', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
   ws.getCell('C7').font = { color: { argb: 'FF999999' }, italic: true };
-  labelCell(ws, 8, 2, '  Interest Payments');
+  labelCell(ws, 8, 2, '  Capitalized Interest');
   setFormula(ws, 'C8', "'Cash Flow'!AA39", 0, '$#,##0');
 
   sectionHeader(ws, 10, 2, 'Equity');
@@ -386,7 +386,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'G14', 'Assumptions!C29', ae, '$#,##0');
 
   sectionHeader(ws, 16, 6, 'Carry');
-  labelCell(ws, 17, 6, '  Interest Payments');
+  labelCell(ws, 17, 6, '  Capitalized Interest');
   setFormula(ws, 'G17', "'Cash Flow'!AA39", 0, '$#,##0'); // Total interest paid from CF
   labelCell(ws, 18, 6, '  Property Tax');
   setFormula(ws, 'G18', 'Assumptions!G27*Assumptions!G8', monthlyTax * 24, '$#,##0');
@@ -454,6 +454,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
+  var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
 
   // Row 1: Title
   ws.mergeCells('B1:' + totalLtr + '1');
@@ -518,11 +519,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return m === 0 ? gpCoInvestVal : 0; }
   );
 
-  // Row 8: Construction Draws — balancing entry (total uses - equity for that month)
+  // Row 8: Construction Draws — follows S-curve during construction
   labelCell(ws, 8, 2, '  Construction Draws');
   monthFormula(8,
-    function(m, cl) { return 'MAX(0,' + cl + '32-' + cl + '6-' + cl + '7)'; },
-    function() { return 0; }
+    function(m, cl) { return cl + '13+' + cl + '14'; },
+    function(m) { return (m >= 6 && m < 18) ? SCURVE[m - 6] * (hardCosts + softCosts) : 0; }
   );
 
   // Row 9: Total Sources
@@ -546,18 +547,18 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return m === 0 ? price + price * 0.01 : 0; }
   );
 
-  // Row 13: Hard Costs — construction months, spread evenly
+  // Row 13: Hard Costs — S-curve during construction
   labelCell(ws, 13, 2, '  Hard Costs');
   monthFormula(13,
-    function(m) { return 'IF(AND(' + m + '>=Assumptions!$G$5,' + m + '<Assumptions!$G$5+Assumptions!$G$6),Assumptions!C24/Assumptions!$G$6,0)'; },
-    function(m) { return (m >= 6 && m < 18) ? hardCosts / 12 : 0; }
+    function(m) { return 'IF(AND(' + m + '>=Assumptions!$G$5,' + m + '<Assumptions!$G$5+Assumptions!$G$6),CHOOSE(' + m + '-Assumptions!$G$5+1,0.04,0.07,0.10,0.12,0.13,0.14,0.13,0.11,0.08,0.05,0.02,0.01)*Assumptions!C24,0)'; },
+    function(m) { return (m >= 6 && m < 18) ? SCURVE[m - 6] * hardCosts : 0; }
   );
 
-  // Row 14: Soft Costs — construction months, spread evenly
+  // Row 14: Soft Costs — S-curve during construction
   labelCell(ws, 14, 2, '  Soft Costs');
   monthFormula(14,
-    function(m) { return 'IF(AND(' + m + '>=Assumptions!$G$5,' + m + '<Assumptions!$G$5+Assumptions!$G$6),Assumptions!C26/Assumptions!$G$6,0)'; },
-    function(m) { return (m >= 6 && m < 18) ? softCosts / 12 : 0; }
+    function(m) { return 'IF(AND(' + m + '>=Assumptions!$G$5,' + m + '<Assumptions!$G$5+Assumptions!$G$6),CHOOSE(' + m + '-Assumptions!$G$5+1,0.04,0.07,0.10,0.12,0.13,0.14,0.13,0.11,0.08,0.05,0.02,0.01)*Assumptions!C26,0)'; },
+    function(m) { return (m >= 6 && m < 18) ? SCURVE[m - 6] * softCosts : 0; }
   );
 
   // Row 15: Demo — Month 0
@@ -659,11 +660,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function() { return 0; }
   );
 
-  // ── Row 32: TOTAL USES ──
+  // ── Row 32: TOTAL USES (excl. interest — capitalized on loan) ──
   labelCell(ws, 32, 2, 'TOTAL USES');
   ws.getCell('B32').font = { bold: true, size: 11 };
   monthFormula(32,
-    function(m, cl) { return cl + '18+' + cl + '25+' + cl + '30+' + cl + '38'; },
+    function(m, cl) { return cl + '18+' + cl + '25+' + cl + '30'; },
     function() { return 0; }
   );
   // Double top border on total
@@ -686,7 +687,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
       setFormula(ws, cl + '35', '0', 0, '$#,##0');
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '35', prevCl + '37', 0, '$#,##0');
+      setFormula(ws, cl + '35', prevCl + '38', 0, '$#,##0');
     }
   }
 
@@ -699,34 +700,35 @@ function buildCashFlowTab(wb, l, ed, pf) {
   setFormula(ws, totalLtr + '36', 'SUM(C36:' + colLetter(MONTHS + 2) + '36)', 0, '$#,##0');
   ws.getCell(totalLtr + '36').font = { bold: true };
 
-  // Row 37: Closing Balance
-  labelCell(ws, 37, 2, '  Closing Balance');
-  ws.getCell('B37').font = { bold: true };
+  // Row 37: + Capitalized Interest (accrued on opening balance, added to loan)
+  labelCell(ws, 37, 2, '  + Capitalized Interest');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '37', cl + '35+' + cl + '36', 0, '$#,##0');
+    setFormula(ws, cl + '37', cl + '35*Assumptions!$G$18/12', 0, '$#,##0');
   }
+  setFormula(ws, totalLtr + '37', 'SUM(C37:' + colLetter(MONTHS + 2) + '37)', 0, '$#,##0');
+  ws.getCell(totalLtr + '37').font = { bold: true };
 
-  // Row 38: Interest Payment (cash pay on opening balance)
-  labelCell(ws, 38, 2, '  Interest Payment');
+  // Row 38: Closing Balance (= Opening + Draws + Capitalized Interest)
+  labelCell(ws, 38, 2, '  Closing Balance');
+  ws.getCell('B38').font = { bold: true };
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '38', cl + '35*Assumptions!$G$18/12', 0, '$#,##0');
+    setFormula(ws, cl + '38', cl + '35+' + cl + '36+' + cl + '37', 0, '$#,##0');
   }
-  setFormula(ws, totalLtr + '38', 'SUM(C38:' + colLetter(MONTHS + 2) + '38)', 0, '$#,##0');
-  ws.getCell(totalLtr + '38').font = { bold: true };
 
   // Row 39: Cumulative Interest
   labelCell(ws, 39, 2, '  Cumulative Interest');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
     if (m === 0) {
-      setFormula(ws, cl + '39', cl + '38', 0, '$#,##0');
+      setFormula(ws, cl + '39', cl + '37', 0, '$#,##0');
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '39', prevCl + '39+' + cl + '38', 0, '$#,##0');
+      setFormula(ws, cl + '39', prevCl + '39+' + cl + '37', 0, '$#,##0');
     }
   }
+  setFormula(ws, totalLtr + '39', colLetter(MONTHS + 2) + '39', 0, '$#,##0');
   ws.getCell(totalLtr + '39').font = { bold: true };
 
   // ── Row 41: NET OPERATING CF ──
@@ -764,11 +766,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return m === 23 ? grossRevenue * 0.015 : 0; }
   );
 
-  // Row 47: Loan Repayment (closing balance only — interest already paid monthly)
+  // Row 47: Loan Repayment (closing balance incl. capitalized interest)
   labelCell(ws, 47, 2, '  Loan Repayment');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '37,0)', 0, '$#,##0');
+    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '38,0)', 0, '$#,##0');
   }
   setFormula(ws, totalLtr + '47', 'SUM(C47:' + colLetter(MONTHS + 2) + '47)', 0, '$#,##0');
   ws.getCell(totalLtr + '47').font = { bold: true };
@@ -861,17 +863,30 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function() { return 0; }
   );
 
-  // ── Row 62: LLC CASH BALANCE ──
-  labelCell(ws, 62, 2, 'LLC CASH BALANCE');
-  ws.getCell('B62').font = { bold: true };
+  // ── Row 61-63: LLC BANK BALANCE ──
+  sectionHeader(ws, 61, 2, 'LLC BANK BALANCE');
+  ws.getCell('B61').fill = _hdrFill; ws.getCell('B61').font = _hdrFont;
+  for (var m = 0; m < MONTHS; m++) { ws.getCell(colLetter(m+3) + '61').fill = _hdrFill; }
+  ws.getCell(totalLtr + '61').fill = _hdrFill;
+
+  // Row 62: Beginning Balance
+  labelCell(ws, 62, 2, '  Beginning Balance');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
     if (m === 0) {
-      setFormula(ws, cl + '62', cl + '9-' + cl + '32+' + cl + '48', 0, '$#,##0');
+      setFormula(ws, cl + '62', '0', 0, '$#,##0');
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '62', prevCl + '62+' + cl + '9-' + cl + '32+' + cl + '48', 0, '$#,##0');
+      setFormula(ws, cl + '62', prevCl + '63', 0, '$#,##0');
     }
+  }
+
+  // Row 63: Ending Balance (= Beginning + Sources - Uses + Exit)
+  labelCell(ws, 63, 2, '  Ending Balance');
+  ws.getCell('B63').font = { bold: true };
+  for (var m = 0; m < MONTHS; m++) {
+    var cl = colLetter(m + 3);
+    setFormula(ws, cl + '63', cl + '62+' + cl + '9-' + cl + '32+' + cl + '48', 0, '$#,##0');
   }
 
   // Freeze panes: B column labels + header rows
