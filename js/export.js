@@ -163,9 +163,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var buildableSF = units * avgUnitSF;
   var allInBuildPSF = pf.adjBuildCostPerSf;
   var totalBuildCost = buildableSF * allInBuildPSF;
-  var subdivision = 10 * buildableSF;
-  var ae = 5 * buildableSF;
-  var hardCosts = Math.round((totalBuildCost - subdivision - ae) / 1.25);
+  var hardCosts = Math.round(totalBuildCost / 1.25);
   var softCosts = Math.round(hardCosts * 0.25);
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
@@ -210,13 +208,11 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 21, 2, 'Avg Unit SF');     inputCell(ws, 'C21', avgUnitSF, '#,##0');
   labelCell(ws, 22, 2, 'Buildable SF');    setFormula(ws, 'C22', 'C20*C21', buildableSF, '#,##0');
   labelCell(ws, 23, 2, 'All-In Build $/SF');   inputCell(ws, 'C23', allInBuildPSF, '$#,##0');
-  labelCell(ws, 24, 2, 'Hard Costs');          setFormula(ws, 'C24', '(C22*C23-C27-C28)/(1+C25)', hardCosts, '$#,##0');
+  labelCell(ws, 24, 2, 'Hard Costs');          setFormula(ws, 'C24', 'C22*C23/(1+C25)', hardCosts, '$#,##0');
   labelCell(ws, 25, 2, 'Soft Cost %');         inputCell(ws, 'C25', 0.25, '0.0%');
   labelCell(ws, 26, 2, 'Soft Costs');          setFormula(ws, 'C26', 'C24*C25', softCosts, '$#,##0');
-  labelCell(ws, 27, 2, 'Subdivision ($10/SF)'); setFormula(ws, 'C27', '10*C22', subdivision, '$#,##0');
-  labelCell(ws, 28, 2, 'A&E ($5/SF)');         setFormula(ws, 'C28', '5*C22', ae, '$#,##0');
-  labelCell(ws, 29, 2, 'Total Build Cost');    setFormula(ws, 'C29', 'C22*C23', totalBuildCost, '$#,##0');
-  ws.getCell('C29').font = { bold: true };
+  labelCell(ws, 27, 2, 'Total Build Cost');    setFormula(ws, 'C27', 'C22*C23', totalBuildCost, '$#,##0');
+  ws.getCell('C27').font = { bold: true };
 
   ws.getCell('B34').value = 'EXIT';
   ws.getCell('B34').font = _hdrFont; ws.getCell('B34').fill = _hdrFill;
@@ -263,9 +259,9 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('F13').font = _hdrFont; ws.getCell('F13').fill = _hdrFill;
   ws.getCell('G13').fill = _hdrFill;
 
-  labelCell(ws, 14, 6, 'Equity');              setFormula(ws, 'G14', 'CEILING((C16+C18+C29+G30+G34)/(1-(1-G17)*G19)*G17,10000)', ed.equity, '$#,##0');
+  labelCell(ws, 14, 6, 'Equity');              setFormula(ws, 'G14', 'CEILING((C16+C18+C27+G30+G34)/(1-(1-G17)*G19)*G17,10000)', ed.equity, '$#,##0');
   ws.getCell('G14').font = { bold: true };
-  labelCell(ws, 15, 6, 'Debt');                setFormula(ws, 'G15', '(C16+C18+C29+G30+G34)/(1-(1-G17)*G19)-G14', ed.debt, '$#,##0');
+  labelCell(ws, 15, 6, 'Debt');                setFormula(ws, 'G15', '(C16+C18+C27+G30+G34)/(1-(1-G17)*G19)-G14', ed.debt, '$#,##0');
   ws.getCell('G15').font = { bold: true };
   labelCell(ws, 16, 6, 'Total Project Cost');  setFormula(ws, 'G16', 'G14+G15', ed.equity + ed.debt, '$#,##0');
   ws.getCell('G16').font = { bold: true };
@@ -310,9 +306,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
-  var subdivision = 10 * buildableSF;
-  var ae = 5 * buildableSF;
-  var hardCosts = Math.round((totalBuildCost - subdivision - ae) / 1.25);
+  var hardCosts = Math.round(totalBuildCost / 1.25);
   var softCosts = Math.round(hardCosts * 0.25);
   var price = l.price || 0;
   var monthlyTax = price * 0.011 / 12;
@@ -375,53 +369,47 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'G10', 'Assumptions!C24', hardCosts, '$#,##0');
   labelCell(ws, 11, 6, '  Soft Costs');
   setFormula(ws, 'G11', 'Assumptions!C26', softCosts, '$#,##0');
-  labelCell(ws, 12, 6, '  Subdivision');
-  setFormula(ws, 'G12', 'Assumptions!C27', subdivision, '$#,##0');
-  labelCell(ws, 13, 6, '  A&E');
-  setFormula(ws, 'G13', 'Assumptions!C28', ae, '$#,##0');
 
-  sectionHeader(ws, 16, 6, 'Carry');
-  labelCell(ws, 17, 6, '  Capitalized Interest');
-  setFormula(ws, 'G17', "'Cash Flow'!AA39", 0, '$#,##0'); // Total interest paid from CF
-  labelCell(ws, 18, 6, '  Property Tax');
-  setFormula(ws, 'G18', 'Assumptions!G27*Assumptions!G8', monthlyTax * 24, '$#,##0');
-  labelCell(ws, 19, 6, '  Insurance');
-  setFormula(ws, 'G19', 'Assumptions!G28*(Assumptions!G8/12)', 20000 * 2, '$#,##0');
-  labelCell(ws, 20, 6, '  Asset Mgmt');
-  setFormula(ws, 'G20', 'Assumptions!G35*Assumptions!G8', 3000 * 24, '$#,##0');
-  labelCell(ws, 21, 6, '  Dev Mgmt');
-  setFormula(ws, 'G21', 'Assumptions!G36*Assumptions!G6', 5000 * 12, '$#,##0');
+  sectionHeader(ws, 13, 6, 'Carry');
+  labelCell(ws, 14, 6, '  Capitalized Interest');
+  setFormula(ws, 'G14', "'Cash Flow'!AA39", 0, '$#,##0'); // Total interest paid from CF
+  labelCell(ws, 15, 6, '  Property Tax');
+  setFormula(ws, 'G15', 'Assumptions!G27*Assumptions!G8', monthlyTax * 24, '$#,##0');
+  labelCell(ws, 16, 6, '  Insurance');
+  setFormula(ws, 'G16', 'Assumptions!G28*(Assumptions!G8/12)', 20000 * 2, '$#,##0');
+  labelCell(ws, 17, 6, '  Asset Mgmt');
+  setFormula(ws, 'G17', 'Assumptions!G35*Assumptions!G8', 3000 * 24, '$#,##0');
+  labelCell(ws, 18, 6, '  Dev Mgmt');
+  setFormula(ws, 'G18', 'Assumptions!G36*Assumptions!G6', 5000 * 12, '$#,##0');
 
-  sectionHeader(ws, 23, 6, 'Financing');
-  labelCell(ws, 24, 6, '  Origination Fee');
-  setFormula(ws, 'G24', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
+  sectionHeader(ws, 20, 6, 'Financing');
+  labelCell(ws, 21, 6, '  Origination Fee');
+  setFormula(ws, 'G21', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
 
-  labelCell(ws, 26, 6, 'TOTAL USES');
-  ws.getCell('F26').font = { bold: true };
-  setFormula(ws, 'G26', 'G6+G7+G8+G10+G11+G12+G13+G14+G17+G18+G19+G20+G21+G24', 0, '$#,##0');
-  ws.getCell('G26').font = { bold: true };
-  ws.getCell('G26').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
-  setFormula(ws, 'H26', 'G26/G26', 1, '0.0%');
+  labelCell(ws, 23, 6, 'TOTAL USES');
+  ws.getCell('F23').font = { bold: true };
+  setFormula(ws, 'G23', 'G6+G7+G8+G10+G11+G14+G15+G16+G17+G18+G21', 0, '$#,##0');
+  ws.getCell('G23').font = { bold: true };
+  ws.getCell('G23').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
+  setFormula(ws, 'H23', 'G23/G23', 1, '0.0%');
 
   // Uses % of total
-  setFormula(ws, 'H6', 'G6/G$26', 0, '0.0%');
-  setFormula(ws, 'H7', 'G7/G$26', 0, '0.0%');
-  setFormula(ws, 'H8', 'G8/G$26', 0, '0.0%');
-  setFormula(ws, 'H10', 'G10/G$26', 0, '0.0%');
-  setFormula(ws, 'H11', 'G11/G$26', 0, '0.0%');
-  setFormula(ws, 'H12', 'G12/G$26', 0, '0.0%');
-  setFormula(ws, 'H13', 'G13/G$26', 0, '0.0%');
-  setFormula(ws, 'H17', 'G17/G$26', 0, '0.0%');
-  setFormula(ws, 'H18', 'G18/G$26', 0, '0.0%');
-  setFormula(ws, 'H19', 'G19/G$26', 0, '0.0%');
-  setFormula(ws, 'H20', 'G20/G$26', 0, '0.0%');
-  setFormula(ws, 'H21', 'G21/G$26', 0, '0.0%');
-  setFormula(ws, 'H24', 'G24/G$26', 0, '0.0%');
+  setFormula(ws, 'H6', 'G6/G$23', 0, '0.0%');
+  setFormula(ws, 'H7', 'G7/G$23', 0, '0.0%');
+  setFormula(ws, 'H8', 'G8/G$23', 0, '0.0%');
+  setFormula(ws, 'H10', 'G10/G$23', 0, '0.0%');
+  setFormula(ws, 'H11', 'G11/G$23', 0, '0.0%');
+  setFormula(ws, 'H14', 'G14/G$23', 0, '0.0%');
+  setFormula(ws, 'H15', 'G15/G$23', 0, '0.0%');
+  setFormula(ws, 'H16', 'G16/G$23', 0, '0.0%');
+  setFormula(ws, 'H17', 'G17/G$23', 0, '0.0%');
+  setFormula(ws, 'H18', 'G18/G$23', 0, '0.0%');
+  setFormula(ws, 'H21', 'G21/G$23', 0, '0.0%');
 
   // Check row
-  labelCell(ws, 28, 2, 'CHECK (Sources - Uses)');
-  setFormula(ws, 'C28', 'C14-G26', 0, '$#,##0');
-  ws.getCell('C28').font = { bold: true, color: { argb: 'FFFF0000' } };
+  labelCell(ws, 25, 2, 'CHECK (Sources - Uses)');
+  setFormula(ws, 'C25', 'C14-G23', 0, '$#,##0');
+  ws.getCell('C25').font = { bold: true, color: { argb: 'FFFF0000' } };
 
   autoFitColumns(ws, { fixed: { 1: 2, 3: 12, 4: 10, 5: 3, 7: 12, 8: 10 } });
   ws.views = [{ showGridLines: false }];
@@ -441,9 +429,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
-  var subdivision = 10 * buildableSF;
-  var ae = 5 * buildableSF;
-  var hardCosts = Math.round((totalBuildCost - subdivision - ae) / 1.25);
+  var hardCosts = Math.round(totalBuildCost / 1.25);
   var softCosts = Math.round(hardCosts * 0.25);
   var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
@@ -516,14 +502,12 @@ function buildCashFlowTab(wb, l, ed, pf) {
   // Row 8: Debt Draws — 70% of all uses each month (equity covers 30%)
   labelCell(ws, 8, 2, '  Debt Draws');
   monthFormula(8,
-    function(m, cl) { return '(1-Assumptions!$G$17)*(' + cl + '17+' + cl + '25+' + cl + '30)'; },
+    function(m, cl) { return '(1-Assumptions!$G$17)*(' + cl + '15+' + cl + '25+' + cl + '30)'; },
     function(m) {
       // Result approximation: 70% of each month's total uses
       var devM = 0, carryM = 0, feesM = 0;
-      // Dev: land+txn at M0, hard/soft S-curve M6-17, subdiv M1, A&E M1-5
+      // Dev: land+txn at M0, hard/soft S-curve M6-17
       if (m === 0) devM += price + price * 0.01;
-      if (m === 1) devM += subdivision;
-      if (m >= 1 && m < 6) devM += ae / 5;
       if (m >= 6 && m < 18) devM += SCURVE[m - 6] * (hardCosts + softCosts);
       // Carry: tax+ins+AM every month, DM during construction
       carryM = price * 0.011 / 12 + 20000 / 12 + 3000;
@@ -569,25 +553,11 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return (m >= 6 && m < 18) ? SCURVE[m - 6] * softCosts : 0; }
   );
 
-  // Row 15: Subdivision — Month 1
-  labelCell(ws, 15, 2, '  Subdivision');
+  // Row 15: Subtotal Development
+  labelCell(ws, 15, 2, 'Subtotal Development');
+  ws.getCell('B15').font = { bold: true };
   monthFormula(15,
-    function(m) { return m === 1 ? 'Assumptions!C27' : '0'; },
-    function(m) { return m === 1 ? subdivision : 0; }
-  );
-
-  // Row 16: A&E — Pre-dev months 1+ spread evenly
-  labelCell(ws, 16, 2, '  A&E');
-  monthFormula(16,
-    function(m) { return 'IF(AND(' + m + '>=1,' + m + '<Assumptions!$G$5),Assumptions!C28/(Assumptions!$G$5-1),0)'; },
-    function(m) { return (m >= 1 && m < 6) ? ae / 5 : 0; }
-  );
-
-  // Row 17: Subtotal Development
-  labelCell(ws, 17, 2, 'Subtotal Development');
-  ws.getCell('B17').font = { bold: true };
-  monthFormula(17,
-    function(m, cl) { return 'SUM(' + cl + '12:' + cl + '16)'; },
+    function(m, cl) { return 'SUM(' + cl + '12:' + cl + '14)'; },
     function() { return 0; }
   );
 
@@ -665,7 +635,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   labelCell(ws, 32, 2, 'TOTAL USES');
   ws.getCell('B32').font = { bold: true, size: 11 };
   monthFormula(32,
-    function(m, cl) { return cl + '17+' + cl + '25+' + cl + '30'; },
+    function(m, cl) { return cl + '15+' + cl + '25+' + cl + '30'; },
     function() { return 0; }
   );
   // Double top border on total
