@@ -2,11 +2,10 @@
 // Exported config object is mutated by main module when assumptions change.
 
 export const proforma = {
-  allInBuildPsf: 350,          // truly all-in: hard + soft + demo + subdiv + A&E
+  allInBuildPsf: 350,          // truly all-in: hard + soft + subdiv + A&E
   avgUnitSf: 1750,
   txnCostPct: 4.7,
   fixedDispositionCosts: 40000,
-  demoCost: 55000,             // flat demo cost (included in allInBuildPsf)
   subdivisionPsf: 10,
   aePsf: 5,
   softCostPct: 25,             // soft % of hard construction
@@ -80,19 +79,17 @@ export function calculateProForma(l){
     ? maxUnits * (pf.ellisPerUnit || 20000) : 0;
   const ellisHoldMonths = ellisRelocation > 0 ? 4 : 0;
 
-  // All-in build: $450/SF includes hard, soft, demo, subdivision, A&E
+  // All-in build: allInBuildPsf includes hard, soft, subdivision, A&E
   const constructionCost = maxUnits * pf.avgUnitSf * adjBuildCostPerSf;
   const totalBuildCost = constructionCost + ellisRelocation;
 
   // Component breakdown (for display — sums back to constructionCost)
-  // Always budget demo — every SB 1123 project requires site clearing/demolition
-  const demo = pf.demoCost;
   const subdivision = (pf.subdivisionPsf || 10) * effective_buildable_sf;
   const ae = (pf.aePsf || 5) * effective_buildable_sf;
-  const constructionRemaining = constructionCost - demo - subdivision - ae;
+  const constructionRemaining = constructionCost - subdivision - ae;
   const hardCosts = constructionRemaining / (1 + (pf.softCostPct || 25) / 100);
   const softConstruction = constructionRemaining - hardCosts;
-  const softCosts = softConstruction + demo + subdivision + ae;
+  const softCosts = softConstruction + subdivision + ae;
 
   const holdMonths = pf.holdMonths + ellisHoldMonths;
   // 70% LTC debt model: acquisition debt fully drawn + construction draws at ~50% avg
@@ -138,7 +135,6 @@ export function calculateProForma(l){
     grossRevenue,
     netRevenue,
     acquisition,
-    demo,
     constructionCost,
     hardCosts: Math.round(hardCosts),
     softCosts: Math.round(softCosts),

@@ -1268,7 +1268,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           <label>Unit SF (avg)</label>
           <input type="number" id="pfUnitSize" value="1750" step="50" onchange="onProformaChange()">
         </div>
-        <!-- allInBuildPsf ($350) is truly all-in: hard + soft + demo + subdivision + A&E -->
+        <!-- allInBuildPsf ($350) is truly all-in: hard + soft + subdivision + A&E -->
         <div class="proforma-group">
           <label>Txn Costs %</label>
           <input type="number" id="pfTxnCost" value="4.7" step="0.5" onchange="onProformaChange()">
@@ -1276,10 +1276,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <div class="proforma-group">
           <label>Fixed Disp $</label>
           <input type="number" id="pfFixedDisp" value="40000" step="5000" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Demo Cost $</label>
-          <input type="number" id="pfDemoCost" value="55000" step="5000" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Hold Months</label>
@@ -1371,10 +1367,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <dl class="data-key-item"><dt>Gross Revenue</dt><dd>Buildable SF &times; Exit $/SF. What you&rsquo;d gross if you sold all units.</dd></dl>
         <dl class="data-key-item"><dt>Sale Discount</dt><dd>5% reduction from gross revenue to account for broker commissions, concessions, and closing costs.</dd></dl>
         <dl class="data-key-item"><dt>Net Revenue</dt><dd>Gross revenue minus sale discount.</dd></dl>
-        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Core construction cost (structure, MEP, finishes). Derived from all-in build cost ($350/SF default) after subtracting demo, subdivision, and A&amp;E line items.</dd></dl>
+        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Core construction cost (structure, MEP, finishes, demo). Derived from all-in build cost ($350/SF default) after subtracting subdivision and A&amp;E line items.</dd></dl>
         <dl class="data-key-item"><dt>Soft Costs</dt><dd>25% of hard costs (default). Covers architecture, engineering, permits, insurance, legal, financing.</dd></dl>
-        <dl class="data-key-item"><dt>Demo Cost</dt><dd>$55,000 flat (default) for demolition of existing structures. Included in all-in build cost.</dd></dl>
-        <dl class="data-key-item"><dt>Total Development Cost</dt><dd>Hard + soft + demo + land acquisition (asking price).</dd></dl>
+        <dl class="data-key-item"><dt>Total Development Cost</dt><dd>Hard + soft + land acquisition (asking price).</dd></dl>
         <dl class="data-key-item"><dt>Est. Profit</dt><dd>Net revenue minus total development cost.</dd></dl>
         <dl class="data-key-item"><dt>Buy/Unit</dt><dd>Asking price &divide; number of units. Lower = more land efficiency.</dd></dl>
         <dl class="data-key-item"><dt>Land Basis</dt><dd>Asking price &divide; buildable SF. What you&rsquo;re paying per SF of finished product for the land alone.</dd></dl>
@@ -3857,7 +3852,6 @@ function onProformaChange(){
     proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
     proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
     proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
-    proforma.demoCost = parseInt(document.getElementById('pfDemoCost').value)||55000;
     proforma.holdMonths = parseInt(document.getElementById('pfHoldMonths').value)||24;
     proforma.carryRatePct = parseFloat(document.getElementById('pfCarryRate').value)||9;
     proforma.insurance = parseInt(document.getElementById('pfInsurance').value)||40000;
