@@ -2,7 +2,7 @@
 // Exported config object is mutated by main module when assumptions change.
 
 export const proforma = {
-  allInBuildPsf: 450,          // truly all-in: hard + soft + demo + subdiv + A&E
+  allInBuildPsf: 350,          // truly all-in: hard + soft + demo + subdiv + A&E
   avgUnitSf: 1750,
   txnCostPct: 4.7,
   fixedDispositionCosts: 40000,

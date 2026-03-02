@@ -1256,13 +1256,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="proforma-inputs">
         <div class="proforma-group">
           <label>All-In Build $/SF</label>
-          <input type="number" id="pfBuildCost" value="450" step="25" onchange="onProformaChange()">
+          <input type="number" id="pfBuildCost" value="350" step="25" onchange="onProformaChange()">
         </div>
         <div class="proforma-group">
           <label>Unit SF (avg)</label>
           <input type="number" id="pfUnitSize" value="1750" step="50" onchange="onProformaChange()">
         </div>
-        <!-- allInBuildPsf ($450) is truly all-in: hard + soft + demo + subdivision + A&E -->
+        <!-- allInBuildPsf ($350) is truly all-in: hard + soft + demo + subdivision + A&E -->
         <div class="proforma-group">
           <label>Txn Costs %</label>
           <input type="number" id="pfTxnCost" value="4.7" step="0.5" onchange="onProformaChange()">
@@ -1340,7 +1340,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <dl class="data-key-item"><dt>Units</dt><dd>Number of SB 1123 townhome units the lot can support. R1/LAND: floor(lotSF &divide; 1,200), cap 10. R2&ndash;R4: floor(lotSF &divide; 600), cap 10. Layout constraints (setbacks, driveway) may reduce this further.</dd></dl>
         <dl class="data-key-item"><dt>Lot SF</dt><dd>Total lot area in square feet. Primary source is MLS listing data; falls back to county parcel data if MLS is missing. Source shown as &ldquo;mls&rdquo; or &ldquo;parcel.&rdquo;</dd></dl>
         <dl class="data-key-item"><dt>Exit $/SF</dt><dd>Estimated sale price per square foot for finished townhomes. Prefers new-construction comps within 1 mile; falls back to zone-matched resale comps with expanding search radius (0.25mi &rarr; 4mi). Color indicates comp type: <span style="color:#4ecdc4">teal = new-con</span>, <span style="color:#ffe66d">gold = zone comps</span>.</dd></dl>
-        <dl class="data-key-item"><dt>Spread</dt><dd>Exit $/SF minus hard construction cost (default $350/SF). Higher spread = more margin for profit.</dd></dl>
+        <dl class="data-key-item"><dt>Spread</dt><dd>Exit $/SF minus all-in build cost (default $350/SF). Higher spread = more margin for profit.</dd></dl>
         <dl class="data-key-item"><dt>Net Margin</dt><dd>Estimated profit &divide; gross revenue. Green (&ge;20%) = strong, yellow (10&ndash;20%) = marginal, red (&lt;10%) = risky.</dd></dl>
       </div>
 
@@ -1365,9 +1365,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <dl class="data-key-item"><dt>Gross Revenue</dt><dd>Buildable SF &times; Exit $/SF. What you&rsquo;d gross if you sold all units.</dd></dl>
         <dl class="data-key-item"><dt>Sale Discount</dt><dd>5% reduction from gross revenue to account for broker commissions, concessions, and closing costs.</dd></dl>
         <dl class="data-key-item"><dt>Net Revenue</dt><dd>Gross revenue minus sale discount.</dd></dl>
-        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Construction cost = buildable SF &times; $350/SF (default). Covers structure, MEP, finishes.</dd></dl>
+        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Core construction cost (structure, MEP, finishes). Derived from all-in build cost ($350/SF default) after subtracting demo, subdivision, and A&amp;E line items.</dd></dl>
         <dl class="data-key-item"><dt>Soft Costs</dt><dd>25% of hard costs (default). Covers architecture, engineering, permits, insurance, legal, financing.</dd></dl>
-        <dl class="data-key-item"><dt>Demo Cost</dt><dd>$25,000 flat (default) for demolition of existing structures.</dd></dl>
+        <dl class="data-key-item"><dt>Demo Cost</dt><dd>$55,000 flat (default) for demolition of existing structures. Included in all-in build cost.</dd></dl>
         <dl class="data-key-item"><dt>Total Development Cost</dt><dd>Hard + soft + demo + land acquisition (asking price).</dd></dl>
         <dl class="data-key-item"><dt>Est. Profit</dt><dd>Net revenue minus total development cost.</dd></dl>
         <dl class="data-key-item"><dt>Buy/Unit</dt><dd>Asking price &divide; number of units. Lower = more land efficiency.</dd></dl>
@@ -3830,7 +3830,7 @@ function onProformaChange(){
   clearTimeout(_proformaTimer);
   _proformaTimer = setTimeout(function(){
     clearProformaCaches();
-    proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||360;
+    proforma.allInBuildPsf = parseInt(document.getElementById('pfBuildCost').value)||350;
     proforma.avgUnitSf = parseInt(document.getElementById('pfUnitSize').value)||1750;
     proforma.txnCostPct = parseFloat(document.getElementById('pfTxnCost').value)||4.7;
     proforma.fixedDispositionCosts = parseInt(document.getElementById('pfFixedDisp').value)||40000;
