@@ -1437,6 +1437,7 @@ async function exportOM(lat, lng) {
     soft_costs: softCosts,
     subdivision_cost: SUBDIV,
     ae_cost: AE,
+    demo_cost: 0,
     total_dev_costs: totalDev,
 
     // Exit
@@ -1566,7 +1567,8 @@ async function exportOM(lat, lng) {
     });
     if (!resp.ok) {
       var errText = await resp.text();
-      alert('OM generation failed: ' + errText);
+      var msg = errText.match(/Message: (.+?)\./);
+      alert('OM generation failed (' + resp.status + '): ' + (msg ? msg[1] : errText.substring(0, 200)));
       return;
     }
     var blob = await resp.blob();
