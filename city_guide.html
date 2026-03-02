@@ -74,6 +74,7 @@
   .badge-green { background:#dcfce7; color:#166534; }
   .badge-blue { background:#dbeafe; color:#1e40af; }
   .badge-yellow { background:#fef9c3; color:#854d0e; }
+  .badge-2story { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; white-space:nowrap; }
 
   /* City cards */
   .city-cards { display:flex; flex-direction:column; gap:12px; }
@@ -193,11 +194,11 @@
       <thead>
         <tr>
           <th class="city-col">City</th>
-          <th>SB 1123 Status</th>
-          <th>Height / 3-Story?</th>
-          <th>FAR</th>
-          <th>Setbacks</th>
-          <th>Parking</th>
+          <th>Status</th>
+          <th>R1</th>
+          <th>R2</th>
+          <th>R3</th>
+          <th>R4</th>
           <th>RSO</th>
           <th>Impact Fees</th>
         </tr>
@@ -260,70 +261,85 @@
     return sb.status || 'State defaults apply';
   }
 
-  // ── Extract summary fields ──
-  function getHeight(c){
-    if(!c.height_ft && !c.height_notes) return 'Per zoning';
-    var notes = c.height_notes || {};
-    // Check for 3-story info
-    var threeStory = '';
-    Object.keys(notes).forEach(function(k){
-      var v = notes[k];
-      if(/3.stor|third.stor/i.test(v)){
-        if(/prohibit|not.*defin|effectively/i.test(v)) threeStory = 'No';
-        else threeStory = 'Maybe';
+  // ── Zone cell for summary table ──
+  function getZoneCell(c, gZone){
+    if(!c.zone_mapping) return '<span style="color:#94a3b8">\u2014</span>';
+    // Find local zone names that map to this generic zone
+    var locals = [];
+    Object.keys(c.zone_mapping).forEach(function(k){
+      if(k.charAt(0) === '_') return;
+      if(c.zone_mapping[k] === gZone) locals.push(k);
+    });
+    if(!locals.length) return '<span style="color:#94a3b8">\u2014</span>';
+    // Normalized helpers
+    var normLocals = locals.map(function(z){ return z.replace(/[-\s]/g,'').toUpperCase(); });
+    var normG = gZone.replace(/[-\s]/g,'').toUpperCase();
+    function keyMatchesZone(key){
+      var nk = key.replace(/[-\s]/g,'').toUpperCase();
+      var stem = nk.split('_')[0];
+      for(var i=0;i<normLocals.length;i++){
+        if(stem === normLocals[i] || nk.indexOf(normLocals[i]) === 0) return true;
+        if(stem.length >= 2 && normLocals[i].indexOf(stem) === 0) return true;
       }
-    });
-    // Get representative height
-    var heights = c.height_ft || {};
-    var vals = [];
-    Object.keys(heights).forEach(function(k){
-      if(k.charAt(0) === '_') return;
-      var v = heights[k];
-      if(typeof v === 'number') vals.push(v);
-    });
-    var range = vals.length ? Math.min.apply(null,vals) + '-' + Math.max.apply(null,vals) + ' ft' : 'Per zoning';
-    if(vals.length && vals.every(function(v){return v===vals[0];})) range = vals[0] + ' ft';
-    if(threeStory) range += ' / 3-story: ' + threeStory;
-    return range;
-  }
-
-  function getFAR(c){
-    if(!c.far) return 'State FAR';
-    var far = c.far;
-    var parts = [];
-    Object.keys(far).forEach(function(k){
-      if(k.charAt(0) === '_') return;
-      var v = far[k];
-      if(typeof v === 'number') parts.push(k + ': ' + v);
-      else if(typeof v === 'string' && v !== 'not used \u2014 see floor_area_limits') parts.push(k + ': ' + v);
-    });
-    return parts.length ? parts.join(', ') : 'State FAR';
-  }
-
-  function getSetbacks(c){
-    if(!c.setbacks_ft) return '4 ft side/rear';
-    var sb = c.setbacks_ft;
-    // Look for sb9/sb1123 override
-    var ovr = sb.sb9_override || sb.sb1123_override;
-    if(ovr) return 'Side ' + (ovr.side||4) + ', Rear ' + (ovr.rear||4) + ' ft';
-    // First non-meta zone
-    var first = null;
-    Object.keys(sb).forEach(function(k){
-      if(k.charAt(0) === '_' || k.indexOf('override') >= 0 || k.indexOf('corner') >= 0) return;
-      if(!first) first = sb[k];
-    });
-    if(first && typeof first === 'object'){
-      return 'F:' + (first.front||'?') + ' S:' + (first.side||'?') + ' R:' + (first.rear||'?');
+      if(stem === normG || nk.indexOf(normG) === 0) return true;
+      if(gZone !== 'R1' && (stem === 'MF' || stem === 'MULTI')) return true;
+      return false;
     }
-    return '4 ft side/rear';
-  }
-
-  function getParking(c){
-    if(!c.parking) return 'Max 1/unit';
-    var p = c.parking;
-    if(p.sb9_per_unit != null) return p.sb9_per_unit + '/unit';
-    if(p.standard_per_unit != null) return p.standard_per_unit + '/unit';
-    return 'Max 1/unit';
+    // Collect heights
+    var hts = [];
+    if(c.height_ft){
+      Object.keys(c.height_ft).forEach(function(k){
+        if(k.charAt(0)==='_') return;
+        if(typeof c.height_ft[k]==='number' && keyMatchesZone(k)) hts.push(c.height_ft[k]);
+      });
+    }
+    hts = hts.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    // Collect FAR (skip _sf/_min suffixes — those are area limits not ratios)
+    var numF = [], strF = [];
+    if(c.far){
+      Object.keys(c.far).forEach(function(k){
+        if(k.charAt(0)==='_' || /_note$/i.test(k) || /_pct$/i.test(k) || /_sf$/i.test(k) || /min_floor/i.test(k)) return;
+        if(!keyMatchesZone(k)) return;
+        var v = c.far[k];
+        if(typeof v==='number' && v < 20) numF.push(v);
+        else if(typeof v==='string' && v.length<25 && v!=='not used \u2014 see floor_area_limits') strF.push(v);
+      });
+    }
+    numF = numF.filter(function(v,i,a){return a.indexOf(v)===i;});
+    // Check 2-story limit — only flag if ALL matching zones are 2-story
+    var twoStory = false;
+    if(c.max_stories){
+      var matched2 = 0, matchedOther = 0;
+      Object.keys(c.max_stories).forEach(function(k){
+        if(k.charAt(0)==='_') return;
+        if(!keyMatchesZone(k)) return;
+        if(c.max_stories[k]===2 || String(c.max_stories[k]).indexOf('2')===0) matched2++;
+        else matchedOther++;
+      });
+      if(matched2 > 0 && matchedOther === 0) twoStory = true;
+    }
+    if(!twoStory && c.height_notes){
+      Object.keys(c.height_notes).forEach(function(k){
+        if(k.charAt(0)==='_' || k==='measurement' || k==='three_story' || k==='voter_protection') return;
+        if(!keyMatchesZone(k)) return;
+        var v = c.height_notes[k];
+        if(/2.story\s*max|effectively\s+2|limited\s+to\s+2/i.test(v)) twoStory = true;
+      });
+    }
+    // Build cell
+    var zd = locals.length<=2 ? locals.join(', ') : locals.slice(0,2).join(', ')+' +'+(locals.length-2);
+    var html = '<div style="line-height:1.4">';
+    html += '<div style="font-weight:600;font-size:11px" class="mono">' + esc(zd) + '</div>';
+    var info = [];
+    if(hts.length===1) info.push(hts[0]+' ft');
+    else if(hts.length>1) info.push(hts[0]+'\u2013'+hts[hts.length-1]+' ft');
+    if(numF.length===1) info.push('FAR '+numF[0]);
+    else if(numF.length>1) info.push('FAR '+Math.min.apply(null,numF)+'\u2013'+Math.max.apply(null,numF));
+    else if(strF.length>0){ var sf=strF[0]; if(sf.length>15) sf=sf.substring(0,12)+'\u2026'; info.push(sf); }
+    if(info.length) html += '<div style="font-size:11px;color:#64748b">' + esc(info.join(' \u00b7 ')) + '</div>';
+    if(twoStory) html += '<div style="margin-top:2px"><span class="badge-2story">2-STORY LIMIT</span></div>';
+    html += '</div>';
+    return html;
   }
 
   function getRSO(c){
@@ -350,14 +366,13 @@
   function renderTable(cities){
     var tbody = document.getElementById('summaryBody');
     tbody.innerHTML = cities.map(function(c){
-      var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
       return '<tr data-city="' + esc(c._name) + '">' +
         '<td class="city-col"><a class="city-link" href="index.html?city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
         '<td>' + statusBadge(c) + '</td>' +
-        '<td>' + esc(getHeight(c)) + '</td>' +
-        '<td class="mono" style="font-size:12px">' + esc(getFAR(c)) + '</td>' +
-        '<td style="font-size:12px">' + esc(getSetbacks(c)) + '</td>' +
-        '<td class="mono">' + esc(getParking(c)) + '</td>' +
+        '<td>' + getZoneCell(c, 'R1') + '</td>' +
+        '<td>' + getZoneCell(c, 'R2') + '</td>' +
+        '<td>' + getZoneCell(c, 'R3') + '</td>' +
+        '<td>' + getZoneCell(c, 'R4') + '</td>' +
         '<td>' + getRSO(c) + '</td>' +
         '<td style="font-size:12px">' + esc(getFees(c)) + '</td>' +
       '</tr>';
