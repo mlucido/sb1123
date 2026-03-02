@@ -1088,67 +1088,72 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="4" oninput="onMinUnitsChange(this.value)">
       </div>
 
-      <!-- Secondary filters -->
-      <div class="sf-list">
-        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Asking Price <span class="sf-chevron">▸</span></div>
-        <div class="sf-body">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min</div><input type="number" id="priceMin" step="25000"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max</div><input type="number" id="priceMax" step="25000"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="priceSliderFill"></div>
-            <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
-            <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="3000000">
-          </div>
+      <!-- Asking Price -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Asking Price</span></div>
+        <input type="number" id="priceMin" step="25000" style="display:none">
+        <input type="number" id="priceMax" step="25000" style="display:none">
+        <div class="kf-range-labels">
+          <span id="priceRangeMin">$0</span>
+          <span id="priceRangeMax">$3M</span>
         </div>
-
-        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">$/SF <span class="sf-chevron">▸</span></div>
-        <div class="sf-body">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min</div><input type="number" id="psfMin" step="50"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max</div><input type="number" id="psfMax" step="50"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="psfSliderFill"></div>
-            <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
-            <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
-          </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="priceSliderFill"></div>
+          <input type="range" id="priceSliderMin" min="0" max="5000000" step="25000" value="0">
+          <input type="range" id="priceSliderMax" min="0" max="5000000" step="25000" value="3000000">
         </div>
+      </div>
 
-        <!-- Home Size filter inputs hidden for JS compat -->
-        <input type="number" id="sqftMin" step="100" style="display:none">
-        <input type="number" id="sqftMax" step="100" style="display:none">
-        <div style="display:none"><div id="sqftSliderFill"></div><input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0"><input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000"></div>
-
-        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Lot Width <span class="sf-chevron">▸</span></div>
-        <div class="sf-body">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min</div><input type="number" id="lotwMin" step="5"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max</div><input type="number" id="lotwMax" step="5"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="lotwSliderFill"></div>
-            <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="0">
-            <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
-          </div>
+      <!-- $/SF -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">$/SF</span></div>
+        <input type="number" id="psfMin" step="50" style="display:none">
+        <input type="number" id="psfMax" step="50" style="display:none">
+        <div class="kf-range-labels">
+          <span id="psfRangeMin">$0</span>
+          <span id="psfRangeMax">$2,000</span>
         </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="psfSliderFill"></div>
+          <input type="range" id="psfSliderMin" min="0" max="2000" step="25" value="0">
+          <input type="range" id="psfSliderMax" min="0" max="2000" step="25" value="2000">
+        </div>
+      </div>
 
-        <div class="sf-row" tabindex="0" role="button" onclick="this.classList.toggle('expanded')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.classList.toggle('expanded')}">Slope <span class="sf-chevron">▸</span></div>
-        <div class="sf-body">
-          <div class="range-inputs">
-            <div class="input-group"><div class="input-label">Min %</div><input type="number" id="slopeMin" step="1"></div>
-            <span class="separator">—</span>
-            <div class="input-group"><div class="input-label">Max %</div><input type="number" id="slopeMax" step="1"></div>
-          </div>
-          <div class="range-slider-track">
-            <div class="range-slider-fill" id="slopeSliderFill"></div>
-            <input type="range" id="slopeSliderMin" min="0" max="100" step="1" value="0">
-            <input type="range" id="slopeSliderMax" min="0" max="100" step="1" value="100">
-          </div>
+      <!-- Home Size filter inputs hidden for JS compat -->
+      <input type="number" id="sqftMin" step="100" style="display:none">
+      <input type="number" id="sqftMax" step="100" style="display:none">
+      <div style="display:none"><div id="sqftSliderFill"></div><input type="range" id="sqftSliderMin" min="0" max="7000" step="100" value="0"><input type="range" id="sqftSliderMax" min="0" max="7000" step="100" value="7000"></div>
+
+      <!-- Lot Width -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Lot Width</span></div>
+        <input type="number" id="lotwMin" step="5" style="display:none">
+        <input type="number" id="lotwMax" step="5" style="display:none">
+        <div class="kf-range-labels">
+          <span id="lotwRangeMin">0 ft</span>
+          <span id="lotwRangeMax">200 ft</span>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="lotwSliderFill"></div>
+          <input type="range" id="lotwSliderMin" min="0" max="200" step="5" value="0">
+          <input type="range" id="lotwSliderMax" min="0" max="200" step="5" value="200">
+        </div>
+      </div>
+
+      <!-- Slope -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Slope</span></div>
+        <input type="number" id="slopeMin" step="1" style="display:none">
+        <input type="number" id="slopeMax" step="1" style="display:none">
+        <div class="kf-range-labels">
+          <span id="slopeRangeMin">0%</span>
+          <span id="slopeRangeMax">10%</span>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="slopeSliderFill"></div>
+          <input type="range" id="slopeSliderMin" min="0" max="100" step="1" value="0">
+          <input type="range" id="slopeSliderMax" min="0" max="100" step="1" value="100">
         </div>
       </div>
 
@@ -3687,17 +3692,18 @@ function updateFill(key){
   fill.style.left=((f.min-f.dataMin)/range)*100+'%';
   fill.style.width=((f.max-f.min)/range)*100+'%';
   // Update range labels
-  if(key==='lot'){
-    var lm=document.getElementById('lotRangeMin'),lx=document.getElementById('lotRangeMax');
-    if(lm) lm.textContent=fmtSf(f.min);
-    if(lx) lx.textContent=fmtSf(f.max);
-  } else if(key==='margin'){
-    var mm=document.getElementById('marginRangeMin'),mx=document.getElementById('marginRangeMax');
-    if(mm) mm.textContent=f.min+'%';
-    if(mx) mx.textContent=f.max+'%';
+  var rlMin=document.getElementById(key+'RangeMin'), rlMax=document.getElementById(key+'RangeMax');
+  if(rlMin && rlMax){
+    if(key==='lot'){ rlMin.textContent=fmtSf(f.min); rlMax.textContent=fmtSf(f.max); }
+    else if(key==='margin'){ rlMin.textContent=f.min+'%'; rlMax.textContent=f.max+'%'; }
+    else if(key==='price'){ rlMin.textContent=fmtPrice(f.min); rlMax.textContent=fmtPrice(f.max); }
+    else if(key==='psf'){ rlMin.textContent='$'+f.min.toLocaleString(); rlMax.textContent='$'+f.max.toLocaleString(); }
+    else if(key==='lotw'){ rlMin.textContent=f.min+' ft'; rlMax.textContent=f.max+' ft'; }
+    else if(key==='slope'){ rlMin.textContent=f.min+'%'; rlMax.textContent=f.max+'%'; }
   }
 }
 function fmtSf(v){return v>=1000?(v/1000).toFixed(v%1000?1:0).replace(/\.0$/,'')+'K sf':v+' sf'}
+function fmtPrice(v){if(v>=1000000)return '$'+(v/1000000).toFixed(v%1000000?1:0).replace(/\.0$/,'')+'M';if(v>=1000)return '$'+(v/1000).toFixed(0)+'K';return '$'+v}
 
 function setMarginPreset(minPct,btn){
   document.querySelectorAll('.preset-row .preset-btn, .kf-chips .kf-chip').forEach(b=>b.classList.remove('active'));
