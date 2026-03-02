@@ -85,7 +85,8 @@ export function calculateProForma(l){
   const totalBuildCost = constructionCost + ellisRelocation;
 
   // Component breakdown (for display — sums back to constructionCost)
-  const demo = l.sqft > 0 ? pf.demoCost : 0;
+  // Always budget demo — every SB 1123 project requires site clearing/demolition
+  const demo = pf.demoCost;
   const subdivision = (pf.subdivisionPsf || 10) * effective_buildable_sf;
   const ae = (pf.aePsf || 5) * effective_buildable_sf;
   const constructionRemaining = constructionCost - demo - subdivision - ae;
