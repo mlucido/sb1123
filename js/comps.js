@@ -184,17 +184,17 @@ export function showCompsTable(lat,lng){
 
   var thead = '<table class="listings-table"><thead><tr>'
     +'<th style="width:30px">Used</th>'
-    +'<th onclick="sortCompsTable(\'address\')">Address</th>'
-    +'<th onclick="sortCompsTable(\'price\')">Sale Price</th>'
-    +'<th onclick="sortCompsTable(\'ppsf\')">$/SF</th>'
-    +'<th onclick="sortCompsTable(\'sqft\')">SqFt</th>'
+    +'<th data-sort="address" onclick="sortCompsTable(\'address\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="price" onclick="sortCompsTable(\'price\')" style="cursor:pointer">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th>Bd/Ba</th>'
     +'<th>Type</th>'
-    +'<th onclick="sortCompsTable(\'zone\')">Zone</th>'
-    +'<th onclick="sortCompsTable(\'yb\')">Yr Built</th>'
-    +'<th onclick="sortCompsTable(\'t\')">Tier</th>'
-    +'<th onclick="sortCompsTable(\'date\')">Sale Date</th>'
-    +'<th onclick="sortCompsTable(\'dist\')">Dist</th>'
+    +'<th data-sort="zone" onclick="sortCompsTable(\'zone\')" style="cursor:pointer">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="yb" onclick="sortCompsTable(\'yb\')" style="cursor:pointer">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="t" onclick="sortCompsTable(\'t\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="date" onclick="sortCompsTable(\'date\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="dist" onclick="sortCompsTable(\'dist\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'</tr></thead>';
 
   var dividerRow = ref.length ? '<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+ref.length+') &mdash;</td></tr>' : '';
@@ -233,12 +233,13 @@ export function sortCompsTable(key){
   var wrap = document.getElementById('compsTableWrap');
   if(!wrap || !wrap._used) return;
   var prev = wrap.getAttribute('data-sort-key');
-  var dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
+  var prevDir = wrap.getAttribute('data-sort-dir');
+  var dir = prev===key ? (prevDir==='asc' ? 'desc' : 'asc') : 'desc';
   wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
+  wrap.setAttribute('data-sort-dir', dir);
   var sorter = function(a,b){
     var va=a[key],vb=b[key];
-    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    if(typeof va==='string') return dir==='asc'?(va||'').localeCompare(vb||''):(vb||'').localeCompare(va||'');
     va=va||0;vb=vb||0;
     return dir==='asc'?va-vb:vb-va;
   };
@@ -246,6 +247,13 @@ export function sortCompsTable(key){
   wrap._ref.sort(sorter);
   var dividerRow = wrap._ref.length ? '<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+wrap._ref.length+') &mdash;</td></tr>' : '';
   wrap.querySelector('tbody').innerHTML = wrap._used.map(function(c){return compRow(c);}).join('') + dividerRow + wrap._ref.filter(function(c){return !c.isOutlier;}).map(function(c){return compRow(c);}).join('');
+  // Update header arrows
+  wrap.querySelectorAll('th[data-sort]').forEach(function(th){
+    var arrow = th.querySelector('.sort-arrow');
+    var active = th.getAttribute('data-sort')===key;
+    arrow.textContent = active ? (dir==='asc'?' \u25B2':' \u25BC') : ' \u25BD';
+    arrow.style.opacity = active ? '1' : '0.4';
+  });
 }
 
 export function hideCompsTable(){
