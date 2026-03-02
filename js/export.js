@@ -429,7 +429,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   setFormula(ws, 'C28', 'C14-G26', 0, '$#,##0');
   ws.getCell('C28').font = { bold: true, color: { argb: 'FFFF0000' } };
 
-  autoFitColumns(ws, { fixed: { 1: 2, 5: 3 } });
+  autoFitColumns(ws, { fixed: { 1: 2, 3: 12, 4: 10, 5: 3, 7: 12, 8: 10 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -1269,7 +1269,7 @@ function buildExitCompsTab(wb, l) {
       for (var k = 1; k <= 12; k++) row.getCell(k).fill = greenFill;
     }
   }
-  autoFitColumns(cs, {});
+  autoFitColumns(cs, { fixed: { 1: 7, 3: 12, 4: 8, 5: 7, 6: 5, 7: 6, 8: 6, 9: 11, 10: 5, 11: 11, 12: 13 } });
   cs.views = [{ showGridLines: false }];
   return cs;
 }
