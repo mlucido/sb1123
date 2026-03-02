@@ -438,6 +438,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
 function buildCashFlowTab(wb, l, ed, pf) {
   var ws = wb.addWorksheet('Cash Flow');
   var MONTHS = 24;
+  var CF_FMT = '$#,##0;-$#,##0;" "'; // hide $0 cells — show blank
   var totalCol = MONTHS + 3; // col index for TOTAL (months in cols 3..26, total in 27 = AA)
   var totalLtr = colLetter(totalCol); // AA
 
@@ -490,10 +491,10 @@ function buildCashFlowTab(wb, l, ed, pf) {
   function monthFormula(row, formulaFn, resultFn) {
     for (var m = 0; m < MONTHS; m++) {
       var cl = colLetter(m + 3);
-      setFormula(ws, cl + row, formulaFn(m, cl), resultFn(m), '$#,##0');
+      setFormula(ws, cl + row, formulaFn(m, cl), resultFn(m), CF_FMT);
     }
     // Total column = SUM
-    setFormula(ws, totalLtr + row, 'SUM(C' + row + ':' + colLetter(MONTHS + 2) + row + ')', 0, '$#,##0');
+    setFormula(ws, totalLtr + row, 'SUM(C' + row + ':' + colLetter(MONTHS + 2) + row + ')', 0, CF_FMT);
     ws.getCell(totalLtr + row).font = { bold: true };
   }
 
@@ -684,10 +685,10 @@ function buildCashFlowTab(wb, l, ed, pf) {
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
     if (m === 0) {
-      setFormula(ws, cl + '35', '0', 0, '$#,##0');
+      setFormula(ws, cl + '35', '0', 0, CF_FMT);
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '35', prevCl + '38', 0, '$#,##0');
+      setFormula(ws, cl + '35', prevCl + '38', 0, CF_FMT);
     }
   }
 
@@ -695,18 +696,18 @@ function buildCashFlowTab(wb, l, ed, pf) {
   labelCell(ws, 36, 2, '  + Draws');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '36', cl + '8', 0, '$#,##0');
+    setFormula(ws, cl + '36', cl + '8', 0, CF_FMT);
   }
-  setFormula(ws, totalLtr + '36', 'SUM(C36:' + colLetter(MONTHS + 2) + '36)', 0, '$#,##0');
+  setFormula(ws, totalLtr + '36', 'SUM(C36:' + colLetter(MONTHS + 2) + '36)', 0, CF_FMT);
   ws.getCell(totalLtr + '36').font = { bold: true };
 
   // Row 37: + Capitalized Interest (accrued on opening balance, added to loan)
   labelCell(ws, 37, 2, '  + Capitalized Interest');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '37', cl + '35*Assumptions!$G$18/12', 0, '$#,##0');
+    setFormula(ws, cl + '37', cl + '35*Assumptions!$G$18/12', 0, CF_FMT);
   }
-  setFormula(ws, totalLtr + '37', 'SUM(C37:' + colLetter(MONTHS + 2) + '37)', 0, '$#,##0');
+  setFormula(ws, totalLtr + '37', 'SUM(C37:' + colLetter(MONTHS + 2) + '37)', 0, CF_FMT);
   ws.getCell(totalLtr + '37').font = { bold: true };
 
   // Row 38: Closing Balance (= Opening + Draws + Capitalized Interest)
@@ -714,7 +715,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   ws.getCell('B38').font = { bold: true };
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '38', cl + '35+' + cl + '36+' + cl + '37', 0, '$#,##0');
+    setFormula(ws, cl + '38', cl + '35+' + cl + '36+' + cl + '37', 0, CF_FMT);
   }
 
   // Row 39: Cumulative Interest
@@ -722,13 +723,13 @@ function buildCashFlowTab(wb, l, ed, pf) {
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
     if (m === 0) {
-      setFormula(ws, cl + '39', cl + '37', 0, '$#,##0');
+      setFormula(ws, cl + '39', cl + '37', 0, CF_FMT);
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '39', prevCl + '39+' + cl + '37', 0, '$#,##0');
+      setFormula(ws, cl + '39', prevCl + '39+' + cl + '37', 0, CF_FMT);
     }
   }
-  setFormula(ws, totalLtr + '39', colLetter(MONTHS + 2) + '39', 0, '$#,##0');
+  setFormula(ws, totalLtr + '39', colLetter(MONTHS + 2) + '39', 0, CF_FMT);
   ws.getCell(totalLtr + '39').font = { bold: true };
 
   // ── Row 41: NET OPERATING CF ──
@@ -770,9 +771,9 @@ function buildCashFlowTab(wb, l, ed, pf) {
   labelCell(ws, 47, 2, '  Loan Repayment');
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '38,0)', 0, '$#,##0');
+    setFormula(ws, cl + '47', 'IF(' + m + '=Assumptions!$G$8-1,' + cl + '38,0)', 0, CF_FMT);
   }
-  setFormula(ws, totalLtr + '47', 'SUM(C47:' + colLetter(MONTHS + 2) + '47)', 0, '$#,##0');
+  setFormula(ws, totalLtr + '47', 'SUM(C47:' + colLetter(MONTHS + 2) + '47)', 0, CF_FMT);
   ws.getCell(totalLtr + '47').font = { bold: true };
 
   // Row 48: Net Exit CF
@@ -874,10 +875,10 @@ function buildCashFlowTab(wb, l, ed, pf) {
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
     if (m === 0) {
-      setFormula(ws, cl + '62', '0', 0, '$#,##0');
+      setFormula(ws, cl + '62', '0', 0, CF_FMT);
     } else {
       var prevCl = colLetter(m + 2);
-      setFormula(ws, cl + '62', prevCl + '63', 0, '$#,##0');
+      setFormula(ws, cl + '62', prevCl + '63', 0, CF_FMT);
     }
   }
 
@@ -886,7 +887,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   ws.getCell('B63').font = { bold: true };
   for (var m = 0; m < MONTHS; m++) {
     var cl = colLetter(m + 3);
-    setFormula(ws, cl + '63', cl + '62+' + cl + '9-' + cl + '32+' + cl + '48', 0, '$#,##0');
+    setFormula(ws, cl + '63', cl + '62+' + cl + '9-' + cl + '32+' + cl + '48', 0, CF_FMT);
   }
 
   // Freeze panes: B column labels + header rows
