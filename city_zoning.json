@@ -328,5 +328,288 @@
       "SMUSD Developer Fee Schedule ($4.79/SF residential)",
       "HCD Review of San Marino ADU Ordinance (Aug 26, 2024)"
     ]
+  },
+
+  "Long Beach": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Tenant Relocation Assistance Ordinance",
+      "year_built_threshold": null,
+      "unit_count_threshold": 2,
+      "notes": "No traditional rent control — just-cause eviction + relocation assistance for no-fault evictions. AB 1482 state cap applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Beverly Hills": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Rent Stabilization Ordinance (Ch. 11 BHMC)",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "notes": "Covers apartments built before Feb 1995 with 2+ units. Annual increase set by Rent Stabilization Commission."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "West Hollywood": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Rent Stabilization Ordinance",
+      "year_built_threshold": 1996,
+      "unit_count_threshold": 2,
+      "annual_increase_formula": "75% of CPI",
+      "notes": "One of the strongest RSO programs in CA. Covers units built before Jul 1979 (Costa-Hawkins) but just-cause applies to all rentals."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Glendale": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Glendale Tenant Protection Ordinance",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "notes": "Adopted 2019. Relocation assistance + just-cause eviction. Rent increase cap via AB 1482."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Burbank": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Tenant Protection Ordinance",
+      "year_built_threshold": null,
+      "unit_count_threshold": 2,
+      "notes": "Just-cause eviction + relocation assistance. No traditional rent cap beyond AB 1482 state law."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Santa Monica": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Rent Control Charter Amendment (Art. XVIII)",
+      "year_built_threshold": 1979,
+      "unit_count_threshold": 2,
+      "annual_increase_formula": "Set by Rent Control Board (typically 60-75% of CPI)",
+      "notes": "One of the oldest and strictest RSO programs in CA. Covers units with certificate of occupancy before Apr 10, 1979."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Culver City": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Rent Control and Tenant Protection Ordinance",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "annual_increase_formula": "3-5% per year",
+      "notes": "Adopted 2022. Covers MF units built before Feb 1995. Includes just-cause eviction protections."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Inglewood": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Rent Stabilization and Tenant Protection Ordinance",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "notes": "Adopted 2019. Annual rent increase capped at 5%. Covers units built before Feb 1995."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Torrance": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Alhambra": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Whittier": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Downey": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Arcadia": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Monrovia": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Redondo Beach": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Hermosa Beach": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Manhattan Beach": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "El Segundo": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "South Pasadena": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Hawthorne": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Compton": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "La Canada Flintridge": {
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply"
+    }
+  },
+
+  "Unincorporated LA County": {
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "LA County Rent Stabilization Ordinance (RSO)",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "notes": "County RSO covers unincorporated areas. Units built before Feb 1995 with 2+ units. Annual increase set by CPI (max 3%)."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "County defaults — state SB 1123 standards apply. Planning processed through LA County Dept of Regional Planning."
+    }
   }
 }

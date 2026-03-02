@@ -927,6 +927,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <div style="display:flex;align-items:center;justify-content:space-between">
       <h1><span>SB 1123</span> Deal Finder</h1>
       <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
+      <a href="city_guide.html" class="analytics-btn" id="cityGuideLink" title="City Development Guide">&#9670; City Guide</a>
       <a href="" class="analytics-btn" id="marketSwitchLink" title="Switch market"></a>
       <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard" aria-label="Copy refresh command">&#8635; Refresh</button>
     </div>
@@ -3929,6 +3930,8 @@ window.addEventListener('DOMContentLoaded', function(){
   }
   var analyticsLink = document.getElementById('analyticsLink');
   if(MARKET.slug!=='la') analyticsLink.href='analytics.html?market='+MARKET.slug;
+  var cityGuideLink = document.getElementById('cityGuideLink');
+  if(MARKET.slug!=='la' && cityGuideLink) cityGuideLink.href='city_guide.html?market='+MARKET.slug;
 
   if(typeof LOADED_COMPS !== 'undefined' && LOADED_COMPS.length > 0) COMPS = LOADED_COMPS;
   if(typeof LOADED_LISTINGS !== 'undefined' && LOADED_LISTINGS.length > 0) LISTINGS = LOADED_LISTINGS;
@@ -4135,6 +4138,25 @@ window.addEventListener('DOMContentLoaded', function(){
               }
             }, 500);
           }
+        }
+      }
+
+      // Check for ?city=X parameter — zoom to city
+      var cityParam = urlParams.get('city');
+      if(cityParam && !pinParam){
+        var cityName = decodeURIComponent(cityParam).toLowerCase();
+        var cityListings = LISTINGS.filter(function(l){
+          return l.city && l.city.toLowerCase() === cityName;
+        });
+        if(cityListings.length){
+          var minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+          cityListings.forEach(function(l){
+            if(l.lat < minLat) minLat = l.lat;
+            if(l.lat > maxLat) maxLat = l.lat;
+            if(l.lng < minLng) minLng = l.lng;
+            if(l.lng > maxLng) maxLng = l.lng;
+          });
+          map.fitBounds([[minLat, minLng],[maxLat, maxLng]], {padding:[50,50], maxZoom:15});
         }
       }
     }, 100);

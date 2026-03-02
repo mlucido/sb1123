@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Development Guide | SB 1123 Deal Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#3b82f6; --cyan:#22d3ee; --green:#22c55e;
+    --yellow:#eab308; --orange:#f97316; --red:#ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:#f8fafc; color:#1e293b; min-height:100vh; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  /* Nav */
+  .top-nav { background:#fff; border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:40; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .nav-inner { max-width:1400px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; height:56px; }
+  .nav-brand { display:flex; align-items:center; gap:12px; }
+  .nav-logo { background:#1e293b; color:#22c55e; padding:4px 10px; border-radius:8px; font-size:15px; font-weight:700; letter-spacing:-0.02em; }
+  .nav-title { font-size:16px; font-weight:700; color:#1e293b; }
+  .nav-subtitle { font-size:11px; color:#64748b; }
+  .nav-back { font-size:13px; color:#64748b; text-decoration:none; padding:6px 14px; border-radius:6px; border:1px solid #e2e8f0; transition:all 0.15s; }
+  .nav-back:hover { color:#1e293b; border-color:#cbd5e1; background:#f1f5f9; }
+
+  /* Layout */
+  .container { max-width:1400px; margin:0 auto; padding:24px; }
+
+  /* Cards */
+  .card { background:#fff; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .card-pad { padding:20px; }
+
+  /* State baseline */
+  .baseline-card { background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; }
+  .baseline-card h2 { font-size:16px; font-weight:700; margin-bottom:14px; color:#166534; }
+  .baseline-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .baseline-item { display:flex; flex-direction:column; gap:2px; }
+  .baseline-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#4ade80; }
+  .baseline-value { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:#166534; }
+  .baseline-note { font-size:11px; color:#15803d; }
+
+  /* Search */
+  .search-bar { margin:20px 0 16px; position:relative; }
+  .search-bar input {
+    width:100%; padding:12px 16px 12px 40px; font-size:14px; font-family:inherit;
+    border:1px solid #e2e8f0; border-radius:10px; background:#fff; color:#1e293b;
+    outline:none; transition:border 0.15s;
+  }
+  .search-bar input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+  .search-bar .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:16px; pointer-events:none; }
+  .search-count { font-size:12px; color:#94a3b8; margin-top:6px; }
+
+  /* Summary table */
+  .table-wrap { overflow-x:auto; border-radius:12px; border:1px solid #e2e8f0; background:#fff; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .summary-table { width:100%; border-collapse:collapse; font-size:13px; min-width:900px; }
+  .summary-table thead { background:#f8fafc; position:sticky; top:0; z-index:2; }
+  .summary-table th {
+    padding:10px 14px; text-align:left; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; border-bottom:1px solid #e2e8f0;
+    white-space:nowrap;
+  }
+  .summary-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+  .summary-table tbody tr:hover { background:#f8fafc; }
+  .summary-table .city-col { position:sticky; left:0; background:#fff; z-index:1; font-weight:600; min-width:160px; }
+  .summary-table thead .city-col { background:#f8fafc; }
+  .summary-table tbody tr:hover .city-col { background:#f8fafc; }
+  .city-link { color:#3b82f6; text-decoration:none; }
+  .city-link:hover { text-decoration:underline; }
+
+  /* Status badges */
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap; }
+  .badge-green { background:#dcfce7; color:#166534; }
+  .badge-blue { background:#dbeafe; color:#1e40af; }
+  .badge-yellow { background:#fef9c3; color:#854d0e; }
+
+  /* City cards */
+  .city-cards { display:flex; flex-direction:column; gap:12px; }
+  .city-card { border-radius:12px; border:1px solid #e2e8f0; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
+  .city-card summary {
+    padding:16px 20px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    font-size:15px; font-weight:700; list-style:none; user-select:none;
+  }
+  .city-card summary::-webkit-details-marker { display:none; }
+  .city-card summary::after { content:'▸'; color:#94a3b8; font-size:14px; transition:transform 0.2s; }
+  .city-card[open] summary::after { transform:rotate(90deg); }
+  .city-card summary .card-meta { display:flex; align-items:center; gap:10px; }
+  .city-card-body { padding:0 20px 20px; }
+
+  /* Card sections */
+  .card-section { margin-bottom:16px; }
+  .card-section:last-child { margin-bottom:0; }
+  .card-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid #f1f5f9; }
+  .card-section-body { font-size:13px; line-height:1.6; color:#475569; }
+  .card-section-body dt { font-weight:600; color:#1e293b; display:inline; }
+  .card-section-body dd { display:inline; margin:0 0 0 4px; }
+  .card-section-body dd::after { content:''; display:block; margin-bottom:4px; }
+
+  /* Unconfirmed warning */
+  .unconfirmed-section { background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 16px; }
+  .unconfirmed-section .card-section-title { color:#92400e; border-bottom-color:#fde68a; }
+  .unconfirmed-section ul { margin:0; padding-left:20px; font-size:12px; color:#92400e; }
+
+  /* Sources */
+  .sources-list { list-style:none; padding:0; }
+  .sources-list li { font-size:11px; color:#64748b; padding:2px 0; }
+  .sources-list li::before { content:'→ '; color:#94a3b8; }
+
+  /* Map link */
+  .map-link { display:inline-flex; align-items:center; gap:4px; color:#3b82f6; font-size:12px; font-weight:600; text-decoration:none; margin-top:8px; }
+  .map-link:hover { text-decoration:underline; }
+
+  /* Responsive */
+  @media (max-width:768px) {
+    .nav-inner { padding:0 16px; }
+    .container { padding:16px; }
+    .baseline-grid { grid-template-columns:1fr 1fr; }
+    .nav-subtitle { display:none; }
+  }
+  @media (max-width:480px) {
+    .baseline-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-logo">SB1123</span>
+      <div>
+        <div class="nav-title">City Development Guide</div>
+        <div class="nav-subtitle">Jurisdiction-specific standards for SB 1123 projects</div>
+      </div>
+    </div>
+    <a href="index.html" class="nav-back">&larr; Back to Map</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ═══ STATE BASELINE ═══ -->
+  <div class="card baseline-card card-pad">
+    <h2>SB 1123 State Baseline (Floor for All Cities)</h2>
+    <div class="baseline-grid">
+      <div class="baseline-item">
+        <span class="baseline-label">Min Parcel</span>
+        <span class="baseline-value">1,200 SF (R1) / 600 SF (MF)</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Max Units</span>
+        <span class="baseline-value">10 per parcel</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">FAR Floor</span>
+        <span class="baseline-value">1.0 (3-7 units) / 1.25 (8-10 units)</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Avg Unit Size Cap</span>
+        <span class="baseline-value">1,750 SF</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Side/Rear Setbacks</span>
+        <span class="baseline-value">Max 4 ft from original lot line</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Parking</span>
+        <span class="baseline-value">Max 1/unit (0 within 0.5mi transit)</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Approval Process</span>
+        <span class="baseline-value">Ministerial, 60-day deadline</span>
+      </div>
+      <div class="baseline-item">
+        <span class="baseline-label">Height</span>
+        <span class="baseline-value">Per existing zoning (state can't reduce)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SEARCH ═══ -->
+  <div class="search-bar">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="citySearch" placeholder="Search cities..." autocomplete="off">
+    <div class="search-count" id="searchCount"></div>
+  </div>
+
+  <!-- ═══ SUMMARY TABLE ═══ -->
+  <div class="table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th class="city-col">City</th>
+          <th>SB 1123 Status</th>
+          <th>Height / 3-Story?</th>
+          <th>FAR</th>
+          <th>Setbacks</th>
+          <th>Parking</th>
+          <th>RSO</th>
+          <th>Impact Fees</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ═══ CITY CARDS ═══ -->
+  <div class="city-cards" id="cityCards"></div>
+
+</div>
+
+<script>
+(function(){
+  // ── Helpers ──
+  function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+  function fmt(v){ return v == null ? '\u2014' : String(v); }
+
+  // ── Load city_zoning.json ──
+  fetch('city_zoning.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){ init(data); })
+    .catch(function(e){ document.getElementById('cityCards').innerHTML = '<p style="color:#ef4444;padding:20px">Failed to load city_zoning.json: ' + e.message + '</p>'; });
+
+  function init(raw){
+    // Filter out _meta key
+    var cities = [];
+    Object.keys(raw).forEach(function(name){
+      if(name === '_meta') return;
+      var c = raw[name];
+      c._name = name;
+      cities.push(c);
+    });
+    // Sort alphabetically, but put Los Angeles first and Unincorporated LA County last
+    cities.sort(function(a,b){
+      if(a._name === 'Los Angeles') return -1;
+      if(b._name === 'Los Angeles') return 1;
+      if(a._name === 'Unincorporated LA County') return 1;
+      if(b._name === 'Unincorporated LA County') return -1;
+      return a._name.localeCompare(b._name);
+    });
+
+    renderTable(cities);
+    renderCards(cities);
+    wireSearch(cities);
+    handleHash();
+  }
+
+  // ── Status badge ──
+  function statusBadge(c){
+    var sb = c.sb1123 || {};
+    if(sb.local_standards_adopted) return '<span class="badge badge-blue">Local Ordinance</span>';
+    if(sb.status && /in progress|preparing|review/i.test(sb.status)) return '<span class="badge badge-yellow">In Progress</span>';
+    return '<span class="badge badge-green">State Default</span>';
+  }
+
+  function statusText(c){
+    var sb = c.sb1123 || {};
+    return sb.status || 'State defaults apply';
+  }
+
+  // ── Extract summary fields ──
+  function getHeight(c){
+    if(!c.height_ft && !c.height_notes) return 'Per zoning';
+    var notes = c.height_notes || {};
+    // Check for 3-story info
+    var threeStory = '';
+    Object.keys(notes).forEach(function(k){
+      var v = notes[k];
+      if(/3.stor|third.stor/i.test(v)){
+        if(/prohibit|not.*defin|effectively/i.test(v)) threeStory = 'No';
+        else threeStory = 'Maybe';
+      }
+    });
+    // Get representative height
+    var heights = c.height_ft || {};
+    var vals = [];
+    Object.keys(heights).forEach(function(k){
+      if(k.charAt(0) === '_') return;
+      var v = heights[k];
+      if(typeof v === 'number') vals.push(v);
+    });
+    var range = vals.length ? Math.min.apply(null,vals) + '-' + Math.max.apply(null,vals) + ' ft' : 'Per zoning';
+    if(vals.length && vals.every(function(v){return v===vals[0];})) range = vals[0] + ' ft';
+    if(threeStory) range += ' / 3-story: ' + threeStory;
+    return range;
+  }
+
+  function getFAR(c){
+    if(!c.far) return 'State FAR';
+    var far = c.far;
+    var parts = [];
+    Object.keys(far).forEach(function(k){
+      if(k.charAt(0) === '_') return;
+      var v = far[k];
+      if(typeof v === 'number') parts.push(k + ': ' + v);
+      else if(typeof v === 'string' && v !== 'not used \u2014 see floor_area_limits') parts.push(k + ': ' + v);
+    });
+    return parts.length ? parts.join(', ') : 'State FAR';
+  }
+
+  function getSetbacks(c){
+    if(!c.setbacks_ft) return '4 ft side/rear';
+    var sb = c.setbacks_ft;
+    // Look for sb9/sb1123 override
+    var ovr = sb.sb9_override || sb.sb1123_override;
+    if(ovr) return 'Side ' + (ovr.side||4) + ', Rear ' + (ovr.rear||4) + ' ft';
+    // First non-meta zone
+    var first = null;
+    Object.keys(sb).forEach(function(k){
+      if(k.charAt(0) === '_' || k.indexOf('override') >= 0 || k.indexOf('corner') >= 0) return;
+      if(!first) first = sb[k];
+    });
+    if(first && typeof first === 'object'){
+      return 'F:' + (first.front||'?') + ' S:' + (first.side||'?') + ' R:' + (first.rear||'?');
+    }
+    return '4 ft side/rear';
+  }
+
+  function getParking(c){
+    if(!c.parking) return 'Max 1/unit';
+    var p = c.parking;
+    if(p.sb9_per_unit != null) return p.sb9_per_unit + '/unit';
+    if(p.standard_per_unit != null) return p.standard_per_unit + '/unit';
+    return 'Max 1/unit';
+  }
+
+  function getRSO(c){
+    if(!c.rent_stabilization) return 'No';
+    var rs = c.rent_stabilization;
+    if(rs.has_rso) return '<span style="color:#ef4444;font-weight:600">Yes</span>' + (rs.name ? ' (' + esc(rs.name.split('(')[0].trim()).substring(0,25) + ')' : '');
+    return 'No';
+  }
+
+  function getFees(c){
+    if(!c.impact_fees) return '\u2014';
+    var f = c.impact_fees;
+    var parts = [];
+    if(f.residential_impact_fee && typeof f.residential_impact_fee === 'object'){
+      // Use 3br as representative
+      var rep = f.residential_impact_fee['3br'] || f.residential_impact_fee['studio'];
+      if(rep) parts.push('$' + Number(rep).toLocaleString() + '/unit');
+    }
+    if(f.school_fee_per_sf) parts.push('$' + f.school_fee_per_sf + '/SF school');
+    return parts.length ? parts.join(' + ') : '\u2014';
+  }
+
+  // ── Render summary table ──
+  function renderTable(cities){
+    var tbody = document.getElementById('summaryBody');
+    tbody.innerHTML = cities.map(function(c){
+      var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+      return '<tr data-city="' + esc(c._name) + '">' +
+        '<td class="city-col"><a class="city-link" href="index.html?city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
+        '<td>' + statusBadge(c) + '</td>' +
+        '<td>' + esc(getHeight(c)) + '</td>' +
+        '<td class="mono" style="font-size:12px">' + esc(getFAR(c)) + '</td>' +
+        '<td style="font-size:12px">' + esc(getSetbacks(c)) + '</td>' +
+        '<td class="mono">' + esc(getParking(c)) + '</td>' +
+        '<td>' + getRSO(c) + '</td>' +
+        '<td style="font-size:12px">' + esc(getFees(c)) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ── Render city cards ──
+  function renderCards(cities){
+    var container = document.getElementById('cityCards');
+    container.innerHTML = cities.map(function(c){
+      var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+      var sections = '';
+
+      // SB 1123 Status
+      sections += cardSection('SB 1123 Status', statusBadge(c) + ' <span style="margin-left:8px;font-size:13px;color:#475569">' + esc(statusText(c)) + '</span>');
+
+      // Height & Stories
+      if(c.height_ft || c.height_notes){
+        var hb = '';
+        if(c.height_ft){
+          hb += '<dl>';
+          Object.keys(c.height_ft).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            hb += '<dt>' + esc(k) + ':</dt><dd class="mono">' + esc(String(c.height_ft[k])) + (typeof c.height_ft[k]==='number'?' ft':'') + '</dd>';
+          });
+          hb += '</dl>';
+        }
+        if(c.height_notes){
+          Object.keys(c.height_notes).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            hb += '<div style="font-size:12px;color:#64748b;margin-top:4px"><strong>' + esc(k) + ':</strong> ' + esc(c.height_notes[k]) + '</div>';
+          });
+        }
+        sections += cardSection('Height & Stories', hb);
+      }
+
+      // Plate Heights
+      if(c.plate_heights){
+        var pb = '<dl>';
+        Object.keys(c.plate_heights).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          pb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.plate_heights[k])) + '</dd>';
+        });
+        pb += '</dl>';
+        if(c.plate_heights._note) pb += '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + esc(c.plate_heights._note) + '</div>';
+        sections += cardSection('Plate Heights', pb);
+      }
+
+      // Encroachment Plane
+      if(c.encroachment_plane){
+        var ep = c.encroachment_plane;
+        var eb = '<dl>';
+        if(ep.angle_from_vertical_deg != null) eb += '<dt>Angle:</dt><dd>' + ep.angle_from_vertical_deg + '° from vertical</dd>';
+        if(ep.start_height_ft != null) eb += '<dt>Starts at:</dt><dd>' + ep.start_height_ft + ' ft above ' + esc(ep.start_at || 'property line') + '</dd>';
+        if(ep.impact) eb += '<dt>Impact:</dt><dd>' + esc(ep.impact) + '</dd>';
+        eb += '</dl>';
+        sections += cardSection('Encroachment / Daylight Plane', eb);
+      }
+
+      // Setbacks
+      if(c.setbacks_ft){
+        var sb = '<dl>';
+        Object.keys(c.setbacks_ft).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          var v = c.setbacks_ft[k];
+          if(typeof v === 'object'){
+            sb += '<dt>' + esc(k) + ':</dt><dd>Front ' + fmt(v.front) + ', Side ' + fmt(v.side) + ', Rear ' + fmt(v.rear) + ' ft</dd>';
+          } else {
+            sb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(v)) + '</dd>';
+          }
+        });
+        sb += '</dl>';
+        sections += cardSection('Setbacks', sb);
+      }
+
+      // FAR / Lot Coverage
+      if(c.far || (c.floor_area_limits && c.floor_area_limits.lot_coverage_pct)){
+        var fb = '<dl>';
+        if(c.far){
+          Object.keys(c.far).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            fb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.far[k])) + '</dd>';
+          });
+        }
+        if(c.floor_area_limits && c.floor_area_limits.lot_coverage_pct){
+          var lc = c.floor_area_limits.lot_coverage_pct;
+          Object.keys(lc).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            fb += '<dt>' + esc(k) + ' lot coverage:</dt><dd>' + lc[k] + '%</dd>';
+          });
+        }
+        fb += '</dl>';
+        sections += cardSection('FAR / Lot Coverage', fb);
+      }
+
+      // Parking
+      if(c.parking){
+        var pkb = '<dl>';
+        Object.keys(c.parking).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          pkb += '<dt>' + esc(k.replace(/_/g,' ')) + ':</dt><dd>' + esc(String(c.parking[k])) + '</dd>';
+        });
+        pkb += '</dl>';
+        sections += cardSection('Parking', pkb);
+      }
+
+      // Rent Stabilization
+      if(c.rent_stabilization){
+        var rs = c.rent_stabilization;
+        var rsb = '';
+        if(rs.has_rso){
+          rsb += '<dl>';
+          if(rs.name) rsb += '<dt>Program:</dt><dd>' + esc(rs.name) + '</dd>';
+          if(rs.year_built_threshold) rsb += '<dt>Applies to:</dt><dd>Buildings pre-' + rs.year_built_threshold + ', ' + (rs.unit_count_threshold||2) + '+ units</dd>';
+          if(rs.annual_increase_formula) rsb += '<dt>Annual increase:</dt><dd>' + esc(rs.annual_increase_formula) + (rs.current_annual_increase_pct ? ' (currently ' + rs.current_annual_increase_pct + '%)' : '') + '</dd>';
+          if(rs.ellis_act){
+            rsb += '<dt>Ellis Act relocation:</dt><dd>';
+            if(rs.ellis_act.relocation_up_to_3yr) rsb += '&lt;3yr: ' + esc(rs.ellis_act.relocation_up_to_3yr) + '; ';
+            if(rs.ellis_act.relocation_over_10yr) rsb += '10yr+: ' + esc(rs.ellis_act.relocation_over_10yr);
+            rsb += '</dd>';
+          }
+          if(rs.difference_from_la) rsb += '<dt>vs LA:</dt><dd>' + esc(rs.difference_from_la) + '</dd>';
+          rsb += '</dl>';
+        } else {
+          rsb = '<span style="color:#22c55e;font-weight:600">No local rent control</span>';
+          if(rs.notes) rsb += '<div style="font-size:12px;color:#64748b;margin-top:4px">' + esc(rs.notes) + '</div>';
+        }
+        sections += cardSection('Rent Stabilization / RSO', rsb);
+      }
+
+      // Impact Fees
+      if(c.impact_fees){
+        var ifb = '<dl>';
+        var ifees = c.impact_fees;
+        if(ifees.residential_impact_fee && typeof ifees.residential_impact_fee === 'object'){
+          var rif = ifees.residential_impact_fee;
+          Object.keys(rif).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            var v = rif[k];
+            ifb += '<dt>' + esc(k) + ':</dt><dd>' + (typeof v === 'number' ? '$' + v.toLocaleString() : esc(String(v))) + '</dd>';
+          });
+        } else if(ifees.residential_impact_fee === null){
+          ifb += '<dt>City impact fee:</dt><dd>None found</dd>';
+        }
+        if(ifees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + ifees.school_fee_per_sf + '/SF (' + esc(ifees.school_district || '') + ')</dd>';
+        if(ifees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(ifees.notes) + '</dd>';
+        ifb += '</dl>';
+        sections += cardSection('Impact Fees', ifb);
+      }
+
+      // Zone Mapping
+      if(c.zone_mapping){
+        var zmb = '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+        Object.keys(c.zone_mapping).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          zmb += '<span class="mono" style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:4px">' + esc(k) + ' \u2192 ' + esc(c.zone_mapping[k]) + '</span>';
+        });
+        zmb += '</div>';
+        if(c.zone_mapping._note) zmb += '<div style="font-size:11px;color:#94a3b8;margin-top:6px">' + esc(c.zone_mapping._note) + '</div>';
+        sections += cardSection('Zone Mapping', zmb);
+      }
+
+      // Unconfirmed
+      if(c.unconfirmed && c.unconfirmed.length){
+        var ub = '<ul>' + c.unconfirmed.map(function(u){ return '<li>' + esc(u) + '</li>'; }).join('') + '</ul>';
+        sections += '<div class="card-section unconfirmed-section"><div class="card-section-title">Unconfirmed Items</div><div class="card-section-body">' + ub + '</div></div>';
+      }
+
+      // Sources
+      if(c.sources && c.sources.length){
+        var srcb = '<ul class="sources-list">' + c.sources.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+        sections += cardSection('Sources & Citations', srcb);
+      }
+
+      // Map link
+      sections += '<a class="map-link" href="index.html?city=' + encodeURIComponent(c._name) + '">View on map \u2192</a>';
+
+      return '<details class="city-card" id="city-' + slug + '">' +
+        '<summary><div class="card-meta"><span>' + esc(c._name) + '</span>' + statusBadge(c) + '</div></summary>' +
+        '<div class="city-card-body">' + sections + '</div>' +
+      '</details>';
+    }).join('');
+  }
+
+  function cardSection(title, body){
+    return '<div class="card-section"><div class="card-section-title">' + title + '</div><div class="card-section-body">' + body + '</div></div>';
+  }
+
+  // ── Search ──
+  function wireSearch(cities){
+    var input = document.getElementById('citySearch');
+    var countEl = document.getElementById('searchCount');
+    input.addEventListener('input', function(){
+      var q = this.value.toLowerCase().trim();
+      var rows = document.querySelectorAll('#summaryBody tr');
+      var cards = document.querySelectorAll('.city-card');
+      var visible = 0;
+      rows.forEach(function(row){
+        var name = (row.getAttribute('data-city') || '').toLowerCase();
+        var show = !q || name.indexOf(q) >= 0;
+        row.style.display = show ? '' : 'none';
+        if(show) visible++;
+      });
+      cards.forEach(function(card){
+        var name = card.querySelector('summary span').textContent.toLowerCase();
+        card.style.display = (!q || name.indexOf(q) >= 0) ? '' : 'none';
+      });
+      countEl.textContent = q ? visible + ' of ' + cities.length + ' cities' : '';
+    });
+  }
+
+  // ── Hash navigation ──
+  function handleHash(){
+    var hash = window.location.hash;
+    if(!hash || !hash.startsWith('#city-')) return;
+    var el = document.getElementById(hash.substring(1));
+    if(el){
+      el.open = true;
+      setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+    }
+  }
+  window.addEventListener('hashchange', handleHash);
+})();
+</script>
+</body>
+</html>
