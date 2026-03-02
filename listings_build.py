@@ -1440,6 +1440,38 @@ else:
         l["rentCompMedianBeds"] = 0
         l["rentCompMedianSqft"] = 0
 
+# ── Fuzzy key lookup for slope/elevation caches ──
+# Coordinates can drift slightly between CSV refreshes (rounding).
+# Build a grid index for O(1) fuzzy matching within 0.0005° (~55m).
+FUZZY_CELL = 0.001  # Grid cell size for fuzzy lookup
+FUZZY_TOL = 0.0005  # Max distance for fuzzy match (~55m)
+
+def build_fuzzy_index(cache_dict):
+    """Index cache keys by coarse grid cell for fast fuzzy lookup."""
+    idx = {}
+    for key in cache_dict:
+        parts = key.split(",")
+        lat, lng = float(parts[0]), float(parts[1])
+        cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
+        idx.setdefault(cell, []).append((lat, lng, key))
+    return idx
+
+def fuzzy_lookup(lat, lng, cache_dict, idx):
+    """Exact match first, then fuzzy match within tolerance."""
+    exact = f"{lat},{lng}"
+    if exact in cache_dict:
+        return exact
+    cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
+    best_key, best_dist = None, FUZZY_TOL + 1
+    for dr in (-1, 0, 1):
+        for dc in (-1, 0, 1):
+            for clat, clng, ckey in idx.get((cell[0] + dr, cell[1] + dc), []):
+                d = abs(clat - lat) + abs(clng - lng)
+                if d < best_dist:
+                    best_dist = d
+                    best_key = ckey
+    return best_key if best_dist <= FUZZY_TOL else None
+
 # ── Step 5: Stamp lot slope from slopes.json ──
 SLOPE_FILE = market_file("slopes.json", market)
 if os.path.exists(SLOPE_FILE):
@@ -1448,12 +1480,16 @@ if os.path.exists(SLOPE_FILE):
         slope_data = json.load(f)
     print(f"   Loaded {len(slope_data):,} slope records")
 
+    slope_idx = build_fuzzy_index(slope_data)
     stamped = 0
+    fuzzy_hits = 0
     for l in listings:
-        key = f"{l['lat']},{l['lng']}"
-        if key in slope_data:
-            l["slope"] = slope_data[key]
+        matched_key = fuzzy_lookup(l["lat"], l["lng"], slope_data, slope_idx)
+        if matched_key:
+            l["slope"] = slope_data[matched_key]
             stamped += 1
+            if matched_key != f"{l['lat']},{l['lng']}":
+                fuzzy_hits += 1
 
     slopes_list = [l["slope"] for l in listings if "slope" in l]
     if slopes_list:
@@ -1461,7 +1497,7 @@ if os.path.exists(SLOPE_FILE):
         mild = sum(1 for s in slopes_list if 5 <= s < 15)
         moderate = sum(1 for s in slopes_list if 15 <= s < 25)
         steep = sum(1 for s in slopes_list if s >= 25)
-        print(f"   Stamped: {stamped:,}/{len(listings):,}")
+        print(f"   Stamped: {stamped:,}/{len(listings):,} (fuzzy: {fuzzy_hits:,})")
         print(f"   Flat (<5%): {flat:,} | Mild (5-15%): {mild:,} | Moderate (15-25%): {moderate:,} | Steep (25%+): {steep:,}")
 else:
     print(f"\n⚠️  {SLOPE_FILE} not found — run: python3 fetch_slopes.py")
@@ -1474,17 +1510,21 @@ if os.path.exists(ELEV_FILE):
         elev_data = json.load(f)
     print(f"   Loaded {len(elev_data):,} elevation records")
 
+    elev_idx = build_fuzzy_index(elev_data)
     elev_stamped = 0
+    elev_fuzzy = 0
     for l in listings:
-        key = f"{l['lat']},{l['lng']}"
-        if key in elev_data:
-            e = elev_data[key]
+        matched_key = fuzzy_lookup(l["lat"], l["lng"], elev_data, elev_idx)
+        if matched_key:
+            e = elev_data[matched_key]
             if isinstance(e, dict) and "slopeScore" in e:
                 l["elevRange"] = e.get("elevRange")
                 l["maxSlope"] = e.get("maxSlope")
                 l["flatPct"] = e.get("flatPct")
                 l["slopeScore"] = e.get("slopeScore")
                 elev_stamped += 1
+                if matched_key != f"{l['lat']},{l['lng']}":
+                    elev_fuzzy += 1
 
     scores = [l["slopeScore"] for l in listings if l.get("slopeScore") is not None]
     if scores:
@@ -1492,7 +1532,7 @@ if os.path.exists(ELEV_FILE):
         mod_ct = sum(1 for s in scores if 21 <= s <= 50)
         steep_ct = sum(1 for s in scores if 51 <= s <= 75)
         severe_ct = sum(1 for s in scores if s >= 76)
-        print(f"   Stamped: {elev_stamped:,}/{len(listings):,}")
+        print(f"   Stamped: {elev_stamped:,}/{len(listings):,} (fuzzy: {elev_fuzzy:,})")
         print(f"   Flat (0-20): {flat_ct:,} | Moderate (21-50): {mod_ct:,} | Steep (51-75): {steep_ct:,} | Severe (76+): {severe_ct:,}")
 else:
     print(f"\n⚠️  {ELEV_FILE} not found — run: python3 fetch_elevation.py")
