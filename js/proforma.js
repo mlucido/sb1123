@@ -95,11 +95,15 @@ export function calculateProForma(l){
   const softCosts = softConstruction + demo + subdivision + ae;
 
   const holdMonths = pf.holdMonths + ellisHoldMonths;
-  const avgLoanOutstanding = totalBuildCost * 0.5;
+  // 70% LTC debt model: acquisition debt fully drawn + construction draws at ~50% avg
+  const totalProjectDebt = (acquisition + totalBuildCost) * 0.70;
+  const acqDebt = Math.min(acquisition * 0.70, totalProjectDebt);
+  const constrDebt = totalProjectDebt - acqDebt;
+  const avgLoanOutstanding = acqDebt + constrDebt * 0.5;
   const carryInterest = avgLoanOutstanding * (pf.carryRatePct / 100) * (holdMonths / 12);
   const carryPropTax = acquisition * 0.011 * (holdMonths / 12);
   const insurance = pf.insurance || 40000;
-  const originationFee = totalBuildCost * ((pf.originationPct || 1) / 100);
+  const originationFee = totalProjectDebt * ((pf.originationPct || 1) / 100);
   const totalCarry = carryInterest + carryPropTax + insurance + originationFee;
 
   const totalCost = acquisition + totalBuildCost + totalCarry;
@@ -111,10 +115,15 @@ export function calculateProForma(l){
   const target_margin = 0.30;
   const nr = netRevenue;
   const target_total_cost = nr * (1 - target_margin);
-  const build_carry = avgLoanOutstanding * (pf.carryRatePct / 100) * (holdMonths / 12);
-  const build_plus_soft = totalBuildCost + build_carry + insurance + originationFee;
-  const propTaxFactor = 0.011 * (holdMonths / 12);
-  const max_offer = (target_total_cost - build_plus_soft) / (1 + propTaxFactor);
+  // max_offer backward-solve with 70% LTC (acquisition is part of debt base)
+  const rate = pf.carryRatePct / 100;
+  const time = holdMonths / 12;
+  const origPct = (pf.originationPct || 1) / 100;
+  const carryOnBuild = totalBuildCost * 0.35 * rate * time;
+  const origOnBuild = totalBuildCost * 0.70 * origPct;
+  const fixedCosts = totalBuildCost + carryOnBuild + insurance + origOnBuild;
+  const aCoeff = 1 + 0.70 * rate * time + 0.011 * time + 0.70 * origPct;
+  const max_offer = (target_total_cost - fixedCosts) / aCoeff;
 
   const lot_efficiency = l.lotSf > 0 ? (effective_buildable_sf / l.lotSf) : 0;
   const return_on_cost = totalCost > 0 ? ((profit / totalCost) * 100) : 0;
