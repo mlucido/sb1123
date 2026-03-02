@@ -883,7 +883,6 @@ if burn_zones:
         for bz in burn_zones:
             if point_in_polygon_simple(lng, lat, bz["polygon"]):
                 l["burnZone"] = bz["name"]
-                l["fireZone"] = True
                 burn_counts[bz["name"]] = burn_counts.get(bz["name"], 0) + 1
                 break
     for name, count in burn_counts.items():
