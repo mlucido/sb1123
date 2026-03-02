@@ -784,6 +784,72 @@ print(f"   Tenant risk — None: {tenant_risk_counts[0]:,} | Low: {tenant_risk_c
 print(f"   RSO risk (LA only): {rso_count:,}")
 print(f"   Remainder parcels (R2-R4 viable): {remainder_count:,}")
 
+# ── Fuzzy key lookup for cache files (openspace, slopes, elevation) ──
+# Coordinates can drift slightly between CSV refreshes (rounding).
+# Build a grid index for O(1) fuzzy matching within 0.0005° (~55m).
+FUZZY_CELL = 0.001  # Grid cell size for fuzzy lookup
+FUZZY_TOL = 0.0005  # Max distance for fuzzy match (~55m)
+
+def build_fuzzy_index(cache_dict):
+    """Index cache keys by coarse grid cell for fast fuzzy lookup."""
+    idx = {}
+    for key in cache_dict:
+        parts = key.split(",")
+        lat, lng = float(parts[0]), float(parts[1])
+        cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
+        idx.setdefault(cell, []).append((lat, lng, key))
+    return idx
+
+def fuzzy_lookup(lat, lng, cache_dict, idx):
+    """Exact match first, then fuzzy match within tolerance."""
+    exact = f"{lat},{lng}"
+    if exact in cache_dict:
+        return exact
+    cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
+    best_key, best_dist = None, FUZZY_TOL + 1
+    for dr in (-1, 0, 1):
+        for dc in (-1, 0, 1):
+            for clat, clng, ckey in idx.get((cell[0] + dr, cell[1] + dc), []):
+                d = abs(clat - lat) + abs(clng - lng)
+                if d < best_dist:
+                    best_dist = d
+                    best_key = ckey
+    return best_key if best_dist <= FUZZY_TOL else None
+
+# ── Step 2.9: Stamp protected area status from openspace.json ──
+OPENSPACE_FILE = market_file("openspace.json", market)
+if os.path.exists(OPENSPACE_FILE):
+    print(f"\n🌲 Step 2.9: Stamping protected area status from {OPENSPACE_FILE}...")
+    with open(OPENSPACE_FILE) as f:
+        openspace_data = json.load(f)
+    print(f"   Loaded {len(openspace_data):,} openspace records")
+
+    openspace_idx = build_fuzzy_index(openspace_data)
+    os_stamped = 0
+    os_protected = 0
+    for l in listings:
+        matched_key = fuzzy_lookup(l["lat"], l["lng"], openspace_data, openspace_idx)
+        if matched_key is not None:
+            os_stamped += 1
+            val = openspace_data[matched_key]
+            if val:  # dict = inside protected area
+                l["openSpace"] = val["name"]
+                l["openSpaceAgency"] = val.get("agency", "")
+                os_protected += 1
+
+    print(f"   Stamped: {os_stamped:,}/{len(listings):,}")
+    print(f"   In protected area: {os_protected:,}")
+    if os_protected:
+        # List which protected areas
+        names = {}
+        for l in listings:
+            if l.get("openSpace"):
+                names[l["openSpace"]] = names.get(l["openSpace"], 0) + 1
+        for name, cnt in sorted(names.items(), key=lambda x: -x[1]):
+            print(f"     {name}: {cnt} listing(s)")
+else:
+    print(f"\n⚠️  {OPENSPACE_FILE} not found — run: python3 fetch_openspace.py")
+
 # ── Step 3: Fire zone check (fallback for listings not stamped from parcels.json) ──
 FIRE_ZONE_FILE = market_file("fire_zones_vhfhsz.geojson", market)
 already_stamped_fire = sum(1 for l in listings if "fireZone" in l)
@@ -1438,38 +1504,6 @@ else:
         l["rentCompRadius"] = 0
         l["rentCompMedianBeds"] = 0
         l["rentCompMedianSqft"] = 0
-
-# ── Fuzzy key lookup for slope/elevation caches ──
-# Coordinates can drift slightly between CSV refreshes (rounding).
-# Build a grid index for O(1) fuzzy matching within 0.0005° (~55m).
-FUZZY_CELL = 0.001  # Grid cell size for fuzzy lookup
-FUZZY_TOL = 0.0005  # Max distance for fuzzy match (~55m)
-
-def build_fuzzy_index(cache_dict):
-    """Index cache keys by coarse grid cell for fast fuzzy lookup."""
-    idx = {}
-    for key in cache_dict:
-        parts = key.split(",")
-        lat, lng = float(parts[0]), float(parts[1])
-        cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
-        idx.setdefault(cell, []).append((lat, lng, key))
-    return idx
-
-def fuzzy_lookup(lat, lng, cache_dict, idx):
-    """Exact match first, then fuzzy match within tolerance."""
-    exact = f"{lat},{lng}"
-    if exact in cache_dict:
-        return exact
-    cell = (round(lat / FUZZY_CELL), round(lng / FUZZY_CELL))
-    best_key, best_dist = None, FUZZY_TOL + 1
-    for dr in (-1, 0, 1):
-        for dc in (-1, 0, 1):
-            for clat, clng, ckey in idx.get((cell[0] + dr, cell[1] + dc), []):
-                d = abs(clat - lat) + abs(clng - lng)
-                if d < best_dist:
-                    best_dist = d
-                    best_key = ckey
-    return best_key if best_dist <= FUZZY_TOL else None
 
 # ── Step 5: Stamp lot slope from slopes.json ──
 SLOPE_FILE = market_file("slopes.json", market)
