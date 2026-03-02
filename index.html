@@ -2483,7 +2483,8 @@ function dealCardStrip(l, pf, el, inlineBadges){
   var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
 
   var s = '<div class="dp-strip">';
-  s += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
+  var zipInCity = l.zip && cityLine.indexOf(l.zip) >= 0;
+  s += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(!zipInCity && l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
   s += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+' <span style="font-size:9px;color:'+moColor2+'">'+moLabel+'</span></div></div>';
   s += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
