@@ -1083,9 +1083,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header">
           <span class="kf-label">Min Units</span>
-          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">4</span>
+          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">10</span>
         </div>
-        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="4" oninput="onMinUnitsChange(this.value)">
+        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="10" oninput="onMinUnitsChange(this.value)">
       </div>
 
       <!-- Asking Price -->
@@ -1131,7 +1131,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="lotwMin" step="5" style="display:none">
         <input type="number" id="lotwMax" step="5" style="display:none">
         <div class="kf-range-labels">
-          <span id="lotwRangeMin">0 ft</span>
+          <span id="lotwRangeMin">50 ft</span>
           <span id="lotwRangeMax">200 ft</span>
         </div>
         <div class="range-slider-track">
@@ -1395,6 +1395,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="data-key-section">
         <h4>Due Diligence Flags</h4>
         <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>Very High Fire Hazard Severity Zone. SB 1123 projects are <b>not eligible</b> in VHFHSZ areas. These listings are flagged but still shown for awareness.</dd></dl>
+        <dl class="data-key-item"><dt>Protected Area</dt><dd>Listings inside public parks, national forests, or conservation easements (from California Protected Areas Database). These are <b>not eligible</b> for SB 1123 development.</dd></dl>
         <dl class="data-key-item"><dt>Slope</dt><dd>Average ground slope percentage from USGS LiDAR elevation data. Steeper slopes increase grading costs and may require retaining walls. &gt;15% is flagged as challenging.</dd></dl>
         <dl class="data-key-item"><dt>Tenant Risk</dt><dd>Risk level (0&ndash;3) for existing tenant displacement issues. Factors: occupied/improved property, 3+ bedrooms, 5+ bedrooms, multi-family structures, pre-2000 construction, RSO (rent stabilization) overlay. Higher risk = more relocation costs and legal complexity.</dd></dl>
         <dl class="data-key-item"><dt>HOA</dt><dd>Existing HOA may restrict or prevent SB 1123 development. R1 properties with HOA are flagged as potentially ineligible.</dd></dl>
@@ -1525,7 +1526,7 @@ const filters = {
   psf:  { min:0, max:3000, dataMin:0, dataMax:3000, step:25, cap:null, defaultMin:600, defaultMax:3000 },
   sqft: { min:0, max:7000, dataMin:0, dataMax:7000, step:100, cap:7000, defaultMin:null, defaultMax:null },
   lot:  { min:0, max:65000, dataMin:0, dataMax:65000, step:500, cap:65000, defaultMin:12000, defaultMax:null },
-  lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:null, defaultMax:null },
+  lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:null },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
   margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:85 },
 };
@@ -1538,13 +1539,13 @@ let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
-let minUnitsFilter = 4;  // Default: require at least 4 units
+let minUnitsFilter = 10;  // Default: require at least 10 units
 
 // Initialize AppState with soft filter defaults, then restore persisted values
 AppState.set('favoritesOnly', false);
 AppState.set('newThisWeekFilter', false);
 AppState.set('hideBurnZones', true);
-AppState.set('minUnitsFilter', 4);
+AppState.set('minUnitsFilter', 10);
 _PERSIST_KEYS.forEach(function(k){
   var s = localStorage.getItem('sb1123_'+k);
   if(s != null){ try{ AppState.set(k, JSON.parse(s)); }catch(e){} }
@@ -1561,7 +1562,7 @@ AppState.on('newThisWeekFilter', function(v){ newThisWeekFilter = v; });
 AppState.on('hideBurnZones', function(v){ hideBurnZones = v; });
 AppState.on('minUnitsFilter', function(v){ minUnitsFilter = v; });
 function onMinUnitsChange(val){ AppState.set('minUnitsFilter', parseInt(val)); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
-function resetMinUnits(){ AppState.set('minUnitsFilter', 4); document.getElementById('minUnitsSlider').value = 4; document.getElementById('minUnitsLabel').textContent = '4'; applyFilters(); }
+function resetMinUnits(){ AppState.set('minUnitsFilter', 10); document.getElementById('minUnitsSlider').value = 10; document.getElementById('minUnitsLabel').textContent = '10'; applyFilters(); }
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
@@ -1828,18 +1829,20 @@ if(L.esri){
 // Exclude condos/townhouses — on shared/HOA land, can't subdivide
 // Exclude R1 with HOA — indicates shared land/CC&Rs that block subdivision
 // Exclude VHFHSZ — hard exclusion under SB 1123
+// Exclude protected areas (parks, national forests, conservation easements)
 function isSB1123Eligible(l){
   const validZone = ['R1','R2','R3','R4','LAND'].includes(l.zone);
   const notCondoTownhouse = !['Condo/Co-op','Townhouse'].includes(l.type);
   const notR1Hoa = !(l.zone === 'R1' && l.hoa > 0);
   const notHighHoa = !(l.hoa && l.hoa >= 1000);  // High HOA = shared land/CC&Rs
   const notFireZone = !l.fireZone;
+  const notProtectedArea = !l.openSpace;
   const minLot = ['R1','LAND'].includes(l.zone) ? 2400 : 1200;  // 2 units min: R1=2×1200, MF=2×600
   const validLot = l.lotSf && l.lotSf >= minLot;
   const maxLotSf = ['R1','LAND'].includes(l.zone) ? 65340 : 217800;
   const underAcreageCap = !l.lotSf || l.lotSf <= maxLotSf;
   const inUrbanArea = l.urbanArea !== false;  // true or undefined (not yet checked) = OK
-  return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && validLot && underAcreageCap && inUrbanArea;
+  return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && notProtectedArea && validLot && underAcreageCap && inUrbanArea;
 }
 
 // getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost — see js/proforma.js
@@ -1934,6 +1937,7 @@ function dueDiligenceBlock(l){
   var failures = [];
   if(l.burnZone) failures.push('<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE');
   else if(l.fireZone) failures.push('<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone');
+  if(l.openSpace) failures.push('<span style="color:var(--red)">&#10007;</span> Protected: '+l.openSpace);
   if(l.rsoRisk) failures.push('<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)');
   var sb = slopeBadge(l);
   if(sb && sb.includes('&#10007;')) failures.push(sb.replace(/^ • /,''));
@@ -2600,6 +2604,7 @@ function dealCardDD(l){
   var ddItems = [];
   if(l.burnZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> Burn zone');
   else if(l.fireZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> VHFHSZ');
+  if(l.openSpace) ddItems.push('<span style="color:var(--red)">&#10007;</span> Protected area');
   if(l.rsoRisk) ddItems.push('<span style="color:var(--red)">&#10007;</span> RSO');
   var sb = slopeBadge(l);
   if(sb&&sb.includes('&#10007;')) ddItems.push(sb.replace(/^ • /,'').replace(/<br>.*/,''));
@@ -2993,12 +2998,14 @@ function buildOffMarketLayer(){
             '<span style="color:var(--green)">✓</span> Not Hillside Area • ' +
             '<span style="color:var(--green)">✓</span> No Historic Overlay • ' +
             (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE — active fire damage area. Insurance unavailable, infrastructure compromised.' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone (hard exclusion)' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ (safe to build)') + ' • ' +
+            (l.openSpace ? '<span style="color:var(--red)">✗</span> Protected area: ' + l.openSpace + (l.openSpaceAgency ? ' (' + l.openSpaceAgency + ')' : '') : '<span style="color:var(--green)">✓</span> Not in protected area') + ' • ' +
             '<span style="color:var(--green)">✓</span> No Specific Plan restrictions • ' +
             '<span style="color:var(--yellow)">&#9733;</span> Transit Priority Area = 0 parking • ' +
             (l.rsoRisk ? '<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)' : '<span style="color:var(--green)">&#10003;</span> No rent-control/Ellis Act') +
             slopeBadge(l)
-          ) : (l.fireZone || l.burnZone || l.slope > 0 ? (
+          ) : (l.fireZone || l.burnZone || l.openSpace || l.slope > 0 ? (
             (l.burnZone ? '<span style="color:var(--red)">✗</span> &#128293; BURN ZONE' : l.fireZone ? '<span style="color:var(--red)">✗</span> VHFHSZ fire zone' : '<span style="color:var(--green)">✓</span> NOT VHFHSZ') +
+            (l.openSpace ? ' • <span style="color:var(--red)">✗</span> Protected: ' + l.openSpace : '') +
             slopeBadge(l)
           ) : '<span style="color:var(--text-dim)">No zoning verification data available</span>')}
         </div>
@@ -3732,7 +3739,7 @@ function encodeFiltersToHash(){
   });
   var zones = ['R1','R2','R3','R4','LAND'].filter(function(z){ return zoneState[z]; });
   if(zones.join(',') !== 'R1') parts.push('zone=' + zones.join(','));
-  if(minUnitsFilter !== 4) parts.push('units=' + minUnitsFilter);
+  if(minUnitsFilter !== 10) parts.push('units=' + minUnitsFilter);
   if(currentSort && currentSort.key) parts.push('sort=' + currentSort.key + ',' + currentSort.dir);
   if(sb1123Mode) parts.push('sb1123=1');
   if(favoritesOnly) parts.push('favs=1');
@@ -3770,7 +3777,7 @@ function decodeFiltersFromHash(){
       ['R1','R2','R3','R4','LAND'].forEach(function(z){ zoneState[z] = zList.indexOf(z) >= 0; });
       applied = true;
     } else if(k === 'units'){
-      minUnitsFilter = parseInt(v) || 4;
+      minUnitsFilter = parseInt(v) || 10;
       var slider = document.getElementById('minUnitsSlider');
       var label = document.getElementById('minUnitsLabel');
       if(slider) slider.value = minUnitsFilter;
@@ -4028,7 +4035,7 @@ window.addEventListener('DOMContentLoaded', function(){
       decodeFiltersFromHash();
 
       // Restore soft filter UI from AppState (localStorage persistence)
-      if(minUnitsFilter !== 4){
+      if(minUnitsFilter !== 10){
         var muSlider = document.getElementById('minUnitsSlider');
         var muLabel = document.getElementById('minUnitsLabel');
         if(muSlider) muSlider.value = minUnitsFilter;
