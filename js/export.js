@@ -13,7 +13,7 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF
   const DM_MONTHLY = 5000;
   const ACQ_FEE_PCT = 0.02;
   const ORIG_FEE_PCT = 0.02;
-  const EQUITY_PCT = 0.26;
+  const EQUITY_PCT = 0.30;
   const PRE_DEV_MO = 6;
   const CONSTR_MO = 12;
   const SALE_MO = 6;
@@ -271,7 +271,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   ws.getCell('G15').font = { bold: true };
   labelCell(ws, 16, 6, 'Total Project Cost');  setFormula(ws, 'G16', 'G14+G15', ed.equity + ed.debt, '$#,##0');
   ws.getCell('G16').font = { bold: true };
-  labelCell(ws, 17, 6, 'Target Equity %');     inputCell(ws, 'G17', 0.26, '0.0%');
+  labelCell(ws, 17, 6, 'Target Equity %');     inputCell(ws, 'G17', 0.30, '0.0%');
   labelCell(ws, 18, 6, 'Interest Rate');       inputCell(ws, 'G18', 0.09, '0.0%');
   labelCell(ws, 19, 6, 'Orig Fee %');          inputCell(ws, 'G19', 0.02, '0.0%');
   labelCell(ws, 20, 6, 'Orig Fee $');          setFormula(ws, 'G20', 'G15*G19', ed.debt * 0.02, '$#,##0');
@@ -332,7 +332,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   ws.getCell('D4').value = '% of Total'; ws.getCell('D4').font = _hdrFont; ws.getCell('D4').fill = _hdrFill;
 
   sectionHeader(ws, 5, 2, 'Senior Debt');
-  labelCell(ws, 6, 2, '  Construction Loan');
+  labelCell(ws, 6, 2, '  Loan Facility');
   setFormula(ws, 'C6', 'Assumptions!G15', ed.debt, '$#,##0');
   labelCell(ws, 7, 2, '  Origination Fee');
   setFormula(ws, 'C7', 'Assumptions!G20', ed.debt * 0.02, '$#,##0');
@@ -520,11 +520,25 @@ function buildCashFlowTab(wb, l, ed, pf) {
     function(m) { return m === 0 ? gpCoInvestVal : 0; }
   );
 
-  // Row 8: Construction Draws — follows S-curve during construction
-  labelCell(ws, 8, 2, '  Construction Draws');
+  // Row 8: Debt Draws — 70% of all uses each month (equity covers 30%)
+  labelCell(ws, 8, 2, '  Debt Draws');
   monthFormula(8,
-    function(m, cl) { return cl + '13+' + cl + '14'; },
-    function(m) { return (m >= 6 && m < 18) ? SCURVE[m - 6] * (hardCosts + softCosts) : 0; }
+    function(m, cl) { return '(1-Assumptions!$G$17)*(' + cl + '18+' + cl + '25+' + cl + '30)'; },
+    function(m) {
+      // Result approximation: 70% of each month's total uses
+      var devM = 0, carryM = 0, feesM = 0;
+      // Dev: land+txn at M0, hard/soft S-curve M6-17, demo M0, subdiv M1, A&E M1-5
+      if (m === 0) devM += price + price * 0.01 + demo;
+      if (m === 1) devM += subdivision;
+      if (m >= 1 && m < 6) devM += ae / 5;
+      if (m >= 6 && m < 18) devM += SCURVE[m - 6] * (hardCosts + softCosts);
+      // Carry: tax+ins+AM every month, DM during construction
+      carryM = price * 0.011 / 12 + 20000 / 12 + 3000;
+      if (m >= 6 && m < 18) carryM += 5000;
+      // Fees: acq fee + orig fee at M0
+      if (m === 0) feesM += price * 0.02 + ed.debt * 0.02;
+      return 0.70 * (devM + carryM + feesM);
+    }
   );
 
   // Row 9: Total Sources
