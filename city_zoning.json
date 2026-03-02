@@ -1,0 +1,128 @@
+{
+  "_meta": {
+    "description": "City-specific zoning and development standards for SB 1123 analysis",
+    "usage": "Keyed by city name (matching Redfin CITY field). LA City is the baseline — other cities override where they differ.",
+    "last_updated": "2026-03-01",
+    "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code"
+  },
+
+  "Los Angeles": {
+    "is_baseline": true,
+    "notes": "All app defaults (proforma.js, listings_build.py) assume LA City rules"
+  },
+
+  "Pasadena": {
+    "zone_mapping": {
+      "_note": "Pasadena uses RS (single-family) and RM (multi-family) with density-per-acre suffixes",
+      "RS-1": "R1",
+      "RS-2": "R1",
+      "RS-4": "R1",
+      "RS-6": "R1",
+      "RM-12": "R1",
+      "RM-16": "R2",
+      "RM-32": "R3",
+      "RM-48": "R4"
+    },
+
+    "height_ft": {
+      "_note": "Max height to ridgeline. RS zones unconfirmed — need Table 2-3 from PMC 17.22.040",
+      "RS-1": null,
+      "RS-2": null,
+      "RS-4": null,
+      "RS-6": null,
+      "RM-12": null,
+      "RM-16": 32,
+      "RM-32": 32,
+      "RM-32_wide": 36,
+      "RM-48": 38
+    },
+    "height_notes": {
+      "RM-32": "32 ft on lots <60 ft wide; rear 40% up to 36 ft on lots >=60 ft",
+      "RM-48": "38 ft ridgeline, 24 ft top plate",
+      "hillside_overlay": "28 ft max at any point if HD/HL overlay applies"
+    },
+
+    "setbacks_ft": {
+      "_note": "RS zone setbacks unconfirmed — need Table 2-3. RM values partially confirmed.",
+      "RS": { "front": 25, "side": null, "rear": null },
+      "RM": { "front": 20, "side": 5, "rear": null },
+      "sb9_override": { "side": 4, "rear": 4 }
+    },
+
+    "far": {
+      "_note": "RS zones use context-sensitive FAR: max floor area = 135% of median house size within 500-ft radius. No fixed FAR number.",
+      "RS": "context_sensitive",
+      "RS_lot_coverage_pct": 35,
+      "RM-16": null,
+      "RM-32": null,
+      "RM-48": null
+    },
+
+    "parking": {
+      "standard_per_unit": 2,
+      "townhouse_guest_per_10_units": 1,
+      "sb9_per_unit": 1,
+      "transit_half_mile": 0,
+      "ab2097_applies": true,
+      "transit_stops": ["Lake", "Allen", "Del Mar", "Memorial Park", "Fillmore", "Sierra Madre Villa"],
+      "transit_line": "Metro L Line (Gold)"
+    },
+
+    "rent_stabilization": {
+      "has_rso": true,
+      "name": "Measure H (Fair and Equitable Housing Charter Amendment)",
+      "effective_date": "2022-12-22",
+      "year_built_threshold": 1995,
+      "unit_count_threshold": 2,
+      "annual_increase_formula": "75% of CPI",
+      "current_annual_increase_pct": 2.25,
+      "sfr_exempt": true,
+      "condo_exempt": true,
+      "post_threshold_just_cause_only": true,
+      "ellis_act": {
+        "relocation_up_to_3yr": "3x FMR",
+        "relocation_3_to_10yr": "4x FMR",
+        "relocation_over_10yr": "5x FMR",
+        "special_circumstances_add": "3x FMR",
+        "special_circumstances": "elderly 62+, disabled, families with children under 18"
+      },
+      "difference_from_la": "LA RSO: pre-Oct 1978, 2+ units. Pasadena: pre-Feb 1995, 2+ units — covers far more properties"
+    },
+
+    "impact_fees": {
+      "residential_impact_fee": {
+        "studio": 19622,
+        "3br": 26447,
+        "5br_plus": 36321,
+        "inclusionary_discount_pct": 30,
+        "adu_under_900sf": "exempt"
+      },
+      "school_fee_per_sf": 2.24,
+      "school_district": "PUSD",
+      "notes": "RIF is notably higher than LA City linkage fee. New RIF ordinance adopted Jul 2025 — amounts may have changed."
+    },
+
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "Planning Commission reviewed Aug 2025, directed staff to prepare zoning amendments",
+      "current_rules": "State defaults apply (ministerial approval, 1200 SF min parcel, up to 10 units)",
+      "eligible_zones": ["RS-1", "RS-2", "RS-4", "RS-6"]
+    },
+
+    "unconfirmed": [
+      "RS zone height limits (need PMC Table 2-3)",
+      "RS zone side/rear setbacks (need PMC Table 2-3)",
+      "RM-16/32/48 FAR values (need PMC Table 2-4)",
+      "RM lot coverage maximums (need PMC Table 2-4)",
+      "Updated RIF amounts from Jul 2025 ordinance",
+      "Affordable housing in-lieu fee amount"
+    ],
+
+    "sources": [
+      "PMC Title 17 (Zoning Code) — Sections 17.22.040, 17.22.050, 17.22.060, 17.22.070",
+      "Pasadena Planning Commission SB 684/1123/450 Memo (Aug 13, 2025)",
+      "Pasadena Measure H / Rental Housing Board",
+      "Pasadena Fee Schedules (FY 2026)"
+    ]
+  }
+}
