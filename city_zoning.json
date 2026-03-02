@@ -37,13 +37,43 @@
     },
     "height_notes": {
       "RS_all": "28 ft on lots <75 ft wide; 32 ft on lots >=75 ft wide. All RS zones identical. 2-story max — no 3-story.",
-      "RS_plate_heights": "1st story plate: 10 ft from front plane; 2nd story plate: 20 ft (23 ft in historic/overlay)",
-      "RS_encroachment_plane": "Must also fit within encroachment plane per §17.40.160",
+      "RS_constraint_summary": "3-story effectively prohibited: no 3rd-story plate height defined in Table 2-3, 28-32 ft ridge cap, and 2nd story limited to 50% of 1st story floor area",
       "RS_measurement": "Height measured from lowest existing grade at exterior wall to highest ridgeline (§17.40.060)",
       "RM-32": "32 ft on lots <60 ft wide; rear 40% up to 36 ft on lots >=60 ft",
       "RM-48": "38 ft ridgeline, 24 ft top plate",
       "hillside_overlay": "28 ft max at any point if HD/HL overlay applies; 35 ft from lowest grade",
       "hl1_overlay": "HL-1 overlay limits rear structures to 23 ft plate / 32 ft ridge on 60 ft+ lots"
+    },
+
+    "plate_heights": {
+      "_note": "Per Ordinance 7371, Table 2-3 (§17.22.040). Plate = top of wall framing, not ridge.",
+      "RS_1st_story_max_ft": 10,
+      "RS_2nd_story_max_ft": 20,
+      "RS_2nd_story_historic_overlay_ft": 23,
+      "RS_3rd_story": "not defined — effectively prohibited",
+      "measurement": "From front plane of structure (1st story) or floor level (2nd story)"
+    },
+
+    "roof_requirements": {
+      "_note": "RS zone roof slope per §17.22.040. Much less restrictive than LA City's pitched-roof penalty.",
+      "min_slope_pct": 6,
+      "min_slope_ratio": "3:4 pitch (very shallow)",
+      "flat_roof_penalty": false,
+      "la_comparison": "LA City penalizes flat roofs with lower height limit; Pasadena has no such penalty"
+    },
+
+    "floor_area_limits": {
+      "_note": "RS zone upper-story area restriction per §17.22.050",
+      "2nd_story_max_pct_of_1st": 50,
+      "impact": "Limits 2nd story to half of 1st story footprint — forces wider, shorter buildings"
+    },
+
+    "encroachment_plane": {
+      "_note": "Side setback daylight plane per §17.40.160",
+      "angle_from_vertical_deg": 30,
+      "start_height_ft": 6,
+      "start_at": "side property line",
+      "impact": "Building must fit below a plane starting 6 ft high at the side lot line, angled inward at 30° — constrains upper-story width on narrow lots"
     },
 
     "setbacks_ft": {
