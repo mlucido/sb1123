@@ -432,7 +432,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
        "exit math \u2014 because they've studied and prepared for them for five years.",
        sz=10, color=S600)
     for i, (v, l) in enumerate([("5 Years","Co-Founder Partnership"),("$350M+","Capital Structured"),
-        ("100+","Infill Sites Evaluated"),("13","Assets Under Management")]):
+        ("100+","Infill Sites Evaluated"),("9","Assets Under Management")]):
         stat(s, Inches(6.3), Inches(0.85+i*1.0), Inches(3.2), Inches(0.85), v, l, vs=22)
     ftr(s, d)
 
