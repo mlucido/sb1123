@@ -2,7 +2,7 @@
   "_meta": {
     "description": "City-specific zoning and development standards for SB 1123 analysis",
     "usage": "Keyed by city name (matching Redfin CITY field). LA City is the baseline — other cities override where they differ.",
-    "last_updated": "2026-03-01",
+    "last_updated": "2026-03-02",
     "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code"
   },
 
@@ -25,21 +25,25 @@
     },
 
     "height_ft": {
-      "_note": "Max height to ridgeline. RS zones unconfirmed — need Table 2-3 from PMC 17.22.040",
-      "RS-1": null,
-      "RS-2": null,
-      "RS-4": null,
-      "RS-6": null,
-      "RM-12": null,
+      "_note": "RS/RM-12 height per Ordinance 7371 (Feb 2021) Table 2-3. Varies by lot width, not zone.",
+      "RS_under_75ft_wide": 28,
+      "RS_75ft_plus_wide": 32,
+      "RM-12_under_75ft_wide": 28,
+      "RM-12_75ft_plus_wide": 32,
       "RM-16": 32,
       "RM-32": 32,
       "RM-32_wide": 36,
       "RM-48": 38
     },
     "height_notes": {
+      "RS_all": "28 ft on lots <75 ft wide; 32 ft on lots >=75 ft wide. All RS zones identical. 2-story max — no 3-story.",
+      "RS_plate_heights": "1st story plate: 10 ft from front plane; 2nd story plate: 20 ft (23 ft in historic/overlay)",
+      "RS_encroachment_plane": "Must also fit within encroachment plane per §17.40.160",
+      "RS_measurement": "Height measured from lowest existing grade at exterior wall to highest ridgeline (§17.40.060)",
       "RM-32": "32 ft on lots <60 ft wide; rear 40% up to 36 ft on lots >=60 ft",
       "RM-48": "38 ft ridgeline, 24 ft top plate",
-      "hillside_overlay": "28 ft max at any point if HD/HL overlay applies"
+      "hillside_overlay": "28 ft max at any point if HD/HL overlay applies; 35 ft from lowest grade",
+      "hl1_overlay": "HL-1 overlay limits rear structures to 23 ft plate / 32 ft ridge on 60 ft+ lots"
     },
 
     "setbacks_ft": {
@@ -110,7 +114,6 @@
     },
 
     "unconfirmed": [
-      "RS zone height limits (need PMC Table 2-3)",
       "RS zone side/rear setbacks (need PMC Table 2-3)",
       "RM-16/32/48 FAR values (need PMC Table 2-4)",
       "RM lot coverage maximums (need PMC Table 2-4)",
@@ -120,6 +123,7 @@
 
     "sources": [
       "PMC Title 17 (Zoning Code) — Sections 17.22.040, 17.22.050, 17.22.060, 17.22.070",
+      "Ordinance No. 7371 (Feb 22, 2021) — amends Table 2-3 RS/RM-12 height limits",
       "Pasadena Planning Commission SB 684/1123/450 Memo (Aug 13, 2025)",
       "Pasadena Measure H / Rental Housing Board",
       "Pasadena Fee Schedules (FY 2026)"
