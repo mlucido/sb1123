@@ -158,5 +158,175 @@
       "Pasadena Measure H / Rental Housing Board",
       "Pasadena Fee Schedules (FY 2026)"
     ]
+  },
+
+  "San Marino": {
+    "zone_mapping": {
+      "_note": "San Marino is almost entirely R-1 single-family, split into 7 area districts by min lot size. No R-2/R-3/R-4. New RM1/MU zones added Nov 2024 (Ordinance O-24-1415) for Housing Element compliance.",
+      "R-1-IE": "R1",
+      "R-1-I": "R1",
+      "R-1-II": "R1",
+      "R-1-III": "R1",
+      "R-1-IV": "R1",
+      "R-1-V": "R1",
+      "R-1-VI": "R1",
+      "R-1-VII": "R1",
+      "RM1": "R4"
+    },
+
+    "height_ft": {
+      "_note": "R-1 height varies by area district, not lot width (unlike Pasadena). SMMC §23.02.09.",
+      "R-1-IE": 35,
+      "R-1-I": 35,
+      "R-1-II": 35,
+      "R-1-III": 30,
+      "R-1-IV": 30,
+      "R-1-V": 30,
+      "R-1-VI": 30,
+      "R-1-VII": 30,
+      "RM1": 48
+    },
+    "height_notes": {
+      "R1_all": "2-story max without CUP (§23.02.15). 3rd story requires discretionary approval — not by-right.",
+      "R1_constraint_summary": "3-story effectively prohibited for SB 1123: 2-story limit is codified, 30-35 ft height cap, and 30° encroachment plane constrains upper floors. SB 1123 state preemption of story limit is untested.",
+      "R1_measurement": "Height measured from datum plane (avg of high/low existing grade on street-facing wall) to highest point including roof structures (§23.01.01)",
+      "sb9": "SB 9 units limited to 16 ft / 1 story / 8 ft 6 in plate height (§23.02.33)"
+    },
+
+    "plate_heights": {
+      "_note": "No explicit plate height limits for standard R-1 construction — controlled by overall height cap + 2-story limit. DRC reviews plate height on case-by-case basis (§23.15.13).",
+      "R1_standard": "not specified in code",
+      "sb9_max_ft": 8.5,
+      "sb9_note": "SB 9 two-unit developments: 8 ft 6 in plate height max (§23.02.33)"
+    },
+
+    "roof_requirements": {
+      "_note": "No minimum roof pitch or flat-roof penalty found in San Marino zoning code.",
+      "min_slope_pct": null,
+      "flat_roof_penalty": false
+    },
+
+    "floor_area_limits": {
+      "_note": "San Marino uses lot coverage + livable area percentages instead of FAR. No explicit 2nd-story area restriction like Pasadena's 50% rule.",
+      "2nd_story_max_pct_of_1st": null,
+      "lot_coverage_pct": {
+        "_note": "Max lot coverage as % of actual lot area (SMMC §23.02.10). Also capped at statutory-lot % × statutory lot size, whichever is less.",
+        "R-1-IE": 30,
+        "R-1-I": 30,
+        "R-1-II": 30,
+        "R-1-III": 30,
+        "R-1-IV": 30,
+        "R-1-V": 40,
+        "R-1-VI": 40,
+        "R-1-VII": 40
+      },
+      "livable_area_pct": {
+        "_note": "Max livable area uses same percentages as lot coverage (§23.02.11). Effectively a FAR-like control.",
+        "matches_lot_coverage": true
+      },
+      "large_lot_bonus": "Coverage/livable area may increase by 10% of the difference between actual and statutory lot area",
+      "corner_lot_reduction": "Districts V-VII: cannot exceed 90% of max without CUP"
+    },
+
+    "encroachment_plane": {
+      "_note": "30-degree structural encroachment line per §23.02.13. Identical to Pasadena's daylight plane.",
+      "angle_from_vertical_deg": 30,
+      "start_height_ft": 6,
+      "start_at": "adjacent property grade",
+      "exception": "Garages/accessory buildings under 12 ft with no attached livable area are exempt",
+      "impact": "Same as Pasadena — building must fit below plane starting 6 ft high at side lot line, angled inward at 30°"
+    },
+
+    "setbacks_ft": {
+      "_note": "R-1 setbacks per SMMC §23.02.09. Very generous — much larger than Pasadena or LA.",
+      "R-1-IE": { "front": 40, "side": 20, "rear": 40 },
+      "R-1-I": { "front": 40, "side": 20, "rear": 40 },
+      "R-1-II": { "front": 40, "side": 12, "rear": 40 },
+      "R-1-III": { "front": 40, "side": 12, "rear": 40 },
+      "R-1-IV": { "front": 35, "side": 10, "rear": 35 },
+      "R-1-V": { "front": 30, "side": 8, "rear": 30 },
+      "R-1-VI": { "front": 25, "side": 5, "rear": 25 },
+      "R-1-VII": { "front": 25, "side": 5, "rear": 25 },
+      "sb9_override": { "side": 4, "rear": 4 },
+      "corner_lot_street_side_min": 15
+    },
+
+    "lot_size_minimums_sf": {
+      "_note": "Per SMMC §23.02.09. Most San Marino lots are well above 10K SF SB 1123 threshold.",
+      "R-1-IE": 60000,
+      "R-1-I": 30000,
+      "R-1-II": 20000,
+      "R-1-III": 17000,
+      "R-1-IV": 15000,
+      "R-1-V": 12000,
+      "R-1-VI": 10000,
+      "R-1-VII": 9000
+    },
+
+    "far": {
+      "_note": "San Marino does not use FAR. Building size controlled by lot coverage + livable area percentage system. See floor_area_limits.",
+      "R1": "not used — see floor_area_limits"
+    },
+
+    "parking": {
+      "R1_1_to_4_bed": 2,
+      "R1_5_to_6_bed": 3,
+      "R1_7_plus_bed": "4 + 1 per 2 additional bedrooms",
+      "garage_min_interior": "20 ft wide × 20 ft deep",
+      "sb9_per_unit": 1,
+      "sb9_garage_min_interior": "10 ft wide × 20 ft deep",
+      "transit_half_mile": 0,
+      "RM1_studio_1bed": 0.5,
+      "RM1_2bed": 1.0,
+      "RM1_3plus_bed": 1.5,
+      "RM1_guest_per_5_units": 1
+    },
+
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 only (5% + CPI cap, max 10%, on units 15+ years old)."
+    },
+
+    "impact_fees": {
+      "residential_impact_fee": null,
+      "school_fee_per_sf": 4.79,
+      "school_district": "SMUSD",
+      "notes": "No city-level RIF found. School fee ($4.79/SF) is notably higher than Pasadena ($2.24/SF) and LA."
+    },
+
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "No local SB 1123 ordinance adopted. City is resistant to densification — SB 9 ordinance includes 99-year affordability covenant.",
+      "current_rules": "State defaults apply (ministerial approval, 1200 SF min parcel, up to 10 units)",
+      "eligible_zones": ["R-1-IE", "R-1-I", "R-1-II", "R-1-III", "R-1-IV", "R-1-V", "R-1-VI", "R-1-VII"],
+      "sb9_local_restrictions": {
+        "max_unit_sf": 800,
+        "max_stories": 1,
+        "max_height_ft": 16,
+        "plate_height_ft": 8.5,
+        "affordability_covenant_years": 99,
+        "note": "These SB 9 restrictions should NOT apply to SB 1123 (different state law), but city may attempt to extend them"
+      }
+    },
+
+    "unconfirmed": [
+      "R-1 plate height limits (may be DRC discretion only — no code standard found)",
+      "R-1 roof pitch requirements (none found in code)",
+      "R-1 2nd-story area restriction (none found — unlike Pasadena's 50% rule)",
+      "RM1 FAR and lot coverage (not explicitly stated in RM1 zone standards)",
+      "City-level development impact fees beyond school fee",
+      "Whether 99-year affordability covenant from SB 9 ordinance would be applied to SB 1123 projects"
+    ],
+
+    "sources": [
+      "SMMC Title 23 (Zoning) — Sections 23.01.01, 23.01.05, 23.02.09-23.02.33",
+      "SMMC §23.02.10-11 (Lot coverage and livable area)",
+      "SMMC §23.02.13 (30-degree structural encroachment line)",
+      "SMMC §23.02.15 (Two-story limit)",
+      "SMMC §23.02.33 (Two-unit residential / SB 9)",
+      "Ordinance O-24-1415 (Nov 20, 2024) — Zoning Code Update adding RM1/MU zones",
+      "SMUSD Developer Fee Schedule ($4.79/SF residential)",
+      "HCD Review of San Marino ADU Ordinance (Aug 26, 2024)"
+    ]
   }
 }
