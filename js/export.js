@@ -1123,7 +1123,7 @@ function buildOutputsTab(wb, ed) {
     }
   }
 
-  autoFitColumns(ws, { fixed: { 1: 2 } });
+  autoFitColumns(ws, { fixed: { 1: 2, 3: 12, 4: 12, 5: 12, 6: 12, 7: 12 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
   return ws;
