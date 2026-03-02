@@ -12,6 +12,9 @@ var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var ADJ_ZONES = {R1:['R2'],R2:['R1','R3'],R3:['R2','R4'],R4:['R3'],LAND:['R1']};
 var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var SFR_TH_TYPES = [1,2,3,4];
+var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS exit comps
+var PT_COLORS = {1:'#3b82f6', 2:'#a855f7', 3:'#22c55e'};
+var PT_DEFAULT_COLOR = '#94a3b8';
 
 // ── Sale comp state ──
 var compsTableActive = false;
@@ -93,7 +96,8 @@ export function findCompsForListing(l){
 
     c.isUsed = isUsed;
     c.isOutlier = c.sqft<400 || c.ppsf>2000;
-    if(isUsed && !c.isOutlier) used.push(c);
+    var ptAllowed = BTS_ALLOWED_PT.indexOf(c.pt) !== -1;
+    if(isUsed && !c.isOutlier && ptAllowed) used.push(c);
     else ref.push(c);
   }
 
@@ -134,7 +138,7 @@ function compRow(c){
     +'<td style="color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)')+'">$'+c.ppsf+'</td>'
     +'<td>'+c.sqft.toLocaleString()+'</td>'
     +'<td>'+(c.bd||'\u2014')+'/'+(c.ba||'\u2014')+'</td>'
-    +'<td'+(c.pt===3?' style="color:var(--green);font-weight:600"':'')+'>'+(PT_LABEL[c.pt]||ZONE_TYPE_MAP[c.zone]||c.zone||'\u2014')+'</td>'
+    +'<td style="color:'+(PT_COLORS[c.pt]||PT_DEFAULT_COLOR)+';font-weight:600">'+(PT_LABEL[c.pt]||ZONE_TYPE_MAP[c.zone]||c.zone||'\u2014')+'</td>'
     +'<td>'+(c.zone||'\u2014')+'</td>'
     +'<td>'+(c.yb||'\u2014')+'</td>'
     +'<td style="color:'+(c.t===1?'var(--green)':'var(--text-dim)')+'">T'+(c.t||'?')+'</td>'
@@ -164,7 +168,7 @@ export function showCompsTable(lat,lng){
   header.innerHTML = '<button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; '+l.address+'</div>'
-    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+used.length+' used / '+(used.length+ref.length)+' nearby within '+radius.toFixed(1)+'mi</div>'
+    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+used.length+' used / '+(used.length+ref.length)+' nearby within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
     +'</div>'
     +'<button class="listings-panel-close" onclick="hideCompsTable()">x</button>';
 
@@ -205,13 +209,15 @@ export function showCompsTable(lat,lng){
   if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); }
   compsMapLayer = L.layerGroup();
   used.forEach(function(c){
+    var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
     L.circleMarker([c.lat,c.lng],{
-      radius:6, color:'#22c55e', fillColor:'#22c55e', fillOpacity:0.8, weight:1
-    }).bindPopup('<b>'+(c.address||'\u2014')+'</b><br>$'+c.price.toLocaleString()+' &bull; $'+c.ppsf+'/sf &bull; '+c.sqft+'sf<br>'+(c.date||'\u2014')+' &bull; T'+(c.t||'?')+' &bull; '+c.zone).addTo(compsMapLayer);
+      radius:7, color:'#ffffff', fillColor:ptColor, fillOpacity:0.9, weight:2
+    }).bindPopup('<b>'+(c.address||'\u2014')+'</b><br>$'+c.price.toLocaleString()+' &bull; $'+c.ppsf+'/sf &bull; '+c.sqft+'sf<br>'+(c.date||'\u2014')+' &bull; T'+(c.t||'?')+' &bull; '+c.zone+' &bull; '+(PT_LABEL[c.pt]||'?')).addTo(compsMapLayer);
   });
   ref.filter(function(c){return !c.isOutlier;}).forEach(function(c){
+    var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
     L.circleMarker([c.lat,c.lng],{
-      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
+      radius:4, color:ptColor, fillColor:ptColor, fillOpacity:0.25, weight:1
     }).addTo(compsMapLayer);
   });
   compsRadiusCircle = L.circle([l.lat,l.lng],{
