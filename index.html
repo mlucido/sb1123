@@ -1751,9 +1751,25 @@ function updateCompPoints(){
       fillOpacity:0.85, weight: isT1 ? 2 : 0.8, renderer:compCanvasRenderer,
       pane:'compDotsPane'
     });
-    cm.bindPopup(`<div style="font-size:12px"><b>${c.address||'Sold Comp'}</b> <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;margin-left:4px;background:${isT1?'rgba(20,184,166,0.15)':'rgba(100,116,139,0.15)'};color:${isT1?'#14b8a6':'#64748b'}">${isT1?'T1 New/Remodel':'T2 Existing'}</span><br>
-      <span style="font-family:monospace;font-size:14px;color:${color}">$${c.ppsf}/SF</span><br>
-      $${c.price.toLocaleString()} · ${c.sqft.toLocaleString()} sf${c.zone?' · '+c.zone:''}${c.date?' · '+c.date:''}${c.yb?' · Built '+c.yb:''}</div>`,{maxWidth:280});
+    var ptLabel = {1:'SFR',2:'Condo',3:'Townhouse',4:'MF 2-4',5:'MF 5+'}[c.pt]||'';
+    cm.bindPopup(`<div class="popup-title" style="margin-bottom:4px">${c.address||'Sold Comp'}</div>
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <span class="popup-badge" style="background:${isT1?'rgba(20,184,166,0.15)':'rgba(100,116,139,0.15)'};color:${isT1?'#14b8a6':'#64748b'}">${isT1?'T1 New/Remodel':'T2 Existing'}</span>
+        ${ptLabel?'<span class="popup-badge" style="background:rgba(99,102,241,0.15);color:#818cf8">'+ptLabel+'</span>':''}
+        ${c.zone?'<span class="popup-badge" style="background:'+(ZONE_COLORS[c.zone]||'#666')+'22;color:'+(ZONE_COLORS[c.zone]||'#666')+'">'+c.zone+'</span>':''}
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:${color};margin-bottom:6px">$${c.ppsf}/SF</div>
+      <div class="popup-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div><div class="popup-label">Sale Price</div><div class="popup-value">$${c.price.toLocaleString()}</div></div>
+        <div><div class="popup-label">Size</div><div class="popup-value">${c.sqft.toLocaleString()} SF</div></div>
+        ${c.bd?'<div><div class="popup-label">Beds / Baths</div><div class="popup-value">'+c.bd+(c.ba?' / '+c.ba:'')+'</div></div>':'<div></div>'}
+        ${c.yb?'<div><div class="popup-label">Year Built</div><div class="popup-value">'+c.yb+'</div></div>':'<div></div>'}
+        ${c.date?'<div><div class="popup-label">Sold</div><div class="popup-value">'+c.date+'</div></div>':'<div></div>'}
+        ${c.zip?'<div><div class="popup-label">Zip</div><div class="popup-value">'+c.zip+'</div></div>':'<div></div>'}
+      </div>
+      <div style="margin-top:6px;text-align:center">
+        <a href="https://www.google.com/maps?q=${c.lat},${c.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps ↗</a>
+      </div>`,{maxWidth:300});
     compPointsLayer.addLayer(cm);
 
     if(showLabels){
