@@ -183,7 +183,7 @@ export function calculateBTRProForma(l){
   const annualDebtService = loanAmount * 0.065;
   const dscr = annualDebtService > 0 ? annualNOI / annualDebtService : 0;
 
-  const refiLoanAmount = stabilizedValue * refiLTV;
+  const refiLoanAmount = loanAmount;  // take-out of prior construction loan
   const refiAnnualDS = refiLoanAmount * refiRate;
   const cashOutRefi = refiLoanAmount - totalCost;
   const equityAfterRefi = totalCost - refiLoanAmount;

@@ -1177,11 +1177,11 @@ function buildBTRTab(wb) {
   ws.getCell('B16').font = _hdrFont; ws.getCell('B16').fill = _hdrFill;
   ws.getCell('C16').fill = _hdrFill;
 
-  labelCell(ws, 17, 2, 'Refi LTV');
-  setFormula(ws, 'C17', 'Assumptions!C52', 0, '0.0%');
+  labelCell(ws, 17, 2, 'Implied LTV');
+  setFormula(ws, 'C17', 'IF(C13=0,0,C18/C13)', 0, '0.0%');
 
   labelCell(ws, 18, 2, 'Refi Loan');
-  setFormula(ws, 'C18', 'C13*C17', 0, '$#,##0');
+  setFormula(ws, 'C18', 'Assumptions!G15', 0, '$#,##0');
 
   labelCell(ws, 19, 2, 'Perm Rate');
   setFormula(ws, 'C19', 'Assumptions!C53', 0, '0.00%');
