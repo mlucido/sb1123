@@ -6,10 +6,7 @@ export function initExport(deps) {
   _deps = deps;
 }
 
-function sizeEquityAndDebt(askingPrice, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent) {
-  const SOFT_PCT = 0.25;
-  const SUBDIV_PSF = 10;
-  const AE_PSF = 5;
+function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent) {
   const TAX_RATE = 0.011;
   const INS_ANNUAL = 20000;
   const AM_MONTHLY = 3000;
@@ -22,12 +19,7 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, buildCostPSF, exitPSF,
   const SALE_MO = 6;
 
   const buildableSF = units * avgUnitSF;
-  const hardCosts = buildableSF * buildCostPSF;
-  const softCosts = hardCosts * SOFT_PCT;
-  const demo = proforma.demoCost || 55000;
-  const subdiv = buildableSF * SUBDIV_PSF;
-  const ae = buildableSF * AE_PSF;
-  const totalDev = hardCosts + softCosts + demo + subdiv + ae;
+  const totalDev = buildableSF * allInBuildPSF;
 
   const monthlyTax = askingPrice * TAX_RATE / 12;
   const monthlyIns = INS_ANNUAL / 12;
@@ -169,8 +161,13 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var slopeDecimal = (l.slope || 0) / 100;
   var bedsBaths = (l.beds || '') + ' / ' + (l.baths || '');
   var buildableSF = units * avgUnitSF;
-  var buildCostPSF = buildableSF > 0 ? Math.round(pf.hardCosts / buildableSF) : 0;
-  var hardCosts = buildableSF * buildCostPSF;
+  var allInBuildPSF = pf.adjBuildCostPerSf;
+  var totalBuildCost = buildableSF * allInBuildPSF;
+  var demo = pf.demo || 0;
+  var subdivision = 10 * buildableSF;
+  var ae = 5 * buildableSF;
+  var hardCosts = Math.round((totalBuildCost - demo - subdivision - ae) / 1.25);
+  var softCosts = Math.round(hardCosts * 0.25);
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
   var start = new Date();
@@ -213,14 +210,14 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   labelCell(ws, 20, 2, 'Units');           inputCell(ws, 'C20', units, '#,##0');
   labelCell(ws, 21, 2, 'Avg Unit SF');     inputCell(ws, 'C21', avgUnitSF, '#,##0');
   labelCell(ws, 22, 2, 'Buildable SF');    setFormula(ws, 'C22', 'C20*C21', buildableSF, '#,##0');
-  labelCell(ws, 23, 2, 'Hard Cost $/SF');  inputCell(ws, 'C23', buildCostPSF, '$#,##0');
-  labelCell(ws, 24, 2, 'Hard Costs');      setFormula(ws, 'C24', 'C22*C23', hardCosts, '$#,##0');
-  labelCell(ws, 25, 2, 'Soft Cost %');     inputCell(ws, 'C25', 0.25, '0.0%');
-  labelCell(ws, 26, 2, 'Soft Costs');      setFormula(ws, 'C26', 'C24*C25', hardCosts * 0.25, '$#,##0');
-  labelCell(ws, 27, 2, 'Demo');            inputCell(ws, 'C27', pf.demo || 0, '$#,##0');
-  labelCell(ws, 28, 2, 'Subdivision');     setFormula(ws, 'C28', '10*C22', 10 * buildableSF, '$#,##0');
-  labelCell(ws, 29, 2, 'A&E');             setFormula(ws, 'C29', '5*C22', 5 * buildableSF, '$#,##0');
-  labelCell(ws, 30, 2, 'Total Dev Costs'); setFormula(ws, 'C30', 'C24+C26+C27+C28+C29', hardCosts + hardCosts * 0.25 + (pf.demo || 0) + 15 * buildableSF, '$#,##0');
+  labelCell(ws, 23, 2, 'All-In Build $/SF');   inputCell(ws, 'C23', allInBuildPSF, '$#,##0');
+  labelCell(ws, 24, 2, 'Hard Costs');          setFormula(ws, 'C24', '(C22*C23-C27-C28-C29)/(1+C25)', hardCosts, '$#,##0');
+  labelCell(ws, 25, 2, 'Soft Cost %');         inputCell(ws, 'C25', 0.25, '0.0%');
+  labelCell(ws, 26, 2, 'Soft Costs');          setFormula(ws, 'C26', 'C24*C25', softCosts, '$#,##0');
+  labelCell(ws, 27, 2, 'Demo');                inputCell(ws, 'C27', demo, '$#,##0');
+  labelCell(ws, 28, 2, 'Subdivision ($10/SF)'); setFormula(ws, 'C28', '10*C22', subdivision, '$#,##0');
+  labelCell(ws, 29, 2, 'A&E ($5/SF)');         setFormula(ws, 'C29', '5*C22', ae, '$#,##0');
+  labelCell(ws, 30, 2, 'Total Build Cost');    setFormula(ws, 'C30', 'C22*C23', totalBuildCost, '$#,##0');
   ws.getCell('C30').font = { bold: true };
 
   ws.getCell('B34').value = 'EXIT';
@@ -313,10 +310,13 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
 
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
   var buildableSF = units * avgUnitSF;
-  var hardCosts = buildableSF * buildCostPSF;
-  var softCosts = hardCosts * 0.25;
+  var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
+  var demo = pf.demo || 0;
+  var subdivision = 10 * buildableSF;
+  var ae = 5 * buildableSF;
+  var hardCosts = Math.round((totalBuildCost - demo - subdivision - ae) / 1.25);
+  var softCosts = Math.round(hardCosts * 0.25);
   var price = l.price || 0;
   var monthlyTax = price * 0.011 / 12;
 
@@ -379,11 +379,11 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   labelCell(ws, 11, 6, '  Soft Costs');
   setFormula(ws, 'G11', 'Assumptions!C26', softCosts, '$#,##0');
   labelCell(ws, 12, 6, '  Demo');
-  setFormula(ws, 'G12', 'Assumptions!C27', 55000, '$#,##0');
+  setFormula(ws, 'G12', 'Assumptions!C27', demo, '$#,##0');
   labelCell(ws, 13, 6, '  Subdivision');
-  setFormula(ws, 'G13', 'Assumptions!C28', 100000, '$#,##0');
+  setFormula(ws, 'G13', 'Assumptions!C28', subdivision, '$#,##0');
   labelCell(ws, 14, 6, '  A&E');
-  setFormula(ws, 'G14', 'Assumptions!C29', 150000, '$#,##0');
+  setFormula(ws, 'G14', 'Assumptions!C29', ae, '$#,##0');
 
   sectionHeader(ws, 16, 6, 'Carry');
   labelCell(ws, 17, 6, '  Interest Payments');
@@ -444,10 +444,13 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var price = l.price || 0;
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
-  var buildCostPSF = pf.adjBuildCostPerSf;
   var buildableSF = units * avgUnitSF;
-  var hardCosts = buildableSF * buildCostPSF;
-  var softCosts = hardCosts * 0.25;
+  var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
+  var demo = pf.demo || 0;
+  var subdivision = 10 * buildableSF;
+  var ae = 5 * buildableSF;
+  var hardCosts = Math.round((totalBuildCost - demo - subdivision - ae) / 1.25);
+  var softCosts = Math.round(hardCosts * 0.25);
   var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
@@ -561,21 +564,21 @@ function buildCashFlowTab(wb, l, ed, pf) {
   labelCell(ws, 15, 2, '  Demo');
   monthFormula(15,
     function(m) { return m === 0 ? 'Assumptions!C27' : '0'; },
-    function(m) { return m === 0 ? 55000 : 0; }
+    function(m) { return m === 0 ? demo : 0; }
   );
 
   // Row 16: Subdivision — Month 1
   labelCell(ws, 16, 2, '  Subdivision');
   monthFormula(16,
     function(m) { return m === 1 ? 'Assumptions!C28' : '0'; },
-    function(m) { return m === 1 ? 100000 : 0; }
+    function(m) { return m === 1 ? subdivision : 0; }
   );
 
   // Row 17: A&E — Pre-dev months 1+ spread evenly
   labelCell(ws, 17, 2, '  A&E');
   monthFormula(17,
     function(m) { return 'IF(AND(' + m + '>=1,' + m + '<Assumptions!$G$5),Assumptions!C29/(Assumptions!$G$5-1),0)'; },
-    function(m) { return (m >= 1 && m < 6) ? 150000 / 5 : 0; }
+    function(m) { return (m >= 1 && m < 6) ? ae / 5 : 0; }
   );
 
   // Row 18: Subtotal Development
@@ -1251,9 +1254,8 @@ async function exportModel(lat, lng) {
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
-  var buildCostPSF = buildableSF > 0 ? Math.round(pf.hardCosts / buildableSF) : 0;
 
-  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
+  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, pf.adjBuildCostPerSf, exitPSF, monthlyRent);
   var btr = calculateBTRProForma(l);
 
   // Build workbook programmatically — no template needed
@@ -1293,9 +1295,9 @@ async function exportOM(lat, lng) {
   var avgUnitSF = proforma.avgUnitSf;
   var units = pf.maxUnits;
   var buildableSF_om = units * avgUnitSF;
-  var buildCostPSF = buildableSF_om > 0 ? Math.round(pf.hardCosts / buildableSF_om) : 0;
+  var allInBuildPSF = pf.adjBuildCostPerSf;
 
-  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, buildCostPSF, exitPSF, monthlyRent);
+  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
 
   // ── Constants (must match sizeEquityAndDebt) ──
   var SOFT_PCT = 0.25;
@@ -1326,9 +1328,9 @@ async function exportOM(lat, lng) {
 
   // ── Development costs ──
   var buildableSF = units * avgUnitSF;
-  var hardCosts = buildableSF * buildCostPSF;
-  var softCosts = hardCosts * SOFT_PCT;
-  var totalDev = hardCosts + softCosts + DEMO + SUBDIV + AE;
+  var totalDev = buildableSF * allInBuildPSF;
+  var hardCosts = Math.round((totalDev - DEMO - SUBDIV - AE) / (1 + SOFT_PCT));
+  var softCosts = Math.round(hardCosts * SOFT_PCT);
 
   // ── Capital structure ──
   var totalProjectCost = ed.totalCost;
@@ -1444,7 +1446,7 @@ async function exportOM(lat, lng) {
     units: units,
     unit_sf: avgUnitSF,
     buildable_sf: buildableSF,
-    build_cost_psf: buildCostPSF,
+    build_cost_psf: allInBuildPSF,
     hard_costs: hardCosts,
     soft_cost_pct: SOFT_PCT,
     soft_costs: softCosts,
