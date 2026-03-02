@@ -995,13 +995,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       </div>
 
       <!-- Zoning -->
-      <div class="zoning-bar" id="zoningBar">
-        <span class="zone-sw"></span>
-        <span class="zone-name" id="zoningBarName">R1</span>
-        <span class="zone-psf" id="zoningBarPsf"></span>
-        <button class="zone-expand" id="zoningExpandBtn" onclick="document.getElementById('zoneTogglesWrap').style.display=this.textContent.indexOf('+')>=0?'block':'none';this.textContent=this.textContent.indexOf('+')>=0?'− zones':'+ zones'">+ zones</button>
-      </div>
-      <div id="zoneTogglesWrap" style="display:none;margin-top:6px">
+      <div id="zoneTogglesWrap" style="margin-top:10px">
         <div id="zoneToggles" role="group" aria-label="Zone filters"></div>
       </div>
 
@@ -3457,7 +3451,6 @@ function updateFilterCount(cachedComps, cachedListings){
   if(lpc) lpc.textContent = `${listings} deals`;
 }
 
-let _otherZonesExpanded = false;
 function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
   const el=document.getElementById('zoneToggles');
   if(!el){ console.error('zoneToggles element not found!'); return; }
@@ -3483,36 +3476,7 @@ function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
     return div;
   }
 
-  // R1 always visible
-  el.appendChild(makeRow('R1'));
-
-  // Collapsible group for R2-R4, LAND
-  const otherCount = ['R2','R3','R4','LAND'].reduce((n,z)=>n+allFiltered.filter(l=>l.zone===z).length,0);
-  const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 10px;cursor:pointer;font-size:11px;color:var(--text-dim);user-select:none';
-  header.innerHTML = `<span id="otherZoneChevron" style="font-size:9px;transition:transform 0.15s;transform:rotate(${_otherZonesExpanded?'90':'0'}deg)">▶</span> Other Zones <span class="data-count" style="margin-left:auto">${otherCount}</span>`;
-  header.onclick = function(){
-    _otherZonesExpanded = !_otherZonesExpanded;
-    document.getElementById('otherZoneChevron').style.transform = 'rotate('+(_otherZonesExpanded?90:0)+'deg)';
-    document.getElementById('otherZoneRows').style.display = _otherZonesExpanded ? 'block' : 'none';
-  };
-  el.appendChild(header);
-
-  const otherRows = document.createElement('div');
-  otherRows.id = 'otherZoneRows';
-  otherRows.style.display = _otherZonesExpanded ? 'block' : 'none';
-  ['R2','R3','R4','LAND'].forEach(z => otherRows.appendChild(makeRow(z)));
-  el.appendChild(otherRows);
-  // Update zoning bar summary (R1 stats)
-  var r1c=filtered.filter(c=>c.zone==='R1');
-  var r1psfs=r1c.map(c=>c.ppsf||c.price/c.sqft);
-  var r1avg=r1psfs.length?Math.round(r1psfs.reduce((a,b)=>a+b,0)/r1psfs.length):0;
-  var zbn=document.getElementById('zoningBarName');
-  var zbp=document.getElementById('zoningBarPsf');
-  var zbsw=document.querySelector('.zoning-bar .zone-sw');
-  if(zbn) zbn.textContent='R1';
-  if(zbp) zbp.textContent=r1avg?'$'+r1avg+'/sf':'';
-  if(zbsw && typeof ZONE_COLORS!=='undefined') zbsw.style.background=ZONE_COLORS.R1||'#3b82f6';
+  ['R1','R2','R3','R4','LAND'].forEach(z => el.appendChild(makeRow(z)));
 }
 
 // ══════════════════════════════════════════
