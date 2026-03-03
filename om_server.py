@@ -65,7 +65,6 @@ class OMHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
             self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
             self.send_header('Content-Length', str(len(pptx_bytes)))
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(pptx_bytes)
             self.log_message(f'OM generated: {filename} ({len(pptx_bytes):,} bytes)')
@@ -84,6 +83,7 @@ class OMHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
 
 
