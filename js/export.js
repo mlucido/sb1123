@@ -861,7 +861,9 @@ function buildCashFlowTab(wb, l, ed, pf) {
   }
 
   // Freeze panes: B column labels + header rows
-  autoFitColumns(ws, { fixed: { 1: 2 }, uniformFrom: 3, uniformTo: totalCol });
+  var cfFixed = { 1: 2 };
+  for (var fc = 3; fc <= totalCol; fc++) cfFixed[fc] = 11;
+  autoFitColumns(ws, { fixed: cfFixed });
   ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1 };
   return ws;
@@ -1506,15 +1508,35 @@ async function exportOM(lat, lng, overrides) {
   var totalAssetMgmt = AM_MONTHLY * HOLD_MO;
   var totalDevMgmt = DM_MONTHLY * CONSTR_MO;
 
-  // ── Interest (PIK — accrues on drawn debt) ──
-  // Pre-dev: land acquisition debt drawn; Construction: progressive draws; Sale: fully drawn
-  var landDebt = Math.max(0, askingPrice - equity);  // debt portion of land
-  var constrDebt = debt - landDebt;  // remaining debt for construction
-  // Simplified PIK: average outstanding x rate x time
-  var preDevInterest = landDebt * INTEREST_RATE * (PRE_DEV_MO / 12);
-  var constrInterest = (landDebt + constrDebt * 0.5) * INTEREST_RATE * (CONSTR_MO / 12);
-  var saleInterest = debt * INTEREST_RATE * (SALE_MO / 12);
-  var totalInterest = preDevInterest + constrInterest + saleInterest;
+  // ── Interest (month-by-month PIK matching XLS Cash Flow) ──
+  var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
+  var monthlyTaxAmt = askingPrice * TAX_RATE / 12;
+  var monthlyInsAmt = INS_ANNUAL / 12;
+  var loanBalance = 0;
+  var totalInterest = 0;
+  for (var m = 0; m < HOLD_MO; m++) {
+    var devUses = 0;
+    if (m === 0) devUses = askingPrice + askingPrice * 0.01; // land + txn costs
+    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) {
+      var si = m - PRE_DEV_MO;
+      devUses += hardCosts * SCURVE[si] + softCosts * SCURVE[si];
+    }
+    var carryUses = monthlyTaxAmt + monthlyInsAmt + AM_MONTHLY;
+    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) carryUses += DM_MONTHLY;
+    var feeUses = 0;
+    if (m === 0) feeUses = acqFee + origFee;
+    var totalUses = devUses + carryUses + feeUses;
+
+    // Debt draw = 70% of uses (matching XLS Row 8)
+    var draw = totalUses * (1 - 0.30);
+
+    // Capitalized interest on opening balance (matching XLS Row 37)
+    var monthInterest = loanBalance * INTEREST_RATE / 12;
+    totalInterest += monthInterest;
+
+    // Closing balance (matching XLS Row 38)
+    loanBalance += draw + monthInterest;
+  }
 
   // ── Fees ──
   var acqFee = askingPrice * ACQ_FEE_PCT;
@@ -1526,10 +1548,10 @@ async function exportOM(lat, lng, overrides) {
   var txCosts = grossRevenue * TX_COST_PCT;
   dispFee = grossRevenue * DISP_FEE_PCT;
   totalSponsorFees += dispFee;
-  var netSaleProceeds = grossRevenue - txCosts;
+  var netSaleProceeds = grossRevenue - txCosts - dispFee;
 
   // ── Waterfall ──
-  var loanRepayment = debt + totalInterest + origFee;
+  var loanRepayment = loanBalance;
   var netDistributable = netSaleProceeds - loanRepayment;
   var lpROC = lpEquity;
   var gpROC = gpCoinvestEquity;
