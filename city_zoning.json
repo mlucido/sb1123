@@ -2521,5 +2521,556 @@
       "§22.52.1180 (parking)",
       "LA County DRP zone summaries"
     ]
+  },
+  "El Cajon": {
+    "zone_mapping": {
+      "_note": "El Cajon uses RS (single-family) and RM (multi-family) designations. Number = min lot size in 1000s SF (RS) or min lot area per DU (RM). ECMC Title 17, Ch. 17.140.",
+      "RS-40": "R1",
+      "RS-20": "R1",
+      "RS-14": "R1",
+      "RS-10": "R1",
+      "RS-9": "R1",
+      "RS-8": "R1",
+      "RS-6": "R1",
+      "RM-5000": "R2",
+      "RM-3000": "R3",
+      "RM-2000": "R3",
+      "RM-1500": "R4"
+    },
+    "height_ft": {
+      "_note": "ECMC 17.140.100. All residential zones 35 ft / 2 stories.",
+      "R1": 35,
+      "R2": 35,
+      "R3": 35,
+      "R4": 35
+    },
+    "height_notes": {
+      "R1": "35 ft / 2 stories. No flat-roof penalty.",
+      "R2": "35 ft / 2 stories.",
+      "R3": "35 ft / 2-3 stories. RM-2000 may get 45 ft with CUP.",
+      "R4": "35 ft base; 45 ft with CUP possible for RM-1500.",
+      "abutting_SF": "Within side/rear setback: 12 ft at 3 ft setback, 16 ft at 4 ft, 20 ft at 5 ft."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 20, "side": 5, "rear": 15 },
+      "R2": { "front": 20, "side": 5, "rear": 15 },
+      "R3": { "front": 20, "side": 5, "rear": 15 },
+      "R4": { "front": 15, "side": 5, "rear": 15 },
+      "_notes": "RS-40/20 likely have larger setbacks (25-30 ft front, 10-15 ft side). Standard RS-10 and below shown. Wall plane max 30 ft continuous without offset."
+    },
+    "far": {
+      "_note": "El Cajon uses lot coverage, not FAR. ECMC 17.140.110.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "RS_all": 50,
+        "RM_all": 60
+      }
+    },
+    "parking": {
+      "_note": "ECMC 17.185. 2 enclosed spaces for SFR. MF varies.",
+      "single_family": 2,
+      "per_unit_multifamily": 2,
+      "ab2097_transit_exemption": true,
+      "transit_note": "El Cajon Transit Center served by Orange/Green Trolley lines. AB 2097 applies within 0.5 mi."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026.",
+      "eligible_zones": ["RS-40", "RS-20", "RS-14", "RS-10", "RS-9", "RS-8", "RS-6"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 13000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "Grossmont Union HSD + Cajon Valley Union SD. Combined likely ~$4-5.17/SF. State cap $5.38/SF as of Jan 2026.",
+      "school_district": "Grossmont Union HSD / Cajon Valley Union SD",
+      "impact_fees_per_unit": 0,
+      "impact_fee_note": "El Cajon does NOT charge development impact fees — only SD County city without them.",
+      "park_fee_per_unit": 0,
+      "sewer_fee_per_unit": 3500,
+      "sewer_note": "Helix Water District capacity charge ~$3,500/unit (varies by meter size)",
+      "permit_plan_check_per_unit": 6000,
+      "notes": "Lowest total fees in SD County due to zero impact fees. School + sewer + permit are main costs.",
+      "confidence": "medium"
+    },
+    "unconfirmed": [
+      "RS-40/20 specific setbacks (likely larger than standard RS zones)",
+      "Lot coverage percentages by zone (50% RS / 60% RM estimated)",
+      "RM-1500/2000 height with CUP (45 ft possible but unverified)",
+      "Combined school fee — Cajon Valley USD elementary rate unknown",
+      "Impact fees — confirm still zero in 2026",
+      "Helix Water District capacity charge exact amount"
+    ],
+    "sources": [
+      "ECMC Title 17, Ch. 17.140 (Residential Zones) — ecode360.com/44375151",
+      "ECMC 17.140.100 (Building Height)",
+      "ECMC 17.140.110 (Lot Coverage)",
+      "ECMC 17.185 (Parking Standards)",
+      "Grossmont Union HSD Building Fees (guhsd.net)",
+      "SAB Level 1 Fee increase Jan 2026 — $5.38/SF state cap (aalrr.com)"
+    ]
+  },
+  "La Mesa": {
+    "zone_mapping": {
+      "_note": "La Mesa uses R1 variants (estate to small-lot) plus R2/R3/RB. LMMC Title 24, Ch. 24.05. R1E=estate, R1R=rural, R1S=suburban, R1=standard, R1A=small-lot, R2=duplex, R3=apartments, RB=residential-business.",
+      "R1E": "R1",
+      "R1R": "R1",
+      "R1S": "R1",
+      "R1": "R1",
+      "R1A": "R1",
+      "R2": "R2",
+      "R3": "R3",
+      "RB": "R4"
+    },
+    "height_ft": {
+      "_note": "LMMC 24.05.030. R1E through R2 = 20 ft. R3 and RB = 30 ft. Unusually low SF height.",
+      "R1": 20,
+      "R2": 20,
+      "R3": 30,
+      "R4": 30
+    },
+    "height_notes": {
+      "R1_all": "20 ft max for all R1 variants (R1E, R1R, R1S, R1, R1A) and R2. Essentially limits to 1 story or very low-profile 2-story.",
+      "R3": "30 ft base. May be increased by special permit.",
+      "RB": "30 ft base. May be increased by special permit.",
+      "sb1123_note": "20 ft height is a significant constraint for SB 1123 townhome product. State preemption may override but untested.",
+      "detached_accessory": "15 ft max, 1 story."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 25, "side": 5, "rear": 25 },
+      "R2": { "front": 20, "side": 5, "rear": 20 },
+      "R3": { "front": 15, "side": 5, "rear": 15 },
+      "R4": { "front": 15, "side": 5, "rear": 15 },
+      "_notes": "R1E/R1R have larger setbacks (30-40 ft front). Standard R1/R1A shown above. R1S intermediate (~30 ft front)."
+    },
+    "far": {
+      "_note": "La Mesa uses lot coverage, not FAR. LMMC 24.05.030.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "all_zones": 40
+      },
+      "lot_coverage_note": "40% max for all residential zones including accessory structures."
+    },
+    "parking": {
+      "_note": "LMMC 24.20. 2 spaces per SFR unit. MF 1.5-2/unit depending on bedroom count.",
+      "single_family": 2,
+      "per_unit_multifamily": 2,
+      "studio_1bed": 1.5,
+      "ab2097_transit_exemption": true,
+      "transit_note": "Orange Line Trolley stops: Amaya Dr, La Mesa Blvd, Spring St, Grossmont. Good transit coverage along main corridor."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026.",
+      "eligible_zones": ["R1E", "R1R", "R1S", "R1", "R1A"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 17000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "Grossmont Union HSD + La Mesa-Spring Valley SD. Combined likely ~$4-5.17/SF.",
+      "school_district": "Grossmont Union HSD / La Mesa-Spring Valley SD",
+      "impact_fees_per_unit": 4300,
+      "impact_fee_note": "~$4,300/unit total city impact fees — among lowest in SD County.",
+      "park_fee_per_unit": 0,
+      "park_fee_note": "Included in impact fee total",
+      "sewer_fee_per_unit": 3500,
+      "sewer_note": "Helix Water District capacity charge ~$3,500/unit",
+      "permit_plan_check_per_unit": 6000,
+      "notes": "Low fees but 20 ft R1/R2 height limit is the main constraint for SB 1123 product.",
+      "confidence": "medium"
+    },
+    "unconfirmed": [
+      "R1E/R1R/R1S specific setbacks (larger lots have larger setbacks)",
+      "MF parking ratio thresholds (1.5 vs 2 per unit by bedroom count)",
+      "La Mesa-Spring Valley SD elementary school fee per SF",
+      "Helix Water District capacity charge exact amount",
+      "Impact fee total ($4,300 per HCD reporting — needs current fee schedule verification)",
+      "20 ft height limit applicability to SB 1123 projects under state preemption"
+    ],
+    "sources": [
+      "LMMC Title 24, Ch. 24.05 (Residential Zones and Development Standards)",
+      "LMMC 24.05.030 (Development Standards table) — lamesa-ca.elaws.us",
+      "LMMC 24.20 (Parking)",
+      "City of La Mesa FY 2024-2025 Fee Schedule",
+      "Grossmont Union HSD Building Fees (guhsd.net)"
+    ]
+  },
+  "Santee": {
+    "zone_mapping": {
+      "_note": "Santee has 8 residential zones. Title 13, Ch. 13.10. RE=estate, RS=single-family (number=min lot size in 1000s SF), RM=multi-family.",
+      "RE": "R1",
+      "RS-20": "R1",
+      "RS-14": "R1",
+      "RS-10": "R1",
+      "RS-7": "R1",
+      "RS-5.5": "R1",
+      "RM-1": "R3",
+      "RM-2": "R4"
+    },
+    "height_ft": {
+      "_note": "Santee MC 13.10.040, Table 13.10.040A. RS = 35 ft / 2 stories. RM-1 = 35 ft. RM-2 up to 45 ft.",
+      "R1": 35,
+      "R3": 35,
+      "R4": 45
+    },
+    "height_notes": {
+      "R1": "35 ft / 2 stories for all RS and RE zones.",
+      "R3": "35 ft / 2-3 stories for RM-1.",
+      "R4": "Up to 45 ft for RM-2. 15 ft side setback required when abutting SF zone and building exceeds 35 ft.",
+      "adu": "Detached ADU max 16 ft."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 25, "side": 5, "rear": 20 },
+      "R3": { "front": 20, "side": 10, "rear": 20 },
+      "R4": { "front": 20, "side": 10, "rear": 20 },
+      "_notes": "RE/RS-20 have larger setbacks. Standard RS-10/RS-7/RS-5.5 shown for R1. RM 15 ft side setback when abutting SF and over 35 ft."
+    },
+    "far": {
+      "_note": "Santee uses lot coverage, not FAR.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "RE_RS": 40,
+        "RM": 50
+      }
+    },
+    "parking": {
+      "_note": "Santee MC 13.10. 2 enclosed spaces per SFR (garage). MF: 2/unit + guest.",
+      "single_family": 2,
+      "per_unit_multifamily": 2,
+      "guest_per_4_units": 1,
+      "ab2097_transit_exemption": true,
+      "transit_note": "Green Line Trolley: Santee Town Center, Gillespie Field stations."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026.",
+      "eligible_zones": ["RE", "RS-20", "RS-14", "RS-10", "RS-7", "RS-5.5"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 35000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "Santee SD (elementary) + Grossmont Union HSD. Combined likely near state cap.",
+      "school_district": "Santee SD / Grossmont Union HSD",
+      "impact_fees_per_unit": 21000,
+      "impact_fee_note": "Steep increase Jan 2025 (first in 19 years). SFR $17.44/SF (~$21K at 1,200 SF). MF $18.39/SF. Includes traffic, parks, fire, planning, admin.",
+      "park_fee_per_unit": 0,
+      "park_fee_note": "Included in impact fee total",
+      "sewer_fee_per_unit": 5000,
+      "sewer_note": "Padre Dam Municipal Water District capacity + installation fees ~$5K/unit",
+      "permit_plan_check_per_unit": 6000,
+      "notes": "High total fees after Jan 2025 increase. Among highest in East County. Fee increase was 30-35% over prior rates.",
+      "confidence": "medium"
+    },
+    "unconfirmed": [
+      "RE/RS-20 specific setbacks (larger lots likely have larger setbacks)",
+      "RM-1 vs RM-2 height limits (35 vs 45 ft boundary)",
+      "RM lot coverage (50% estimated)",
+      "Guest parking ratio (1 per 4 units estimated)",
+      "Padre Dam sewer/water capacity charge exact amount",
+      "Santee SD elementary school fee per SF"
+    ],
+    "sources": [
+      "Santee MC Title 13, Ch. 13.10 (Residential Districts) — ecode360.com/43756106",
+      "Santee MC 13.10.040 (Site Development Criteria, Table 13.10.040A)",
+      "City of Santee Residential Zones Guide (cityofsanteeca.gov)",
+      "SD Union-Tribune (Jan 2025): Santee approves steep hikes in developer fees",
+      "Santee Comprehensive Development Impact Fee Nexus Study (Nov 2024)",
+      "Grossmont Union HSD Building Fees (guhsd.net)"
+    ]
+  },
+  "Escondido": {
+    "zone_mapping": {
+      "_note": "Escondido uses R-1 through R-5 with density-based sub-designations. Art. 6 of Ch. 33. Number after R-1 = min lot size in 1000s SF. R-A=agricultural. R-T=residential-transitional.",
+      "R-1-7": "R1",
+      "R-1-10": "R1",
+      "R-1-15": "R1",
+      "R-1-20": "R1",
+      "R-1-40": "R1",
+      "R-A": "R1",
+      "R-T": "R2",
+      "R-2": "R2",
+      "R-3": "R3",
+      "R-4": "R4",
+      "R-5": "R4"
+    },
+    "height_ft": {
+      "_note": "Escondido MC Art. 33, Table 33-107. R-1/R-2/R-3 = 35 ft. R-4/R-5 = 45 ft.",
+      "R1": 35,
+      "R2": 35,
+      "R3": 35,
+      "R4": 45
+    },
+    "height_notes": {
+      "R1": "35 ft / 2 stories. R-1 zones allow 0-4 du/ac.",
+      "R2": "35 ft. When abutting R-1: setback = abutting R-1 setback + 5 ft. +5 ft per story over 2.",
+      "R3": "35 ft. Must develop at min 70% of max density per Housing Element policy.",
+      "R4": "45 ft for R-4/R-5 zones. +5 ft side setback for each story over 2."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 25, "side": 5, "rear": 20 },
+      "R2": { "front": 20, "side": 5, "rear": 15 },
+      "R3": { "front": 15, "side": 5, "rear": 15 },
+      "R4": { "front": 15, "side": 10, "rear": 15 },
+      "_notes": "Per Tables 33-99/100/101. R-1-40/R-1-20 have larger setbacks. +5 ft side for each story over 2 when abutting SFR, max 15 ft. Open space: R-2/R-3 = 400 SF/unit, R-4/R-5 = 200 SF/unit."
+    },
+    "far": {
+      "_note": "Escondido uses lot coverage, not FAR.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "R1": 40,
+        "R2": 50,
+        "R3": 50,
+        "R4": 60
+      }
+    },
+    "parking": {
+      "_note": "Escondido MC Art. 39. 2 enclosed spaces for SFR. MF varies by bedroom count.",
+      "single_family": 2,
+      "per_unit_multifamily": 2,
+      "studio_1bed": 1.5,
+      "ab2097_transit_exemption": true,
+      "transit_note": "Escondido Transit Center (Sprinter line + BREEZE bus). Limited high-quality transit coverage in residential areas."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026.",
+      "eligible_zones": ["R-1-7", "R-1-10", "R-1-15", "R-1-20", "R-1-40", "R-A"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 25000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "Escondido Union SD (elementary) + Escondido Union HSD. Combined likely ~$4-5.17/SF. State cap $5.38 as of Jan 2026.",
+      "school_district": "Escondido Union SD / Escondido Union HSD",
+      "impact_fees_per_unit": 11000,
+      "impact_fee_breakdown": {
+        "park_fee": 6849,
+        "traffic_sfr": 4192,
+        "traffic_mf": 2095
+      },
+      "park_fee_per_unit": 6849,
+      "sewer_fee_per_unit": 3500,
+      "sewer_note": "Escondido Utilities Dept sewer connection/capacity charge ~$3,500/unit",
+      "permit_plan_check_per_unit": 6000,
+      "notes": "Moderate fees. Park $6,849 + traffic ~$4,192 (SFR) are main impact fee components. Fee deferral policy available per 2025 Fee Guide.",
+      "confidence": "medium"
+    },
+    "unconfirmed": [
+      "R-1-40/R-1-20 specific setbacks (larger estate lots)",
+      "Lot coverage percentages by zone (40/50/60% estimated)",
+      "R-4/R-5 height limit (45 ft needs Table 33-107 verification)",
+      "Combined school fee — EUSD elementary rate per SF unknown",
+      "Escondido Utilities sewer capacity charge exact amount",
+      "MF parking by bedroom count (studio/1BR = 1.5 estimated)"
+    ],
+    "sources": [
+      "Escondido MC Ch. 33, Art. 6 (Residential Zones) — ecode360.com/43265438",
+      "Tables 33-98a/b (Parcel Requirements), 33-99/100/101 (Setbacks), 33-107 (Building Requirements)",
+      "Escondido 2025 Fee Guide (Updated Sep 2025) — escondido.gov/DocumentCenter/View/8626",
+      "EUSD Developer Fees (eusd.org)",
+      "Escondido Union HSD Developer Fee Info (euhsd.org)",
+      "SAB Level 1 Fee increase Jan 2026 — $5.38/SF state cap"
+    ]
+  },
+  "Poway": {
+    "zone_mapping": {
+      "_note": "Poway uses RR (rural residential), RS (single-family by density du/ac), RC (condo), RA (apartment). PMC 17.08.",
+      "RR-A": "R1",
+      "RR-B": "R1",
+      "RR-C": "R1",
+      "RS-1": "R1",
+      "RS-2": "R1",
+      "RS-3": "R1",
+      "RS-4": "R1",
+      "RS-7": "R2",
+      "RC": "R3",
+      "RA": "R4"
+    },
+    "height_ft": {
+      "_note": "PMC 17.08. All residential zones: 35 ft / 2 stories max. Very uniform.",
+      "R1": 35,
+      "R2": 35,
+      "R3": 35,
+      "R4": 35
+    },
+    "height_notes": {
+      "all_zones": "35 ft / 2 stories max across all residential zones. No height increase by zone or CUP — very conservative.",
+      "adu": "Detached ADU with 4 ft setbacks limited to 16 ft / 1 story."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 25, "side": 10, "rear": 25 },
+      "R2": { "front": 18, "side": 5, "rear": 20 },
+      "R3": { "front": 20, "side": 15, "rear": 15 },
+      "R4": { "front": 20, "side": 15, "rear": 15 },
+      "_notes": "R1 uses RS-4 (most common SFR). RR/RS-1/RS-2 have much larger setbacks (40 ft front, 20 ft side, 50 ft rear). RS-7 shown as R2. RC/RA have wide side setbacks (15 ft)."
+    },
+    "far": {
+      "_note": "PMC 17.08. Poway uses lot coverage, not FAR.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "RR_to_RS4": 35,
+        "RS7": 50,
+        "RC": 50,
+        "RA": 50
+      }
+    },
+    "parking": {
+      "_note": "PMC 17.08. 2 enclosed spaces for SFR (garage required). RC/RA have higher requirements.",
+      "single_family": 2,
+      "per_unit_RS7": 2,
+      "per_unit_RC": 2.5,
+      "per_unit_RA": 2.5,
+      "garage_required_sfr": true,
+      "ab2097_transit_exemption": true,
+      "transit_note": "Very limited transit — no trolley or Sprinter. BREEZE bus only. AB 2097 unlikely to apply to most parcels."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026. City studying affordable housing in-lieu fee (Jun 2025).",
+      "eligible_zones": ["RR-A", "RR-B", "RR-C", "RS-1", "RS-2", "RS-3", "RS-4"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 30000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "Poway Unified SD: $5.17/SF effective Jul 2024. Level 2 fees suspended. State cap $5.38 as of Jan 2026.",
+      "school_district": "Poway Unified SD",
+      "impact_fees_per_unit": 15000,
+      "impact_fee_note": "Includes park, traffic, habitat preservation, fire mitigation. ADU 750+ SF = 50% of standard fees.",
+      "park_fee_per_unit": 5000,
+      "sewer_fee_per_unit": 4000,
+      "sewer_note": "Poway owns water/sewer utility. Capacity fees per Ordinance 684.",
+      "permit_plan_check_per_unit": 6000,
+      "notes": "Moderate-high fees. Large-lot zoning (most RS-1 to RS-4 = 10K-40K SF lots) limits practical SB 1123 density. 35 ft lot coverage cap on SFR also constraining.",
+      "confidence": "low"
+    },
+    "unconfirmed": [
+      "Impact fee breakdown by category — need Master Fee Schedule PDF",
+      "Sewer/water capacity charge exact amount (Ordinance 684)",
+      "Park mitigation fee exact amount (Resolution P-08-36)",
+      "Traffic mitigation fee exact amount",
+      "RC/RA parking requirements (2.5/unit estimated — needs verification)",
+      "Total per-unit impact fee ($15K estimated from ADU = $9-12K at 50%)"
+    ],
+    "sources": [
+      "PMC Title 17, Ch. 17.08 (Residential Zones) — codepublishing.com/CA/Poway",
+      "Poway General Property Development Standards handout (poway.org/DocumentCenter/View/579)",
+      "Poway USD Developer Fee Information",
+      "Poway Master Fee Schedule (amended Jul 2025)",
+      "SAB Level 1 Fee increase Jan 2026 — $5.38/SF state cap",
+      "Voice of San Diego (Jun 2025): Poway affordable housing fee study"
+    ]
+  },
+  "San Marcos": {
+    "zone_mapping": {
+      "_note": "San Marcos uses SFR (single-family by density du/ac), SFA (attached), MFR (multi-family). Title 20, Ch. 20.215. AG=agricultural-residential.",
+      "AG": "R1",
+      "SFR-1": "R1",
+      "SFR-2": "R1",
+      "SFR-4": "R1",
+      "SFR-6": "R1",
+      "SFR-8": "R1",
+      "SFA-12": "R2",
+      "SFA-18": "R2",
+      "MFR-18": "R3",
+      "MFR-24": "R4",
+      "MFR-30": "R4"
+    },
+    "height_ft": {
+      "_note": "San Marcos MC 20.215.050. SFR = 35 ft / 2 stories. MFR = 35-45 ft.",
+      "R1": 35,
+      "R2": 35,
+      "R3": 35,
+      "R4": 45
+    },
+    "height_notes": {
+      "R1": "35 ft / 2 stories for all SFR zones.",
+      "R2": "35 ft for SFA zones.",
+      "R3": "35 ft for MFR-18.",
+      "R4": "Up to 45 ft for MFR-24/30."
+    },
+    "setbacks_ft": {
+      "R1": { "front": 20, "side": 5, "rear": 15 },
+      "R2": { "front": 15, "side": 5, "rear": 15 },
+      "R3": { "front": 15, "side": 10, "rear": 15 },
+      "R4": { "front": 15, "side": 10, "rear": 15 },
+      "_notes": "SFR-1/SFR-2 (large lots) have larger setbacks. Standard SFR-6/8 shown. AG setbacks much larger."
+    },
+    "far": {
+      "_note": "San Marcos uses lot coverage. Ch. 20.215.050.",
+      "R1": "not used",
+      "lot_coverage_pct": {
+        "SFR": 45,
+        "SFA": 50,
+        "MFR": 55
+      }
+    },
+    "parking": {
+      "_note": "San Marcos MC Ch. 20.415. 2 enclosed per SFR. MF varies by bedroom count.",
+      "single_family": 2,
+      "per_unit_multifamily": 2,
+      "studio_1bed": 1.5,
+      "ab2097_transit_exemption": true,
+      "transit_note": "Sprinter light rail: Cal State San Marcos, Palomar College, San Marcos Civic Center stations."
+    },
+    "rent_stabilization": {
+      "has_rso": false,
+      "notes": "No local rent control. State AB 1482 applies."
+    },
+    "sb1123": {
+      "local_standards_adopted": false,
+      "status": "State defaults apply. No local SB 1123 ordinance adopted as of Mar 2026.",
+      "eligible_zones": ["AG", "SFR-1", "SFR-2", "SFR-4", "SFR-6", "SFR-8"]
+    },
+    "city_fees": {
+      "est_total_per_unit": 28000,
+      "school_fee_per_sf": 5.17,
+      "school_fee_note": "San Marcos Unified SD: $5.17/SF effective Jul 2024. State cap $5.38 as of Jan 2026.",
+      "school_district": "San Marcos Unified SD",
+      "impact_fees_per_unit": 15000,
+      "impact_fee_note": "Effective Mar 2025: SFR $12.45/SF (~$15K at 1,200 SF), MFR $14.10/SF. 6 categories: transportation, parks/trails/recreation, fire/EMS, advanced planning, habitat conservation, storm drainage.",
+      "park_fee_per_unit": 0,
+      "park_fee_note": "Included in PFF total",
+      "sewer_fee_per_unit": 4000,
+      "sewer_note": "Vallecitos Water District capacity charge ~$4K/unit",
+      "permit_plan_check_per_unit": 6000,
+      "inclusionary_housing_in_lieu_per_sf": 15,
+      "inclusionary_note": "$15/SF in-lieu fee if not providing affordable units on-site.",
+      "notes": "Moderate fees. PFF comprehensively updated Mar 2025 (first major update in ~25 years). MFR per-SF rates slightly higher than SFR.",
+      "confidence": "medium"
+    },
+    "unconfirmed": [
+      "SFR lot coverage percentage (45% estimated)",
+      "MFR-24/30 height limit (45 ft estimated)",
+      "SFR-1/SFR-2 specific setbacks (large-lot zones)",
+      "MF parking ratios by bedroom count",
+      "Vallecitos Water District capacity charge exact amount",
+      "Inclusionary housing in-lieu fee applicability to SB 1123 projects ($15/SF needs verification)"
+    ],
+    "sources": [
+      "San Marcos MC Title 20, Ch. 20.215 (Residential Zones) — library.municode.com/ca/san_marcos",
+      "San Marcos MC 20.215.050 (Residential Development Standards)",
+      "San Marcos MC Ch. 20.300 (Site Planning and General Development Standards)",
+      "San Marcos Unified SD Developer Fees (smusd.org)",
+      "The Coast News (Mar 2025): San Marcos increases developer, use fees",
+      "SAB Level 1 Fee increase Jan 2026 — $5.38/SF state cap"
+    ]
   }
 }
