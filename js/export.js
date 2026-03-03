@@ -230,7 +230,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
 
   labelCell(ws, 42, 2, 'LP Pref Rate');      inputCell(ws, 'C42', 0.08, '0.0%');
   labelCell(ws, 43, 2, 'GP Promote %');       inputCell(ws, 'C43', 0.20, '0.0%');
-  labelCell(ws, 44, 2, 'GP Co-Invest %');     inputCell(ws, 'C44', 0.05, '0.0%');
+  labelCell(ws, 44, 2, 'GP Co-Invest % Price'); inputCell(ws, 'C44', 0.02, '0.0%');
 
   ws.getCell('B47').value = 'BTR HOLD';
   ws.getCell('B47').font = _hdrFont; ws.getCell('B47').fill = _hdrFill;
@@ -333,9 +333,9 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
 
   sectionHeader(ws, 10, 2, 'Equity');
   labelCell(ws, 11, 2, '  LP Equity');
-  setFormula(ws, 'C11', 'Assumptions!G14*(1-Assumptions!C44)', ed.equity * 0.95, '$#,##0');
+  setFormula(ws, 'C11', 'Assumptions!G14-Assumptions!C16*Assumptions!C44', ed.equity - (l.price || 0) * 0.02, '$#,##0');
   labelCell(ws, 12, 2, '  GP Co-Invest');
-  setFormula(ws, 'C12', 'Assumptions!G14*Assumptions!C44', ed.equity * 0.05, '$#,##0');
+  setFormula(ws, 'C12', 'Assumptions!C16*Assumptions!C44', (l.price || 0) * 0.02, '$#,##0');
 
   labelCell(ws, 14, 2, 'TOTAL SOURCES');
   ws.getCell('B14').font = { bold: true };
@@ -347,8 +347,8 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   // Source % of total
   setFormula(ws, 'D6', 'C6/C$14', ed.debt / (ed.debt + ed.equity), '0.0%');
   setFormula(ws, 'D8', 'C8/C$14', 0, '0.0%');
-  setFormula(ws, 'D11', 'C11/C$14', ed.equity * 0.95 / (ed.debt + ed.equity), '0.0%');
-  setFormula(ws, 'D12', 'C12/C$14', ed.equity * 0.05 / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D11', 'C11/C$14', (ed.equity - (l.price || 0) * 0.02) / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D12', 'C12/C$14', (l.price || 0) * 0.02 / (ed.debt + ed.equity), '0.0%');
 
   // ── USES ──
   ws.getCell('F4').value = 'USES';
@@ -485,17 +485,17 @@ function buildCashFlowTab(wb, l, ed, pf) {
 
   // Row 6: LP Equity Call — Month 0 only
   labelCell(ws, 6, 2, '  LP Equity Call');
-  var lpEquityVal = ed.equity * 0.95;
+  var gpCoInvestVal = (l.price || 0) * 0.02;
+  var lpEquityVal = ed.equity - gpCoInvestVal;
   monthFormula(6,
-    function(m) { return m === 0 ? 'Assumptions!G14*(1-Assumptions!C44)' : '0'; },
+    function(m) { return m === 0 ? 'Assumptions!G14-Assumptions!C16*Assumptions!C44' : '0'; },
     function(m) { return m === 0 ? lpEquityVal : 0; }
   );
 
   // Row 7: GP Co-Invest Call — Month 0 only
   labelCell(ws, 7, 2, '  GP Co-Invest Call');
-  var gpCoInvestVal = ed.equity * 0.05;
   monthFormula(7,
-    function(m) { return m === 0 ? 'Assumptions!G14*Assumptions!C44' : '0'; },
+    function(m) { return m === 0 ? 'Assumptions!C16*Assumptions!C44' : '0'; },
     function(m) { return m === 0 ? gpCoInvestVal : 0; }
   );
 
@@ -778,14 +778,14 @@ function buildCashFlowTab(wb, l, ed, pf) {
   // Row 53: LP Return of Capital
   labelCell(ws, 53, 2, '  LP Return of Capital');
   monthFormula(53,
-    function(m) { return m === lastMo ? 'Assumptions!G14*(1-Assumptions!C44)' : '0'; },
+    function(m) { return m === lastMo ? 'Assumptions!G14-Assumptions!C16*Assumptions!C44' : '0'; },
     function(m) { return m === lastMo ? lpEquityVal : 0; }
   );
 
   // Row 54: GP Return of Capital
   labelCell(ws, 54, 2, '  GP Return of Capital');
   monthFormula(54,
-    function(m) { return m === lastMo ? 'Assumptions!G14*Assumptions!C44' : '0'; },
+    function(m) { return m === lastMo ? 'Assumptions!C16*Assumptions!C44' : '0'; },
     function(m) { return m === lastMo ? gpCoInvestVal : 0; }
   );
 
@@ -794,7 +794,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   monthFormula(55,
     function(m) {
       if (m !== lastMo) return '0';
-      return 'Assumptions!G14*(1-Assumptions!C44)*Assumptions!C42*Assumptions!G8/12';
+      return '(Assumptions!G14-Assumptions!C16*Assumptions!C44)*Assumptions!C42*Assumptions!G8/12';
     },
     function(m) { return m === lastMo ? lpEquityVal * 0.08 * 24 / 12 : 0; }
   );
@@ -954,14 +954,14 @@ function buildOutputsTab(wb, ed) {
   var exitDeltas = [-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15];
 
   // Full LP waterfall formulas matching Cash Flow distributions:
-  // LP equity = K × equity% × (1 − GP co-invest)
+  // LP equity = K × equity% − price × GP co-invest%
   // LP pref = LP equity × pref rate × months / 12
   // Distributable = MAX(0, Revenue − Cost − Cap Interest − Pref)
   // LP total = LP equity + Pref + (1−promote) × Distributable
   // MOIC = LP total / LP equity;  IRR = MOIC^(12/M) − 1
   function moicFormula(R, K, M) {
-    var le = '(' + K + ')*Assumptions!G17*(1-Assumptions!C44)';
-    var pr = le + '*Assumptions!C42*' + M + '/12';
+    var le = '(' + K + ')*Assumptions!G17-Assumptions!C16*Assumptions!C44';
+    var pr = '(' + le + ')*Assumptions!C42*' + M + '/12';
     var ci = "'Cash Flow'!AA39";
     var db = 'MAX(0,' + R + '-(' + K + ')-' + ci + '-' + pr + ')';
     return 'IF(' + le + '=0,0,(' + le + '+' + pr + '+(1-Assumptions!C43)*' + db + ')/(' + le + '))';
@@ -1333,7 +1333,7 @@ async function exportOM(lat, lng) {
   var INTEREST_RATE = 0.09;
   var LP_PREF = 0.08;
   var GP_PROMOTE = 0.20;
-  var GP_COINVEST = 0.05;
+  var GP_COINVEST = 0.02;
   var PRE_DEV_MO = 6;
   var CONSTR_MO = 12;
   var SALE_MO = 6;
@@ -1355,7 +1355,7 @@ async function exportOM(lat, lng) {
   var totalProjectCost = ed.totalCost;
   var equity = ed.equity;
   var debt = totalProjectCost - equity;
-  var gpCoinvestEquity = Math.round(equity * GP_COINVEST);
+  var gpCoinvestEquity = Math.round(l.price * GP_COINVEST);
   var lpEquity = equity - gpCoinvestEquity;
   var origFee = debt * ORIG_FEE_PCT;
 
