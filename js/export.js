@@ -953,13 +953,21 @@ function buildOutputsTab(wb, ed) {
   var buildDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
   var exitDeltas = [-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15];
 
-  // Inline LP return formulas (no LET — compatible with all Excel versions)
-  // Simplified waterfall: LP gets equity back + (1-promote%) × profit
-  function irrFormula(R, K, M) {
-    return 'IF((' + K + ')*Assumptions!G17=0,0,IFERROR((1+(1-Assumptions!C43)*(' + R + '-(' + K + '))/((' + K + ')*Assumptions!G17))^(12/' + M + ')-1,-1))';
-  }
+  // Full LP waterfall formulas matching Cash Flow distributions:
+  // LP equity = K × equity% × (1 − GP co-invest)
+  // LP pref = LP equity × pref rate × months / 12
+  // Distributable = MAX(0, Revenue − Cost − Cap Interest − Pref)
+  // LP total = LP equity + Pref + (1−promote) × Distributable
+  // MOIC = LP total / LP equity;  IRR = MOIC^(12/M) − 1
   function moicFormula(R, K, M) {
-    return 'IF((' + K + ')*Assumptions!G17=0,0,1+(1-Assumptions!C43)*(' + R + '-(' + K + '))/((' + K + ')*Assumptions!G17))';
+    var le = '(' + K + ')*Assumptions!G17*(1-Assumptions!C44)';
+    var pr = le + '*Assumptions!C42*' + M + '/12';
+    var ci = "'Cash Flow'!AA39";
+    var db = 'MAX(0,' + R + '-(' + K + ')-' + ci + '-' + pr + ')';
+    return 'IF(' + le + '=0,0,(' + le + '+' + pr + '+(1-Assumptions!C43)*' + db + ')/(' + le + '))';
+  }
+  function irrFormula(R, K, M) {
+    return 'IFERROR((' + moicFormula(R, K, M) + ')^(12/' + M + ')-1,-1)';
   }
 
   // ── Table 1: Investor IRR vs Exit $/SF × Build Cost $/SF ──
@@ -987,8 +995,8 @@ function buildOutputsTab(wb, ed) {
 
     for (var bi2 = 0; bi2 < buildDeltas.length; bi2++) {
       var cl2 = colLetter(bi2 + 3);
-      var revE = 'Assumptions!C20*Assumptions!C21*$B' + row + '*(1-Assumptions!C37)';
-      var costE = 'Assumptions!G16+(' + cl2 + '$32-Assumptions!C23)*Assumptions!C22*(1+Assumptions!C25)';
+      var revE = 'Assumptions!C20*Assumptions!C21*$B' + row + '*(1-Assumptions!C37-Assumptions!G37)';
+      var costE = 'Assumptions!G16+(' + cl2 + '$32-Assumptions!C23)*Assumptions!C22';
       setFormula(ws, cl2 + row, irrFormula(revE, costE, 'Assumptions!G8'), 0, '0.0%');
       if (exitDeltas[ei] === 0 && buildDeltas[bi2] === 0) {
         ws.getCell(cl2 + row).fill = baseFill;
@@ -1027,7 +1035,7 @@ function buildOutputsTab(wb, ed) {
 
     for (var pi2 = 0; pi2 < priceDeltas.length; pi2++) {
       var cl4 = colLetter(pi2 + 3);
-      var revE2 = 'Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37)';
+      var revE2 = 'Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37-Assumptions!G37)';
       var costE2 = 'Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C16)*(1+Assumptions!G33)';
       setFormula(ws, cl4 + row2, moicFormula(revE2, costE2, 'Assumptions!G8'), 0, '0.00x');
       if (exitDeltas[ei2] === 0 && priceDeltas[pi2] === 0) {
@@ -1068,7 +1076,7 @@ function buildOutputsTab(wb, ed) {
 
     for (var xi2 = 0; xi2 < exitDeltas3.length; xi2++) {
       var cl6 = colLetter(xi2 + 3);
-      var revE3 = 'Assumptions!C20*Assumptions!C21*' + cl6 + '$' + h3 + '*(1-Assumptions!C37)';
+      var revE3 = 'Assumptions!C20*Assumptions!C21*' + cl6 + '$' + h3 + '*(1-Assumptions!C37-Assumptions!G37)';
       setFormula(ws, cl6 + row3, irrFormula(revE3, 'Assumptions!G16', '$B' + row3), 0, '0.0%');
       if (months === 24 && exitDeltas3[xi2] === 0) {
         ws.getCell(cl6 + row3).fill = baseFill;
