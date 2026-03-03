@@ -107,6 +107,18 @@
   .map-link { display:inline-flex; align-items:center; gap:4px; color:#3b82f6; font-size:12px; font-weight:600; text-decoration:none; margin-top:8px; }
   .map-link:hover { text-decoration:underline; }
 
+  /* Market toggle */
+  .market-toggle { display:flex; gap:0; margin-bottom:20px; }
+  .market-btn {
+    padding:8px 20px; font-size:13px; font-weight:600; font-family:inherit;
+    border:1px solid #e2e8f0; background:#fff; color:#64748b; cursor:pointer;
+    transition:all 0.15s; text-decoration:none; display:inline-block;
+  }
+  .market-btn:first-child { border-radius:8px 0 0 8px; }
+  .market-btn:last-child { border-radius:0 8px 8px 0; border-left:0; }
+  .market-btn.active { background:#1e293b; color:#fff; border-color:#1e293b; }
+  .market-btn:not(.active):hover { background:#f1f5f9; color:#1e293b; }
+
   /* Responsive */
   @media (max-width:768px) {
     .nav-inner { padding:0 16px; }
@@ -131,7 +143,7 @@
         <div class="nav-subtitle">Jurisdiction-specific standards for SB 1123 projects</div>
       </div>
     </div>
-    <a href="index.html" class="nav-back">&larr; Back to Map</a>
+    <a id="navBack" href="index.html" class="nav-back">&larr; Back to Map</a>
   </div>
 </nav>
 
@@ -176,6 +188,12 @@
     </div>
   </div>
 
+  <!-- ═══ MARKET TOGGLE ═══ -->
+  <div class="market-toggle" id="marketToggle">
+    <a class="market-btn" href="?market=la" data-market="la">Los Angeles County</a>
+    <a class="market-btn" href="?market=sd" data-market="sd">San Diego County</a>
+  </div>
+
   <!-- ═══ SEARCH ═══ -->
   <div class="search-bar">
     <span class="search-icon">&#128269;</span>
@@ -211,11 +229,26 @@
   function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
   function fmt(v){ return v == null ? '\u2014' : String(v); }
 
-  // ── Load city_zoning.json ──
-  fetch('city_zoning.json')
-    .then(function(r){ return r.json(); })
+  // ── Market detection ──
+  var params = new URLSearchParams(window.location.search);
+  var market = (params.get('market') || 'la').toLowerCase();
+  if(market !== 'sd') market = 'la';
+
+  // Highlight active market tab and update nav links
+  var btns = document.querySelectorAll('#marketToggle .market-btn');
+  btns.forEach(function(btn){ if(btn.getAttribute('data-market') === market) btn.classList.add('active'); });
+  document.getElementById('navBack').href = 'index.html?market=' + market;
+
+  // ── Load correct JSON ──
+  var jsonFile = market === 'sd' ? 'sd_city_zoning.json' : 'city_zoning.json';
+  fetch(jsonFile)
+    .then(function(r){ if(!r.ok) throw new Error(r.status+' '+r.statusText); return r.json(); })
     .then(function(data){ init(data); })
-    .catch(function(e){ document.getElementById('summaryBody').innerHTML = '<tr><td colspan="8" style="color:#ef4444;padding:20px">Failed to load city_zoning.json: ' + e.message + '</td></tr>'; });
+    .catch(function(e){ document.getElementById('summaryBody').innerHTML = '<tr><td colspan="8" style="color:#ef4444;padding:20px">Failed to load ' + esc(jsonFile) + ': ' + e.message + '</td></tr>'; });
+
+  // Baseline / unincorporated names by market
+  var baselineCity = market === 'sd' ? 'San Diego' : 'Los Angeles';
+  var unincName = market === 'sd' ? 'Unincorporated SD County' : 'Unincorporated LA County';
 
   function init(raw){
     // Filter out _meta key
@@ -226,12 +259,12 @@
       c._name = name;
       cities.push(c);
     });
-    // Sort alphabetically, but put Los Angeles first and Unincorporated LA County last
+    // Sort alphabetically, but put baseline city first and unincorporated last
     cities.sort(function(a,b){
-      if(a._name === 'Los Angeles') return -1;
-      if(b._name === 'Los Angeles') return 1;
-      if(a._name === 'Unincorporated LA County') return 1;
-      if(b._name === 'Unincorporated LA County') return -1;
+      if(a._name === baselineCity) return -1;
+      if(b._name === baselineCity) return 1;
+      if(a._name === unincName) return 1;
+      if(b._name === unincName) return -1;
       return a._name.localeCompare(b._name);
     });
 
@@ -545,7 +578,7 @@
     }
 
     // Map link
-    sections += '<a class="map-link" href="index.html?city=' + encodeURIComponent(c._name) + '">View on map \u2192</a>';
+    sections += '<a class="map-link" href="index.html?market=' + market + '&city=' + encodeURIComponent(c._name) + '">View on map \u2192</a>';
 
     return sections;
   }
@@ -560,7 +593,7 @@
     tbody.innerHTML = cities.map(function(c){
       var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
       return '<tr class="summary-row" data-city="' + esc(c._name) + '" data-detail="detail-' + slug + '">' +
-        '<td class="city-col"><span class="expand-chevron">\u25B8</span><a class="city-link" href="index.html?city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
+        '<td class="city-col"><span class="expand-chevron">\u25B8</span><a class="city-link" href="index.html?market=' + market + '&city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
         '<td>' + statusBadge(c) + '</td>' +
         '<td>' + getZoneCell(c, 'R1') + '</td>' +
         '<td>' + getZoneCell(c, 'R2') + '</td>' +
