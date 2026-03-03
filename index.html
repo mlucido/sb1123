@@ -13,6 +13,8 @@
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script>
 // Market config — select via ?market=sd URL param (default: la)
 var _urlMarket = new URLSearchParams(window.location.search).get('market') || 'la';
@@ -1462,6 +1464,26 @@ import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable,
 // ── Constants ──
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
 const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',LAND:'Vacant Land'};
+
+// ── Teaser PDF constants ──
+const TEASER_STATIC = {
+  sponsorName: "Lucid Development",
+  brandName: "Yardsworth",
+  contactName: "Matt Lucido",
+  contactEmail: "matt@yardsworth.com",
+  contactPhone: "(310) 883-3209",
+};
+const TC = {
+  navy: "#1B2A4A",
+  teal: "#2A7F62",
+  lightBg: "#F4F6F8",
+  medGray: "#E0E4E8",
+  body: "#333333",
+  white: "#FFFFFF",
+  greenHighlight: "#E8F5E9",
+};
+let _teaserHeroB64 = undefined; // loaded on first use
+
 // Exit $/SF color scale: cool (cheap) → hot (expensive)
 // RECENTERED for SFV: $600-$1,000 decision range
 function exitPsfColor(ppsf){
@@ -2615,6 +2637,7 @@ function dealCardActions(l){
   var h = '<div class="dp-actions">';
   h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'xls\')"><span class="dp-icon">&#8595;</span>XLS</button>';
   h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'om\')"><span class="dp-icon">&#128196;</span>OM</button>';
+  h += '<button onclick="generateTeaser('+l.lat+','+l.lng+')" title="Download 2-page investor teaser"><span class="dp-icon">&#128196;</span>Teaser</button>';
   h += '<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&amp;t=k&amp;z=19" target="_blank"><span class="dp-icon">&#128205;</span>Maps</a>';
   if(l.url) h += '<a href="'+l.url+'" target="_blank"><span class="dp-icon">&#127968;</span>Redfin</a>';
   else h += '<span></span>';
@@ -3023,6 +3046,7 @@ function buildOffMarketLayer(){
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'xls')">&#128202; XLS</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'om')">&#128196; OM</button>
+        <button class="popup-fav-btn" onclick="generateTeaser(${l.lat},${l.lng})" title="Download 2-page investor teaser">&#128196; Teaser</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -3869,6 +3893,481 @@ function onProformaChange(){
 // Export — see js/export.js
 
 // ══════════════════════════════════════════
+//  TEASER PDF EXPORT
+// ══════════════════════════════════════════
+
+function computeTeaserData(l) {
+  var pfConfig = proforma;
+  var pf = calculateProForma(l);
+
+  // Property basics
+  var addr = l.address || '';
+  var city = l.city || 'Los Angeles';
+  var zip = l.zip || '';
+  var zone = (l.zone || 'R1').toUpperCase();
+  var lotSizeSF = l.lotSf || 10000;
+  var lotAcres = (lotSizeSF / 43560).toFixed(2);
+  var askingPrice = l.price || 0;
+
+  // Units & sizing
+  var units = pf.maxUnits;
+  var unitSF = pfConfig.avgUnitSf || 1750;
+  var buildableSF = pf.effective_buildable_sf;
+  var holdMonths = pfConfig.holdMonths + (pf.ellisHoldMonths || 0);
+
+  // Existing home
+  var existingBeds = l.beds || 3;
+  var existingBaths = l.baths || 2;
+  var existingHomeSF = l.sqft || l.livingArea || 1500;
+  var resaleMedianPSF = l.hoodPpsf || l.exitPsf || 565;
+  var existingHomeValue = existingHomeSF * resaleMedianPSF;
+
+  // Construction costs — allInBuildPsf is truly all-in (hard+soft+subdiv+A&E)
+  var buildPSF = pf.adjBuildCostPerSf;
+  var constructionCost = pf.constructionCost;
+  var demoCost = 55000;
+  var devCosts = constructionCost + demoCost + (pf.ellisRelocation || 0);
+  var totalProjectCost = askingPrice + devCosts;
+
+  // Capital structure
+  var ltcPct = 0.70;
+  var interestRate = (pfConfig.carryRatePct || 9) / 100;
+  var avgDrawFactor = 0.55;
+  var insurance = pfConfig.insurance || 40000;
+  var propTaxRate = 0.011;
+
+  // Sponsor fees
+  var sponsorFeePct = 0.047;
+  var sponsorFees = Math.round(totalProjectCost * sponsorFeePct);
+
+  // Carry costs
+  var debtAmountPreCarry = Math.round(totalProjectCost * ltcPct);
+  var interestExpense = Math.round(debtAmountPreCarry * avgDrawFactor * interestRate * (holdMonths / 12));
+  var propTaxCarry = Math.round(askingPrice * propTaxRate * (holdMonths / 12));
+  var totalCarry = interestExpense + propTaxCarry + insurance;
+
+  // Total capitalization
+  var totalCap = totalProjectCost + sponsorFees + totalCarry;
+  var totalDebt = Math.round(totalCap * ltcPct);
+  var totalEquity = totalCap - totalDebt;
+
+  // LP structure
+  var lpPref = 1.2;
+  var lpPromotePct = 0.70;
+  var minInvestment = 500000;
+  var bulkDiscountPct = 0.10;
+  var txnCostPct = 0.07;
+
+  // Exit / Revenue
+  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 700;
+  var grossSaleNew = units * unitSF * exitPSF * (1 - bulkDiscountPct);
+  var grossSaleTotal = grossSaleNew + existingHomeValue;
+  var txnCosts = Math.round(grossSaleTotal * txnCostPct);
+  var netSaleProceeds = grossSaleTotal - txnCosts;
+
+  // Waterfall
+  var cashForDistribution = netSaleProceeds - totalDebt;
+  var lpPrefAmount = Math.round(totalEquity * lpPref);
+  var remainingAfterPref = Math.max(0, cashForDistribution - lpPrefAmount);
+  var lpPromoteShare = Math.round(remainingAfterPref * lpPromotePct);
+  var totalLPDistribution = lpPrefAmount + lpPromoteShare;
+
+  // LP Returns
+  var lpMOIC = totalLPDistribution / totalEquity;
+  var lpIRR = Math.pow(Math.max(lpMOIC, 0.01), 12 / holdMonths) - 1;
+
+  // Cost metrics
+  var allInPSF = Math.round(totalCap / buildableSF);
+  var costToValueRatio = (exitPSF / allInPSF).toFixed(1);
+  var breakEvenPSF = Math.round(
+    (totalCap / (1 - txnCostPct) - existingHomeValue) /
+    (units * unitSF * (1 - bulkDiscountPct))
+  );
+
+  // BTR fallback
+  var monthlyRent = l.estRentMonth || l.fmr3br || 5000;
+  var totalUnitsWithExisting = units + 1;
+  var btrGrossMonthly = monthlyRent * totalUnitsWithExisting;
+  var btrOpExPct = 0.30;
+  var btrNOI = Math.round(btrGrossMonthly * 12 * (1 - btrOpExPct));
+
+  // Sensitivity (5 scenarios)
+  function calcSens(ePSF) {
+    var gNew = units * unitSF * ePSF * (1 - bulkDiscountPct);
+    var gTotal = gNew + existingHomeValue;
+    var net = gTotal - Math.round(gTotal * txnCostPct);
+    var cash = net - totalDebt;
+    var pref = Math.round(totalEquity * lpPref);
+    var remain = Math.max(0, cash - pref);
+    var promote = Math.round(remain * lpPromotePct);
+    var dist = pref + promote;
+    var moic = dist / totalEquity;
+    var irr = Math.pow(Math.max(moic, 0.01), 12 / holdMonths) - 1;
+    return { moic: moic, irr: irr };
+  }
+
+  var fixedSteps = [650, 700, 750];
+  var sensEntries = [];
+  for (var i = 0; i < fixedSteps.length; i++) {
+    var s = fixedSteps[i];
+    if (s !== exitPSF) sensEntries.push({ label: '$' + s, moic: calcSens(s).moic, irr: calcSens(s).irr });
+  }
+  sensEntries.push({ label: '$' + exitPSF + ' (Base)', moic: calcSens(exitPSF).moic, irr: calcSens(exitPSF).irr, isBase: true });
+  var upside = exitPSF + 100;
+  if (fixedSteps.indexOf(upside) === -1) sensEntries.push({ label: '$' + upside, moic: calcSens(upside).moic, irr: calcSens(upside).irr });
+  sensEntries.sort(function(a, b) {
+    return parseInt(a.label.replace(/[^0-9]/g, '')) - parseInt(b.label.replace(/[^0-9]/g, ''));
+  });
+  while (sensEntries.length < 5) {
+    var lastPrice = parseInt(sensEntries[sensEntries.length - 1].label.replace(/[^0-9]/g, ''));
+    var next = lastPrice + 50;
+    sensEntries.push({ label: '$' + next, moic: calcSens(next).moic, irr: calcSens(next).irr });
+  }
+  var sensScenarios = sensEntries.slice(0, 5);
+
+  var neighborhood = l.neighborhood || l.city || city;
+
+  return {
+    addr: addr, city: city, zip: zip, zone: zone, lotSizeSF: lotSizeSF, lotAcres: lotAcres, askingPrice: askingPrice,
+    units: units, unitSF: unitSF, buildableSF: buildableSF, holdMonths: holdMonths,
+    existingBeds: existingBeds, existingBaths: existingBaths, existingHomeSF: existingHomeSF, existingHomeValue: existingHomeValue,
+    buildPSF: buildPSF, devCosts: devCosts, totalProjectCost: totalProjectCost,
+    ltcPct: ltcPct, totalDebt: totalDebt, totalEquity: totalEquity,
+    sponsorFeePct: sponsorFeePct, sponsorFees: sponsorFees, totalCarry: totalCarry, totalCap: totalCap,
+    exitPSF: exitPSF, grossSaleTotal: grossSaleTotal, txnCosts: txnCosts, netSaleProceeds: netSaleProceeds,
+    cashForDistribution: cashForDistribution, lpPrefAmount: lpPrefAmount, lpPromoteShare: lpPromoteShare, totalLPDistribution: totalLPDistribution,
+    lpPref: lpPref, lpPromotePct: lpPromotePct, lpMOIC: lpMOIC, lpIRR: lpIRR,
+    allInPSF: allInPSF, costToValueRatio: costToValueRatio, breakEvenPSF: breakEvenPSF,
+    monthlyRent: monthlyRent, totalUnitsWithExisting: totalUnitsWithExisting, btrGrossMonthly: btrGrossMonthly, btrNOI: btrNOI,
+    bulkDiscountPct: bulkDiscountPct, minInvestment: minInvestment,
+    sensScenarios: sensScenarios, neighborhood: neighborhood, resaleMedianPSF: resaleMedianPSF,
+    fmt: {
+      equityRaise: '$' + (totalEquity / 1e6).toFixed(2) + 'M',
+      moic: lpMOIC.toFixed(2) + 'x',
+      irr: (lpIRR * 100).toFixed(1) + '%',
+      hold: holdMonths + ' Mo.',
+      pref: lpPref.toFixed(1) + 'x',
+    }
+  };
+}
+
+async function generateTeaser(lat, lng) {
+  var l = LISTINGS.find(function(x){ return x.lat === lat && x.lng === lng; });
+  if (!l) { alert('Listing not found'); return; }
+
+  // Load hero image on first use
+  if (_teaserHeroB64 === undefined) {
+    try {
+      var resp = await fetch('teaser-hero.png');
+      if (resp.ok) {
+        var blob = await resp.blob();
+        _teaserHeroB64 = await new Promise(function(resolve) {
+          var reader = new FileReader();
+          reader.onload = function() { resolve(reader.result); };
+          reader.readAsDataURL(blob);
+        });
+      } else { _teaserHeroB64 = null; }
+    } catch(e) { _teaserHeroB64 = null; console.warn('Hero image not found:', e); }
+  }
+
+  var D = computeTeaserData(l);
+  var S = TEASER_STATIC;
+
+  function fmt$(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
+
+  function metricBlock(value, label) {
+    return {
+      stack: [
+        { text: value, style: 'metricValue', alignment: 'center' },
+        { text: label, style: 'metricLabel', alignment: 'center' },
+      ],
+      fillColor: TC.lightBg,
+      margin: [0, 6, 0, 6],
+    };
+  }
+  function dRow(label, value, isHeader, isLast) {
+    var fill = isHeader ? TC.navy : null;
+    var color = isHeader ? TC.white : TC.body;
+    var bold = isHeader || isLast;
+    return [
+      { text: label, bold: bold, color: color, fillColor: fill, margin: [6, 3, 6, 3], fontSize: 8 },
+      { text: value, bold: bold, color: color, fillColor: fill, alignment: 'right', margin: [6, 3, 6, 3], fontSize: 8 },
+    ];
+  }
+  function sCell(text, isHeader, isBase) {
+    var fill = isHeader ? TC.navy : (isBase ? TC.greenHighlight : null);
+    var color = isHeader ? TC.white : (isBase ? TC.teal : TC.body);
+    return { text: text, bold: isHeader || isBase, color: color, fillColor: fill, alignment: 'center', fontSize: 8, margin: [2, 3, 2, 3] };
+  }
+  function rRow(risk, mitigant, isHeader) {
+    var fill = isHeader ? TC.navy : null;
+    var color = isHeader ? TC.white : TC.body;
+    return [
+      { text: risk, bold: isHeader, color: color, fillColor: fill, margin: [6, 4, 6, 4], fontSize: 8 },
+      { text: mitigant, bold: isHeader, color: color, fillColor: fill, margin: [6, 4, 6, 4], fontSize: 8 },
+    ];
+  }
+  function sectionHead(text) {
+    return { text: text, style: 'sectionHeading', margin: [0, 10, 0, 2] };
+  }
+  function tealRule() {
+    return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: TC.teal }], margin: [0, 0, 0, 6] };
+  }
+
+  var content = [];
+
+  // ═══ PAGE 1 ═══
+
+  if (_teaserHeroB64) {
+    content.push({ image: _teaserHeroB64, width: 515, alignment: 'center', margin: [0, 0, 0, 8] });
+  }
+
+  content.push({ text: 'INVESTMENT OPPORTUNITY', fontSize: 7, bold: true, color: TC.teal, characterSpacing: 4, margin: [0, 0, 0, 2] });
+  content.push({ text: D.addr, fontSize: 20, bold: true, color: TC.navy, margin: [0, 0, 0, 1] });
+  content.push({ text: D.city + ', CA ' + D.zip, fontSize: 10, color: '#666666', margin: [0, 0, 0, 8] });
+
+  // Tagline bar
+  content.push({
+    table: { widths: [4, '*'], body: [[
+      { text: '', fillColor: TC.teal },
+      { text: 'Ground-up SB 1123 fee-simple townhome development  |  ' + (D.units + 1) + ' units (' + D.units + ' new + 1 existing)  |  By-right ministerial approval  |  ' + D.holdMonths + '-month hold',
+        italics: true, fontSize: 9, color: TC.navy, margin: [8, 4, 4, 4] }
+    ]] },
+    layout: 'noBorders', margin: [0, 0, 0, 8],
+  });
+
+  // Metrics row
+  content.push({
+    table: { widths: ['*', 4, '*', 4, '*', 4, '*', 4, '*'], body: [[
+      metricBlock(D.fmt.equityRaise, 'Equity Raise'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.moic, 'Target MOIC'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.irr, 'Target IRR'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.hold, 'Hold Period'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.pref, 'LP Pref'),
+    ]] },
+    layout: 'noBorders', margin: [0, 0, 0, 10],
+  });
+
+  // SB 1123 Section
+  content.push(sectionHead('CA SB 1123: A Legislatively-Created Supply Gap'));
+  content.push(tealRule());
+  content.push({ text: "California\u2019s Starter Home Revitalization Act established a ministerial approval pathway for up to 10 fee-simple homes on a single parcel \u2014 no public hearing, no CEQA review, no discretionary review, and a 60-day statutory approval clock. SB 684 proved the framework on multifamily-zoned land beginning January 2024. SB 1123 (effective July 1, 2025) extends the identical process to single-family zoned parcels, unlocking tens of thousands of R1 lots statewide that were previously restricted to one home per parcel.", style: 'bodyText', margin: [0, 0, 0, 4] });
+  content.push({ text: "The economic logic is straightforward: acquire at single-family land pricing, develop at townhome density, and sell at new construction $/SF. The spread between R1 land cost and multi-unit exit value is the return \u2014 and it exists precisely because this product has never been legally buildable on these parcels before. There is virtually zero new townhome inventory in the West San Fernando Valley today. SB 1123 is the first mechanism to create it at scale, and early movers capture the widest margin before the market reprices.", style: 'bodyText', margin: [0, 0, 0, 6] });
+
+  // Opportunity Overview
+  content.push(sectionHead('Opportunity Overview'));
+  content.push(tealRule());
+  content.push({ text: S.sponsorName + ' is seeking ' + D.fmt.equityRaise + ' in LP equity to acquire, subdivide, and develop a ' + D.lotSizeSF.toLocaleString() + ' SF (' + D.lotAcres + '-acre) parcel in ' + D.neighborhood + ', zoned ' + D.zone + ' and eligible for by-right approval under SB 1123. The business plan acquires the property for ' + fmt$(D.askingPrice) + ', financed with senior debt at ' + Math.round(D.ltcPct * 100) + '% LTC and ' + Math.round((1 - D.ltcPct) * 100) + '% LP equity, retains the existing ' + D.existingBeds + 'BR/' + D.existingBaths + 'BA home on its own remainder parcel, and constructs ' + D.units + ' ' + D.unitSF.toLocaleString() + ' SF modern townhomes on the remaining land. Completed units will be sold individually or in bulk within a ' + D.holdMonths + '-month timeline.', style: 'bodyText', margin: [0, 0, 0, 4] });
+  content.push({ text: 'All-in cost of ~' + fmt$(D.allInPSF) + '/SF against a ' + fmt$(D.exitPSF) + '/SF exit provides a ' + D.costToValueRatio + 'x cost-to-value margin with break-even at ~' + fmt$(D.breakEvenPSF) + '/SF \u2014 well below ' + D.neighborhood + ' resale medians. If sale conditions are unfavorable, the project converts to a build-to-rent strategy generating ' + fmt$(D.btrGrossMonthly) + '/month gross rent across ' + D.totalUnitsWithExisting + ' units (' + fmt$(D.btrNOI) + ' annual NOI).', style: 'bodyText', margin: [0, 0, 0, 6] });
+
+  // Investment Highlights
+  content.push(sectionHead('Investment Highlights'));
+  content.push(tealRule());
+
+  var highlights = [
+    { b: 'By-Right Entitlement: ', t: 'Ministerial approval eliminates discretionary review, public hearings, and CEQA. 60-day statutory timeline removes the single largest risk in ground-up development.' },
+    { b: D.costToValueRatio + 'x Cost-to-Value Margin: ', t: 'All-in cost of ~' + fmt$(D.allInPSF) + '/SF vs. ' + fmt$(D.exitPSF) + '/SF exit. Break-even at ~' + fmt$(D.breakEvenPSF) + '/SF, well below resale medians (' + fmt$(D.resaleMedianPSF) + '/SF).' },
+    { b: 'Severe Housing Undersupply: ', t: 'Virtually no new townhome inventory in the submarket. Median $/SF (' + fmt$(D.resaleMedianPSF) + ') reflects aging 1960s\u201380s housing stock \u2014 new construction commands a significant premium. The project enters a market with zero comparable product and structural demand from first-time buyers.' },
+    { b: 'Fee-Simple Ownership: ', t: 'Each buyer owns their lot outright. Easier to finance, more attractive to buyers, higher $/SF.' },
+    { b: 'BTR Downside Protection: ', t: 'If sale conditions are unfavorable, converts to build-to-rent at ' + fmt$(D.btrGrossMonthly) + '/mo gross (' + fmt$(D.btrNOI) + ' NOI). No forced sale.' },
+    { b: 'Aligned Incentives: ', t: '100% of GP promote subordinated to ' + D.lpPref + 'x LP pref. Sponsor fees ' + fmtPct(D.sponsorFeePct) + ' of cap (below market). GP earns zero until LPs receive ' + D.lpPref + 'x return of capital.' },
+  ];
+  content.push({
+    ul: highlights.map(function(h) { return {
+      text: [
+        { text: h.b, bold: true, fontSize: 8.5, color: TC.body },
+        { text: h.t, fontSize: 8.5, color: TC.body },
+      ],
+      margin: [0, 0, 0, 3],
+    }; }),
+    margin: [0, 0, 0, 4],
+  });
+
+  // ═══ PAGE 2 ═══
+  content.push({ text: '', pageBreak: 'after' });
+
+  // Sources & Uses
+  content.push(sectionHead('Sources & Uses'));
+  content.push(tealRule());
+
+  var suTableLayout = {
+    hLineWidth: function(i, node) { return (i === 0 || i === node.table.body.length) ? 1.5 : 0.5; },
+    vLineWidth: function() { return 0; },
+    hLineColor: function(i, node) { return (i === 0 || i === node.table.body.length) ? TC.navy : TC.medGray; },
+  };
+  content.push({
+    columns: [
+      { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
+        dRow('Sources', 'Amount', true),
+        dRow('Senior Debt (' + Math.round(D.ltcPct * 100) + '% LTC)', fmt$(D.totalDebt)),
+        dRow('LP Equity (' + Math.round((1 - D.ltcPct) * 100) + '%)', fmt$(D.totalEquity)),
+        dRow('Total Capitalization', fmt$(D.totalCap), false, true),
+      ] }, layout: suTableLayout },
+      { width: '4%', text: '' },
+      { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
+        dRow('Uses', 'Amount', true),
+        dRow('Land Acquisition', fmt$(D.askingPrice)),
+        dRow('Development Costs', fmt$(D.devCosts)),
+        dRow('Sponsor Fees (' + fmtPct(D.sponsorFeePct) + ')', fmt$(D.sponsorFees)),
+        dRow('Carry Costs (Tax/Ins/Int)', fmt$(D.totalCarry)),
+        dRow('Total Uses', fmt$(D.totalCap), false, true),
+      ] }, layout: suTableLayout },
+    ],
+    margin: [0, 0, 0, 6],
+  });
+
+  // Waterfall
+  content.push(sectionHead('Waterfall'));
+  content.push(tealRule());
+
+  content.push({
+    table: { headerRows: 1, widths: ['*', 'auto'], body: [
+      dRow('Line Item', 'Amount', true),
+      dRow('Gross Sale (' + D.units + ' new \u00d7 ' + D.unitSF.toLocaleString() + ' SF \u00d7 ' + fmt$(D.exitPSF) + '/SF \u00d7 ' + Math.round((1 - D.bulkDiscountPct) * 100) + '% + existing home)', fmt$(D.grossSaleTotal)),
+      dRow('Less: Transaction Costs', '(' + fmt$(D.txnCosts) + ')'),
+      dRow('Net Sale Proceeds', fmt$(D.netSaleProceeds)),
+      dRow('Less: Debt Repayment', '(' + fmt$(D.totalDebt) + ')'),
+      dRow('Cash for Distribution', fmt$(D.cashForDistribution)),
+      dRow('LP Pref Return (' + D.lpPref + 'x on ' + fmt$(D.totalEquity) + ')', fmt$(D.lpPrefAmount)),
+      dRow('LP Promote Share (' + Math.round(D.lpPromotePct * 100) + '% of remaining)', fmt$(D.lpPromoteShare)),
+      dRow('Total LP Distribution', fmt$(D.totalLPDistribution), false, true),
+    ] },
+    layout: {
+      hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 0.5; },
+      vLineWidth: function() { return 0; },
+      hLineColor: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? TC.navy : TC.medGray; },
+    },
+    margin: [0, 0, 0, 2],
+  });
+  content.push({ text: 'Base case assumes ' + Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount to a single buyer or SFR aggregator. Individual retail sales at full $/SF represent additional upside.', italics: true, fontSize: 7.5, color: TC.body, margin: [0, 0, 0, 6] });
+
+  // Stylized returns row
+  content.push({
+    table: { widths: ['*', 4, '*', 4, '*', 4, '*'], body: [[
+      metricBlock(D.fmt.moic, 'LP MOIC'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.irr, 'LP IRR'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.hold, 'Hold Period'),
+      { text: '', border: [false, false, false, false] },
+      metricBlock(D.fmt.pref, 'LP Pref Return'),
+    ]] },
+    layout: 'noBorders', margin: [0, 0, 0, 8],
+  });
+
+  // Sensitivity
+  content.push(sectionHead('Sensitivity Analysis'));
+  content.push(tealRule());
+  content.push({ text: 'LP returns by exit $/SF (' + D.holdMonths + '-month hold, base case highlighted)', italics: true, fontSize: 7.5, color: TC.body, margin: [0, 0, 0, 4] });
+  content.push({
+    table: {
+      widths: D.sensScenarios.map(function() { return '*'; }),
+      body: [
+        D.sensScenarios.map(function(s) { return sCell(s.label, true); }),
+        D.sensScenarios.map(function(s) { return sCell(s.moic.toFixed(2) + 'x', false, s.isBase); }),
+        D.sensScenarios.map(function(s) { return sCell((s.irr * 100).toFixed(0) + '%', false, s.isBase); }),
+      ],
+    },
+    layout: {
+      hLineWidth: function() { return 0.5; },
+      vLineWidth: function() { return 0.5; },
+      hLineColor: function() { return TC.medGray; },
+      vLineColor: function() { return TC.medGray; },
+    },
+    margin: [0, 0, 0, 8],
+  });
+
+  // Key Risks
+  content.push(sectionHead('Key Risks & Mitigants'));
+  content.push(tealRule());
+  content.push({
+    table: { headerRows: 1, widths: [100, '*'], body: [
+      rRow('Risk', 'Mitigant', true),
+      rRow('Construction Cost Overruns',
+        'Fixed-price GC contract to be executed prior to construction start. ' + fmt$(D.buildPSF) + '/SF provides wood-frame commodity construction with ~85% domestic materials, limiting tariff exposure.'),
+      rRow('Entitlement / Permitting',
+        'SB 1123 is a mandatory statute \u2014 not discretionary. LADBS has an active SB 1123 intake process. If delayed beyond 60 days, writ of mandate is available. No CEQA, no public hearing.'),
+      rRow('Market / Exit Pricing',
+        Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount already underwritten. BTR fallback at ' + fmt$(D.btrGrossMonthly) + '/mo gross, eliminating forced-sale risk. Break-even (' + fmt$(D.breakEvenPSF) + '/SF) is below resale median (' + fmt$(D.resaleMedianPSF) + '/SF).'),
+    ] },
+    layout: {
+      hLineWidth: function() { return 0.5; },
+      vLineWidth: function() { return 0.5; },
+      hLineColor: function() { return TC.medGray; },
+      vLineColor: function() { return TC.medGray; },
+    },
+    margin: [0, 0, 0, 8],
+  });
+
+  // Deal Structure
+  content.push(sectionHead('Deal Structure'));
+  content.push(tealRule());
+  content.push({
+    table: { headerRows: 1, widths: [160, '*'], body: [
+      dRow('Term', 'Detail', true),
+      dRow('Total LP Equity', fmt$(D.totalEquity)),
+      dRow('Minimum Investment', fmt$(D.minInvestment)),
+      dRow('LP Preferred Return', D.lpPref + 'x return of capital before any GP promote'),
+      dRow('Profit Split (above pref)', Math.round(D.lpPromotePct * 100) + '% LP / ' + Math.round((1 - D.lpPromotePct) * 100) + '% GP'),
+      dRow('Estimated Hold Period', D.holdMonths + ' months', false, true),
+    ] },
+    layout: {
+      hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 0.5; },
+      vLineWidth: function() { return 0; },
+      hLineColor: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? TC.navy : TC.medGray; },
+    },
+    margin: [0, 0, 0, 8],
+  });
+
+  // Sponsor
+  content.push(sectionHead('Sponsor'));
+  content.push(tealRule());
+  content.push({ text: S.sponsorName + ' is led by Matt Lucido and Joe Salerno, whose 5-year co-founder partnership at ' + S.brandName + ' \u2014 a California RE platform operating at the intersection of housing policy, capital markets, and residential development \u2014 has produced ground-up residential development, active portfolio operations across Los Angeles, and the structuring of $350M+ in institutional equity and private credit. The team combines institutional rigor (9 years at Moelis & Company / UBS, 25+ transactions >$1B, UCLA Anderson MBA, USC Engineering) with hands-on operator-level execution across 9 assets developed or managed. Construction will be managed under a fixed-price contract with a licensed general contractor experienced in multifamily construction in the San Fernando Valley.', style: 'bodyText', margin: [0, 0, 0, 8] });
+
+  // CTA Box
+  content.push({
+    table: { widths: ['*'], body: [[{
+      stack: [
+        { text: 'For additional information or to request the full Offering Memorandum:', bold: true, fontSize: 9, color: TC.navy, alignment: 'center', margin: [0, 0, 0, 3] },
+        { text: [
+          { text: S.contactName, bold: true, fontSize: 9, color: TC.navy },
+          { text: '  |  ' + S.contactEmail + '  |  ' + S.contactPhone, fontSize: 9, color: TC.body },
+        ], alignment: 'center' },
+      ],
+      fillColor: '#F0F7F4',
+      margin: [10, 8, 10, 8],
+    }]] },
+    layout: {
+      hLineWidth: function() { return 2; },
+      vLineWidth: function() { return 2; },
+      hLineColor: function() { return TC.teal; },
+      vLineColor: function() { return TC.teal; },
+    },
+  });
+
+  var docDefinition = {
+    pageSize: 'LETTER',
+    pageMargins: [40, 30, 40, 30],
+    defaultStyle: { font: 'Roboto', fontSize: 9, color: TC.body },
+    styles: {
+      sectionHeading: { fontSize: 11, bold: true, color: TC.navy },
+      bodyText: { fontSize: 8.5, color: TC.body, lineHeight: 1.3 },
+      metricValue: { fontSize: 14, bold: true, color: TC.navy },
+      metricLabel: { fontSize: 7.5, color: '#666666' },
+    },
+    content: content,
+  };
+
+  var cleanAddr = D.addr.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+  pdfMake.createPdf(docDefinition).download(cleanAddr + '_Teaser.pdf');
+}
+
+// ══════════════════════════════════════════
 //  EXPOSE FUNCTIONS FOR INLINE onclick/onchange HANDLERS
 // ══════════════════════════════════════════
 window.advanceOnboarding = advanceOnboarding;
@@ -3881,6 +4380,7 @@ window.exportModel = exportModel;
 window.exportOM = exportOM;
 window.showExportModal = showExportModal;
 window.closeExportModal = closeExportModal;
+window.generateTeaser = generateTeaser;
 window.flyToListing = flyToListing;
 window.hideCompsTable = hideCompsTable;
 window.hideRentalCompsTable = hideRentalCompsTable;
