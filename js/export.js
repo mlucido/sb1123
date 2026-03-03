@@ -1758,14 +1758,17 @@ async function exportOM(lat, lng, overrides) {
   });
 
   // ── POST to OM API ──
+  var apiUrl = OM_API + '/api/generate-om';
+  console.log('[OM Export] POST', apiUrl, 'payload keys:', Object.keys(d).join(','));
   try {
-    var resp = await fetch(OM_API + '/api/generate-om', {
+    var resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(d),
     });
     if (!resp.ok) {
       var errText = await resp.text();
+      console.error('[OM Export] Server error', resp.status, errText);
       var msg = errText.match(/Message: (.+?)\./);
       alert('OM generation failed (' + resp.status + '): ' + (msg ? msg[1] : errText.substring(0, 200)));
       return;
@@ -1778,7 +1781,8 @@ async function exportOM(lat, lng, overrides) {
     a.click();
     URL.revokeObjectURL(url);
   } catch (err) {
-    alert('OM export failed: ' + err.message);
+    console.error('[OM Export] Fetch failed:', err, 'URL:', apiUrl);
+    alert('OM export failed: ' + err.message + '\n\nCheck browser console (F12) for details.');
   }
 }
 
