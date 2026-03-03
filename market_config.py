@@ -318,7 +318,7 @@ MARKETS = {
         ],
 
         # Pro forma defaults
-        "construction_cost_psf": 350,
+        "construction_cost_psf": 400,
         "soft_cost_pct": 0.25,
         "avg_unit_sf": 1200,
         "sale_discount_pct": 0.05,
@@ -418,7 +418,7 @@ MARKETS = {
         "burn_zones": [],
 
         # Pro forma defaults (same as LA for now)
-        "construction_cost_psf": 350,
+        "construction_cost_psf": 400,
         "soft_cost_pct": 0.25,
         "avg_unit_sf": 1200,
         "sale_discount_pct": 0.05,
