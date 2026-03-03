@@ -4077,6 +4077,43 @@ async function generateTeaser(lat, lng, overrides) {
   function fmt$(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
   function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
 
+  // ── Reusable tight table layouts (paddingTop/Bottom: 1pt → ~12pt rows) ──
+  var tightTableLayout = {
+    hLineWidth: function(i, node) {
+      if (i === 0) return 0;
+      if (i === 1) return 1.5;
+      if (i === node.table.body.length) return 1.5;
+      return 0.5;
+    },
+    vLineWidth: function() { return 0; },
+    hLineColor: function(i, node) {
+      if (i === 1 || i === node.table.body.length) return TC.navy;
+      return TC.medGray;
+    },
+    paddingLeft: function() { return 6; },
+    paddingRight: function() { return 6; },
+    paddingTop: function() { return 1; },
+    paddingBottom: function() { return 1; },
+  };
+  var tightBorderedLayout = {
+    hLineWidth: function() { return 0.5; },
+    vLineWidth: function() { return 0.5; },
+    hLineColor: function() { return TC.medGray; },
+    vLineColor: function() { return TC.medGray; },
+    paddingLeft: function() { return 4; },
+    paddingRight: function() { return 4; },
+    paddingTop: function() { return 1; },
+    paddingBottom: function() { return 1; },
+  };
+  var noPadLayout = {
+    hLineWidth: function() { return 0; },
+    vLineWidth: function() { return 0; },
+    paddingLeft: function() { return 2; },
+    paddingRight: function() { return 2; },
+    paddingTop: function() { return 0; },
+    paddingBottom: function() { return 0; },
+  };
+
   function metricBlock(value, label) {
     return {
       stack: [
@@ -4084,37 +4121,36 @@ async function generateTeaser(lat, lng, overrides) {
         { text: label, style: 'metricLabel', alignment: 'center', margin: [0, 1, 0, 0] },
       ],
       fillColor: TC.lightBg,
-      margin: [0, 4, 0, 4],
+      margin: [0, 3, 0, 3],
     };
   }
   function dRow(label, value, isHeader, isLast) {
     var fill = isHeader ? TC.navy : null;
     var color = isHeader ? TC.white : TC.body;
     var bold = isHeader || isLast;
-    var pad = isHeader ? [6, 3, 6, 3] : [6, 2, 6, 2];
     return [
-      { text: label, bold: bold, color: color, fillColor: fill, margin: pad, fontSize: 7.9 },
-      { text: value, bold: bold, color: color, fillColor: fill, alignment: 'right', margin: pad, fontSize: 7.9 },
+      { text: label, bold: bold, color: color, fillColor: fill, fontSize: 7.9 },
+      { text: value, bold: bold, color: color, fillColor: fill, alignment: 'right', fontSize: 7.9 },
     ];
   }
   function sCell(text, isHeader, isBase) {
     var fill = isHeader ? TC.navy : (isBase ? TC.greenHighlight : null);
     var color = isHeader ? TC.white : (isBase ? TC.teal : TC.body);
-    return { text: text, bold: isHeader || isBase, color: color, fillColor: fill, alignment: 'center', fontSize: 7.9, margin: [2, 2, 2, 2] };
+    return { text: text, bold: isHeader || isBase, color: color, fillColor: fill, alignment: 'center', fontSize: 7.9 };
   }
   function rRow(risk, mitigant, isHeader) {
     var fill = isHeader ? TC.navy : null;
     var color = isHeader ? TC.white : TC.body;
     return [
-      { text: risk, bold: isHeader, color: color, fillColor: fill, margin: [6, 3, 6, 3], fontSize: 7.9 },
-      { text: mitigant, bold: isHeader, color: color, fillColor: fill, margin: [6, 3, 6, 3], fontSize: 7.9 },
+      { text: risk, bold: isHeader, color: color, fillColor: fill, fontSize: 7.9 },
+      { text: mitigant, bold: isHeader, color: color, fillColor: fill, fontSize: 7.9 },
     ];
   }
   function sectionHead(text) {
     return { text: text, style: 'sectionHeading' };
   }
   function tealRule() {
-    return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 524, y2: 0, lineWidth: 2, lineColor: TC.teal }], margin: [0, 0, 0, 4] };
+    return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 524, y2: 0, lineWidth: 2, lineColor: TC.teal }], margin: [0, 0, 0, 3] };
   }
 
   var content = [];
@@ -4134,9 +4170,17 @@ async function generateTeaser(lat, lng, overrides) {
     table: { widths: [4, '*'], body: [[
       { text: '', fillColor: TC.teal },
       { text: 'Ground-up SB 1123 fee-simple townhome development  |  ' + (D.units + 1) + ' units (' + D.units + ' new + 1 existing)  |  By-right ministerial approval  |  ' + D.holdMonths + '-month hold',
-        italics: true, fontSize: 7.9, color: TC.navy, margin: [8, 3, 4, 3] }
+        italics: true, fontSize: 7.9, color: TC.navy }
     ]] },
-    layout: 'noBorders', margin: [0, 0, 0, 6],
+    layout: {
+      hLineWidth: function() { return 0; },
+      vLineWidth: function() { return 0; },
+      paddingLeft: function(i) { return i === 1 ? 8 : 0; },
+      paddingRight: function() { return 4; },
+      paddingTop: function() { return 3; },
+      paddingBottom: function() { return 3; },
+    },
+    margin: [0, 0, 0, 6],
   });
 
   // Metrics row
@@ -4152,7 +4196,7 @@ async function generateTeaser(lat, lng, overrides) {
       { text: '', border: [false, false, false, false] },
       metricBlock(D.fmt.pref, 'LP Pref'),
     ]] },
-    layout: 'noBorders', margin: [0, 0, 0, 12],
+    layout: noPadLayout, margin: [0, 0, 0, 12],
   });
 
   // SB 1123 Section
@@ -4198,11 +4242,6 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({ text: 'Sources & Uses', style: 'sectionHeading', pageBreak: 'before' });
   content.push(tealRule());
 
-  var suTableLayout = {
-    hLineWidth: function(i, node) { return (i === 0 || i === node.table.body.length) ? 1.5 : 0.5; },
-    vLineWidth: function() { return 0; },
-    hLineColor: function(i, node) { return (i === 0 || i === node.table.body.length) ? TC.navy : TC.medGray; },
-  };
   content.push({
     columns: [
       { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
@@ -4210,7 +4249,7 @@ async function generateTeaser(lat, lng, overrides) {
         dRow('Construction Loan (' + Math.round(D.ltcPct * 100) + '% LTC)', fmt$(D.totalDebt)),
         dRow('LP Equity (' + Math.round((1 - D.ltcPct) * 100) + '%)', fmt$(D.totalEquity)),
         dRow('Total Capitalization', fmt$(D.totalCap), false, true),
-      ] }, layout: suTableLayout },
+      ] }, layout: tightTableLayout },
       { width: '4%', text: '' },
       { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
         dRow('Uses', 'Amount', true),
@@ -4219,7 +4258,7 @@ async function generateTeaser(lat, lng, overrides) {
         dRow('Sponsor Fees (' + fmtPct(D.sponsorFeePct) + ')', fmt$(D.sponsorFees)),
         dRow('Carry Costs (Tax/Ins/Int)', fmt$(D.totalCarry)),
         dRow('Total Uses', fmt$(D.totalCap), false, true),
-      ] }, layout: suTableLayout },
+      ] }, layout: tightTableLayout },
     ],
     margin: [0, 0, 0, 4],
   });
@@ -4240,11 +4279,7 @@ async function generateTeaser(lat, lng, overrides) {
       dRow('LP Promote Share (' + Math.round(D.lpPromotePct * 100) + '% of remaining)', fmt$(D.lpPromoteShare)),
       dRow('Total LP Distribution', fmt$(D.totalLPDistribution), false, true),
     ] },
-    layout: {
-      hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 0.5; },
-      vLineWidth: function() { return 0; },
-      hLineColor: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? TC.navy : TC.medGray; },
-    },
+    layout: tightTableLayout,
     margin: [0, 0, 0, 2],
   });
   content.push({ text: 'Base case assumes ' + Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount to a single buyer or SFR aggregator. Individual retail sales at full $/SF represent additional upside.', italics: true, fontSize: 7.0, color: TC.body, margin: [0, 2, 0, 6] });
@@ -4260,7 +4295,7 @@ async function generateTeaser(lat, lng, overrides) {
       { text: '', border: [false, false, false, false] },
       metricBlock(D.fmt.pref, 'LP Pref Return'),
     ]] },
-    layout: 'noBorders', margin: [0, 0, 0, 8],
+    layout: noPadLayout, margin: [0, 0, 0, 6],
   });
 
   // Sensitivity Analysis
@@ -4276,12 +4311,7 @@ async function generateTeaser(lat, lng, overrides) {
         [sCell('LP IRR', true)].concat(D.sensScenarios.map(function(s) { return sCell((s.irr * 100).toFixed(0) + '%', false, s.isBase); })),
       ],
     },
-    layout: {
-      hLineWidth: function() { return 0.5; },
-      vLineWidth: function() { return 0.5; },
-      hLineColor: function() { return TC.medGray; },
-      vLineColor: function() { return TC.medGray; },
-    },
+    layout: tightBorderedLayout,
     margin: [0, 0, 0, 8],
   });
 
@@ -4295,12 +4325,7 @@ async function generateTeaser(lat, lng, overrides) {
       rRow('Entitlement / Permitting', 'SB 1123 is a mandatory statute \u2014 not discretionary. 60-day clock; writ of mandate available. No CEQA, no public hearing.'),
       rRow('Market / Exit Pricing', Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount already underwritten. BTR fallback at ' + fmt$(D.btrGrossMonthly) + '/mo gross, eliminating forced-sale risk. Break-even (' + fmt$(D.breakEvenPSF) + '/SF) below ' + D.neighborhood + ' resale median (' + fmt$(D.resaleMedianPSF) + '/SF).'),
     ] },
-    layout: {
-      hLineWidth: function() { return 0.5; },
-      vLineWidth: function() { return 0.5; },
-      hLineColor: function() { return TC.medGray; },
-      vLineColor: function() { return TC.medGray; },
-    },
+    layout: tightBorderedLayout,
     margin: [0, 0, 0, 8],
   });
 
@@ -4316,11 +4341,7 @@ async function generateTeaser(lat, lng, overrides) {
       dRow('Profit Split (above pref)', Math.round(D.lpPromotePct * 100) + '% LP / ' + Math.round((1 - D.lpPromotePct) * 100) + '% GP'),
       dRow('Estimated Hold Period', D.holdMonths + ' months', false, true),
     ] },
-    layout: {
-      hLineWidth: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 0.5; },
-      vLineWidth: function() { return 0; },
-      hLineColor: function(i, node) { return (i === 0 || i === 1 || i === node.table.body.length) ? TC.navy : TC.medGray; },
-    },
+    layout: tightTableLayout,
     margin: [0, 0, 0, 8],
   });
 
@@ -4347,6 +4368,10 @@ async function generateTeaser(lat, lng, overrides) {
       vLineWidth: function() { return 2; },
       hLineColor: function() { return TC.teal; },
       vLineColor: function() { return TC.teal; },
+      paddingLeft: function() { return 0; },
+      paddingRight: function() { return 0; },
+      paddingTop: function() { return 0; },
+      paddingBottom: function() { return 0; },
     },
   });
 
@@ -4384,7 +4409,7 @@ async function generateTeaser(lat, lng, overrides) {
     },
     defaultStyle: { font: 'Roboto', fontSize: 7.9, color: TC.body, lineHeight: 1.22 },
     styles: {
-      sectionHeading: { fontSize: 10.6, bold: true, color: TC.navy, margin: [0, 8, 0, 2] },
+      sectionHeading: { fontSize: 10.6, bold: true, color: TC.navy, margin: [0, 6, 0, 2] },
       bodyText: { fontSize: 7.9, color: TC.body, lineHeight: 1.22, margin: [0, 0, 0, 4] },
       metricValue: { fontSize: 13, bold: true, color: TC.navy },
       metricLabel: { fontSize: 7.0, color: '#666666' },
