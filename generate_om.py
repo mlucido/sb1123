@@ -310,17 +310,19 @@ def tbl(s, x, y, w, rows, cw, rh=Inches(0.32)):
             cell.margin_left=Inches(0.08); cell.margin_right=Inches(0.08)
             cell.margin_top=Inches(0.03); cell.margin_bottom=Inches(0.03)
             tcPr = cell._tc.get_or_add_tcPr()
+            # Borders FIRST (OOXML requires lnL/lnR/lnT/lnB before solidFill)
+            for bt in ['a:lnL','a:lnR','a:lnT','a:lnB']:
+                ln=tcPr.makeelement(qn(bt),{'w':'6350','cap':'flat'})
+                sf2=ln.makeelement(qn('a:solidFill'),{})
+                sf2.append(sf2.makeelement(qn('a:srgbClr'),{'val':'E2E8F0'}))
+                ln.append(sf2); tcPr.append(ln)
+            # Fill AFTER borders
             sf = tcPr.makeelement(qn('a:solidFill'), {})
             if is_h: v_hex='1E293B'
             elif is_tot: v_hex='E2E8F0'
             elif ri%2==0: v_hex='F8FAFC'
             else: v_hex='FFFFFF'
             sf.append(sf.makeelement(qn('a:srgbClr'),{'val':v_hex})); tcPr.append(sf)
-            for bt in ['a:lnL','a:lnR','a:lnT','a:lnB']:
-                ln=tcPr.makeelement(qn(bt),{'w':'6350','cap':'flat'})
-                sf2=ln.makeelement(qn('a:solidFill'),{})
-                sf2.append(sf2.makeelement(qn('a:srgbClr'),{'val':'E2E8F0'}))
-                ln.append(sf2); tcPr.append(ln)
     return ts
 
 
@@ -678,12 +680,16 @@ def build_om(d, matt_photo=None, joe_photo=None):
         for ci in range(6):
             cell = t.cell(3, ci)
             tcPr = cell._tc.get_or_add_tcPr()
+            old_fill = tcPr.find(qn('a:solidFill'))
+            if old_fill is not None: tcPr.remove(old_fill)
             sf = tcPr.makeelement(qn('a:solidFill'), {})
             sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5' if ci > 0 else 'E2E8F0'}))
             tcPr.append(sf)
         for ri in range(1, 6):
             cell = t.cell(ri, 3)
             tcPr = cell._tc.get_or_add_tcPr()
+            old_fill = tcPr.find(qn('a:solidFill'))
+            if old_fill is not None: tcPr.remove(old_fill)
             sf = tcPr.makeelement(qn('a:solidFill'), {})
             sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5'}))
             tcPr.append(sf)

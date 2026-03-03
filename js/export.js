@@ -30,7 +30,8 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF
 
   const acqFee = askingPrice * ACQ_FEE_PCT;
 
-  const baseCosts = askingPrice + totalDev + totalCarry + acqFee;
+  const txnCosts = askingPrice * 0.01;
+  const baseCosts = askingPrice + txnCosts + totalDev + totalCarry + acqFee;
   const totalCost = baseCosts / (1 - (1 - EQUITY_PCT) * ORIG_FEE_PCT);
 
   const equity = Math.ceil(totalCost * EQUITY_PCT / 10000) * 10000;
