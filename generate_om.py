@@ -235,6 +235,13 @@ def _calc_moic(d, exit_psf=None, build_cost_psf=None, hold_months=None):
     lps = rem * (1 - d['gp_promote_pct'])
     return (lpe + pref + lps) / lpe if lpe > 0 else 0
 
+def _calc_irr(d, exit_psf=None, build_cost_psf=None, hold_months=None):
+    """Compute annualized LP IRR from MOIC and hold period."""
+    moic = _calc_moic(d, exit_psf=exit_psf, build_cost_psf=build_cost_psf, hold_months=hold_months)
+    hm = hold_months if hold_months is not None else d['hold_months']
+    if moic <= 0 or hm <= 0: return -1
+    return moic ** (12 / hm) - 1
+
 def _r(s, x, y, w, h, fill, line=None, lw=0):
     sh = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, w, h)
     sh.fill.solid(); sh.fill.fore_color.rgb = fill
@@ -542,7 +549,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     sub = comp_label if comp_label else f"Exit $/SF: ${d['exit_psf']:,.0f}"
     _t(s, Inches(0.5), Inches(0.75), Inches(9), Inches(0.25), sub, sz=9, color=S600)
     if comps:
-        show = comps[:12]
+        show = comps[:8]
         c_rows = [("Address", "Sale Price", "$/SF", "SqFt", "Bd/Ba", "Zone", "Yr Built", "Sale Date", "Dist")]
         for c in show:
             c_rows.append((
@@ -598,7 +605,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
         ("Development Costs", fm(d['total_dev_costs']), fp(d['total_dev_costs']/d['total_project_cost']) if d['total_project_cost'] else "0%"),
         ("Sponsor Fees", fm(d['total_sponsor_fees']), fp(d['total_sponsor_fees']/d['total_project_cost']) if d['total_project_cost'] else "0%"),
         ("Carry (Tax+Ins)", fm(carry_total), fp(carry_total/d['total_project_cost']) if d['total_project_cost'] else "0%"),
-        ("Interest (PIK)", fm(d['total_interest']), fp(d['total_interest']/d['total_project_cost']) if d['total_project_cost'] else "0%"),
+        (f"Interest ({d['interest_treatment']})", fm(d['total_interest']), fp(d['total_interest']/d['total_project_cost']) if d['total_project_cost'] else "0%"),
         ("Origination Fee", fm(d['orig_fee_dollars']), fp(d['orig_fee_dollars']/d['total_project_cost']) if d['total_project_cost'] else "0%"),
         ("Total Uses", fm(d['total_project_cost']), "100%")]
     tbl(s, Inches(5.2), Inches(0.85), Inches(4.3), use, [Inches(1.6), Inches(1.5), Inches(0.9)])
@@ -616,7 +623,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
         (f"Gross Revenue ({d['units']} x {d['unit_sf']:,.0f} SF x ${d['exit_psf']:,.0f}/SF)", fm(d['gross_revenue'])),
         (f"Less: Transaction Costs ({fp(d['tx_cost_pct'])})", f"({fm(d['gross_revenue']-d['net_sale_proceeds'])})"),
         ("Net Sale Proceeds", fm(d['net_sale_proceeds'])),
-        ("Less: Loan Repayment (principal + PIK interest)", f"({fm(d['loan_repayment'])})"),
+        (f"Less: Loan Repayment (principal + interest)", f"({fm(d['loan_repayment'])})"),
         ("Net Distributable Cash", fm(d['net_distributable'])),
         ("LP Return of Capital", fm(d['lp_roc'])),
         (f"LP Preferred Return ({fp(d['lp_pref_rate'])} annual)", fm(d['lp_pref_dollars'])),
@@ -640,25 +647,33 @@ def build_om(d, matt_photo=None, joe_photo=None):
     build_vars = [round(base_build*m/25)*25 for m in [0.85,0.925,1.00,1.075,1.15]]
     hold_vars = [base_hold-6, base_hold-3, base_hold, base_hold+3, base_hold+6]
     def moic_str(v): return f"{v:.2f}x" if v > 0 else "N/A"
-    # Table 1: Exit $/SF (rows) vs Build Cost $/SF (cols)
-    _t(s, Inches(0.5), Inches(0.82), Inches(9), Inches(0.22),
-       f"LP MOIC \u2014 Exit $/SF vs Build Cost $/SF  (base shaded)", sz=8, bold=True, color=NAVY)
+    def irr_str(v): return f"{v:.0%}" if v > -1 else "N/A"
+    trh = Inches(0.22)  # tight row height
+    tcw = [Inches(0.9)]+[Inches(0.82)]*5  # tight column widths
+    tw = Inches(5.0)  # table width
+    # Table 1: LP IRR — Exit $/SF vs Build Cost $/SF
+    _t(s, Inches(0.3), Inches(0.78), Inches(5), Inches(0.18),
+       "LP IRR \u2014 Exit $/SF vs Build $/SF", sz=7, bold=True, color=NAVY)
     t1 = [("Exit \\ Build",) + tuple(f"${b:,.0f}" for b in build_vars)]
     for ep in exit_vars:
-        t1.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
-    ts1 = tbl(s, Inches(0.3), Inches(1.05), Inches(9.4), t1,
-        [Inches(1.3)]+[Inches(1.62)]*5, rh=Inches(0.26))
-    # Table 2: Exit $/SF (rows) vs Hold Period (cols)
-    _t(s, Inches(0.5), Inches(2.85), Inches(9), Inches(0.22),
-       f"LP MOIC \u2014 Exit $/SF vs Hold Period  (base shaded)", sz=8, bold=True, color=NAVY)
-    t2 = [("Exit \\ Hold",) + tuple(f"{h} mo" for h in hold_vars)]
+        t1.append((f"${ep:,.0f}",) + tuple(irr_str(_calc_irr(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
+    ts1 = tbl(s, Inches(0.3), Inches(0.96), tw, t1, tcw, rh=trh)
+    # Table 2: LP MOIC — Exit $/SF vs Build Cost $/SF
+    _t(s, Inches(0.3), Inches(2.38), Inches(5), Inches(0.18),
+       "LP MOIC \u2014 Exit $/SF vs Build $/SF", sz=7, bold=True, color=NAVY)
+    t2 = [("Exit \\ Build",) + tuple(f"${b:,.0f}" for b in build_vars)]
     for ep in exit_vars:
-        t2.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, hold_months=h)) for h in hold_vars))
-    ts2 = tbl(s, Inches(0.3), Inches(3.08), Inches(9.4), t2,
-        [Inches(1.3)]+[Inches(1.62)]*5, rh=Inches(0.26))
-    # Highlight base case cells (row 3 = index 3, col 3 = index 3 in both tables)
-    GREEN = RGBColor(0xEC, 0xFD, 0xF5)
-    for ts_obj in [ts1, ts2]:
+        t2.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
+    ts2 = tbl(s, Inches(0.3), Inches(2.56), tw, t2, tcw, rh=trh)
+    # Table 3: LP IRR — Exit $/SF vs Hold Period
+    _t(s, Inches(0.3), Inches(3.98), Inches(5), Inches(0.18),
+       "LP IRR \u2014 Hold Period vs Exit $/SF", sz=7, bold=True, color=NAVY)
+    t3 = [("Exit \\ Hold",) + tuple(f"{h} mo" for h in hold_vars)]
+    for ep in exit_vars:
+        t3.append((f"${ep:,.0f}",) + tuple(irr_str(_calc_irr(d, exit_psf=ep, hold_months=h)) for h in hold_vars))
+    ts3 = tbl(s, Inches(0.3), Inches(4.16), tw, t3, tcw, rh=trh)
+    # Highlight base case cells (row 3 = base exit, col 3 = base build/hold)
+    for ts_obj in [ts1, ts2, ts3]:
         t = ts_obj.table
         for ci in range(6):
             cell = t.cell(3, ci)
@@ -672,8 +687,8 @@ def build_om(d, matt_photo=None, joe_photo=None):
             sf = tcPr.makeelement(qn('a:solidFill'), {})
             sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5'}))
             tcPr.append(sf)
-    _t(s, Inches(0.5), Inches(4.75), Inches(9), Inches(0.2),
-       f"Base case: ${base_exit:,.0f}/SF exit  |  ${base_build:,.0f}/SF build  |  {base_hold} month hold",
+    _t(s, Inches(5.5), Inches(0.96), Inches(4), Inches(0.2),
+       f"Base case: ${base_exit:,.0f}/SF exit  |  ${base_build:,.0f}/SF build  |  {base_hold} mo hold",
        sz=7, color=S400)
     ftr(s, d)
 

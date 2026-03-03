@@ -1460,7 +1460,7 @@ async function exportOM(lat, lng) {
     interest_rate: INTEREST_RATE,
     orig_fee_pct: ORIG_FEE_PCT,
     orig_fee_dollars: origFee,
-    interest_treatment: 'PIK',
+    interest_treatment: 'Cash Pay',
 
     // Carry
     prop_tax_rate: TAX_RATE,

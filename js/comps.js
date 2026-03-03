@@ -65,6 +65,8 @@ export function findCompsForListing(l){
     source='newcon'; searchRadius=2; targetCount=l.newconCount||0;
   } else if(l.exitPsf){
     source='zone'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
+  } else if(l.clusterT1psf){
+    source='newcon'; searchRadius=2; targetCount=0;
   } else {
     return {used:[],ref:[],source:'none',radius:0};
   }
