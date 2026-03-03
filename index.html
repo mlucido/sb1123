@@ -2084,23 +2084,13 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  // Prefer calibrated T1 normalized from CLUSTERS
-  if(l.clusterT1psf){
-    const t1n = l.clusterT1n || 0;
-    const fb = l.clusterFb;
-    const fbTag = fb === 0 ? 'per-cell' : fb === 1 ? 'blended' : 'median';
-    const conf = (l.clusterRw >= 0.8 && t1n >= 8) ? 'high' : (l.clusterRw >= 0.5 && t1n >= 4) ? 'med' : 'low';
-    const color = conf === 'high' ? '#22c55e' : conf === 'med' ? 'var(--accent)' : '#f59e0b';
-    return {psf: l.clusterT1psf, label: `T1 NORM — ${t1n} comps, ${fbTag}, ${conf} conf`, color, short: 'T1 norm'};
-  }
+  // Priority: subdiv comps > new-con comps > T1 norm > all-sales P75
   if(l.subdivExitPsf){
     const count = l.subdivCompCount || 0;
     const radius = l.subdivCompRadius || '';
     const appr = l.subdivAvgAppr ? ` (${l.subdivAvgAppr > 0 ? '+' : ''}${l.subdivAvgAppr.toFixed(1)}% adj)` : '';
     return {psf: l.subdivExitPsf, label: `SUBDIV COMP — ${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv'};
   }
-  const exitPsf = l.newconPpsf || l.exitPsf || 0;
-  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
   if(l.newconPpsf){
     const tier = l.newconTier || '';
     const count = l.newconCount || 0;
@@ -2111,8 +2101,18 @@ function exitLabel(l){
     if(flag === 'thin'){ label += ' ⚠️ thin'; color = '#f59e0b'; }
     else if(flag === 'cross-zone'){ color = '#f59e0b'; }
     else if(flag === 'sanity-high'){ label += ' ⚠️ high'; color = '#f59e0b'; }
-    return {psf: exitPsf, label, color, short: 'new-con'};
+    return {psf: l.newconPpsf, label, color, short: 'new-con'};
   }
+  if(l.clusterT1psf){
+    const t1n = l.clusterT1n || 0;
+    const fb = l.clusterFb;
+    const fbTag = fb === 0 ? 'per-cell' : fb === 1 ? 'blended' : 'median';
+    const conf = (l.clusterRw >= 0.8 && t1n >= 8) ? 'high' : (l.clusterRw >= 0.5 && t1n >= 4) ? 'med' : 'low';
+    const color = conf === 'high' ? '#22c55e' : conf === 'med' ? 'var(--accent)' : '#f59e0b';
+    return {psf: l.clusterT1psf, label: `T1 NORM — ${t1n} comps, ${fbTag}, ${conf} conf`, color, short: 'T1 norm'};
+  }
+  const exitPsf = l.exitPsf || 0;
+  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
   // General P75 fallback
   const count = l.compCount || 0;
   const radius = l.compRadius || '';
@@ -2255,7 +2255,7 @@ function buildLotLayoutSVG(l, pf){
 }
 
 function lotPlannerUrl(l){
-  var exitSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
   var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
   p += '&address='+encodeURIComponent(l.address||'');
   p += '&asking='+(l.price||0);
@@ -2654,7 +2654,7 @@ function rebuildListings(cachedListings){
   filtered.forEach(l => {
     l._onForSaleLayer = true;
     // Color fill by exit $/SF
-    const ePsf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const ePsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     const fillColor = exitPsfColor(ePsf);
 
     const lotSf = l.lotSf || 0;
@@ -2722,7 +2722,7 @@ function buildNeighborhoodLayer(){
   const cells = {};
   LISTINGS.forEach(l => {
     if(!l.sb1123Eligible) return;
-    const exitPsf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const exitPsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     if(!exitPsf) return;
     const cellLat = Math.floor(l.lat / CELL_SIZE) * CELL_SIZE;
     const cellLng = Math.floor(l.lng / CELL_SIZE) * CELL_SIZE;
@@ -2795,7 +2795,7 @@ function buildOffMarketLayer(){
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
-    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2836,7 +2836,7 @@ function buildOffMarketLayer(){
   });
 
   offMarketListings.forEach(l => {
-    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2911,7 +2911,7 @@ function buildOffMarketLayer(){
     const omProxy = Object.assign({}, l, {price: Math.round(est_offer)});
     const pf = calculateProForma(omProxy);
     const btr = calculateBTRProForma(omProxy);
-    const omExitPsf = l.clusterT1psf || l.newconPpsf || l.exitPsf || 0;
+    const omExitPsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     const omEstMvPsf = (est_market_value && l.lotSf) ? Math.round(est_market_value / l.lotSf) : null;
 
     marker.bindPopup(`
@@ -3422,7 +3422,7 @@ function updateLayerCounts(){
   let offMarketN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    const hood_psf = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
@@ -3592,7 +3592,7 @@ function rebuildTable(filtered){
     const profitClass = (l.estProfit||0)>=0?'profit-pos':'profit-neg';
     const marginClass = (l.estMargin||0)>=0?'profit-pos':'profit-neg';
     const starred = isFavorite(l);
-    const exitPpsf = l.clusterT1psf || l.newconPpsf || l.exitPsf;
+    const exitPpsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf;
     return `<tr onclick="flyToListing(${l.lat},${l.lng})" onmouseenter="highlightMarker(${l.lat},${l.lng})" onmouseleave="unhighlightMarker()">
       <td class="col-fav"><span class="fav-star ${starred?'active':''}" onclick="event.stopPropagation();toggleFavorite(${l.lat},${l.lng})">&#9733;</span></td>
       <td class="col-addr" title="${l.address}">${l.address}</td>

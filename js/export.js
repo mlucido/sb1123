@@ -46,7 +46,7 @@ function exportCSV(){
   const favs = _deps.loadFavorites();
   const rows = filtered.map(l=>[
     favs[_deps.listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.lw||'', l.maxUnits, l.clusterT1psf||l.newconPpsf||l.exitPsf||0,
+    l.lotSf||'', l.lw||'', l.maxUnits, l.subdivExitPsf||l.newconPpsf||l.clusterT1psf||l.exitPsf||0,
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',
@@ -431,7 +431,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
   var hardCosts = Math.round(totalBuildCost / 1.25);
   var softCosts = Math.round(hardCosts * 0.25);
-  var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
   var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
@@ -1235,7 +1235,7 @@ async function exportModel(lat, lng) {
   if (!l) { alert('Listing not found'); return; }
 
   var pf = calculateProForma(l);
-  var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var units = pf.maxUnits;
   var avgUnitSF = proforma.avgUnitSf;
@@ -1276,7 +1276,7 @@ async function exportOM(lat, lng) {
 
   var pf = calculateProForma(l);
   var btr = calculateBTRProForma(l);
-  var exitPSF = l.clusterT1psf || l.subdivExitPsf || l.newconPpsf || l.exitPsf || 0;
+  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
   var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
   var avgUnitSF = proforma.avgUnitSf;
   var units = pf.maxUnits;
@@ -1543,7 +1543,7 @@ async function exportOM(lat, lng) {
   var el = _deps.exitLabel(l);
   d.comp_source = el.short || '';
   d.comp_label = el.label || '';
-  d.comps = compResult.used.slice(0, 12).map(function(c) {
+  d.comps = compResult.used.slice(0, 8).map(function(c) {
     return {
       address: c.address || '',
       price: c.price || 0,
