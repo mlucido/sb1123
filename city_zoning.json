@@ -81,15 +81,17 @@
       "year_built_note": "Certificate of occupancy before Oct 1, 1978",
       "unit_count_threshold": 2
     },
-    "impact_fees": {
-      "affordable_housing_linkage_fee": {
-        "_note": "LAMC 19.18. Projects under 40,000 SF EXEMPT — most SB 1123 projects qualify.",
-        "high_market_per_sf": 15.0,
-        "medium_market_per_sf": 10.0,
-        "low_market_per_sf": 8.0
-      },
+    "city_fees": {
+      "est_total_per_unit": 15500,
       "school_fee_per_sf": 5.17,
-      "school_district": "LAUSD"
+      "school_district": "LAUSD",
+      "impact_fees_per_unit": 0,
+      "park_fee_per_unit": 0,
+      "sewer_fee_per_unit": 0,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "Linkage fee exempt under 40,000 SF (LAMC 19.18) — most SB 1123 projects qualify",
+      "notes": "School fee is the main cost; no city impact/park/sewer fees for residential",
+      "confidence": "high"
     },
     "sources": [
       "LAMC §12.08-12.11 (R1-R4)",
@@ -219,18 +221,6 @@
       },
       "difference_from_la": "LA RSO: pre-Oct 1978, 2+ units. Pasadena: pre-Feb 1995, 2+ units — covers far more properties"
     },
-    "impact_fees": {
-      "residential_impact_fee": {
-        "studio": 19622,
-        "3br": 26447,
-        "5br_plus": 36321,
-        "inclusionary_discount_pct": 30,
-        "adu_under_900sf": "exempt"
-      },
-      "school_fee_per_sf": 2.24,
-      "school_district": "PUSD",
-      "notes": "RIF is notably higher than LA City linkage fee. New RIF ordinance adopted Jul 2025 — amounts may have changed."
-    },
     "sb1123": {
       "local_standards_adopted": false,
       "status": "Planning Commission reviewed Aug 2025, directed staff to prepare zoning amendments",
@@ -241,6 +231,18 @@
         "RS-4",
         "RS-6"
       ]
+    },
+    "city_fees": {
+      "est_total_per_unit": 37000,
+      "school_fee_per_sf": 2.24,
+      "school_district": "PUSD",
+      "impact_fees_per_unit": 26400,
+      "park_fee_per_unit": null,
+      "sewer_fee_per_unit": 0,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "30% discount if inclusionary units provided",
+      "notes": "Highest residential impact fee in region ($26.4K/unit). RIF ordinance adopted Jul 2025.",
+      "confidence": "high"
     },
     "unconfirmed": [
       "RS zone side/rear setbacks (need PMC Table 2-3)",
@@ -408,12 +410,6 @@
       "has_rso": false,
       "notes": "No local rent control. State AB 1482 only (5% + CPI cap, max 10%, on units 15+ years old)."
     },
-    "impact_fees": {
-      "residential_impact_fee": null,
-      "school_fee_per_sf": 4.79,
-      "school_district": "SMUSD",
-      "notes": "No city-level RIF found. School fee ($4.79/SF) is notably higher than Pasadena ($2.24/SF) and LA."
-    },
     "sb1123": {
       "local_standards_adopted": false,
       "status": "No local SB 1123 ordinance adopted. City is resistant to densification — SB 9 ordinance includes 99-year affordability covenant.",
@@ -436,6 +432,17 @@
         "affordability_covenant_years": 99,
         "note": "These SB 9 restrictions should NOT apply to SB 1123 (different state law), but city may attempt to extend them"
       }
+    },
+    "city_fees": {
+      "est_total_per_unit": 14000,
+      "school_fee_per_sf": 4.79,
+      "school_district": "SMUSD",
+      "impact_fees_per_unit": 0,
+      "park_fee_per_unit": 0,
+      "sewer_fee_per_unit": 0,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "No city-level impact fee found. School fee ($4.79/SF) is notably higher than Pasadena or LA.",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R-1 plate height limits (may be DRC discretion only — no code standard found)",
@@ -501,6 +508,16 @@
     },
     "parking": {
       "R1_per_unit": 2
+    },
+    "city_fees": {
+      "est_total_per_unit": 20000,
+      "school_fee_per_sf": 5.17,
+      "school_district": "LBUSD",
+      "impact_fees_per_unit": 5600,
+      "sewer_fee_per_unit": 140,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Impact fees not updated in decades — among lowest in region",
+      "confidence": "high"
     },
     "unconfirmed": [
       "R-2/R-3/R-4 heights, setbacks, parking, lot coverage — locked in Table 31-2A PDF"
@@ -568,6 +585,16 @@
       "R-1_5_to_6bed": 4,
       "MF_per_unit": 2.5
     },
+    "city_fees": {
+      "est_total_per_unit": 26000,
+      "school_fee_per_sf": 5.17,
+      "school_district": "BHUSD",
+      "impact_fees_per_unit": 1500,
+      "park_fee_per_unit": 10400,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Parks construction tax ($8.65/SF) is very high; DU tax is modest",
+      "confidence": "high"
+    },
     "unconfirmed": [
       "MF side setbacks",
       "MF FAR",
@@ -620,6 +647,16 @@
     "unit_size_limits": {
       "R3_max_avg_unit_sf": 1500,
       "R4_max_avg_unit_sf": 1200
+    },
+    "city_fees": {
+      "est_total_per_unit": 20000,
+      "school_fee_per_sf": 5.17,
+      "school_district": "LAUSD",
+      "impact_fees_per_unit": 5500,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "AH in-lieu fee ~$714K/unit if triggered (not included in total)",
+      "notes": "In-lieu fee is among the highest in the state if applicable",
+      "confidence": "low"
     },
     "unconfirmed": [
       "All height limits",
@@ -679,6 +716,16 @@
       "3br_per_unit": 2.5,
       "4br_per_unit": 3,
       "type": "subterranean required"
+    },
+    "city_fees": {
+      "est_total_per_unit": 33000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "GUSD",
+      "impact_fees_per_unit": 18800,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "15% inclusionary requirement for projects with 8+ units",
+      "notes": "Significant impact fees; inclusionary requirement adds cost for larger projects",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R1 height, FAR, lot coverage, rear setback",
@@ -740,6 +787,16 @@
     "parking": {
       "R-1_up_to_3400sf": 2,
       "R-1_over_3400sf": 3
+    },
+    "city_fees": {
+      "est_total_per_unit": 22000,
+      "school_fee_per_sf": 5.55,
+      "school_district": "BUSD",
+      "impact_fees_per_unit": 7300,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "Tiered AH discounts available",
+      "notes": "6 impact fee categories (traffic, parks, fire, police, library, general). Moderate total.",
+      "confidence": "high"
     },
     "unconfirmed": [
       "R-2/R-3/R-4 height, FAR, setbacks, lot coverage, parking (BMC 10-1-628)"
@@ -812,6 +869,18 @@
       "R3": "1,500 SF/unit or 5 max",
       "R4": "1,250 SF/unit or 6 max"
     },
+    "city_fees": {
+      "est_total_per_unit": 32000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "SMMUSD",
+      "impact_fees_per_unit": 13600,
+      "park_fee_per_unit": 3000,
+      "sewer_fee_per_unit": 800,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "AHPP in-lieu fee $43.91/SF if triggered (not included in total)",
+      "notes": "Water/wastewater connection fees add up; AHPP is a major risk if applicable",
+      "confidence": "high"
+    },
     "unconfirmed": [
       "R1 FAR, setbacks, min lot",
       "R2-R4 FAR",
@@ -871,6 +940,15 @@
     "parking": {
       "_note": "2024 update eliminated parking minimums.",
       "all_zones": "no minimum required"
+    },
+    "city_fees": {
+      "est_total_per_unit": 17000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "CCUSD",
+      "impact_fees_per_unit": 2500,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Impact fee amounts not confirmed from online sources",
+      "confidence": "low"
     },
     "unconfirmed": [
       "R2/R3 FAR, height, lot coverage (Table 2-3 in PDF)"
@@ -944,6 +1022,16 @@
       "all_zones": 2,
       "type": "enclosed required"
     },
+    "city_fees": {
+      "est_total_per_unit": 15000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "IUSD",
+      "impact_fees_per_unit": 500,
+      "sewer_fee_per_unit": 280,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Fees not well documented online; likely minimal impact fees",
+      "confidence": "low"
+    },
     "sources": [
       "IMC Chapter 12, Articles 2-5",
       "ecode360.com/43786276 (R-1 through R-4)"
@@ -1011,6 +1099,15 @@
       "mf_2bed_or_less": 2,
       "mf_3bed_plus": 3,
       "visitor_per_5_units": 1
+    },
+    "city_fees": {
+      "est_total_per_unit": 19000,
+      "school_fee_per_sf": 5.17,
+      "school_district": "TUSD",
+      "impact_fees_per_unit": 2500,
+      "permit_plan_check_per_unit": 10200,
+      "notes": "Very low impact fees; slightly higher permit costs",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R-4 height, FAR, setbacks"
@@ -1084,6 +1181,15 @@
       "sfr": 2,
       "type": "enclosed garage"
     },
+    "city_fees": {
+      "est_total_per_unit": 16500,
+      "school_fee_per_sf": 5.38,
+      "school_district": "AUSD",
+      "impact_fees_per_unit": 2000,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Moderate fee environment",
+      "confidence": "low"
+    },
     "unconfirmed": [
       "RL lot coverage",
       "RM/RH FAR",
@@ -1138,6 +1244,15 @@
       "R-E": 15000,
       "R-1": 7000
     },
+    "city_fees": {
+      "est_total_per_unit": 17500,
+      "school_fee_per_sf": 5.38,
+      "school_district": "WCSD",
+      "impact_fees_per_unit": 3000,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "DIF ordinance Ch. 3.48; moderate fee levels",
+      "confidence": "low"
+    },
     "unconfirmed": [
       "R-1 FAR",
       "R-2/R-3/R-4 all standards (WMC 18.18-18.22)",
@@ -1186,6 +1301,16 @@
     "density": {
       "R-3": "0-13 du/ac, 1-3 stories"
     },
+    "city_fees": {
+      "est_total_per_unit": 20000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "DUSD",
+      "impact_fees_per_unit": 6000,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "Has inclusionary housing ordinance",
+      "notes": "Moderate fee environment with inclusionary requirements",
+      "confidence": "low"
+    },
     "unconfirmed": [
       "R-1 height, story limits",
       "R-1 side/rear setbacks",
@@ -1223,6 +1348,15 @@
     "density": {
       "R-2": "6-12 du/ac",
       "R-3": "40 du/ac (increased from 30)"
+    },
+    "city_fees": {
+      "est_total_per_unit": 23000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "AUSD",
+      "impact_fees_per_unit": 8500,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "3 distinct impact fee categories: park, transportation, fire",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "All height limits",
@@ -1348,6 +1482,15 @@
         "RE",
         "RL"
       ]
+    },
+    "city_fees": {
+      "est_total_per_unit": 44000,
+      "school_fee_per_sf": 4.79,
+      "school_district": "MUSD",
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "AH in-lieu fee $29.40/SF for ownership units = ~$353K for 12,000 SF project",
+      "notes": "In-lieu fee dominates total cost if triggered; school fee from MUSD",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "RF/RE/RL height-by-lot-width table (17.12.010/020 — behind Cloudflare, not accessible)",
@@ -1532,6 +1675,16 @@
         "R-1A"
       ]
     },
+    "city_fees": {
+      "est_total_per_unit": 29000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "RBUSD",
+      "park_fee_per_unit": 15000,
+      "sewer_fee_per_unit": 4000,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Tripled park fees in 2017; sewer connection fees are significant",
+      "confidence": "medium"
+    },
     "unconfirmed": [
       "R-1A FAR (not specified in code excerpt)",
       "Multi-family zone FARs (R-2, R-3, RMD, RH — not specified in code excerpts)",
@@ -1677,6 +1830,16 @@
       "eligible_zones": [
         "R-1"
       ]
+    },
+    "city_fees": {
+      "est_total_per_unit": 14500,
+      "school_fee_per_sf": 5.38,
+      "school_district": "HBCSD",
+      "impact_fees_per_unit": 0,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "LVR $104/SF in mixed-use zones only (not included in total)",
+      "notes": "No general residential impact fee found",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R-3 front yard setback (per official Front Yard Requirements map — not available online)",
@@ -1846,6 +2009,15 @@
       ],
       "notes": "Area Districts III/IV (Sand Section) lots are mostly <10K SF and unlikely to meet SB 1123 lot minimums. Area Districts I/II (Hill/Tree Section) have larger lots more likely to qualify."
     },
+    "city_fees": {
+      "est_total_per_unit": 14500,
+      "school_fee_per_sf": 5.38,
+      "school_district": "MBUSD",
+      "impact_fees_per_unit": 700,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Current fees very low; proposed update to $15.53/SF would increase 25x",
+      "confidence": "high"
+    },
     "unconfirmed": [
       "Parking requirements per unit (MBMC Chapter 10.64 — not fetched)",
       "RS area I/II rear setback formula verification (0.3 x depth - 20 needs code confirmation)",
@@ -1913,6 +2085,15 @@
       "R-1": 5000,
       "R-2": 7000,
       "R-3": 7000
+    },
+    "city_fees": {
+      "est_total_per_unit": 26000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "ESSD",
+      "impact_fees_per_unit": 15000,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Comprehensive DIF adopted 2022 covering traffic, parks, fire, police, general gov't",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R-2/R-3 FAR",
@@ -1984,6 +2165,17 @@
       "RM": "5.1-30 du/ac (up to 70 in HOO)",
       "RH": "30.1-45 du/ac (up to 70 in HOO)"
     },
+    "city_fees": {
+      "est_total_per_unit": 15000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "SPUSD",
+      "impact_fees_per_unit": 350,
+      "sewer_fee_per_unit": 300,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "New inclusionary housing ordinance (IHO) fee TBD",
+      "notes": "Very low DIF; new IHO may add costs",
+      "confidence": "medium"
+    },
     "unconfirmed": [
       "RS/RM/RH FAR and lot coverage",
       "Parking ratios (SPMC 36.310)"
@@ -2022,6 +2214,15 @@
     },
     "far": {
       "R-4": "1:3 (0.33) excluding parking"
+    },
+    "city_fees": {
+      "est_total_per_unit": 16000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "HSD",
+      "impact_fees_per_unit": 1500,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "DIF study commissioned 2023; current fees are minimal",
+      "confidence": "low"
     },
     "unconfirmed": [
       "R-1 front/rear setbacks, lot area min, lot coverage",
@@ -2081,6 +2282,15 @@
     },
     "parking": {
       "condo_per_unit": 2
+    },
+    "city_fees": {
+      "est_total_per_unit": 14000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "CUSD",
+      "impact_fees_per_unit": 0,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Minimal impact fees; development-friendly fee environment",
+      "confidence": "low"
     },
     "unconfirmed": [
       "R-M/R-H side/rear setbacks",
@@ -2149,6 +2359,15 @@
       "RPD_0_1bed": 1.0,
       "RPD_2bed": 2.0,
       "RPD_3bed": 2.25
+    },
+    "city_fees": {
+      "est_total_per_unit": 16000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "LCUSD",
+      "impact_fees_per_unit": 1500,
+      "permit_plan_check_per_unit": 8000,
+      "notes": "Contracts with LA County Building & Safety for permitting",
+      "confidence": "low"
     },
     "unconfirmed": [
       "R-1 FAR and lot coverage",
@@ -2221,6 +2440,16 @@
       "R-3_1bed": 1.5,
       "R-3_2bed": 2.0,
       "guest_10plus": "1 per 4 units"
+    },
+    "city_fees": {
+      "est_total_per_unit": 40000,
+      "school_fee_per_sf": 5.38,
+      "school_district": "LAUSD",
+      "park_fee_per_unit": 18000,
+      "permit_plan_check_per_unit": 8000,
+      "affordable_housing_note": "AH fee ~$93K for 10-unit project ($9,300/unit, not included in per-unit total shown)",
+      "notes": "Quimby park fee $17,964/unit is the main cost driver; AH fee adds significantly if applicable",
+      "confidence": "medium"
     },
     "unconfirmed": [
       "R-4 height/setbacks/density",

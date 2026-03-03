@@ -200,7 +200,7 @@
           <th>R3</th>
           <th>R4</th>
           <th>RSO</th>
-          <th>Impact Fees</th>
+          <th>City Fees</th>
         </tr>
       </thead>
       <tbody id="summaryBody"></tbody>
@@ -350,11 +350,16 @@
   }
 
   function getFees(c){
-    if(!c.impact_fees) return '\u2014';
-    var f = c.impact_fees;
+    var f = c.city_fees || c.impact_fees;
+    if(!f) return '\u2014';
+    if(f.est_total_per_unit){
+      var s = '~$' + Math.round(f.est_total_per_unit/1000) + 'K/unit';
+      if(f.confidence === 'low') s += ' *';
+      return s;
+    }
+    // fallback to old format
     var parts = [];
     if(f.residential_impact_fee && typeof f.residential_impact_fee === 'object'){
-      // Use 3br as representative
       var rep = f.residential_impact_fee['3br'] || f.residential_impact_fee['studio'];
       if(rep) parts.push('$' + Number(rep).toLocaleString() + '/unit');
     }
@@ -503,24 +508,46 @@
         sections += cardSection('Rent Stabilization / RSO', rsb);
       }
 
-      // Impact Fees
-      if(c.impact_fees){
-        var ifb = '<dl>';
-        var ifees = c.impact_fees;
-        if(ifees.residential_impact_fee && typeof ifees.residential_impact_fee === 'object'){
-          var rif = ifees.residential_impact_fee;
-          Object.keys(rif).forEach(function(k){
-            if(k.charAt(0) === '_') return;
-            var v = rif[k];
-            ifb += '<dt>' + esc(k) + ':</dt><dd>' + (typeof v === 'number' ? '$' + v.toLocaleString() : esc(String(v))) + '</dd>';
-          });
-        } else if(ifees.residential_impact_fee === null){
-          ifb += '<dt>City impact fee:</dt><dd>None found</dd>';
+      // City Fees
+      var cfees = c.city_fees || c.impact_fees;
+      if(cfees){
+        var ifb = '';
+        if(cfees.est_total_per_unit){
+          var tot = cfees.est_total_per_unit;
+          ifb += '<div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px" class="mono">~$' + Math.round(tot/1000) + 'K/unit &nbsp;($' + Number(tot).toLocaleString() + ')</div>';
+          ifb += '<dl>';
+          if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF' + (cfees.school_district ? ' (' + esc(cfees.school_district) + ')' : '') + '</dd>';
+          if(cfees.impact_fees_per_unit != null && cfees.impact_fees_per_unit > 0) ifb += '<dt>Impact fees:</dt><dd>$' + Number(cfees.impact_fees_per_unit).toLocaleString() + '/unit</dd>';
+          else if(cfees.impact_fees_per_unit === 0) ifb += '<dt>Impact fees:</dt><dd>None</dd>';
+          if(cfees.park_fee_per_unit != null && cfees.park_fee_per_unit > 0) ifb += '<dt>Park fee:</dt><dd>$' + Number(cfees.park_fee_per_unit).toLocaleString() + '/unit</dd>';
+          if(cfees.sewer_fee_per_unit != null && cfees.sewer_fee_per_unit > 0) ifb += '<dt>Sewer fee:</dt><dd>$' + Number(cfees.sewer_fee_per_unit).toLocaleString() + '/unit</dd>';
+          if(cfees.permit_plan_check_per_unit) ifb += '<dt>Permit/plan check:</dt><dd>~$' + Number(cfees.permit_plan_check_per_unit).toLocaleString() + '/unit</dd>';
+          if(cfees.affordable_housing_note) ifb += '<dt>Affordable housing:</dt><dd>' + esc(cfees.affordable_housing_note) + '</dd>';
+          if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
+          ifb += '</dl>';
+          // Confidence badge
+          var conf = cfees.confidence || 'low';
+          var confColor = conf === 'high' ? '#166534' : conf === 'medium' ? '#854d0e' : '#9f1239';
+          var confBg = conf === 'high' ? '#dcfce7' : conf === 'medium' ? '#fef9c3' : '#ffe4e6';
+          ifb += '<div style="margin-top:8px"><span class="badge" style="background:' + confBg + ';color:' + confColor + '">' + conf + ' confidence</span></div>';
+        } else {
+          // fallback for old format
+          ifb += '<dl>';
+          if(cfees.residential_impact_fee && typeof cfees.residential_impact_fee === 'object'){
+            var rif = cfees.residential_impact_fee;
+            Object.keys(rif).forEach(function(k){
+              if(k.charAt(0) === '_') return;
+              var v = rif[k];
+              ifb += '<dt>' + esc(k) + ':</dt><dd>' + (typeof v === 'number' ? '$' + v.toLocaleString() : esc(String(v))) + '</dd>';
+            });
+          } else if(cfees.residential_impact_fee === null){
+            ifb += '<dt>City impact fee:</dt><dd>None found</dd>';
+          }
+          if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF (' + esc(cfees.school_district || '') + ')</dd>';
+          if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
+          ifb += '</dl>';
         }
-        if(ifees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + ifees.school_fee_per_sf + '/SF (' + esc(ifees.school_district || '') + ')</dd>';
-        if(ifees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(ifees.notes) + '</dd>';
-        ifb += '</dl>';
-        sections += cardSection('Impact Fees', ifb);
+        sections += cardSection('City Fees (10-unit est.)', ifb);
       }
 
       // Zone Mapping
