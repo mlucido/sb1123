@@ -1742,7 +1742,9 @@ async function exportOM(lat, lng, overrides) {
   var el = _deps.exitLabel(l);
   d.comp_source = el.short || '';
   d.comp_label = el.label || '';
-  d.comps = compResult.used.slice(0, 8).map(function(c) {
+  var pptComps = compResult.used.concat(compResult.ref);
+  pptComps.sort(function(a, b) { return (a.dist || 99) - (b.dist || 99); });
+  d.comps = pptComps.slice(0, 8).map(function(c) {
     return {
       address: c.address || '',
       price: c.price || 0,

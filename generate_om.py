@@ -553,15 +553,14 @@ def build_om(d, matt_photo=None, joe_photo=None):
     _t(s, Inches(0.5), Inches(0.75), Inches(9), Inches(0.25), sub, sz=9, color=S600)
     if comps:
         show = comps[:8]
-        c_rows = [("Address", "Sale Price", "$/SF", "SqFt", "Bd/Ba", "Zone", "Yr Built", "Sale Date", "Dist")]
+        c_rows = [("Address", "Sale Price", "$/SF", "SqFt", "Bd/Ba", "Yr Built", "Sale Date", "Dist")]
         for c in show:
             c_rows.append((
-                c.get('address','')[:28],
+                c.get('address','')[:32],
                 f"${c.get('price',0):,.0f}",
                 f"${c.get('ppsf',0):,.0f}",
                 f"{c.get('sqft',0):,.0f}",
                 f"{c.get('beds','')}/{c.get('baths','')}",
-                c.get('zone',''),
                 str(c.get('year_built','')),
                 c.get('date',''),
                 f"{c.get('dist',0):.1f}",
@@ -574,12 +573,12 @@ def build_om(d, matt_photo=None, joe_photo=None):
             f"${sum(prices)/len(prices):,.0f}" if prices else "\u2014",
             f"${sum(ppsfs)/len(ppsfs):,.0f}" if ppsfs else "\u2014",
             f"{sum(sqfts)/len(sqfts):,.0f}" if sqfts else "\u2014",
-            "", "", "", "", "",
+            "", "", "", "",
         ))
         crh = Inches(0.22)
         tbl(s, Inches(0.3), Inches(1.0), Inches(9.4), c_rows,
-            [Inches(2.2), Inches(1.0), Inches(0.65), Inches(0.65), Inches(0.65),
-             Inches(0.6), Inches(0.7), Inches(1.0), Inches(0.6)], rh=crh)
+            [Inches(2.6), Inches(1.1), Inches(0.7), Inches(0.7), Inches(0.7),
+             Inches(0.8), Inches(1.1), Inches(0.7)], rh=crh)
         bar_y = Inches(1.0) + crh * len(c_rows) + Inches(0.1)
     else:
         _r(s, Inches(0.5), Inches(1.0), Inches(9), Inches(2.5), S100, S200, 0.5)
