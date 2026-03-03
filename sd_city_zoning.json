@@ -3,7 +3,21 @@
     "description": "City-specific zoning and development standards for SB 1123 analysis — San Diego County",
     "usage": "Keyed by city name (matching Redfin CITY field). San Diego is the baseline — other cities override where they differ.",
     "last_updated": "2026-03-03",
-    "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code"
+    "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code",
+    "sb1123_state_defaults": {
+      "setback_override": {
+        "side_max_ft": 4,
+        "rear_max_ft": 4,
+        "front": "local_zoning",
+        "between_units_ft": 0,
+        "_note": "Per Gov Code 65852.28(b)(2) cross-ref 65852.21(b)(2)(B): state caps side/rear at 4 ft max from original lot line. Front setback follows local zoning (not overridden). Zero setback between units on subdivided lots (CBC fire separation only). Applies to ALL cities — state law preemption."
+      },
+      "far_minimum": {
+        "units_8_to_10": 1.25,
+        "units_3_to_7": 1.0,
+        "_note": "State minimum FAR — local agencies cannot impose lower FAR."
+      }
+    }
   },
   "San Diego": {
     "is_baseline": true,
@@ -38,8 +52,9 @@
       "RM-5-12": "R4"
     },
     "height_ft": {
-      "_note": "SDMC Ch. 13, Art. 1, Div. 4. RS zones 30 ft. RM zones vary 30-60 ft. Height designated by letter suffix in some zones.",
-      "RS_all": 30,
+      "_note": "SDMC 131.0444. RS-1-1 to RS-1-7: 30 ft building envelope (24 ft at setback + 45° plane). RS-1-8 to RS-1-14: 35 ft flat cap. RM zones vary 30-60 ft.",
+      "RS-1-1_to_RS-1-7": 30,
+      "RS-1-8_to_RS-1-14": 35,
       "RM-1": 30,
       "RM-2": 40,
       "RM-3-7": 40,
@@ -48,11 +63,13 @@
       "RM-5-12": 60
     },
     "height_notes": {
-      "RS": "30 ft max for all RS zones (single-family). 2 stories typical. Measured to highest point of roof.",
+      "RS-1-1_to_RS-1-7": "30 ft max via building envelope: 24 ft at side setback line, then 45° angled plane inward. Effectively 2 stories with pitched roof.",
+      "RS-1-8_to_RS-1-14": "35 ft flat height cap. Allows potential 3-story product. These are planned urbanizing area zones.",
       "RM-1": "30 ft, 2 stories. Lowest-density multi-family.",
       "RM-2_RM-3": "40 ft, 3 stories. Mid-density multi-family.",
       "RM-4_RM-5": "60 ft, 4-5 stories. Highest-density residential.",
-      "measurement": "Grade to highest point of structure."
+      "measurement": "Grade to highest point of structure.",
+      "coastal_overlay": "Coastal Height Limit Overlay (Prop D) imposes hard 30 ft cap west of I-5 (excluding downtown)."
     },
     "setbacks_ft": {
       "RS": { "front": 15, "side": 5, "rear": 13, "_note": "Front varies 15-25 ft by zone. Side: min 4 ft or 10% lot width. Rear: 13 ft for primary." },

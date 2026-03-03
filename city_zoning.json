@@ -3,7 +3,21 @@
     "description": "City-specific zoning and development standards for SB 1123 analysis",
     "usage": "Keyed by city name (matching Redfin CITY field). LA City is the baseline — other cities override where they differ.",
     "last_updated": "2026-03-02",
-    "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code"
+    "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code",
+    "sb1123_state_defaults": {
+      "setback_override": {
+        "side_max_ft": 4,
+        "rear_max_ft": 4,
+        "front": "local_zoning",
+        "between_units_ft": 0,
+        "_note": "Per Gov Code 65852.28(b)(2) cross-ref 65852.21(b)(2)(B): state caps side/rear at 4 ft max from original lot line. Front setback follows local zoning (not overridden). Zero setback between units on subdivided lots (CBC fire separation only). Applies to ALL cities — state law preemption."
+      },
+      "far_minimum": {
+        "units_8_to_10": 1.25,
+        "units_3_to_7": 1.0,
+        "_note": "State minimum FAR — local agencies cannot impose lower FAR."
+      }
+    }
   },
   "Los Angeles": {
     "is_baseline": true,
