@@ -1264,30 +1264,166 @@ function buildExitCompsTab(wb, l) {
   return cs;
 }
 
-async function exportModel(lat, lng) {
+// ── Pre-Export Modal ──
+function showExportModal(lat, lng, type) {
+  var l = _deps.getLISTINGS().find(function(x){ return x.lat===lat && x.lng===lng; });
+  if (!l) { alert('Listing not found'); return; }
+  var pf = calculateProForma(l);
+
+  var defExitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+  var defBuildPSF = pf.adjBuildCostPerSf;
+  var defUnits = pf.maxUnits;
+  var defAvgUnitSF = proforma.avgUnitSf;
+  var defRent = l.estRentMonth || l.fmr3br || 4000;
+  var defPrice = l.price || 0;
+
+  var exitSrc = l.subdivExitPsf ? 'subdiv' : l.newconPpsf ? 'new-con' : l.clusterT1psf ? 'T1 norm' : l.exitPsf ? 'zone P75' : 'none';
+  var slopePct = l.slope || 0;
+  var buildSrc = slopePct > 0 ? 'slope-adj ' + slopePct + '%' : 'base';
+  var rentSrc = l.estRentMonth ? 'est rent' : l.fmr3br ? 'HUD SAFMR' : 'default';
+
+  var typeLabel = type === 'xls' ? 'Export XLS Model' : 'Export Offering Memo';
+  var addr = l.address || '';
+  var zone = (l.zone || 'R1').toUpperCase();
+
+  var existing = document.getElementById('exportModal');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'exportModal';
+  overlay.className = 'modal-overlay active';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.onclick = function(e) { if (e.target === overlay) closeExportModal(); };
+
+  overlay.innerHTML =
+    '<div class="modal-panel" style="max-width:440px">' +
+      '<div class="modal-header">' +
+        '<div><h3>' + typeLabel + '</h3>' +
+        '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + addr + ' \u00b7 ' + zone + '</div></div>' +
+        '<button class="modal-close" onclick="closeExportModal()">\u00d7</button>' +
+      '</div>' +
+      '<div class="modal-body" style="padding:16px 20px">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">' +
+          _expField('Asking Price', 'expAskingPrice', defPrice, '$', '') +
+          _expField('Exit $/SF', 'expExitPSF', defExitPSF, '$', exitSrc) +
+          _expField('Build Cost $/SF', 'expBuildPSF', Math.round(defBuildPSF), '$', buildSrc) +
+          _expField('Units', 'expUnits', defUnits, '', '') +
+          _expField('Avg Unit SF', 'expAvgUnitSF', defAvgUnitSF, '', 'sf') +
+          _expField('Monthly Rent', 'expMonthlyRent', defRent, '$', rentSrc) +
+        '</div>' +
+        '<button id="expDoExport" style="margin-top:16px;width:100%;padding:10px;border:none;border-radius:8px;' +
+          'background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer">' +
+          (type === 'xls' ? 'Download XLS' : 'Generate OM') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  var defaults = { askingPrice: defPrice, exitPSF: defExitPSF, allInBuildPSF: defBuildPSF, units: defUnits, avgUnitSF: defAvgUnitSF, monthlyRent: defRent };
+  document.getElementById('expDoExport').onclick = async function() {
+    var btn = this;
+    var vals = _readExpValues(defaults);
+    btn.textContent = 'Exporting\u2026';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    try {
+      if (type === 'xls') await exportModel(lat, lng, vals);
+      else await exportOM(lat, lng, vals);
+      closeExportModal();
+    } catch (err) {
+      console.error(err);
+      btn.textContent = type === 'xls' ? 'Download XLS' : 'Generate OM';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  };
+
+  var first = document.getElementById('expAskingPrice');
+  if (first) first.focus();
+}
+
+function _expField(label, id, value, prefix, srcLabel) {
+  var srcHtml = srcLabel ? '<span style="font-size:10px;color:var(--text-dim);margin-left:4px">(' + srcLabel + ')</span>' : '';
+  var fmtVal = (value == null || value === 0) ? '0' : Math.round(value).toLocaleString('en-US');
+  return '<div>' +
+    '<label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:3px">' + label + srcHtml + '</label>' +
+    '<div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden">' +
+      (prefix ? '<span style="padding:0 0 0 8px;color:var(--text-dim);font-size:13px">' + prefix + '</span>' : '') +
+      '<input id="' + id + '" type="text" value="' + fmtVal + '" ' +
+        'style="flex:1;background:none;border:none;color:var(--text);padding:8px 8px 8px ' + (prefix ? '2px' : '8px') + ';font-size:14px;width:100%;outline:none">' +
+    '</div>' +
+  '</div>';
+}
+
+function _readExpValues(defaults) {
+  function parseNum(id, fallback) {
+    var el = document.getElementById(id);
+    if (!el) return fallback;
+    var raw = el.value.replace(/[,$\s]/g, '');
+    var n = Number(raw);
+    return isNaN(n) || raw === '' ? fallback : n;
+  }
+  var units = parseNum('expUnits', defaults.units);
+  if (units < 1) units = 1;
+  if (units > 10) units = 10;
+  units = Math.round(units);
+  return {
+    askingPrice: parseNum('expAskingPrice', defaults.askingPrice),
+    exitPSF: parseNum('expExitPSF', defaults.exitPSF),
+    allInBuildPSF: parseNum('expBuildPSF', defaults.allInBuildPSF),
+    units: units,
+    avgUnitSF: parseNum('expAvgUnitSF', defaults.avgUnitSF),
+    monthlyRent: parseNum('expMonthlyRent', defaults.monthlyRent),
+  };
+}
+
+function closeExportModal() {
+  var el = document.getElementById('exportModal');
+  if (el) el.remove();
+}
+
+async function exportModel(lat, lng, overrides) {
+  var ov = overrides || {};
   var l = _deps.getLISTINGS().find(function(x){ return x.lat===lat && x.lng===lng; });
   if (!l) { alert('Listing not found'); return; }
 
   var pf = calculateProForma(l);
-  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
-  var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
-  var units = pf.maxUnits;
+
+  // Shallow-copy listing and pf so overrides don't mutate originals
+  var ll = Object.assign({}, l);
+  var pfOv = Object.assign({}, pf);
+
+  if (ov.askingPrice != null) ll.price = ov.askingPrice;
+  if (ov.exitPSF != null) { ll.subdivExitPsf = ov.exitPSF; ll.newconPpsf = 0; ll.clusterT1psf = 0; ll.exitPsf = 0; }
+  if (ov.monthlyRent != null) ll.estRentMonth = ov.monthlyRent;
+  if (ov.units != null) pfOv.maxUnits = ov.units;
+  if (ov.allInBuildPSF != null) pfOv.adjBuildCostPerSf = ov.allInBuildPSF;
+
+  var exitPSF = ll.subdivExitPsf || ll.newconPpsf || ll.clusterT1psf || ll.exitPsf || 0;
+  var monthlyRent = ll.estRentMonth || ll.fmr3br || 4000;
+  var units = pfOv.maxUnits;
+  var savedAvgUnitSf = proforma.avgUnitSf;
+  if (ov.avgUnitSF != null) proforma.avgUnitSf = ov.avgUnitSF;
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
 
-  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, pf.adjBuildCostPerSf, exitPSF, monthlyRent);
+  var ed = sizeEquityAndDebt(ll.price, units, avgUnitSF, pfOv.adjBuildCostPerSf, exitPSF, monthlyRent);
   var btr = calculateBTRProForma(l);
 
-  // Build workbook programmatically — no template needed
+  // Build workbook
   var wb = new ExcelJS.Workbook();
   wb.creator = 'SB 1123 Deal Finder';
 
-  buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent);
-  buildSourcesUsesTab(wb, l, ed, pf);
-  buildCashFlowTab(wb, l, ed, pf);
+  buildAssumptionsTab(wb, ll, pfOv, ed, exitPSF, monthlyRent);
+  buildSourcesUsesTab(wb, ll, ed, pfOv);
+  buildCashFlowTab(wb, ll, ed, pfOv);
   buildOutputsTab(wb, ed);
   buildBTRTab(wb);
   buildExitCompsTab(wb, l);
+
+  proforma.avgUnitSf = savedAvgUnitSf;
 
   // Generate and download
   var filename = (l.address||'deal').replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_') + '_model.xlsx';
@@ -1301,7 +1437,8 @@ async function exportModel(lat, lng) {
   URL.revokeObjectURL(url);
 }
 
-async function exportOM(lat, lng) {
+async function exportOM(lat, lng, overrides) {
+  var ov = overrides || {};
   var OM_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? '' : 'https://sb1123-om-api.fly.dev';
 
@@ -1310,14 +1447,15 @@ async function exportOM(lat, lng) {
 
   var pf = calculateProForma(l);
   var btr = calculateBTRProForma(l);
-  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
-  var monthlyRent = l.estRentMonth || l.fmr3br || 4000;
-  var avgUnitSF = proforma.avgUnitSf;
-  var units = pf.maxUnits;
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0);
+  var monthlyRent = ov.monthlyRent != null ? ov.monthlyRent : (l.estRentMonth || l.fmr3br || 4000);
+  var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
+  var units = ov.units != null ? ov.units : pf.maxUnits;
   var buildableSF_om = units * avgUnitSF;
-  var allInBuildPSF = pf.adjBuildCostPerSf;
+  var allInBuildPSF = ov.allInBuildPSF != null ? ov.allInBuildPSF : pf.adjBuildCostPerSf;
+  var askingPrice = ov.askingPrice != null ? ov.askingPrice : (l.price || 0);
 
-  var ed = sizeEquityAndDebt(l.price, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
+  var ed = sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
 
   // ── Constants (must match sizeEquityAndDebt) ──
   var SOFT_PCT = 0.25;
@@ -1355,12 +1493,12 @@ async function exportOM(lat, lng) {
   var totalProjectCost = ed.totalCost;
   var equity = ed.equity;
   var debt = totalProjectCost - equity;
-  var gpCoinvestEquity = Math.round(l.price * GP_COINVEST);
+  var gpCoinvestEquity = Math.round(askingPrice * GP_COINVEST);
   var lpEquity = equity - gpCoinvestEquity;
   var origFee = debt * ORIG_FEE_PCT;
 
   // ── Carry costs (monthly accumulation) ──
-  var monthlyTax = l.price * TAX_RATE / 12;
+  var monthlyTax = askingPrice * TAX_RATE / 12;
   var monthlyIns = INS_ANNUAL / 12;
 
   var totalPropTax = monthlyTax * HOLD_MO;
@@ -1370,7 +1508,7 @@ async function exportOM(lat, lng) {
 
   // ── Interest (PIK — accrues on drawn debt) ──
   // Pre-dev: land acquisition debt drawn; Construction: progressive draws; Sale: fully drawn
-  var landDebt = Math.max(0, l.price - equity);  // debt portion of land
+  var landDebt = Math.max(0, askingPrice - equity);  // debt portion of land
   var constrDebt = debt - landDebt;  // remaining debt for construction
   // Simplified PIK: average outstanding x rate x time
   var preDevInterest = landDebt * INTEREST_RATE * (PRE_DEV_MO / 12);
@@ -1379,7 +1517,7 @@ async function exportOM(lat, lng) {
   var totalInterest = preDevInterest + constrInterest + saleInterest;
 
   // ── Fees ──
-  var acqFee = l.price * ACQ_FEE_PCT;
+  var acqFee = askingPrice * ACQ_FEE_PCT;
   var dispFee = 0;  // computed on exit below
   var totalSponsorFees = acqFee + totalAssetMgmt + totalDevMgmt;  // disposition added at exit
 
@@ -1459,7 +1597,7 @@ async function exportOM(lat, lng) {
     dom: l.dom || 0,
 
     // Acquisition
-    asking_price: l.price || 0,
+    asking_price: askingPrice,
 
     // Development
     units: units,
@@ -1617,4 +1755,4 @@ async function exportOM(lat, lng) {
   }
 }
 
-export { exportCSV, exportModel, exportOM, sizeEquityAndDebt };
+export { exportCSV, exportModel, exportOM, showExportModal, closeExportModal, sizeEquityAndDebt };

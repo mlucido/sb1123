@@ -1453,7 +1453,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 // ── Module imports ──
 import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
-import { initExport, exportCSV, exportModel, exportOM } from './js/export.js';
+import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
 import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive } from './js/comps.js';
 
@@ -2611,8 +2611,8 @@ function dealCardDD(l){
 function dealCardActions(l){
   var isSaved = isFavorite(l);
   var h = '<div class="dp-actions">';
-  h += '<button onclick="exportModel('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#8595;</span>XLS</button>';
-  h += '<button onclick="exportOM('+l.lat+','+l.lng+').catch(console.error)"><span class="dp-icon">&#128196;</span>OM</button>';
+  h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'xls\')"><span class="dp-icon">&#8595;</span>XLS</button>';
+  h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'om\')"><span class="dp-icon">&#128196;</span>OM</button>';
   h += '<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&amp;t=k&amp;z=19" target="_blank"><span class="dp-icon">&#128205;</span>Maps</a>';
   if(l.url) h += '<a href="'+l.url+'" target="_blank"><span class="dp-icon">&#127968;</span>Redfin</a>';
   else h += '<span></span>';
@@ -3019,8 +3019,8 @@ function buildOffMarketLayer(){
         ${MARKET.hasZimas?`<a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>`:''}
         ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
-        <button class="popup-fav-btn" onclick="exportModel(${l.lat},${l.lng}).catch(console.error)">&#128202; XLS</button>
-        <button class="popup-fav-btn" onclick="exportOM(${l.lat},${l.lng}).catch(console.error)">&#128196; OM</button>
+        <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'xls')">&#128202; XLS</button>
+        <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'om')">&#128196; OM</button>
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
@@ -3202,6 +3202,8 @@ function closeDataKeyModal(){
 // ── Escape key: close topmost modal/panel ──
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
+  var em = document.getElementById('exportModal');
+  if(em) { closeExportModal(); return; }
   if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
   else if(document.getElementById('dataKeyModal').classList.contains('active')) closeDataKeyModal();
   else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
@@ -3875,6 +3877,8 @@ window.dismissOnboarding = dismissOnboarding;
 window.exportCSV = exportCSV;
 window.exportModel = exportModel;
 window.exportOM = exportOM;
+window.showExportModal = showExportModal;
+window.closeExportModal = closeExportModal;
 window.flyToListing = flyToListing;
 window.hideCompsTable = hideCompsTable;
 window.hideRentalCompsTable = hideRentalCompsTable;
