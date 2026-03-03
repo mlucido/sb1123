@@ -1159,20 +1159,20 @@ function buildBTRTab(wb) {
   setFormula(ws, 'C21', 'IF(C20=0,0,C9/C20)', 0, '0.00x');
   ws.getCell('C21').font = { bold: true };
 
-  labelCell(ws, 22, 2, 'Annual Cash Flow');
-  setFormula(ws, 'C22', 'C9-C20', 0, '$#,##0');
-  ws.getCell('C22').font = { bold: true };
-
   // ── Cash Flow ──
-  ws.getCell('B24').value = 'LEVERED CASH FLOW';
-  ws.getCell('B24').font = _hdrFont; ws.getCell('B24').fill = _hdrFill;
-  ws.getCell('C24').fill = _hdrFill;
+  ws.getCell('B23').value = 'LEVERED CASH FLOW';
+  ws.getCell('B23').font = _hdrFont; ws.getCell('B23').fill = _hdrFill;
+  ws.getCell('C23').fill = _hdrFill;
+
+  labelCell(ws, 24, 2, 'Annual Cash Flow');
+  setFormula(ws, 'C24', 'C9-C20', 0, '$#,##0');
+  ws.getCell('C24').font = { bold: true };
 
   labelCell(ws, 25, 2, 'Equity After Refi');
   setFormula(ws, 'C25', 'Assumptions!G16-C18', 0, '$#,##0');
 
   labelCell(ws, 26, 2, 'Cash-on-Cash');
-  setFormula(ws, 'C26', 'IF(C25=0,0,C22/C25)', 0, '0.0%');
+  setFormula(ws, 'C26', 'IF(C25=0,0,C24/C25)', 0, '0.0%');
   ws.getCell('C26').font = { bold: true };
 
   labelCell(ws, 27, 2, 'Cash-Out at Refi');
