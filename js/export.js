@@ -1285,7 +1285,7 @@ function showExportModal(lat, lng, type) {
   var buildSrc = slopePct > 0 ? 'slope-adj ' + slopePct + '%' : 'base';
   var rentSrc = l.estRentMonth ? 'est rent' : l.fmr3br ? 'HUD SAFMR' : 'default';
 
-  var typeLabel = type === 'xls' ? 'Export XLS Model' : 'Export Offering Memo';
+  var typeLabel = type === 'xls' ? 'Export XLS Model' : type === 'teaser' ? 'Export Investor Teaser' : 'Export Offering Memo';
   var addr = l.address || '';
   var zone = (l.zone || 'R1').toUpperCase();
 
@@ -1317,7 +1317,7 @@ function showExportModal(lat, lng, type) {
         '</div>' +
         '<button id="expDoExport" style="margin-top:16px;width:100%;padding:10px;border:none;border-radius:8px;' +
           'background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer">' +
-          (type === 'xls' ? 'Download XLS' : 'Generate OM') +
+          (type === 'xls' ? 'Download XLS' : type === 'teaser' ? 'Generate Teaser' : 'Generate OM') +
         '</button>' +
       '</div>' +
     '</div>';
@@ -1333,11 +1333,12 @@ function showExportModal(lat, lng, type) {
     btn.style.opacity = '0.7';
     try {
       if (type === 'xls') await exportModel(lat, lng, vals);
+      else if (type === 'teaser') await window.generateTeaser(lat, lng, vals);
       else await exportOM(lat, lng, vals);
       closeExportModal();
     } catch (err) {
       console.error(err);
-      btn.textContent = type === 'xls' ? 'Download XLS' : 'Generate OM';
+      btn.textContent = type === 'xls' ? 'Download XLS' : type === 'teaser' ? 'Generate Teaser' : 'Generate OM';
       btn.disabled = false;
       btn.style.opacity = '1';
     }
