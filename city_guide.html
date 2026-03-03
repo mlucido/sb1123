@@ -53,7 +53,7 @@
   .search-count { font-size:12px; color:#94a3b8; margin-top:6px; }
 
   /* Summary table */
-  .table-wrap { overflow-x:auto; border-radius:12px; border:1px solid #e2e8f0; background:#fff; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .table-wrap { overflow-x:auto; border-radius:12px; border:1px solid #e2e8f0; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
   .summary-table { width:100%; border-collapse:collapse; font-size:13px; min-width:900px; }
   .summary-table thead { background:#f8fafc; position:sticky; top:0; z-index:2; }
   .summary-table th {
@@ -62,10 +62,9 @@
     white-space:nowrap;
   }
   .summary-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-  .summary-table tbody tr:hover { background:#f8fafc; }
+  .summary-table tbody tr.summary-row:hover { background:#f8fafc; }
   .summary-table .city-col { position:sticky; left:0; background:#fff; z-index:1; font-weight:600; min-width:160px; }
   .summary-table thead .city-col { background:#f8fafc; }
-  .summary-table tbody tr:hover .city-col { background:#f8fafc; }
   .city-link { color:#3b82f6; text-decoration:none; }
   .city-link:hover { text-decoration:underline; }
 
@@ -76,18 +75,14 @@
   .badge-yellow { background:#fef9c3; color:#854d0e; }
   .badge-2story { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; white-space:nowrap; }
 
-  /* City cards */
-  .city-cards { display:flex; flex-direction:column; gap:12px; }
-  .city-card { border-radius:12px; border:1px solid #e2e8f0; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
-  .city-card summary {
-    padding:16px 20px; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
-    font-size:15px; font-weight:700; list-style:none; user-select:none;
-  }
-  .city-card summary::-webkit-details-marker { display:none; }
-  .city-card summary::after { content:'▸'; color:#94a3b8; font-size:14px; transition:transform 0.2s; }
-  .city-card[open] summary::after { transform:rotate(90deg); }
-  .city-card summary .card-meta { display:flex; align-items:center; gap:10px; }
-  .city-card-body { padding:0 20px 20px; }
+  /* Expandable table rows */
+  .summary-row { cursor:pointer; user-select:none; }
+  .summary-row .expand-chevron { display:inline-block; width:14px; color:#94a3b8; font-size:12px; transition:transform 0.2s; margin-right:4px; }
+  .summary-row.open .expand-chevron { transform:rotate(90deg); }
+  .detail-row { display:none; }
+  .detail-row.open { display:table-row; }
+  .detail-row > td { padding:0 20px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+  .detail-row .city-card-body { padding-top:16px; }
 
   /* Card sections */
   .card-section { margin-bottom:16px; }
@@ -207,8 +202,6 @@
     </table>
   </div>
 
-  <!-- ═══ CITY CARDS ═══ -->
-  <div class="city-cards" id="cityCards"></div>
 
 </div>
 
@@ -222,7 +215,7 @@
   fetch('city_zoning.json')
     .then(function(r){ return r.json(); })
     .then(function(data){ init(data); })
-    .catch(function(e){ document.getElementById('cityCards').innerHTML = '<p style="color:#ef4444;padding:20px">Failed to load city_zoning.json: ' + e.message + '</p>'; });
+    .catch(function(e){ document.getElementById('summaryBody').innerHTML = '<tr><td colspan="8" style="color:#ef4444;padding:20px">Failed to load city_zoning.json: ' + e.message + '</td></tr>'; });
 
   function init(raw){
     // Filter out _meta key
@@ -243,7 +236,6 @@
     });
 
     renderTable(cities);
-    renderCards(cities);
     wireSearch(cities);
     handleHash();
   }
@@ -367,12 +359,208 @@
     return parts.length ? parts.join(' + ') : '\u2014';
   }
 
-  // ── Render summary table ──
+  // ── Render detail content for a city (used inside expandable rows) ──
+  function renderDetailContent(c){
+    var sections = '';
+
+    // SB 1123 Status
+    sections += cardSection('SB 1123 Status', statusBadge(c) + ' <span style="margin-left:8px;font-size:13px;color:#475569">' + esc(statusText(c)) + '</span>');
+
+    // Height & Stories
+    if(c.height_ft || c.height_notes){
+      var hb = '';
+      if(c.height_ft){
+        hb += '<dl>';
+        Object.keys(c.height_ft).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          hb += '<dt>' + esc(k) + ':</dt><dd class="mono">' + esc(String(c.height_ft[k])) + (typeof c.height_ft[k]==='number'?' ft':'') + '</dd>';
+        });
+        hb += '</dl>';
+      }
+      if(c.height_notes){
+        Object.keys(c.height_notes).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          hb += '<div style="font-size:12px;color:#64748b;margin-top:4px"><strong>' + esc(k) + ':</strong> ' + esc(c.height_notes[k]) + '</div>';
+        });
+      }
+      sections += cardSection('Height & Stories', hb);
+    }
+
+    // Plate Heights
+    if(c.plate_heights){
+      var pb = '<dl>';
+      Object.keys(c.plate_heights).forEach(function(k){
+        if(k.charAt(0) === '_') return;
+        pb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.plate_heights[k])) + '</dd>';
+      });
+      pb += '</dl>';
+      if(c.plate_heights._note) pb += '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + esc(c.plate_heights._note) + '</div>';
+      sections += cardSection('Plate Heights', pb);
+    }
+
+    // Encroachment Plane
+    if(c.encroachment_plane){
+      var ep = c.encroachment_plane;
+      var eb = '<dl>';
+      if(ep.angle_from_vertical_deg != null) eb += '<dt>Angle:</dt><dd>' + ep.angle_from_vertical_deg + '° from vertical</dd>';
+      if(ep.start_height_ft != null) eb += '<dt>Starts at:</dt><dd>' + ep.start_height_ft + ' ft above ' + esc(ep.start_at || 'property line') + '</dd>';
+      if(ep.impact) eb += '<dt>Impact:</dt><dd>' + esc(ep.impact) + '</dd>';
+      eb += '</dl>';
+      sections += cardSection('Encroachment / Daylight Plane', eb);
+    }
+
+    // Setbacks
+    if(c.setbacks_ft){
+      var stb = '<dl>';
+      Object.keys(c.setbacks_ft).forEach(function(k){
+        if(k.charAt(0) === '_') return;
+        var v = c.setbacks_ft[k];
+        if(typeof v === 'object'){
+          stb += '<dt>' + esc(k) + ':</dt><dd>Front ' + fmt(v.front) + ', Side ' + fmt(v.side) + ', Rear ' + fmt(v.rear) + ' ft</dd>';
+        } else {
+          stb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(v)) + '</dd>';
+        }
+      });
+      stb += '</dl>';
+      sections += cardSection('Setbacks', stb);
+    }
+
+    // FAR / Lot Coverage
+    if(c.far || (c.floor_area_limits && c.floor_area_limits.lot_coverage_pct)){
+      var fb = '<dl>';
+      if(c.far){
+        Object.keys(c.far).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          fb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.far[k])) + '</dd>';
+        });
+      }
+      if(c.floor_area_limits && c.floor_area_limits.lot_coverage_pct){
+        var lc = c.floor_area_limits.lot_coverage_pct;
+        Object.keys(lc).forEach(function(k){
+          if(k.charAt(0) === '_') return;
+          fb += '<dt>' + esc(k) + ' lot coverage:</dt><dd>' + lc[k] + '%</dd>';
+        });
+      }
+      fb += '</dl>';
+      sections += cardSection('FAR / Lot Coverage', fb);
+    }
+
+    // Parking
+    if(c.parking){
+      var pkb = '<dl>';
+      Object.keys(c.parking).forEach(function(k){
+        if(k.charAt(0) === '_') return;
+        pkb += '<dt>' + esc(k.replace(/_/g,' ')) + ':</dt><dd>' + esc(String(c.parking[k])) + '</dd>';
+      });
+      pkb += '</dl>';
+      sections += cardSection('Parking', pkb);
+    }
+
+    // Rent Stabilization
+    if(c.rent_stabilization){
+      var rs = c.rent_stabilization;
+      var rsb = '';
+      if(rs.has_rso){
+        rsb += '<dl>';
+        if(rs.name) rsb += '<dt>Program:</dt><dd>' + esc(rs.name) + '</dd>';
+        if(rs.year_built_threshold) rsb += '<dt>Applies to:</dt><dd>Buildings pre-' + rs.year_built_threshold + ', ' + (rs.unit_count_threshold||2) + '+ units</dd>';
+        if(rs.annual_increase_formula) rsb += '<dt>Annual increase:</dt><dd>' + esc(rs.annual_increase_formula) + (rs.current_annual_increase_pct ? ' (currently ' + rs.current_annual_increase_pct + '%)' : '') + '</dd>';
+        if(rs.ellis_act){
+          rsb += '<dt>Ellis Act relocation:</dt><dd>';
+          if(rs.ellis_act.relocation_up_to_3yr) rsb += '&lt;3yr: ' + esc(rs.ellis_act.relocation_up_to_3yr) + '; ';
+          if(rs.ellis_act.relocation_over_10yr) rsb += '10yr+: ' + esc(rs.ellis_act.relocation_over_10yr);
+          rsb += '</dd>';
+        }
+        if(rs.difference_from_la) rsb += '<dt>vs LA:</dt><dd>' + esc(rs.difference_from_la) + '</dd>';
+        rsb += '</dl>';
+      } else {
+        rsb = '<span style="color:#22c55e;font-weight:600">No local rent control</span>';
+        if(rs.notes) rsb += '<div style="font-size:12px;color:#64748b;margin-top:4px">' + esc(rs.notes) + '</div>';
+      }
+      sections += cardSection('Rent Stabilization / RSO', rsb);
+    }
+
+    // City Fees
+    var cfees = c.city_fees || c.impact_fees;
+    if(cfees){
+      var ifb = '';
+      if(cfees.est_total_per_unit){
+        var tot = cfees.est_total_per_unit;
+        ifb += '<div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px" class="mono">~$' + Math.round(tot/1000) + 'K/unit &nbsp;($' + Number(tot).toLocaleString() + ')</div>';
+        ifb += '<dl>';
+        if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF' + (cfees.school_district ? ' (' + esc(cfees.school_district) + ')' : '') + '</dd>';
+        if(cfees.impact_fees_per_unit != null && cfees.impact_fees_per_unit > 0) ifb += '<dt>Impact fees:</dt><dd>$' + Number(cfees.impact_fees_per_unit).toLocaleString() + '/unit</dd>';
+        else if(cfees.impact_fees_per_unit === 0) ifb += '<dt>Impact fees:</dt><dd>None</dd>';
+        if(cfees.park_fee_per_unit != null && cfees.park_fee_per_unit > 0) ifb += '<dt>Park fee:</dt><dd>$' + Number(cfees.park_fee_per_unit).toLocaleString() + '/unit</dd>';
+        if(cfees.sewer_fee_per_unit != null && cfees.sewer_fee_per_unit > 0) ifb += '<dt>Sewer fee:</dt><dd>$' + Number(cfees.sewer_fee_per_unit).toLocaleString() + '/unit</dd>';
+        if(cfees.permit_plan_check_per_unit) ifb += '<dt>Permit/plan check:</dt><dd>~$' + Number(cfees.permit_plan_check_per_unit).toLocaleString() + '/unit</dd>';
+        if(cfees.affordable_housing_note) ifb += '<dt>Affordable housing:</dt><dd>' + esc(cfees.affordable_housing_note) + '</dd>';
+        if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
+        ifb += '</dl>';
+        var conf = cfees.confidence || 'low';
+        var confColor = conf === 'high' ? '#166534' : conf === 'medium' ? '#854d0e' : '#9f1239';
+        var confBg = conf === 'high' ? '#dcfce7' : conf === 'medium' ? '#fef9c3' : '#ffe4e6';
+        ifb += '<div style="margin-top:8px"><span class="badge" style="background:' + confBg + ';color:' + confColor + '">' + conf + ' confidence</span></div>';
+      } else {
+        ifb += '<dl>';
+        if(cfees.residential_impact_fee && typeof cfees.residential_impact_fee === 'object'){
+          var rif = cfees.residential_impact_fee;
+          Object.keys(rif).forEach(function(k){
+            if(k.charAt(0) === '_') return;
+            var v = rif[k];
+            ifb += '<dt>' + esc(k) + ':</dt><dd>' + (typeof v === 'number' ? '$' + v.toLocaleString() : esc(String(v))) + '</dd>';
+          });
+        } else if(cfees.residential_impact_fee === null){
+          ifb += '<dt>City impact fee:</dt><dd>None found</dd>';
+        }
+        if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF (' + esc(cfees.school_district || '') + ')</dd>';
+        if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
+        ifb += '</dl>';
+      }
+      sections += cardSection('City Fees (10-unit est.)', ifb);
+    }
+
+    // Zone Mapping
+    if(c.zone_mapping){
+      var zmb = '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      Object.keys(c.zone_mapping).forEach(function(k){
+        if(k.charAt(0) === '_') return;
+        zmb += '<span class="mono" style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:4px">' + esc(k) + ' \u2192 ' + esc(c.zone_mapping[k]) + '</span>';
+      });
+      zmb += '</div>';
+      if(c.zone_mapping._note) zmb += '<div style="font-size:11px;color:#94a3b8;margin-top:6px">' + esc(c.zone_mapping._note) + '</div>';
+      sections += cardSection('Zone Mapping', zmb);
+    }
+
+    // Unconfirmed
+    if(c.unconfirmed && c.unconfirmed.length){
+      var ub = '<ul>' + c.unconfirmed.map(function(u){ return '<li>' + esc(u) + '</li>'; }).join('') + '</ul>';
+      sections += '<div class="card-section unconfirmed-section"><div class="card-section-title">Unconfirmed Items</div><div class="card-section-body">' + ub + '</div></div>';
+    }
+
+    // Sources
+    if(c.sources && c.sources.length){
+      var srcb = '<ul class="sources-list">' + c.sources.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+      sections += cardSection('Sources & Citations', srcb);
+    }
+
+    // Map link
+    sections += '<a class="map-link" href="index.html?city=' + encodeURIComponent(c._name) + '">View on map \u2192</a>';
+
+    return sections;
+  }
+
+  function cardSection(title, body){
+    return '<div class="card-section"><div class="card-section-title">' + title + '</div><div class="card-section-body">' + body + '</div></div>';
+  }
+
+  // ── Render expandable summary table ──
   function renderTable(cities){
     var tbody = document.getElementById('summaryBody');
     tbody.innerHTML = cities.map(function(c){
-      return '<tr data-city="' + esc(c._name) + '">' +
-        '<td class="city-col"><a class="city-link" href="index.html?city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
+      var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+      return '<tr class="summary-row" data-city="' + esc(c._name) + '" data-detail="detail-' + slug + '">' +
+        '<td class="city-col"><span class="expand-chevron">\u25B8</span><a class="city-link" href="index.html?city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
         '<td>' + statusBadge(c) + '</td>' +
         '<td>' + getZoneCell(c, 'R1') + '</td>' +
         '<td>' + getZoneCell(c, 'R2') + '</td>' +
@@ -380,212 +568,25 @@
         '<td>' + getZoneCell(c, 'R4') + '</td>' +
         '<td>' + getRSO(c) + '</td>' +
         '<td style="font-size:12px">' + esc(getFees(c)) + '</td>' +
+      '</tr>' +
+      '<tr class="detail-row" id="detail-' + slug + '">' +
+        '<td colspan="8"><div class="city-card-body">' + renderDetailContent(c) + '</div></td>' +
       '</tr>';
     }).join('');
-  }
 
-  // ── Render city cards ──
-  function renderCards(cities){
-    var container = document.getElementById('cityCards');
-    container.innerHTML = cities.map(function(c){
-      var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-      var sections = '';
-
-      // SB 1123 Status
-      sections += cardSection('SB 1123 Status', statusBadge(c) + ' <span style="margin-left:8px;font-size:13px;color:#475569">' + esc(statusText(c)) + '</span>');
-
-      // Height & Stories
-      if(c.height_ft || c.height_notes){
-        var hb = '';
-        if(c.height_ft){
-          hb += '<dl>';
-          Object.keys(c.height_ft).forEach(function(k){
-            if(k.charAt(0) === '_') return;
-            hb += '<dt>' + esc(k) + ':</dt><dd class="mono">' + esc(String(c.height_ft[k])) + (typeof c.height_ft[k]==='number'?' ft':'') + '</dd>';
-          });
-          hb += '</dl>';
-        }
-        if(c.height_notes){
-          Object.keys(c.height_notes).forEach(function(k){
-            if(k.charAt(0) === '_') return;
-            hb += '<div style="font-size:12px;color:#64748b;margin-top:4px"><strong>' + esc(k) + ':</strong> ' + esc(c.height_notes[k]) + '</div>';
-          });
-        }
-        sections += cardSection('Height & Stories', hb);
+    // Event delegation for row expand/collapse
+    tbody.addEventListener('click', function(e){
+      // Don't toggle if clicking the city link
+      if(e.target.closest('.city-link')) return;
+      var row = e.target.closest('.summary-row');
+      if(!row) return;
+      var detailId = row.getAttribute('data-detail');
+      var detail = document.getElementById(detailId);
+      if(detail){
+        var isOpen = detail.classList.toggle('open');
+        row.classList.toggle('open', isOpen);
       }
-
-      // Plate Heights
-      if(c.plate_heights){
-        var pb = '<dl>';
-        Object.keys(c.plate_heights).forEach(function(k){
-          if(k.charAt(0) === '_') return;
-          pb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.plate_heights[k])) + '</dd>';
-        });
-        pb += '</dl>';
-        if(c.plate_heights._note) pb += '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + esc(c.plate_heights._note) + '</div>';
-        sections += cardSection('Plate Heights', pb);
-      }
-
-      // Encroachment Plane
-      if(c.encroachment_plane){
-        var ep = c.encroachment_plane;
-        var eb = '<dl>';
-        if(ep.angle_from_vertical_deg != null) eb += '<dt>Angle:</dt><dd>' + ep.angle_from_vertical_deg + '° from vertical</dd>';
-        if(ep.start_height_ft != null) eb += '<dt>Starts at:</dt><dd>' + ep.start_height_ft + ' ft above ' + esc(ep.start_at || 'property line') + '</dd>';
-        if(ep.impact) eb += '<dt>Impact:</dt><dd>' + esc(ep.impact) + '</dd>';
-        eb += '</dl>';
-        sections += cardSection('Encroachment / Daylight Plane', eb);
-      }
-
-      // Setbacks
-      if(c.setbacks_ft){
-        var sb = '<dl>';
-        Object.keys(c.setbacks_ft).forEach(function(k){
-          if(k.charAt(0) === '_') return;
-          var v = c.setbacks_ft[k];
-          if(typeof v === 'object'){
-            sb += '<dt>' + esc(k) + ':</dt><dd>Front ' + fmt(v.front) + ', Side ' + fmt(v.side) + ', Rear ' + fmt(v.rear) + ' ft</dd>';
-          } else {
-            sb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(v)) + '</dd>';
-          }
-        });
-        sb += '</dl>';
-        sections += cardSection('Setbacks', sb);
-      }
-
-      // FAR / Lot Coverage
-      if(c.far || (c.floor_area_limits && c.floor_area_limits.lot_coverage_pct)){
-        var fb = '<dl>';
-        if(c.far){
-          Object.keys(c.far).forEach(function(k){
-            if(k.charAt(0) === '_') return;
-            fb += '<dt>' + esc(k) + ':</dt><dd>' + esc(String(c.far[k])) + '</dd>';
-          });
-        }
-        if(c.floor_area_limits && c.floor_area_limits.lot_coverage_pct){
-          var lc = c.floor_area_limits.lot_coverage_pct;
-          Object.keys(lc).forEach(function(k){
-            if(k.charAt(0) === '_') return;
-            fb += '<dt>' + esc(k) + ' lot coverage:</dt><dd>' + lc[k] + '%</dd>';
-          });
-        }
-        fb += '</dl>';
-        sections += cardSection('FAR / Lot Coverage', fb);
-      }
-
-      // Parking
-      if(c.parking){
-        var pkb = '<dl>';
-        Object.keys(c.parking).forEach(function(k){
-          if(k.charAt(0) === '_') return;
-          pkb += '<dt>' + esc(k.replace(/_/g,' ')) + ':</dt><dd>' + esc(String(c.parking[k])) + '</dd>';
-        });
-        pkb += '</dl>';
-        sections += cardSection('Parking', pkb);
-      }
-
-      // Rent Stabilization
-      if(c.rent_stabilization){
-        var rs = c.rent_stabilization;
-        var rsb = '';
-        if(rs.has_rso){
-          rsb += '<dl>';
-          if(rs.name) rsb += '<dt>Program:</dt><dd>' + esc(rs.name) + '</dd>';
-          if(rs.year_built_threshold) rsb += '<dt>Applies to:</dt><dd>Buildings pre-' + rs.year_built_threshold + ', ' + (rs.unit_count_threshold||2) + '+ units</dd>';
-          if(rs.annual_increase_formula) rsb += '<dt>Annual increase:</dt><dd>' + esc(rs.annual_increase_formula) + (rs.current_annual_increase_pct ? ' (currently ' + rs.current_annual_increase_pct + '%)' : '') + '</dd>';
-          if(rs.ellis_act){
-            rsb += '<dt>Ellis Act relocation:</dt><dd>';
-            if(rs.ellis_act.relocation_up_to_3yr) rsb += '&lt;3yr: ' + esc(rs.ellis_act.relocation_up_to_3yr) + '; ';
-            if(rs.ellis_act.relocation_over_10yr) rsb += '10yr+: ' + esc(rs.ellis_act.relocation_over_10yr);
-            rsb += '</dd>';
-          }
-          if(rs.difference_from_la) rsb += '<dt>vs LA:</dt><dd>' + esc(rs.difference_from_la) + '</dd>';
-          rsb += '</dl>';
-        } else {
-          rsb = '<span style="color:#22c55e;font-weight:600">No local rent control</span>';
-          if(rs.notes) rsb += '<div style="font-size:12px;color:#64748b;margin-top:4px">' + esc(rs.notes) + '</div>';
-        }
-        sections += cardSection('Rent Stabilization / RSO', rsb);
-      }
-
-      // City Fees
-      var cfees = c.city_fees || c.impact_fees;
-      if(cfees){
-        var ifb = '';
-        if(cfees.est_total_per_unit){
-          var tot = cfees.est_total_per_unit;
-          ifb += '<div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px" class="mono">~$' + Math.round(tot/1000) + 'K/unit &nbsp;($' + Number(tot).toLocaleString() + ')</div>';
-          ifb += '<dl>';
-          if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF' + (cfees.school_district ? ' (' + esc(cfees.school_district) + ')' : '') + '</dd>';
-          if(cfees.impact_fees_per_unit != null && cfees.impact_fees_per_unit > 0) ifb += '<dt>Impact fees:</dt><dd>$' + Number(cfees.impact_fees_per_unit).toLocaleString() + '/unit</dd>';
-          else if(cfees.impact_fees_per_unit === 0) ifb += '<dt>Impact fees:</dt><dd>None</dd>';
-          if(cfees.park_fee_per_unit != null && cfees.park_fee_per_unit > 0) ifb += '<dt>Park fee:</dt><dd>$' + Number(cfees.park_fee_per_unit).toLocaleString() + '/unit</dd>';
-          if(cfees.sewer_fee_per_unit != null && cfees.sewer_fee_per_unit > 0) ifb += '<dt>Sewer fee:</dt><dd>$' + Number(cfees.sewer_fee_per_unit).toLocaleString() + '/unit</dd>';
-          if(cfees.permit_plan_check_per_unit) ifb += '<dt>Permit/plan check:</dt><dd>~$' + Number(cfees.permit_plan_check_per_unit).toLocaleString() + '/unit</dd>';
-          if(cfees.affordable_housing_note) ifb += '<dt>Affordable housing:</dt><dd>' + esc(cfees.affordable_housing_note) + '</dd>';
-          if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
-          ifb += '</dl>';
-          // Confidence badge
-          var conf = cfees.confidence || 'low';
-          var confColor = conf === 'high' ? '#166534' : conf === 'medium' ? '#854d0e' : '#9f1239';
-          var confBg = conf === 'high' ? '#dcfce7' : conf === 'medium' ? '#fef9c3' : '#ffe4e6';
-          ifb += '<div style="margin-top:8px"><span class="badge" style="background:' + confBg + ';color:' + confColor + '">' + conf + ' confidence</span></div>';
-        } else {
-          // fallback for old format
-          ifb += '<dl>';
-          if(cfees.residential_impact_fee && typeof cfees.residential_impact_fee === 'object'){
-            var rif = cfees.residential_impact_fee;
-            Object.keys(rif).forEach(function(k){
-              if(k.charAt(0) === '_') return;
-              var v = rif[k];
-              ifb += '<dt>' + esc(k) + ':</dt><dd>' + (typeof v === 'number' ? '$' + v.toLocaleString() : esc(String(v))) + '</dd>';
-            });
-          } else if(cfees.residential_impact_fee === null){
-            ifb += '<dt>City impact fee:</dt><dd>None found</dd>';
-          }
-          if(cfees.school_fee_per_sf) ifb += '<dt>School fee:</dt><dd>$' + cfees.school_fee_per_sf + '/SF (' + esc(cfees.school_district || '') + ')</dd>';
-          if(cfees.notes) ifb += '<dt>Notes:</dt><dd>' + esc(cfees.notes) + '</dd>';
-          ifb += '</dl>';
-        }
-        sections += cardSection('City Fees (10-unit est.)', ifb);
-      }
-
-      // Zone Mapping
-      if(c.zone_mapping){
-        var zmb = '<div style="display:flex;flex-wrap:wrap;gap:6px">';
-        Object.keys(c.zone_mapping).forEach(function(k){
-          if(k.charAt(0) === '_') return;
-          zmb += '<span class="mono" style="font-size:11px;background:#f1f5f9;padding:2px 8px;border-radius:4px">' + esc(k) + ' \u2192 ' + esc(c.zone_mapping[k]) + '</span>';
-        });
-        zmb += '</div>';
-        if(c.zone_mapping._note) zmb += '<div style="font-size:11px;color:#94a3b8;margin-top:6px">' + esc(c.zone_mapping._note) + '</div>';
-        sections += cardSection('Zone Mapping', zmb);
-      }
-
-      // Unconfirmed
-      if(c.unconfirmed && c.unconfirmed.length){
-        var ub = '<ul>' + c.unconfirmed.map(function(u){ return '<li>' + esc(u) + '</li>'; }).join('') + '</ul>';
-        sections += '<div class="card-section unconfirmed-section"><div class="card-section-title">Unconfirmed Items</div><div class="card-section-body">' + ub + '</div></div>';
-      }
-
-      // Sources
-      if(c.sources && c.sources.length){
-        var srcb = '<ul class="sources-list">' + c.sources.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
-        sections += cardSection('Sources & Citations', srcb);
-      }
-
-      // Map link
-      sections += '<a class="map-link" href="index.html?city=' + encodeURIComponent(c._name) + '">View on map \u2192</a>';
-
-      return '<details class="city-card" id="city-' + slug + '">' +
-        '<summary><div class="card-meta"><span>' + esc(c._name) + '</span>' + statusBadge(c) + '</div></summary>' +
-        '<div class="city-card-body">' + sections + '</div>' +
-      '</details>';
-    }).join('');
-  }
-
-  function cardSection(title, body){
-    return '<div class="card-section"><div class="card-section-title">' + title + '</div><div class="card-section-body">' + body + '</div></div>';
+    });
   }
 
   // ── Search ──
@@ -594,18 +595,25 @@
     var countEl = document.getElementById('searchCount');
     input.addEventListener('input', function(){
       var q = this.value.toLowerCase().trim();
-      var rows = document.querySelectorAll('#summaryBody tr');
-      var cards = document.querySelectorAll('.city-card');
+      var summaryRows = document.querySelectorAll('#summaryBody .summary-row');
       var visible = 0;
-      rows.forEach(function(row){
+      summaryRows.forEach(function(row){
         var name = (row.getAttribute('data-city') || '').toLowerCase();
         var show = !q || name.indexOf(q) >= 0;
         row.style.display = show ? '' : 'none';
+        // Also hide/show the corresponding detail row
+        var detailId = row.getAttribute('data-detail');
+        var detail = document.getElementById(detailId);
+        if(detail){
+          if(!show){
+            detail.style.display = 'none';
+            detail.classList.remove('open');
+            row.classList.remove('open');
+          } else {
+            detail.style.display = '';
+          }
+        }
         if(show) visible++;
-      });
-      cards.forEach(function(card){
-        var name = card.querySelector('summary span').textContent.toLowerCase();
-        card.style.display = (!q || name.indexOf(q) >= 0) ? '' : 'none';
       });
       countEl.textContent = q ? visible + ' of ' + cities.length + ' cities' : '';
     });
@@ -614,11 +622,17 @@
   // ── Hash navigation ──
   function handleHash(){
     var hash = window.location.hash;
-    if(!hash || !hash.startsWith('#city-')) return;
-    var el = document.getElementById(hash.substring(1));
-    if(el){
-      el.open = true;
-      setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+    if(!hash || hash.indexOf('#city-') !== 0) return;
+    var slug = hash.substring(1);  // "city-pasadena"
+    // detail row ids are "detail-slug", hash is "#city-slug"
+    var detailId = 'detail-' + slug.substring(5); // strip "city-" prefix
+    var detail = document.getElementById(detailId);
+    if(detail){
+      detail.classList.add('open');
+      // Also mark the summary row as open
+      var summaryRow = detail.previousElementSibling;
+      if(summaryRow) summaryRow.classList.add('open');
+      setTimeout(function(){ detail.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
     }
   }
   window.addEventListener('hashchange', handleHash);
