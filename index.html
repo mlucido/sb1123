@@ -4150,7 +4150,7 @@ async function generateTeaser(lat, lng, overrides) {
     return { text: text, style: 'sectionHeading' };
   }
   function tealRule() {
-    return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 524, y2: 0, lineWidth: 2, lineColor: TC.teal }], margin: [0, 0, 0, 3] };
+    return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 524, y2: 0, lineWidth: 2, lineColor: TC.teal }], margin: [0, 1, 0, 2] };
   }
 
   var content = [];
@@ -4230,7 +4230,7 @@ async function generateTeaser(lat, lng, overrides) {
         { text: h.b, bold: true, fontSize: 7.9, color: TC.body },
         { text: h.t, fontSize: 7.9, color: TC.body },
       ],
-      lineHeight: 1.22,
+      lineHeight: 1.1,
       margin: [0, 0, 0, 2],
     }; }),
     margin: [10, 0, 0, 0],
@@ -4244,14 +4244,14 @@ async function generateTeaser(lat, lng, overrides) {
 
   content.push({
     columns: [
-      { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
+      { width: '48%', table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
         dRow('Sources', 'Amount', true),
         dRow('Construction Loan (' + Math.round(D.ltcPct * 100) + '% LTC)', fmt$(D.totalDebt)),
         dRow('LP Equity (' + Math.round((1 - D.ltcPct) * 100) + '%)', fmt$(D.totalEquity)),
         dRow('Total Capitalization', fmt$(D.totalCap), false, true),
       ] }, layout: tightTableLayout },
       { width: '4%', text: '' },
-      { width: '48%', table: { headerRows: 1, widths: ['*', 'auto'], body: [
+      { width: '48%', table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
         dRow('Uses', 'Amount', true),
         dRow('Land Acquisition', fmt$(D.askingPrice)),
         dRow('Development Costs', fmt$(D.devCosts)),
@@ -4268,7 +4268,7 @@ async function generateTeaser(lat, lng, overrides) {
   content.push(tealRule());
 
   content.push({
-    table: { headerRows: 1, widths: ['*', 'auto'], body: [
+    table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
       dRow('Line Item', 'Amount', true),
       dRow('Gross Sale (' + D.units + ' new \u00d7 ' + D.unitSF.toLocaleString() + ' SF \u00d7 ' + fmt$(D.exitPSF) + '/SF \u00d7 ' + Math.round((1 - D.bulkDiscountPct) * 100) + '% + existing home)', fmt$(D.grossSaleTotal)),
       dRow('Less: Transaction Costs', '(' + fmt$(D.txnCosts) + ')'),
@@ -4304,6 +4304,7 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({ text: 'LP returns by exit $/SF (' + D.holdMonths + '-mo hold, base case highlighted)', italics: true, fontSize: 7.0, color: TC.body, margin: [0, 0, 0, 2] });
   content.push({
     table: {
+      heights: function() { return 10; },
       widths: ['auto'].concat(D.sensScenarios.map(function() { return '*'; })),
       body: [
         [sCell('Exit $/SF', true)].concat(D.sensScenarios.map(function(s) { return sCell(s.label, true); })),
@@ -4319,7 +4320,7 @@ async function generateTeaser(lat, lng, overrides) {
   content.push(sectionHead('Key Risks & Mitigants'));
   content.push(tealRule());
   content.push({
-    table: { headerRows: 1, widths: [120, '*'], body: [
+    table: { headerRows: 1, heights: function() { return 10; }, widths: [120, '*'], body: [
       rRow('Risk', 'Mitigant', true),
       rRow('Construction Cost Overruns', 'Fixed-price GC contract to be executed prior to construction start. ' + fmt$(D.buildPSF) + '/SF provides wood-frame commodity construction with ~85% domestic materials, limiting tariff exposure.'),
       rRow('Entitlement / Permitting', 'SB 1123 is a mandatory statute \u2014 not discretionary. 60-day clock; writ of mandate available. No CEQA, no public hearing.'),
@@ -4333,7 +4334,7 @@ async function generateTeaser(lat, lng, overrides) {
   content.push(sectionHead('Deal Structure'));
   content.push(tealRule());
   content.push({
-    table: { headerRows: 1, widths: [160, '*'], body: [
+    table: { headerRows: 1, heights: function() { return 10; }, widths: [160, '*'], body: [
       dRow('Term', 'Detail', true),
       dRow('Total LP Equity', fmt$(D.totalEquity)),
       dRow('Minimum Investment', fmt$(D.minInvestment)),
@@ -4407,10 +4408,10 @@ async function generateTeaser(lat, lng, overrides) {
         ],
       };
     },
-    defaultStyle: { font: 'Roboto', fontSize: 7.9, color: TC.body, lineHeight: 1.22 },
+    defaultStyle: { font: 'Roboto', fontSize: 7.9, color: TC.body, lineHeight: 1.1 },
     styles: {
-      sectionHeading: { fontSize: 10.6, bold: true, color: TC.navy, margin: [0, 6, 0, 2] },
-      bodyText: { fontSize: 7.9, color: TC.body, lineHeight: 1.22, margin: [0, 0, 0, 4] },
+      sectionHeading: { fontSize: 10.6, bold: true, color: TC.navy, margin: [0, 4, 0, 0] },
+      bodyText: { fontSize: 7.9, color: TC.body, lineHeight: 1.1, margin: [0, 0, 0, 4] },
       metricValue: { fontSize: 13, bold: true, color: TC.navy },
       metricLabel: { fontSize: 7.0, color: '#666666' },
     },
