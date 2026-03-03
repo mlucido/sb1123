@@ -74,6 +74,21 @@
   .badge-blue { background:#dbeafe; color:#1e40af; }
   .badge-yellow { background:#fef9c3; color:#854d0e; }
   .badge-2story { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; white-space:nowrap; }
+  .badge-3story { display:inline-block; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:700; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; white-space:nowrap; }
+  .badge-3story-wrap { display:none; }
+  .show-3story .badge-3story-wrap { display:block; margin-top:2px; }
+
+  /* Filter bar */
+  .filter-bar { display:flex; gap:8px; margin-bottom:16px; }
+  .filter-chip {
+    display:inline-flex; align-items:center; gap:5px; padding:6px 16px; font-size:13px; font-weight:600;
+    font-family:inherit; border:1px solid #e2e8f0; border-radius:20px; background:#fff; color:#64748b;
+    cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  }
+  .filter-chip:hover { border-color:#cbd5e1; color:#1e293b; background:#f1f5f9; }
+  .filter-chip.active { background:#166534; color:#fff; border-color:#166534; }
+  .filter-chip.active:hover { background:#15803d; border-color:#15803d; }
+  .chip-icon { font-size:11px; }
 
   /* Expandable table rows */
   .summary-row { cursor:pointer; user-select:none; }
@@ -201,6 +216,13 @@
     <div class="search-count" id="searchCount"></div>
   </div>
 
+  <!-- ═══ FILTERS ═══ -->
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-chip" id="filter3story" type="button">
+      <span class="chip-icon">&#9650;</span> 3-Story Feasible
+    </button>
+  </div>
+
   <!-- ═══ SUMMARY TABLE ═══ -->
   <div class="table-wrap">
     <table class="summary-table">
@@ -270,6 +292,13 @@
 
     renderTable(cities);
     wireSearch(cities);
+    wireFilters(cities);
+    // Auto-activate 3-story filter from URL param
+    if(params.get('3story') === '1'){
+      filterState.threeStory = true;
+      document.getElementById('filter3story').classList.add('active');
+      applyFilters(cities);
+    }
     handleHash();
   }
 
@@ -288,14 +317,14 @@
 
   // ── Zone cell for summary table ──
   function getZoneCell(c, gZone){
-    if(!c.zone_mapping) return '<span style="color:#94a3b8">\u2014</span>';
+    if(!c.zone_mapping) return {html:'<span style="color:#94a3b8">\u2014</span>', feasible3:false};
     // Find local zone names that map to this generic zone
     var locals = [];
     Object.keys(c.zone_mapping).forEach(function(k){
       if(k.charAt(0) === '_') return;
       if(c.zone_mapping[k] === gZone) locals.push(k);
     });
-    if(!locals.length) return '<span style="color:#94a3b8">\u2014</span>';
+    if(!locals.length) return {html:'<span style="color:#94a3b8">\u2014</span>', feasible3:false};
     // Normalized helpers
     var normLocals = locals.map(function(z){ return z.replace(/[-\s]/g,'').toUpperCase(); });
     var normG = gZone.replace(/[-\s]/g,'').toUpperCase();
@@ -312,10 +341,13 @@
     }
     // Collect heights
     var hts = [];
+    var hasNoLimit = false;
     if(c.height_ft){
       Object.keys(c.height_ft).forEach(function(k){
         if(k.charAt(0)==='_') return;
-        if(typeof c.height_ft[k]==='number' && keyMatchesZone(k)) hts.push(c.height_ft[k]);
+        if(!keyMatchesZone(k)) return;
+        if(typeof c.height_ft[k]==='number') hts.push(c.height_ft[k]);
+        else if(typeof c.height_ft[k]==='string' && /no\s*limit|unlimited/i.test(c.height_ft[k])) hasNoLimit = true;
       });
     }
     hts = hts.filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
@@ -351,6 +383,23 @@
         if(/2.story\s*max|effectively\s+2|limited\s+to\s+2/i.test(v)) twoStory = true;
       });
     }
+    // 3-story feasibility check
+    var feasible3 = false;
+    // Check explicit max_stories >= 3
+    if(c.max_stories){
+      Object.keys(c.max_stories).forEach(function(k){
+        if(k.charAt(0)==='_') return;
+        if(!keyMatchesZone(k)) return;
+        var v = c.max_stories[k];
+        if(typeof v === 'number' && v >= 3) feasible3 = true;
+        else if(typeof v === 'string' && parseInt(v,10) >= 3) feasible3 = true;
+      });
+    }
+    // Height-based: >= 30 ft and not 2-story limited, or no limit
+    if(!feasible3){
+      var maxHt = hts.length ? hts[hts.length-1] : 0;
+      if((maxHt >= 30 && !twoStory) || hasNoLimit) feasible3 = true;
+    }
     // Build cell
     var zd = locals.length<=2 ? locals.join(', ') : locals.slice(0,2).join(', ')+' +'+(locals.length-2);
     var html = '<div style="line-height:1.4">';
@@ -363,8 +412,9 @@
     else if(strF.length>0){ var sf=strF[0]; if(sf.length>15) sf=sf.substring(0,12)+'\u2026'; info.push(sf); }
     if(info.length) html += '<div style="font-size:11px;color:#64748b">' + esc(info.join(' \u00b7 ')) + '</div>';
     if(twoStory) html += '<div style="margin-top:2px"><span class="badge-2story">2-STORY LIMIT</span></div>';
+    if(feasible3) html += '<div class="badge-3story-wrap" style="margin-top:2px"><span class="badge-3story">3-STORY OK</span></div>';
     html += '</div>';
-    return html;
+    return {html:html, feasible3:feasible3};
   }
 
   function getRSO(c){
@@ -592,13 +642,18 @@
     var tbody = document.getElementById('summaryBody');
     tbody.innerHTML = cities.map(function(c){
       var slug = c._name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-      return '<tr class="summary-row" data-city="' + esc(c._name) + '" data-detail="detail-' + slug + '">' +
+      var r1 = getZoneCell(c, 'R1');
+      var r2 = getZoneCell(c, 'R2');
+      var r3 = getZoneCell(c, 'R3');
+      var r4 = getZoneCell(c, 'R4');
+      var any3 = r1.feasible3 || r2.feasible3 || r3.feasible3 || r4.feasible3;
+      return '<tr class="summary-row" data-city="' + esc(c._name) + '" data-detail="detail-' + slug + '"' + (any3 ? ' data-3story="1"' : '') + '>' +
         '<td class="city-col"><span class="expand-chevron">\u25B8</span><a class="city-link" href="index.html?market=' + market + '&city=' + encodeURIComponent(c._name) + '">' + esc(c._name) + '</a></td>' +
         '<td>' + statusBadge(c) + '</td>' +
-        '<td>' + getZoneCell(c, 'R1') + '</td>' +
-        '<td>' + getZoneCell(c, 'R2') + '</td>' +
-        '<td>' + getZoneCell(c, 'R3') + '</td>' +
-        '<td>' + getZoneCell(c, 'R4') + '</td>' +
+        '<td>' + r1.html + '</td>' +
+        '<td>' + r2.html + '</td>' +
+        '<td>' + r3.html + '</td>' +
+        '<td>' + r4.html + '</td>' +
         '<td>' + getRSO(c) + '</td>' +
         '<td style="font-size:12px">' + esc(getFees(c)) + '</td>' +
       '</tr>' +
@@ -622,33 +677,69 @@
     });
   }
 
-  // ── Search ──
+  // ── Unified filter state ──
+  var filterState = { search: '', threeStory: false };
+
+  function applyFilters(cities){
+    var summaryRows = document.querySelectorAll('#summaryBody .summary-row');
+    var countEl = document.getElementById('searchCount');
+    var tableWrap = document.querySelector('.table-wrap');
+    var q = filterState.search;
+    var f3 = filterState.threeStory;
+    var visible = 0;
+
+    // Toggle class for CSS-driven badge visibility
+    if(f3) tableWrap.classList.add('show-3story');
+    else tableWrap.classList.remove('show-3story');
+
+    summaryRows.forEach(function(row){
+      var name = (row.getAttribute('data-city') || '').toLowerCase();
+      var passSearch = !q || name.indexOf(q) >= 0;
+      var passStory = !f3 || row.getAttribute('data-3story') === '1';
+      var show = passSearch && passStory;
+      row.style.display = show ? '' : 'none';
+      var detailId = row.getAttribute('data-detail');
+      var detail = document.getElementById(detailId);
+      if(detail){
+        if(!show){
+          detail.style.display = 'none';
+          detail.classList.remove('open');
+          row.classList.remove('open');
+        } else {
+          detail.style.display = '';
+        }
+      }
+      if(show) visible++;
+    });
+
+    var parts = [];
+    if(q || f3) parts.push(visible + ' of ' + cities.length + ' cities');
+    if(f3) parts.push('3-story feasible');
+    countEl.textContent = parts.join(' \u2014 ');
+  }
+
   function wireSearch(cities){
     var input = document.getElementById('citySearch');
-    var countEl = document.getElementById('searchCount');
     input.addEventListener('input', function(){
-      var q = this.value.toLowerCase().trim();
-      var summaryRows = document.querySelectorAll('#summaryBody .summary-row');
-      var visible = 0;
-      summaryRows.forEach(function(row){
-        var name = (row.getAttribute('data-city') || '').toLowerCase();
-        var show = !q || name.indexOf(q) >= 0;
-        row.style.display = show ? '' : 'none';
-        // Also hide/show the corresponding detail row
-        var detailId = row.getAttribute('data-detail');
-        var detail = document.getElementById(detailId);
-        if(detail){
-          if(!show){
-            detail.style.display = 'none';
-            detail.classList.remove('open');
-            row.classList.remove('open');
-          } else {
-            detail.style.display = '';
-          }
-        }
-        if(show) visible++;
+      filterState.search = this.value.toLowerCase().trim();
+      applyFilters(cities);
+    });
+  }
+
+  function wireFilters(cities){
+    var btn = document.getElementById('filter3story');
+    btn.addEventListener('click', function(){
+      filterState.threeStory = !filterState.threeStory;
+      btn.classList.toggle('active', filterState.threeStory);
+      applyFilters(cities);
+      // Update market toggle hrefs to preserve filter state
+      var btns = document.querySelectorAll('#marketToggle .market-btn');
+      btns.forEach(function(b){
+        var m = b.getAttribute('data-market');
+        var href = '?market=' + m;
+        if(filterState.threeStory) href += '&3story=1';
+        b.href = href;
       });
-      countEl.textContent = q ? visible + ' of ' + cities.length + ' cities' : '';
     });
   }
 
