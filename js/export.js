@@ -1460,10 +1460,8 @@ async function exportOM(lat, lng, overrides) {
 
   var ed = sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
 
-  // ── Constants (must match sizeEquityAndDebt) ──
+  // ── Constants (must match Assumptions tab / sizeEquityAndDebt) ──
   var SOFT_PCT = 0.25;
-  var SUBDIV = buildableSF_om * 10;
-  var AE = buildableSF_om * 5;
   var TAX_RATE = 0.011;
   var INS_ANNUAL = 20000;
   var AM_MONTHLY = 3000;
@@ -1474,7 +1472,7 @@ async function exportOM(lat, lng, overrides) {
   var INTEREST_RATE = 0.09;
   var LP_PREF = 0.08;
   var GP_PROMOTE = 0.20;
-  var GP_COINVEST = 0.02;
+  var GP_COINVEST = 0.05;
   var PRE_DEV_MO = 6;
   var CONSTR_MO = 12;
   var SALE_MO = 6;
@@ -1489,14 +1487,14 @@ async function exportOM(lat, lng, overrides) {
   // ── Development costs ──
   var buildableSF = units * avgUnitSF;
   var totalDev = buildableSF * allInBuildPSF;
-  var hardCosts = Math.round((totalDev - SUBDIV - AE) / (1 + SOFT_PCT));
+  var hardCosts = Math.round(totalDev / (1 + SOFT_PCT));
   var softCosts = Math.round(hardCosts * SOFT_PCT);
 
-  // ── Capital structure ──
+  // ── Capital structure (must match XLS: G14*(1-C44) for LP, G14*C44 for GP) ──
   var totalProjectCost = ed.totalCost;
   var equity = ed.equity;
   var debt = totalProjectCost - equity;
-  var gpCoinvestEquity = Math.round(askingPrice * GP_COINVEST);
+  var gpCoinvestEquity = Math.round(equity * GP_COINVEST);
   var lpEquity = equity - gpCoinvestEquity;
   var origFee = debt * ORIG_FEE_PCT;
 
@@ -1571,9 +1569,13 @@ async function exportOM(lat, lng, overrides) {
   var lpNetProfit = lpTotalDist - lpEquity;
   var lpMOIC = lpEquity > 0 ? lpTotalDist / lpEquity : 0;
 
-  // LP IRR (annualized approximation from MOIC and hold)
-  var holdYears = HOLD_MO / 12;
-  var lpIRR = holdYears > 0 ? Math.pow(lpMOIC, 1 / holdYears) - 1 : 0;
+  // LP IRR (annualized: MOIC^(12/months) - 1, matching XLS C6)
+  var lpIRR = HOLD_MO > 0 ? Math.pow(lpMOIC, 12 / HOLD_MO) - 1 : 0;
+
+  // Sanity check — log key values for debugging
+  console.log('[OM Export] equity:', equity, 'lpEquity:', lpEquity, 'gpCoinvest:', gpCoinvestEquity,
+    'totalCost:', totalProjectCost, 'grossRev:', grossRevenue, 'netProceeds:', netSaleProceeds,
+    'loanBal:', Math.round(loanBalance), 'lpMOIC:', lpMOIC.toFixed(3), 'lpIRR:', (lpIRR*100).toFixed(1)+'%');
 
   // Project-level metrics
   var projectMargin = netSaleProceeds > 0 ? (netSaleProceeds - totalProjectCost) / netSaleProceeds : 0;
@@ -1630,8 +1632,6 @@ async function exportOM(lat, lng, overrides) {
     hard_costs: hardCosts,
     soft_cost_pct: SOFT_PCT,
     soft_costs: softCosts,
-    subdivision_cost: SUBDIV,
-    ae_cost: AE,
     demo_cost: 0,
     total_dev_costs: totalDev,
 
