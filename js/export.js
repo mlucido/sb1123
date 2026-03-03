@@ -1176,6 +1176,10 @@ function buildBTRTab(wb) {
   labelCell(ws, 27, 2, 'Cash-Out at Refi');
   setFormula(ws, 'C27', 'C18-Assumptions!G16', 0, '$#,##0');
 
+  labelCell(ws, 28, 2, 'Return on Equity');
+  setFormula(ws, 'C28', 'IF(Assumptions!G14=0,0,(C9-Assumptions!G15*Assumptions!G18)/Assumptions!G14)', 0, '0.0%');
+  ws.getCell('C28').font = { bold: true };
+
   autoFitColumns(ws, { fixed: { 1: 2 } });
   ws.views = [{ showGridLines: false }];
   ws.pageSetup = { orientation: 'portrait', fitToPage: true, fitToWidth: 1 };
@@ -1186,17 +1190,42 @@ function buildExitCompsTab(wb, l) {
   var compResult = _deps.findCompsForListing(l);
   if (!compResult.used.length && !compResult.ref.length) return null;
 
+  // ── XLS-specific filtering for exit comps ──
+  // Combine used + ref, then apply stricter XLS filters
+  var allRaw = compResult.used.concat(compResult.ref);
+
+  // 24-month cutoff date
+  var cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - 24);
+  var cutoffStr = cutoffDate.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  var filtered = allRaw.filter(function(c) {
+    // SQFT: 1,300 - 2,000
+    if (!c.sqft || c.sqft < 1300 || c.sqft > 2000) return false;
+    // Sale date: last 24 months
+    if (!c.date || c.date < cutoffStr) return false;
+    // Year built: 2000+ OR T1 tier (new construction / remodel)
+    if (c.yb && c.yb < 2000 && c.t !== 1) return false;
+    return true;
+  });
+
+  // Sort by distance (closest first), cap at 100
+  filtered.sort(function(a, b) { return a.dist - b.dist; });
+  if (filtered.length > 100) filtered = filtered.slice(0, 100);
+
+  if (!filtered.length) return null;
+
   var cs = wb.addWorksheet('Exit Comps');
   var el = _deps.exitLabel(l);
 
   cs.getCell('A1').value = 'Exit Comps for ' + (l.address || '');
   cs.getCell('A1').font = { bold: true, size: 14 };
-  cs.mergeCells('A1:L1');
-  cs.getCell('A2').value = el.label + '  \u2014  $' + el.psf + '/SF';
+  cs.mergeCells('A1:J1');
+  cs.getCell('A2').value = el.label + '  \u2014  $' + el.psf + '/SF  (' + filtered.length + ' comps)';
   cs.getCell('A2').font = { bold: true, size: 11 };
-  cs.mergeCells('A2:L2');
+  cs.mergeCells('A2:J2');
 
-  var compHeaders = ['Status','Address','Sale Price','$/SF','SqFt','Beds','Baths','Zone','Year Built','Tier','Sale Date','Distance (mi)'];
+  var compHeaders = ['Address','Sale Price','$/SF','SqFt','Beds','Baths','Year Built','Tier','Sale Date','Distance (mi)'];
   var headerRow = cs.getRow(4);
   compHeaders.forEach(function(h, i) {
     var cell = headerRow.getCell(i + 1);
@@ -1206,34 +1235,31 @@ function buildExitCompsTab(wb, l) {
   });
 
   var greenFill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE8F5E9' } };
-  var allComps = compResult.used.concat(compResult.ref);
-  for (var ci = 0; ci < allComps.length; ci++) {
-    var comp = allComps[ci];
+  for (var ci = 0; ci < filtered.length; ci++) {
+    var comp = filtered[ci];
     var row = cs.getRow(5 + ci);
-    var isUsed = ci < compResult.used.length;
 
-    row.getCell(1).value = isUsed ? 'Used' : 'Ref';
-    row.getCell(2).value = comp.address || '';
-    row.getCell(3).value = comp.price || 0;
+    row.getCell(1).value = comp.address || '';
+    row.getCell(2).value = comp.price || 0;
+    row.getCell(2).numFmt = '$#,##0';
+    row.getCell(3).value = comp.ppsf || 0;
     row.getCell(3).numFmt = '$#,##0';
-    row.getCell(4).value = comp.ppsf || 0;
-    row.getCell(4).numFmt = '$#,##0';
-    row.getCell(5).value = comp.sqft || 0;
-    row.getCell(5).numFmt = '#,##0';
-    row.getCell(6).value = comp.bd || '';
-    row.getCell(7).value = comp.ba || '';
-    row.getCell(8).value = comp.zone || '';
-    row.getCell(9).value = comp.yb || '';
-    row.getCell(10).value = comp.t ? 'T' + comp.t : '';
-    row.getCell(11).value = comp.date || '';
-    row.getCell(12).value = comp.dist ? +comp.dist.toFixed(2) : '';
-    row.getCell(12).numFmt = '0.00';
+    row.getCell(4).value = comp.sqft || 0;
+    row.getCell(4).numFmt = '#,##0';
+    row.getCell(5).value = comp.bd || '';
+    row.getCell(6).value = comp.ba || '';
+    row.getCell(7).value = comp.yb || '';
+    row.getCell(8).value = comp.t ? 'T' + comp.t : '';
+    row.getCell(9).value = comp.date || '';
+    row.getCell(10).value = comp.dist ? +comp.dist.toFixed(2) : '';
+    row.getCell(10).numFmt = '0.00';
 
-    if (isUsed) {
-      for (var k = 1; k <= 12; k++) row.getCell(k).fill = greenFill;
+    // Highlight first 20 closest comps in green
+    if (ci < 20) {
+      for (var k = 1; k <= 10; k++) row.getCell(k).fill = greenFill;
     }
   }
-  autoFitColumns(cs, { fixed: { 1: 7, 3: 12, 4: 8, 5: 7, 6: 5, 7: 6, 8: 6, 9: 11, 10: 5, 11: 11, 12: 13 } });
+  autoFitColumns(cs, { fixed: { 2: 12, 3: 8, 4: 7, 5: 5, 6: 6, 7: 11, 8: 5, 9: 11, 10: 13 } });
   cs.views = [{ showGridLines: false }];
   return cs;
 }
