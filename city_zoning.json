@@ -79,11 +79,13 @@
       "name": "LA City RSO",
       "year_built_threshold": 1978,
       "year_built_note": "Certificate of occupancy before Oct 1, 1978",
-      "unit_count_threshold": 2
+      "unit_count_threshold": 2,
+      "reform_note": "Nov 2025 reform effective Jul 2026: formula changes to 90% CPI, ceiling 4%, floor 1%"
     },
     "city_fees": {
       "est_total_per_unit": 15500,
-      "school_fee_per_sf": 5.17,
+      "school_fee_per_sf": 5.38,
+      "school_fee_note": "State cap increased Jan 2026; LAUSD typically adopts max",
       "school_district": "LAUSD",
       "impact_fees_per_unit": 0,
       "park_fee_per_unit": 0,
@@ -532,10 +534,10 @@
   "Beverly Hills": {
     "rent_stabilization": {
       "has_rso": true,
-      "name": "Rent Stabilization Ordinance (Ch. 11 BHMC)",
+      "name": "Rent Stabilization Ordinance (Ch. 5 & Ch. 6 BHMC)",
       "year_built_threshold": 1995,
       "unit_count_threshold": 2,
-      "notes": "Covers apartments built before Feb 1995 with 2+ units. Annual increase set by Rent Stabilization Commission."
+      "notes": "Two-tier system: Chapter 5 covers units built before 1978 (stricter controls); Chapter 6 covers units built 1978-1995 (more limited). Annual increase set by Rent Stabilization Commission."
     },
     "sb1123": {
       "local_standards_adopted": false,
@@ -613,7 +615,8 @@
     "rent_stabilization": {
       "has_rso": true,
       "name": "Rent Stabilization Ordinance",
-      "year_built_threshold": 1996,
+      "year_built_threshold": 1979,
+      "year_built_note": "Rent stabilization covers units with certificate of occupancy before Jul 1, 1979. Costa-Hawkins (1996) exempts SFR/condos only.",
       "unit_count_threshold": 2,
       "annual_increase_formula": "75% of CPI",
       "notes": "One of the strongest RSO programs in CA. Covers units built before Jul 1979 (Costa-Hawkins) but just-cause applies to all rentals."
@@ -649,8 +652,9 @@
       "R4_max_avg_unit_sf": 1200
     },
     "city_fees": {
-      "est_total_per_unit": 20000,
-      "school_fee_per_sf": 5.17,
+      "est_total_per_unit": 20250,
+      "school_fee_per_sf": 5.38,
+      "school_fee_note": "LAUSD — state cap increased Jan 2026",
       "school_district": "LAUSD",
       "impact_fees_per_unit": 5500,
       "permit_plan_check_per_unit": 8000,
@@ -718,14 +722,15 @@
       "type": "subterranean required"
     },
     "city_fees": {
-      "est_total_per_unit": 33000,
-      "school_fee_per_sf": 5.38,
+      "est_total_per_unit": 31000,
+      "school_fee_per_sf": 3.48,
+      "school_fee_note": "GUSD developer fees per gusd.net — well below state cap",
       "school_district": "GUSD",
       "impact_fees_per_unit": 18800,
       "permit_plan_check_per_unit": 8000,
       "affordable_housing_note": "15% inclusionary requirement for projects with 8+ units",
-      "notes": "Significant impact fees; inclusionary requirement adds cost for larger projects",
-      "confidence": "medium"
+      "notes": "Significant impact fees ($18,751 MF); inclusionary requirement adds cost for larger projects",
+      "confidence": "high"
     },
     "unconfirmed": [
       "R1 height, FAR, lot coverage, rear setback",
@@ -791,6 +796,7 @@
     "city_fees": {
       "est_total_per_unit": 22000,
       "school_fee_per_sf": 5.55,
+      "school_fee_note": "Level 2 alternative fee — exceeds Level 1 cap of $5.38. BUSD approved $0.38/SF increase in 2025.",
       "school_district": "BUSD",
       "impact_fees_per_unit": 7300,
       "permit_plan_check_per_unit": 8000,
@@ -901,7 +907,7 @@
       "year_built_threshold": 1995,
       "unit_count_threshold": 2,
       "annual_increase_formula": "3-5% per year",
-      "notes": "Adopted 2022. Covers MF units built before Feb 1995. Includes just-cause eviction protections."
+      "notes": "Adopted Sep 29, 2020 (permanent ordinance; interim was 2019). Covers MF units built before Feb 1995. Includes just-cause eviction protections."
     },
     "sb1123": {
       "local_standards_adopted": false,
@@ -962,9 +968,11 @@
     "rent_stabilization": {
       "has_rso": true,
       "name": "Rent Stabilization and Tenant Protection Ordinance",
-      "year_built_threshold": 1995,
+      "year_built_threshold": null,
+      "year_built_note": "Rolling 15-year exemption: units with certificate of occupancy less than 15 years old are exempt",
       "unit_count_threshold": 2,
-      "notes": "Adopted 2019. Annual rent increase capped at 5%. Covers units built before Feb 1995."
+      "annual_increase_note": "3% or CPI (whichever less) for 5+ unit buildings; 2-4 unit buildings covered by AB 1482 only",
+      "notes": "Adopted 2019. Tiered by building size: 5+ units get local RSO (3%/CPI cap); 2-4 units covered by state AB 1482 (5%+CPI, max 10%)."
     },
     "sb1123": {
       "local_standards_adopted": false,
@@ -1245,8 +1253,9 @@
       "R-1": 7000
     },
     "city_fees": {
-      "est_total_per_unit": 17500,
-      "school_fee_per_sf": 5.38,
+      "est_total_per_unit": 15000,
+      "school_fee_per_sf": 3.36,
+      "school_fee_note": "Whittier City SD fees — below state cap",
       "school_district": "WCSD",
       "impact_fees_per_unit": 3000,
       "permit_plan_check_per_unit": 8000,
@@ -1337,13 +1346,57 @@
       "R-2": "R2",
       "R-3": "R4"
     },
+    "height_ft": {
+      "R-M_narrow": 25,
+      "R-M_wide": 30,
+      "R-0_narrow": 25,
+      "R-0_wide": 30,
+      "R-1_narrow": 25,
+      "R-1_wide": 30,
+      "R-2": 30,
+      "R-3": 30,
+      "_note": "narrow = <75ft lot width; wide = ≥75ft lot width"
+    },
+    "max_stories": {
+      "R-M": 2,
+      "R-0": 2,
+      "R-1": 2,
+      "R-2": 2,
+      "R-3": 2
+    },
     "setbacks_ft": {
-      "R-1": {
-        "front": "greater of 25 or avg of 2 nearest lots"
+      "R-M": {
+        "front": 25,
+        "side": "10 or 10% width",
+        "rear": 25
       },
       "R-0": {
-        "front": "greater of 35 or avg of 2 nearest"
+        "front": "greater of 35 or avg of 2 nearest",
+        "side": "10 or 10% width",
+        "rear": 35
+      },
+      "R-1": {
+        "front": "greater of 25 or avg of 2 nearest lots",
+        "side": "5 or 10% width",
+        "rear": 25
+      },
+      "R-2": {
+        "front": 25,
+        "side": 10,
+        "rear": 10
+      },
+      "R-3": {
+        "front": 25,
+        "side": 10,
+        "rear": 10
       }
+    },
+    "floor_area_limits": {
+      "lot_coverage_pct": {
+        "1_story": 45,
+        "2_story": 35
+      },
+      "_note": "SF zones use percentage-based FAR (45% up to 7,500 SF lot, then declining). MF zones: no explicit FAR."
     },
     "density": {
       "R-2": "6-12 du/ac",
@@ -1359,15 +1412,13 @@
       "confidence": "medium"
     },
     "unconfirmed": [
-      "All height limits",
-      "All FAR values",
-      "All lot coverage %",
-      "Side/rear setbacks",
-      "Parking",
-      "Story limits — data locked in PDF Tables 2-2 and 2-6"
+      "Parking ratios",
+      "Exact FAR sliding scale for SF zones",
+      "MF zone lot coverage (may differ from SF)"
     ],
     "sources": [
-      "Arcadia Development Code, Tables 2-2 and 2-6 (PDF)"
+      "Arcadia Development Code, Tables 2-2 and 2-6",
+      "Zoneomics/Arcadia code extract (Table 2-2 residential standards)"
     ]
   },
   "Monrovia": {
@@ -2201,11 +2252,14 @@
     },
     "height_ft": {
       "R-1": 22,
-      "R-1_small_lot": 12
+      "R-1_small_lot": 12,
+      "R-3": 50,
+      "R-4": 50
     },
     "height_notes": {
       "R-1": "22 ft max, 2 stories. Small lots (<40 ft wide & <5K SF): 12 ft.",
-      "three_story": "Not by-right in R-1. R-2/R-3/R-4 height not confirmed."
+      "R-3_R-4": "~50 ft per code references — allows 3-4 stories.",
+      "three_story": "Not by-right in R-1. R-3/R-4 likely allow 3+ stories within ~50 ft."
     },
     "setbacks_ft": {
       "R-1": {
@@ -2216,9 +2270,10 @@
       "R-4": "1:3 (0.33) excluding parking"
     },
     "city_fees": {
-      "est_total_per_unit": 16000,
-      "school_fee_per_sf": 5.38,
-      "school_district": "HSD",
+      "est_total_per_unit": 12400,
+      "school_fee_per_sf": 2.44,
+      "school_fee_note": "Two districts serve Hawthorne: HSD $1.218/SF + CVUHSD $1.218/SF = $2.44/SF total",
+      "school_district": "HSD + CVUHSD",
       "impact_fees_per_unit": 1500,
       "permit_plan_check_per_unit": 8000,
       "notes": "DIF study commissioned 2023; current fees are minimal",
@@ -2286,6 +2341,7 @@
     "city_fees": {
       "est_total_per_unit": 14000,
       "school_fee_per_sf": 5.38,
+      "school_fee_note": "Possible overestimate — Compton USD was $4.08/SF in 2021; may not have adopted state cap increases",
       "school_district": "CUSD",
       "impact_fees_per_unit": 0,
       "permit_plan_check_per_unit": 8000,
