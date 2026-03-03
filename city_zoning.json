@@ -5,17 +5,50 @@
     "last_updated": "2026-03-02",
     "data_gaps": "See per-city 'unconfirmed' arrays for values that need verification from municipal code",
     "sb1123_state_defaults": {
-      "setback_override": {
+      "setbacks": {
         "side_max_ft": 4,
         "rear_max_ft": 4,
         "front": "local_zoning",
         "between_units_ft": 0,
-        "_note": "Per Gov Code 65852.28(b)(2) cross-ref 65852.21(b)(2)(B): state caps side/rear at 4 ft max from original lot line. Front setback follows local zoning (not overridden). Zero setback between units on subdivided lots (CBC fire separation only). Applies to ALL cities — state law preemption."
+        "_note": "Gov Code 65852.28(b)(2) via 65852.21(b)(2)(B): side/rear capped at 4 ft from original lot line. Front follows local zoning. Zero between units (CBC fire separation only)."
       },
-      "far_minimum": {
-        "units_8_to_10": 1.25,
+      "far": {
         "units_3_to_7": 1.0,
-        "_note": "State minimum FAR — local agencies cannot impose lower FAR."
+        "units_8_to_10": 1.25,
+        "_note": "Gov Code 65852.28(b)(2)(A)(iii): state FAR floor — locals cannot impose lower."
+      },
+      "parking": {
+        "max_spaces_per_unit": 1,
+        "near_transit_half_mile": 0,
+        "near_car_share_one_block": 0,
+        "covered_enclosed_required": false,
+        "_note": "Gov Code 65852.28 via 65852.21(c)(1): max 1 space/unit. Zero within 0.5 mi of major transit stop (PRC 21064.3) or high-quality transit corridor (PRC 21155(b)), or within 1 block of car-share vehicle."
+      },
+      "lot_standards": {
+        "min_parcel_sf_single_family": 1200,
+        "min_parcel_sf_multifamily": 600,
+        "frontage_required": false,
+        "width_depth_minimums": false,
+        "_note": "Gov Code 66499.41: no frontage, width, depth, or dimension requirements beyond minimum parcel SF. Locals can authorize smaller parcels."
+      },
+      "unit_size": {
+        "max_avg_net_habitable_sf": 1750,
+        "_note": "Gov Code 66499.41: average unit cannot exceed 1,750 net habitable SF (excludes garages, carports, unfinished areas)."
+      },
+      "approval": {
+        "process": "ministerial",
+        "max_review_days": 60,
+        "deemed_approved_if_no_action": true,
+        "ceqa_exempt": true,
+        "design_review": "objective_only",
+        "denial_standard": "specific_adverse_health_safety_impact",
+        "_note": "Gov Code 65852.28(d): ministerial, 60-day deadline, deemed approved. No CEQA (PRC 21080(b)(1)). No subjective design review. Denial only for specific adverse health/safety impact per 65589.5(d)(2). Applies to charter cities."
+      },
+      "not_preempted": {
+        "front_setback": "Local zoning applies",
+        "inclusionary_housing": "Local ordinances apply",
+        "open_space": "Allowed if does not conflict with FAR/density guarantee",
+        "height": "Cannot go below existing zoning, but no state minimum height"
       }
     }
   },

@@ -451,6 +451,70 @@
     // SB 1123 Status
     sections += cardSection('SB 1123 Status', statusBadge(c) + ' <span style="margin-left:8px;font-size:13px;color:#475569">' + esc(statusText(c)) + '</span>');
 
+    // SB 1123 State Overrides (from _meta)
+    var sd = metaData.sb1123_state_defaults;
+    if(sd){
+      var sob = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+      // Setbacks
+      if(sd.setbacks){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">Setbacks</div>';
+        sob += '<div style="font-size:12px;color:#15803d">Side/rear: <strong>' + sd.setbacks.side_max_ft + ' ft max</strong></div>';
+        sob += '<div style="font-size:12px;color:#15803d">Between units: <strong>' + sd.setbacks.between_units_ft + ' ft</strong></div>';
+        sob += '<div style="font-size:11px;color:#4ade80;margin-top:2px">Front: local zoning</div>';
+        sob += '</div>';
+      }
+      // Parking
+      if(sd.parking){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">Parking</div>';
+        sob += '<div style="font-size:12px;color:#15803d">Max <strong>' + sd.parking.max_spaces_per_unit + ' space/unit</strong></div>';
+        sob += '<div style="font-size:12px;color:#15803d">Near transit (&frac12; mi): <strong>0 required</strong></div>';
+        sob += '<div style="font-size:11px;color:#4ade80;margin-top:2px">No covered/enclosed req.</div>';
+        sob += '</div>';
+      }
+      // FAR
+      if(sd.far){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">FAR (state floor)</div>';
+        sob += '<div style="font-size:12px;color:#15803d">3\u20137 units: <strong>' + sd.far.units_3_to_7 + '</strong></div>';
+        sob += '<div style="font-size:12px;color:#15803d">8\u201310 units: <strong>' + sd.far.units_8_to_10 + '</strong></div>';
+        sob += '</div>';
+      }
+      // Lot Standards
+      if(sd.lot_standards){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">Lot Standards</div>';
+        sob += '<div style="font-size:12px;color:#15803d">Min parcel: <strong>' + Number(sd.lot_standards.min_parcel_sf_single_family).toLocaleString() + ' SF</strong> (SF zone)</div>';
+        sob += '<div style="font-size:12px;color:#15803d">No frontage/width/depth req.</div>';
+        sob += '</div>';
+      }
+      // Approval
+      if(sd.approval){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">Approval Process</div>';
+        sob += '<div style="font-size:12px;color:#15803d"><strong>Ministerial</strong> \u2014 ' + sd.approval.max_review_days + '-day deadline</div>';
+        sob += '<div style="font-size:12px;color:#15803d">CEQA exempt, no design review</div>';
+        sob += '<div style="font-size:11px;color:#4ade80;margin-top:2px">Deemed approved if no action</div>';
+        sob += '</div>';
+      }
+      // Unit Size
+      if(sd.unit_size){
+        sob += '<div style="background:#f0fdf4;border-radius:6px;padding:8px 10px">';
+        sob += '<div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px">Unit Size</div>';
+        sob += '<div style="font-size:12px;color:#15803d">Max avg: <strong>' + Number(sd.unit_size.max_avg_net_habitable_sf).toLocaleString() + ' SF</strong> net habitable</div>';
+        sob += '</div>';
+      }
+      sob += '</div>';
+      // Not preempted callout
+      if(sd.not_preempted){
+        sob += '<div style="margin-top:8px;padding:6px 10px;background:#fef9c3;border-left:3px solid #eab308;border-radius:4px;font-size:11px;color:#854d0e">';
+        sob += '<strong>Not overridden by state:</strong> Front setback, inclusionary housing, open space (if doesn\u2019t conflict w/ FAR), height (cannot go below existing zoning)';
+        sob += '</div>';
+      }
+      sections += cardSection('SB 1123 State Overrides (all cities)', sob);
+    }
+
     // Height & Stories
     if(c.height_ft || c.height_notes){
       var hb = '';
@@ -508,7 +572,7 @@
       });
       stb += '</dl>';
       // SB 1123 setback override from state defaults
-      var so = metaData.sb1123_state_defaults && metaData.sb1123_state_defaults.setback_override;
+      var so = metaData.sb1123_state_defaults && metaData.sb1123_state_defaults.setbacks;
       if(so){
         stb += '<div style="margin-top:8px;padding:8px 10px;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:4px;font-size:12px;color:#1e40af">';
         stb += '<strong>SB 1123 Override:</strong> Side &amp; rear capped at <strong>' + so.side_max_ft + ' ft</strong> max (state law). Front setback follows local zoning. ' + so.between_units_ft + ' ft between units on subdivided lots.';
