@@ -40,6 +40,134 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF
   return { equity, debt, totalCost: equity + debt };
 }
 
+// ── Shared waterfall model (single source of truth for Teaser PDF, OM PPT, XLS) ──
+function computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent) {
+  var SOFT_PCT = 0.25;
+  var TAX_RATE = 0.011;
+  var INS_ANNUAL = 20000;
+  var AM_MONTHLY = 3000;
+  var DM_MONTHLY = 5000;
+  var ACQ_FEE_PCT = 0.02;
+  var DISP_FEE_PCT = 0.015;
+  var ORIG_FEE_PCT = 0.02;
+  var INTEREST_RATE = 0.09;
+  var LP_PREF = 0.08;
+  var GP_PROMOTE = 0.20;
+  var GP_COINVEST = 0.05;
+  var PRE_DEV_MO = 6;
+  var CONSTR_MO = 12;
+  var SALE_MO = 6;
+  var HOLD_MO = PRE_DEV_MO + CONSTR_MO + SALE_MO;
+  var TX_COST_PCT = proforma.txnCostPct / 100;
+
+  var ed = sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
+
+  var buildableSF = units * avgUnitSF;
+  var totalDev = buildableSF * allInBuildPSF;
+  var hardCosts = Math.round(totalDev / (1 + SOFT_PCT));
+  var softCosts = Math.round(hardCosts * SOFT_PCT);
+
+  var totalProjectCost = ed.totalCost;
+  var equity = ed.equity;
+  var debt = totalProjectCost - equity;
+  var gpCoinvest = Math.round(equity * GP_COINVEST);
+  var lpEquity = equity - gpCoinvest;
+  var origFee = debt * ORIG_FEE_PCT;
+
+  var monthlyTax = askingPrice * TAX_RATE / 12;
+  var monthlyIns = INS_ANNUAL / 12;
+
+  var totalPropTax = monthlyTax * HOLD_MO;
+  var totalInsurance = monthlyIns * HOLD_MO;
+  var totalAssetMgmt = AM_MONTHLY * HOLD_MO;
+  var totalDevMgmt = DM_MONTHLY * CONSTR_MO;
+  var totalCarry = totalPropTax + totalInsurance + totalAssetMgmt + totalDevMgmt;
+
+  var acqFee = askingPrice * ACQ_FEE_PCT;
+
+  // Interest (month-by-month PIK matching XLS Cash Flow)
+  var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
+  var loanBalance = 0;
+  var totalInterest = 0;
+  for (var m = 0; m < HOLD_MO; m++) {
+    var devUses = 0;
+    if (m === 0) devUses = askingPrice + askingPrice * 0.01;
+    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) {
+      var si = m - PRE_DEV_MO;
+      devUses += totalDev * SCURVE[si];
+    }
+    var carryUses = monthlyTax + monthlyIns + AM_MONTHLY;
+    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) carryUses += DM_MONTHLY;
+    var feeUses = 0;
+    if (m === 0) feeUses = acqFee + origFee;
+    var totalUses = devUses + carryUses + feeUses;
+    var draw = totalUses * (1 - 0.30);
+    var monthInterest = loanBalance * INTEREST_RATE / 12;
+    totalInterest += monthInterest;
+    loanBalance += draw + monthInterest;
+  }
+
+  var grossRevenue = units * avgUnitSF * exitPSF;
+  var txCosts = grossRevenue * TX_COST_PCT;
+  var dispFee = grossRevenue * DISP_FEE_PCT;
+  var totalSponsorFees = acqFee + totalAssetMgmt + totalDevMgmt + dispFee;
+  var netSaleProceeds = grossRevenue - txCosts - dispFee;
+
+  // Waterfall
+  var loanRepayment = loanBalance;
+  var netDistributable = netSaleProceeds - loanRepayment;
+  var lpROC = lpEquity;
+  var gpROC = gpCoinvest;
+  var profitAfterROC = netDistributable - lpROC - gpROC;
+
+  var lpPrefDollars = lpEquity * LP_PREF * (HOLD_MO / 12);
+  var remainingAfterPref = Math.max(0, profitAfterROC - lpPrefDollars);
+
+  var gpPromoteDollars = remainingAfterPref * GP_PROMOTE;
+  var lpShareRemaining = remainingAfterPref * (1 - GP_PROMOTE);
+
+  var lpTotalDist = lpROC + lpPrefDollars + lpShareRemaining;
+  var lpNetProfit = lpTotalDist - lpEquity;
+  var lpMOIC = lpEquity > 0 ? lpTotalDist / lpEquity : 0;
+  var lpIRR = HOLD_MO > 0 ? Math.pow(lpMOIC, 12 / HOLD_MO) - 1 : 0;
+
+  var projectMargin = netSaleProceeds > 0 ? (netSaleProceeds - totalProjectCost) / netSaleProceeds : 0;
+  var projectMOIC = totalProjectCost > 0 ? netSaleProceeds / totalProjectCost : 0;
+  var allInPsf = buildableSF > 0 ? totalProjectCost / buildableSF : 0;
+  var breakEvenPsf = buildableSF > 0 ? totalProjectCost / (buildableSF * (1 - TX_COST_PCT)) : 0;
+
+  return {
+    equity: equity, debt: debt, totalCost: totalProjectCost,
+    lpEquity: lpEquity, gpCoinvest: gpCoinvest,
+    holdMonths: HOLD_MO,
+    buildableSF: buildableSF, totalDev: totalDev,
+    hardCosts: hardCosts, softCosts: softCosts,
+    totalCarry: totalCarry, totalPropTax: totalPropTax,
+    totalInsurance: totalInsurance, totalAssetMgmt: totalAssetMgmt,
+    totalDevMgmt: totalDevMgmt,
+    acqFee: acqFee, origFee: origFee, dispFee: dispFee,
+    totalSponsorFees: totalSponsorFees,
+    grossRevenue: grossRevenue, txCosts: txCosts,
+    netSaleProceeds: netSaleProceeds,
+    loanBalance: loanBalance, totalInterest: totalInterest,
+    loanRepayment: loanRepayment, netDistributable: netDistributable,
+    lpROC: lpROC, gpROC: gpROC,
+    profitAfterROC: profitAfterROC,
+    lpPrefDollars: lpPrefDollars, remainingAfterPref: remainingAfterPref,
+    gpPromoteDollars: gpPromoteDollars, lpShareRemaining: lpShareRemaining,
+    lpTotalDist: lpTotalDist, lpNetProfit: lpNetProfit,
+    lpMOIC: lpMOIC, lpIRR: lpIRR,
+    projectMargin: projectMargin, projectMOIC: projectMOIC,
+    allInPsf: allInPsf, breakEvenPsf: breakEvenPsf,
+    // Constants for display
+    lpPrefRate: LP_PREF, gpPromotePct: GP_PROMOTE, gpCoinvestPct: GP_COINVEST,
+    txCostPct: TX_COST_PCT, dispFeePct: DISP_FEE_PCT,
+    interestRate: INTEREST_RATE, origFeePct: ORIG_FEE_PCT,
+    acqFeePct: ACQ_FEE_PCT,
+  };
+}
+window.computeWaterfall = computeWaterfall;
+
 function exportCSV(){
   const filtered = _deps.getFilteredListings();
   if(!filtered.length) return;
@@ -1459,129 +1587,79 @@ async function exportOM(lat, lng, overrides) {
   var allInBuildPSF = ov.allInBuildPSF != null ? ov.allInBuildPSF : pf.adjBuildCostPerSf;
   var askingPrice = ov.askingPrice != null ? ov.askingPrice : (l.price || 0);
 
-  var ed = sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
+  // ── Shared waterfall (single source of truth) ──
+  var wf = computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
 
-  // ── Constants (must match Assumptions tab / sizeEquityAndDebt) ──
+  // Alias waterfall results for deal dict and slide building
+  var totalProjectCost = wf.totalCost;
+  var equity = wf.equity;
+  var debt = wf.debt;
+  var gpCoinvestEquity = wf.gpCoinvest;
+  var lpEquity = wf.lpEquity;
+  var origFee = wf.origFee;
+  var buildableSF = wf.buildableSF;
+  var totalDev = wf.totalDev;
+  var hardCosts = wf.hardCosts;
+  var softCosts = wf.softCosts;
+  var totalPropTax = wf.totalPropTax;
+  var totalInsurance = wf.totalInsurance;
+  var totalAssetMgmt = wf.totalAssetMgmt;
+  var totalDevMgmt = wf.totalDevMgmt;
+  var acqFee = wf.acqFee;
+  var dispFee = wf.dispFee;
+  var totalSponsorFees = wf.totalSponsorFees;
+  var grossRevenue = wf.grossRevenue;
+  var txCosts = wf.txCosts;
+  var netSaleProceeds = wf.netSaleProceeds;
+  var loanBalance = wf.loanBalance;
+  var totalInterest = wf.totalInterest;
+  var loanRepayment = wf.loanRepayment;
+  var netDistributable = wf.netDistributable;
+  var lpROC = wf.lpROC;
+  var gpROC = wf.gpROC;
+  var profitAfterROC = wf.profitAfterROC;
+  var lpPrefDollars = wf.lpPrefDollars;
+  var remainingAfterPref = wf.remainingAfterPref;
+  var gpPromoteDollars = wf.gpPromoteDollars;
+  var lpShareRemaining = wf.lpShareRemaining;
+  var lpTotalDist = wf.lpTotalDist;
+  var lpNetProfit = wf.lpNetProfit;
+  var lpMOIC = wf.lpMOIC;
+  var lpIRR = wf.lpIRR;
+  var projectMargin = wf.projectMargin;
+  var projectMOIC = wf.projectMOIC;
+  var allInPsf = wf.allInPsf;
+
+  // Constants for deal dict
   var SOFT_PCT = 0.25;
   var TAX_RATE = 0.011;
   var INS_ANNUAL = 20000;
   var AM_MONTHLY = 3000;
   var DM_MONTHLY = 5000;
-  var ACQ_FEE_PCT = 0.02;
-  var DISP_FEE_PCT = 0.015;
-  var ORIG_FEE_PCT = 0.02;
-  var INTEREST_RATE = 0.09;
-  var LP_PREF = 0.08;
-  var GP_PROMOTE = 0.20;
-  var GP_COINVEST = 0.05;
+  var ACQ_FEE_PCT = wf.acqFeePct;
+  var DISP_FEE_PCT = wf.dispFeePct;
+  var ORIG_FEE_PCT = wf.origFeePct;
+  var INTEREST_RATE = wf.interestRate;
+  var LP_PREF = wf.lpPrefRate;
+  var GP_PROMOTE = wf.gpPromotePct;
+  var GP_COINVEST = wf.gpCoinvestPct;
   var PRE_DEV_MO = 6;
   var CONSTR_MO = 12;
   var SALE_MO = 6;
-  var HOLD_MO = PRE_DEV_MO + CONSTR_MO + SALE_MO;
-  var TX_COST_PCT = proforma.txnCostPct / 100;
+  var HOLD_MO = wf.holdMonths;
+  var TX_COST_PCT = wf.txCostPct;
+  var monthlyTax = askingPrice * TAX_RATE / 12;
+  var monthlyIns = INS_ANNUAL / 12;
+
   var BTR_OPEX = btr.opexRatio;
   var BTR_CAP = btr.capRate;
   var BTR_LTV = btr.refiLTV;
   var BTR_PERM_RATE = 0.0625;
   var BTR_RENT_GROWTH = 0.03;
 
-  // ── Development costs ──
-  var buildableSF = units * avgUnitSF;
-  var totalDev = buildableSF * allInBuildPSF;
-  var hardCosts = Math.round(totalDev / (1 + SOFT_PCT));
-  var softCosts = Math.round(hardCosts * SOFT_PCT);
-
-  // ── Capital structure (must match XLS: G14*(1-C44) for LP, G14*C44 for GP) ──
-  var totalProjectCost = ed.totalCost;
-  var equity = ed.equity;
-  var debt = totalProjectCost - equity;
-  var gpCoinvestEquity = Math.round(equity * GP_COINVEST);
-  var lpEquity = equity - gpCoinvestEquity;
-  var origFee = debt * ORIG_FEE_PCT;
-
-  // ── Carry costs (monthly accumulation) ──
-  var monthlyTax = askingPrice * TAX_RATE / 12;
-  var monthlyIns = INS_ANNUAL / 12;
-
-  var totalPropTax = monthlyTax * HOLD_MO;
-  var totalInsurance = monthlyIns * HOLD_MO;
-  var totalAssetMgmt = AM_MONTHLY * HOLD_MO;
-  var totalDevMgmt = DM_MONTHLY * CONSTR_MO;
-
-  // ── Fees ──
-  var acqFee = askingPrice * ACQ_FEE_PCT;
-
-  // ── Interest (month-by-month PIK matching XLS Cash Flow) ──
-  var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
-  var monthlyTaxAmt = askingPrice * TAX_RATE / 12;
-  var monthlyInsAmt = INS_ANNUAL / 12;
-  var loanBalance = 0;
-  var totalInterest = 0;
-  for (var m = 0; m < HOLD_MO; m++) {
-    var devUses = 0;
-    if (m === 0) devUses = askingPrice + askingPrice * 0.01; // land + txn costs
-    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) {
-      var si = m - PRE_DEV_MO;
-      devUses += totalDev * SCURVE[si];
-    }
-    var carryUses = monthlyTaxAmt + monthlyInsAmt + AM_MONTHLY;
-    if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) carryUses += DM_MONTHLY;
-    var feeUses = 0;
-    if (m === 0) feeUses = acqFee + origFee;
-    var totalUses = devUses + carryUses + feeUses;
-
-    // Debt draw = 70% of uses (matching XLS Row 8)
-    var draw = totalUses * (1 - 0.30);
-
-    // Capitalized interest on opening balance (matching XLS Row 37)
-    var monthInterest = loanBalance * INTEREST_RATE / 12;
-    totalInterest += monthInterest;
-
-    // Closing balance (matching XLS Row 38)
-    loanBalance += draw + monthInterest;
-  }
-  var dispFee = 0;  // computed on exit below
-  var totalSponsorFees = acqFee + totalAssetMgmt + totalDevMgmt;  // disposition added at exit
-
-  // ── Exit ──
-  var grossRevenue = units * avgUnitSF * exitPSF;
-  var txCosts = grossRevenue * TX_COST_PCT;
-  dispFee = grossRevenue * DISP_FEE_PCT;
-  totalSponsorFees += dispFee;
-  var netSaleProceeds = grossRevenue - txCosts - dispFee;
-
-  // ── Waterfall ──
-  var loanRepayment = loanBalance;
-  var netDistributable = netSaleProceeds - loanRepayment;
-  var lpROC = lpEquity;
-  var gpROC = gpCoinvestEquity;
-  var profitAfterROC = netDistributable - lpROC - gpROC;
-
-  // LP preferred return (simple, on hold period)
-  var lpPrefDollars = lpEquity * LP_PREF * (HOLD_MO / 12);
-  var remainingAfterPref = Math.max(0, profitAfterROC - lpPrefDollars);
-
-  // GP promote on remaining
-  var gpPromoteDollars = remainingAfterPref * GP_PROMOTE;
-  var lpShareRemaining = remainingAfterPref * (1 - GP_PROMOTE);
-
-  // LP totals
-  var lpTotalDist = lpROC + lpPrefDollars + lpShareRemaining;
-  var lpNetProfit = lpTotalDist - lpEquity;
-  var lpMOIC = lpEquity > 0 ? lpTotalDist / lpEquity : 0;
-
-  // LP IRR (annualized: MOIC^(12/months) - 1, matching XLS C6)
-  var lpIRR = HOLD_MO > 0 ? Math.pow(lpMOIC, 12 / HOLD_MO) - 1 : 0;
-
-  // Sanity check — log key values for debugging
   console.log('[OM Export] equity:', equity, 'lpEquity:', lpEquity, 'gpCoinvest:', gpCoinvestEquity,
     'totalCost:', totalProjectCost, 'grossRev:', grossRevenue, 'netProceeds:', netSaleProceeds,
     'loanBal:', Math.round(loanBalance), 'lpMOIC:', lpMOIC.toFixed(3), 'lpIRR:', (lpIRR*100).toFixed(1)+'%');
-
-  // Project-level metrics
-  var projectMargin = netSaleProceeds > 0 ? (netSaleProceeds - totalProjectCost) / netSaleProceeds : 0;
-  var projectMOIC = totalProjectCost > 0 ? netSaleProceeds / totalProjectCost : 0;
-  var allInPsf = buildableSF > 0 ? totalProjectCost / buildableSF : 0;
 
   // GP economics
   var gpTotalIncome = gpPromoteDollars + totalSponsorFees;
@@ -1787,4 +1865,4 @@ async function exportOM(lat, lng, overrides) {
   }
 }
 
-export { exportCSV, exportModel, exportOM, showExportModal, closeExportModal, sizeEquityAndDebt };
+export { exportCSV, exportModel, exportOM, showExportModal, closeExportModal, sizeEquityAndDebt, computeWaterfall };

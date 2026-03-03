@@ -1457,7 +1457,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 // ── Module imports ──
 import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
-import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal } from './js/export.js';
+import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal, computeWaterfall } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
 import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive } from './js/comps.js';
 
@@ -3889,7 +3889,6 @@ function onProformaChange(){
 
 function computeTeaserData(l, overrides) {
   var ov = overrides || {};
-  var pfConfig = proforma;
   var pf = calculateProForma(l);
 
   // Property basics
@@ -3899,103 +3898,36 @@ function computeTeaserData(l, overrides) {
   var zone = (l.zone || 'R1').toUpperCase();
   var lotSizeSF = l.lotSf || 10000;
   var lotAcres = (lotSizeSF / 43560).toFixed(2);
-  var askingPrice = ov.askingPrice || l.price || 0;
 
-  // Units & sizing
-  var units = ov.units || pf.maxUnits;
-  var unitSF = ov.avgUnitSF || pfConfig.avgUnitSf || 1750;
-  var buildableSF = units * unitSF;
-  var holdMonths = pfConfig.holdMonths + (pf.ellisHoldMonths || 0);
+  // Override resolution — use != null (matches exportOM, avoids falsy 0 bug)
+  var askingPrice = ov.askingPrice != null ? ov.askingPrice : (l.price || 0);
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0);
+  var units = ov.units != null ? ov.units : pf.maxUnits;
+  var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
+  var allInBuildPSF = ov.allInBuildPSF != null ? ov.allInBuildPSF : pf.adjBuildCostPerSf;
+  var monthlyRent = ov.monthlyRent != null ? ov.monthlyRent : (l.estRentMonth || l.fmr3br || 4000);
 
-  // Existing home
-  var existingBeds = l.beds || 3;
-  var existingBaths = l.baths || 2;
-  var existingHomeSF = l.sqft || l.livingArea || 1500;
+  // Call the SAME model as PPT/XLS
+  var wf = computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent);
+
+  var buildableSF = wf.buildableSF;
+  var holdMonths = wf.holdMonths;
   var resaleMedianPSF = l.hoodPpsf || l.exitPsf || 565;
-  var existingHomeValue = existingHomeSF * resaleMedianPSF;
-
-  // Construction costs — allInBuildPsf is truly all-in (hard+soft+subdiv+A&E)
-  var buildPSF = ov.allInBuildPSF || pf.adjBuildCostPerSf;
-  var constructionCost = ov.allInBuildPSF ? Math.round(ov.allInBuildPSF * buildableSF) : pf.constructionCost;
-  var demoCost = 55000;
-  var devCosts = constructionCost + demoCost + (pf.ellisRelocation || 0);
-  var totalProjectCost = askingPrice + devCosts;
-
-  // Capital structure
-  var ltcPct = 0.70;
-  var interestRate = (pfConfig.carryRatePct || 9) / 100;
-  var avgDrawFactor = 0.55;
-  var insurance = pfConfig.insurance || 40000;
-  var propTaxRate = 0.011;
-
-  // Sponsor fees
-  var sponsorFeePct = 0.047;
-  var sponsorFees = Math.round(totalProjectCost * sponsorFeePct);
-
-  // Carry costs
-  var debtAmountPreCarry = Math.round(totalProjectCost * ltcPct);
-  var interestExpense = Math.round(debtAmountPreCarry * avgDrawFactor * interestRate * (holdMonths / 12));
-  var propTaxCarry = Math.round(askingPrice * propTaxRate * (holdMonths / 12));
-  var totalCarry = interestExpense + propTaxCarry + insurance;
-
-  // Total capitalization
-  var totalCap = totalProjectCost + sponsorFees + totalCarry;
-  var totalDebt = Math.round(totalCap * ltcPct);
-  var totalEquity = totalCap - totalDebt;
-
-  // LP structure
-  var lpPref = 1.2;
-  var lpPromotePct = 0.70;
-  var minInvestment = 500000;
-  var bulkDiscountPct = 0.10;
-  var txnCostPct = 0.07;
-
-  // Exit / Revenue
-  var exitPSF = ov.exitPSF || l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 700;
-  var grossSaleNew = units * unitSF * exitPSF * (1 - bulkDiscountPct);
-  var grossSaleTotal = grossSaleNew + existingHomeValue;
-  var txnCosts = Math.round(grossSaleTotal * txnCostPct);
-  var netSaleProceeds = grossSaleTotal - txnCosts;
-
-  // Waterfall
-  var cashForDistribution = netSaleProceeds - totalDebt;
-  var lpPrefAmount = Math.round(totalEquity * lpPref);
-  var remainingAfterPref = Math.max(0, cashForDistribution - lpPrefAmount);
-  var lpPromoteShare = Math.round(remainingAfterPref * lpPromotePct);
-  var totalLPDistribution = lpPrefAmount + lpPromoteShare;
-
-  // LP Returns
-  var lpMOIC = totalLPDistribution / totalEquity;
-  var lpIRR = Math.pow(Math.max(lpMOIC, 0.01), 12 / holdMonths) - 1;
 
   // Cost metrics
-  var allInPSF = Math.round(totalCap / buildableSF);
-  var costToValueRatio = (exitPSF / allInPSF).toFixed(1);
-  var breakEvenPSF = Math.round(
-    (totalCap / (1 - txnCostPct) - existingHomeValue) /
-    (units * unitSF * (1 - bulkDiscountPct))
-  );
+  var allInPSF = Math.round(wf.allInPsf);
+  var costToValueRatio = allInPSF > 0 ? (exitPSF / allInPSF).toFixed(1) : '0.0';
+  var breakEvenPSF = Math.round(wf.breakEvenPsf);
 
   // BTR fallback
-  var monthlyRent = ov.monthlyRent || l.estRentMonth || l.fmr3br || 5000;
-  var totalUnitsWithExisting = units + 1;
-  var btrGrossMonthly = monthlyRent * totalUnitsWithExisting;
+  var btrGrossMonthly = monthlyRent * units;
   var btrOpExPct = 0.30;
   var btrNOI = Math.round(btrGrossMonthly * 12 * (1 - btrOpExPct));
 
-  // Sensitivity (5 scenarios)
+  // Sensitivity (5 scenarios) — calls computeWaterfall at each exit $/SF
   function calcSens(ePSF) {
-    var gNew = units * unitSF * ePSF * (1 - bulkDiscountPct);
-    var gTotal = gNew + existingHomeValue;
-    var net = gTotal - Math.round(gTotal * txnCostPct);
-    var cash = net - totalDebt;
-    var pref = Math.round(totalEquity * lpPref);
-    var remain = Math.max(0, cash - pref);
-    var promote = Math.round(remain * lpPromotePct);
-    var dist = pref + promote;
-    var moic = dist / totalEquity;
-    var irr = Math.pow(Math.max(moic, 0.01), 12 / holdMonths) - 1;
-    return { moic: moic, irr: irr };
+    var s = computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, ePSF, monthlyRent);
+    return { moic: s.lpMOIC, irr: s.lpIRR };
   }
 
   var fixedSteps = [650, 700, 750];
@@ -4018,27 +3950,38 @@ function computeTeaserData(l, overrides) {
   var sensScenarios = sensEntries.slice(0, 5);
 
   var neighborhood = l.neighborhood || l.city || city;
+  var minInvestment = 500000;
+
+  // LP equity is what's raised from LPs (95% of total equity, GP coinvests 5%)
+  var lpEquityRaise = wf.lpEquity;
 
   return {
     addr: addr, city: city, zip: zip, zone: zone, lotSizeSF: lotSizeSF, lotAcres: lotAcres, askingPrice: askingPrice,
-    units: units, unitSF: unitSF, buildableSF: buildableSF, holdMonths: holdMonths,
-    existingBeds: existingBeds, existingBaths: existingBaths, existingHomeSF: existingHomeSF, existingHomeValue: existingHomeValue,
-    buildPSF: buildPSF, devCosts: devCosts, totalProjectCost: totalProjectCost,
-    ltcPct: ltcPct, totalDebt: totalDebt, totalEquity: totalEquity,
-    sponsorFeePct: sponsorFeePct, sponsorFees: sponsorFees, totalCarry: totalCarry, totalCap: totalCap,
-    exitPSF: exitPSF, grossSaleTotal: grossSaleTotal, txnCosts: txnCosts, netSaleProceeds: netSaleProceeds,
-    cashForDistribution: cashForDistribution, lpPrefAmount: lpPrefAmount, lpPromoteShare: lpPromoteShare, totalLPDistribution: totalLPDistribution,
-    lpPref: lpPref, lpPromotePct: lpPromotePct, lpMOIC: lpMOIC, lpIRR: lpIRR,
+    units: units, unitSF: avgUnitSF, buildableSF: buildableSF, holdMonths: holdMonths,
+    buildPSF: allInBuildPSF, totalDev: wf.totalDev, totalCost: wf.totalCost,
+    equityPct: wf.totalCost > 0 ? wf.equity / wf.totalCost : 0,
+    totalDebt: wf.debt, totalEquity: wf.equity, lpEquity: lpEquityRaise,
+    totalCarry: wf.totalCarry, totalSponsorFees: wf.totalSponsorFees,
+    exitPSF: exitPSF, grossRevenue: wf.grossRevenue, txnCosts: Math.round(wf.txCosts),
+    netSaleProceeds: wf.netSaleProceeds,
+    loanRepayment: Math.round(wf.loanBalance),
+    netDistributable: wf.netDistributable,
+    lpROC: wf.lpROC, gpROC: wf.gpROC,
+    lpPrefDollars: wf.lpPrefDollars, remainingAfterPref: wf.remainingAfterPref,
+    lpShareRemaining: wf.lpShareRemaining, gpPromoteDollars: wf.gpPromoteDollars,
+    lpTotalDist: wf.lpTotalDist,
+    lpPrefRate: wf.lpPrefRate, gpPromotePct: wf.gpPromotePct, gpCoinvestPct: wf.gpCoinvestPct,
+    lpMOIC: wf.lpMOIC, lpIRR: wf.lpIRR,
     allInPSF: allInPSF, costToValueRatio: costToValueRatio, breakEvenPSF: breakEvenPSF,
-    monthlyRent: monthlyRent, totalUnitsWithExisting: totalUnitsWithExisting, btrGrossMonthly: btrGrossMonthly, btrNOI: btrNOI,
-    bulkDiscountPct: bulkDiscountPct, minInvestment: minInvestment,
+    monthlyRent: monthlyRent, btrGrossMonthly: btrGrossMonthly, btrNOI: btrNOI,
+    minInvestment: minInvestment,
     sensScenarios: sensScenarios, neighborhood: neighborhood, resaleMedianPSF: resaleMedianPSF,
     fmt: {
-      equityRaise: '$' + (totalEquity / 1e6).toFixed(2) + 'M',
-      moic: lpMOIC.toFixed(2) + 'x',
-      irr: (lpIRR * 100).toFixed(1) + '%',
+      equityRaise: '$' + (lpEquityRaise / 1e6).toFixed(2) + 'M',
+      moic: wf.lpMOIC.toFixed(2) + 'x',
+      irr: (wf.lpIRR * 100).toFixed(1) + '%',
       hold: holdMonths + ' Mo.',
-      pref: lpPref.toFixed(1) + 'x',
+      pref: '8% Annual',
     }
   };
 }
@@ -4160,7 +4103,7 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({
     table: { widths: [4, '*'], body: [[
       { text: '', fillColor: TC.teal },
-      { text: 'Ground-up SB 1123 fee-simple townhome development  |  ' + (D.units + 1) + ' units (' + D.units + ' new + 1 existing)  |  By-right ministerial approval  |  ' + D.holdMonths + '-month hold',
+      { text: 'Ground-up SB 1123 fee-simple townhome development  |  ' + D.units + ' units  |  By-right ministerial approval  |  ' + D.holdMonths + '-month hold',
         italics: true, fontSize: 7.9, color: TC.navy }
     ]] },
     layout: {
@@ -4200,8 +4143,8 @@ async function generateTeaser(lat, lng, overrides) {
   content.push(sectionHead('Opportunity Overview'));
   content.push(tealRule());
   var locDesc = (D.neighborhood && D.neighborhood !== D.city) ? 'in the ' + D.neighborhood + ' neighborhood of ' + D.city : 'in ' + D.city;
-  content.push({ text: S.sponsorName + ' is seeking ' + D.fmt.equityRaise + ' in LP equity to acquire, subdivide, and develop a ' + D.lotSizeSF.toLocaleString() + ' SF (' + D.lotAcres + '-acre) parcel ' + locDesc + ', zoned ' + D.zone + ' and eligible for by-right approval under SB 1123. The business plan acquires the property for ' + fmt$(D.askingPrice) + ', retains the existing ' + D.existingBeds + 'BR/' + D.existingBaths + 'BA home on its own remainder parcel, and constructs ' + D.units + ' \u00d7 ' + D.unitSF.toLocaleString() + ' SF modern townhomes on the remaining land. Completed units will be sold individually or in bulk within a ' + D.holdMonths + '-month timeline.', style: 'bodyText' });
-  content.push({ text: 'Construction cost of ~' + fmt$(D.allInPSF) + '/SF against an ' + fmt$(D.exitPSF) + '/SF exit provides a ' + D.costToValueRatio + 'x cost-to-value margin with break-even at ~' + fmt$(D.breakEvenPSF) + '/SF \u2014 well below ' + D.neighborhood + ' resale medians (' + fmt$(D.resaleMedianPSF) + '/SF). If sale conditions are unfavorable, the project converts to a build-to-rent strategy generating ' + fmt$(D.btrGrossMonthly) + '/month gross rent across ' + D.totalUnitsWithExisting + ' units (' + fmt$(D.btrNOI) + ' annual NOI).', style: 'bodyText', margin: [0, 0, 0, 10] });
+  content.push({ text: S.sponsorName + ' is seeking ' + D.fmt.equityRaise + ' in LP equity to acquire, subdivide, and develop a ' + D.lotSizeSF.toLocaleString() + ' SF (' + D.lotAcres + '-acre) parcel ' + locDesc + ', zoned ' + D.zone + ' and eligible for by-right approval under SB 1123. The business plan acquires the property for ' + fmt$(D.askingPrice) + ' and constructs ' + D.units + ' \u00d7 ' + D.unitSF.toLocaleString() + ' SF modern fee-simple townhomes. Completed units will be sold individually within a ' + D.holdMonths + '-month timeline.', style: 'bodyText' });
+  content.push({ text: 'All-in project cost of ~' + fmt$(D.allInPSF) + '/SF against an ' + fmt$(D.exitPSF) + '/SF exit provides a ' + D.costToValueRatio + 'x cost-to-value margin with break-even at ~' + fmt$(D.breakEvenPSF) + '/SF \u2014 well below ' + D.neighborhood + ' resale medians (' + fmt$(D.resaleMedianPSF) + '/SF). If sale conditions are unfavorable, the project converts to a build-to-rent strategy generating ' + fmt$(D.btrGrossMonthly) + '/month gross rent across ' + D.units + ' units (' + fmt$(D.btrNOI) + ' annual NOI).', style: 'bodyText', margin: [0, 0, 0, 10] });
 
   // Investment Highlights
   content.push(sectionHead('Investment Highlights'));
@@ -4209,11 +4152,11 @@ async function generateTeaser(lat, lng, overrides) {
 
   var highlights = [
     { b: 'By-Right Entitlement: ', t: 'Ministerial approval eliminates discretionary review, public hearings, and CEQA. 60-day statutory timeline removes the single largest risk in ground-up development.' },
-    { b: D.costToValueRatio + 'x Cost-to-Value Margin: ', t: 'Construction cost of ~' + fmt$(D.allInPSF) + '/SF vs. ' + fmt$(D.exitPSF) + '/SF exit. Break-even at ~' + fmt$(D.breakEvenPSF) + '/SF, well below resale medians (' + fmt$(D.resaleMedianPSF) + '/SF).' },
+    { b: D.costToValueRatio + 'x Cost-to-Value Margin: ', t: 'All-in project cost of ~' + fmt$(D.allInPSF) + '/SF vs. ' + fmt$(D.exitPSF) + '/SF exit. Break-even at ~' + fmt$(D.breakEvenPSF) + '/SF, well below resale medians (' + fmt$(D.resaleMedianPSF) + '/SF).' },
     { b: 'Severe Housing Undersupply: ', t: 'Virtually no new townhome inventory in the submarket. ' + D.neighborhood + ' median $/SF (' + fmt$(D.resaleMedianPSF) + '/SF) reflects aging 1960s\u201380s housing stock \u2014 new construction commands a significant premium over resale. The project enters a submarket with zero comparable product and structural demand from first-time buyers priced out of detached SFR.' },
     { b: 'Fee-Simple Ownership: ', t: 'Each buyer owns their lot outright. Easier to finance, more attractive to buyers, higher $/SF than condos.' },
     { b: 'BTR Downside Protection: ', t: 'If sale conditions are unfavorable, converts to build-to-rent at ' + fmt$(D.btrGrossMonthly) + '/mo gross (' + fmt$(D.btrNOI) + ' NOI). No forced sale.' },
-    { b: 'Aligned Incentives: ', t: '100% of GP promote subordinated to ' + D.lpPref + 'x LP pref. Sponsor fees 4.7% of cap (below market). GP earns zero until LPs receive ' + D.lpPref + 'x return of capital.' },
+    { b: 'Aligned Incentives: ', t: '100% of GP promote subordinated to 8% annual LP preferred return. GP co-invests 5% of equity alongside LPs. GP earns zero promote until LPs receive full preferred return.' },
   ];
   content.push({
     ul: highlights.map(function(h) { return {
@@ -4233,22 +4176,24 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({ text: 'Sources & Uses', style: 'sectionHeading', pageBreak: 'before' });
   content.push(tealRule());
 
+  var equityPctLabel = D.equityPct > 0 ? Math.round(D.equityPct * 100) : 30;
+  var debtPctLabel = 100 - equityPctLabel;
   content.push({
     columns: [
       { width: '48%', table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
         dRow('Sources', 'Amount', true),
-        dRow('Construction Loan (' + Math.round(D.ltcPct * 100) + '% LTC)', fmt$(D.totalDebt)),
-        dRow('LP Equity (' + Math.round((1 - D.ltcPct) * 100) + '%)', fmt$(D.totalEquity)),
-        dRow('Total Capitalization', fmt$(D.totalCap), false, true),
+        dRow('Construction Loan (' + debtPctLabel + '% LTC)', fmt$(D.totalDebt)),
+        dRow('LP Equity (' + Math.round((1 - D.gpCoinvestPct) * 100) + '%)', fmt$(D.lpEquity)),
+        dRow('GP Co-Invest (' + Math.round(D.gpCoinvestPct * 100) + '%)', fmt$(Math.round(D.totalEquity * D.gpCoinvestPct))),
+        dRow('Total Capitalization', fmt$(D.totalCost), false, true),
       ] }, layout: tightTableLayout },
       { width: '4%', text: '' },
       { width: '48%', table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
         dRow('Uses', 'Amount', true),
         dRow('Land Acquisition', fmt$(D.askingPrice)),
-        dRow('Development Costs', fmt$(D.devCosts)),
-        dRow('Sponsor Fees (' + fmtPct(D.sponsorFeePct) + ')', fmt$(D.sponsorFees)),
-        dRow('Carry Costs (Tax/Ins/Int)', fmt$(D.totalCarry)),
-        dRow('Total Uses', fmt$(D.totalCap), false, true),
+        dRow('Development Costs', fmt$(D.totalDev)),
+        dRow('Carry & Fees', fmt$(Math.round(D.totalCarry + D.totalSponsorFees))),
+        dRow('Total Uses', fmt$(D.totalCost), false, true),
       ] }, layout: tightTableLayout },
     ],
     margin: [0, 0, 0, 4],
@@ -4261,19 +4206,20 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({
     table: { headerRows: 1, heights: function() { return 10; }, widths: ['*', 'auto'], body: [
       dRow('Line Item', 'Amount', true),
-      dRow('Gross Sale (' + D.units + ' new \u00d7 ' + D.unitSF.toLocaleString() + ' SF \u00d7 ' + fmt$(D.exitPSF) + '/SF \u00d7 ' + Math.round((1 - D.bulkDiscountPct) * 100) + '% + existing home)', fmt$(D.grossSaleTotal)),
+      dRow('Gross Sale (' + D.units + ' \u00d7 ' + D.unitSF.toLocaleString() + ' SF \u00d7 ' + fmt$(D.exitPSF) + '/SF)', fmt$(D.grossRevenue)),
       dRow('Less: Transaction Costs', '(' + fmt$(D.txnCosts) + ')'),
-      dRow('Net Sale Proceeds', fmt$(D.netSaleProceeds)),
-      dRow('Less: Debt Repayment', '(' + fmt$(D.totalDebt) + ')'),
-      dRow('Cash for Distribution', fmt$(D.cashForDistribution)),
-      dRow('LP Pref Return (' + D.lpPref + 'x on ' + fmt$(D.totalEquity) + ')', fmt$(D.lpPrefAmount)),
-      dRow('LP Promote Share (' + Math.round(D.lpPromotePct * 100) + '% of remaining)', fmt$(D.lpPromoteShare)),
-      dRow('Total LP Distribution', fmt$(D.totalLPDistribution), false, true),
+      dRow('Less: Disposition Fee', '(' + fmt$(Math.round(D.grossRevenue * 0.015)) + ')'),
+      dRow('Net Sale Proceeds', fmt$(Math.round(D.netSaleProceeds))),
+      dRow('Less: Loan Repayment', '(' + fmt$(D.loanRepayment) + ')'),
+      dRow('Net Distributable', fmt$(Math.round(D.netDistributable))),
+      dRow('LP Return of Capital', fmt$(Math.round(D.lpROC))),
+      dRow('LP Preferred Return (8% \u00d7 ' + (D.holdMonths / 12).toFixed(1) + ' yr)', fmt$(Math.round(D.lpPrefDollars))),
+      dRow('LP Share of Remaining (80%)', fmt$(Math.round(D.lpShareRemaining))),
+      dRow('Total LP Distribution', fmt$(Math.round(D.lpTotalDist)), false, true),
     ] },
     layout: tightTableLayout,
-    margin: [0, 0, 0, 2],
+    margin: [0, 0, 0, 6],
   });
-  content.push({ text: 'Base case assumes ' + Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount to a single buyer or SFR aggregator. Individual retail sales at full $/SF represent additional upside.', italics: true, fontSize: 7.0, color: TC.body, margin: [0, 2, 0, 6] });
 
   // Page 2 metrics row
   content.push({
@@ -4284,7 +4230,7 @@ async function generateTeaser(lat, lng, overrides) {
       { text: '', border: [false, false, false, false] },
       metricBlock(D.fmt.hold, 'Hold Period'),
       { text: '', border: [false, false, false, false] },
-      metricBlock(D.fmt.pref, 'LP Pref Return'),
+      metricBlock(D.fmt.pref, 'LP Pref'),
     ]] },
     layout: noPadLayout, margin: [0, 0, 0, 6],
   });
@@ -4315,7 +4261,7 @@ async function generateTeaser(lat, lng, overrides) {
       rRow('Risk', 'Mitigant', true),
       rRow('Construction Cost Overruns', 'Fixed-price GC contract to be executed prior to construction start. ' + fmt$(D.buildPSF) + '/SF provides wood-frame commodity construction with ~85% domestic materials, limiting tariff exposure.'),
       rRow('Entitlement / Permitting', 'SB 1123 is a mandatory statute \u2014 not discretionary. 60-day clock; writ of mandate available. No CEQA, no public hearing.'),
-      rRow('Market / Exit Pricing', Math.round(D.bulkDiscountPct * 100) + '% bulk-sale discount already underwritten. BTR fallback at ' + fmt$(D.btrGrossMonthly) + '/mo gross, eliminating forced-sale risk. Break-even (' + fmt$(D.breakEvenPSF) + '/SF) below ' + D.neighborhood + ' resale median (' + fmt$(D.resaleMedianPSF) + '/SF).'),
+      rRow('Market / Exit Pricing', 'BTR fallback at ' + fmt$(D.btrGrossMonthly) + '/mo gross, eliminating forced-sale risk. Break-even (' + fmt$(D.breakEvenPSF) + '/SF) well below ' + D.neighborhood + ' resale median (' + fmt$(D.resaleMedianPSF) + '/SF).'),
     ] },
     layout: tightBorderedLayout,
     margin: [0, 0, 0, 8],
@@ -4327,10 +4273,11 @@ async function generateTeaser(lat, lng, overrides) {
   content.push({
     table: { headerRows: 1, heights: function() { return 10; }, widths: [160, '*'], body: [
       dRow('Term', 'Detail', true),
-      dRow('Total LP Equity', fmt$(D.totalEquity)),
+      dRow('Total LP Equity', fmt$(D.lpEquity)),
+      dRow('GP Co-Investment', Math.round(D.gpCoinvestPct * 100) + '% of total equity'),
       dRow('Minimum Investment', fmt$(D.minInvestment)),
-      dRow('LP Preferred Return', D.lpPref + 'x return of capital before any GP promote'),
-      dRow('Profit Split (above pref)', Math.round(D.lpPromotePct * 100) + '% LP / ' + Math.round((1 - D.lpPromotePct) * 100) + '% GP'),
+      dRow('LP Preferred Return', '8% annual preferred return (simple)'),
+      dRow('Profit Split (above pref)', '80% LP / 20% GP'),
       dRow('Estimated Hold Period', D.holdMonths + ' months', false, true),
     ] },
     layout: tightTableLayout,
