@@ -4264,7 +4264,7 @@ async function generateTeaser(lat, lng, overrides) {
   });
 
   // Waterfall
-  content.push(sectionHead('Waterfall'));
+  content.push({ text: 'Waterfall', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
 
   content.push({
@@ -4299,7 +4299,7 @@ async function generateTeaser(lat, lng, overrides) {
   });
 
   // Sensitivity Analysis
-  content.push(sectionHead('Sensitivity Analysis'));
+  content.push({ text: 'Sensitivity Analysis', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
   content.push({ text: 'LP returns by exit $/SF (' + D.holdMonths + '-mo hold, base case highlighted)', italics: true, fontSize: 7.0, color: TC.body, margin: [0, 0, 0, 2] });
   content.push({
@@ -4317,7 +4317,7 @@ async function generateTeaser(lat, lng, overrides) {
   });
 
   // Key Risks
-  content.push(sectionHead('Key Risks & Mitigants'));
+  content.push({ text: 'Key Risks & Mitigants', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
   content.push({
     table: { headerRows: 1, heights: function() { return 10; }, widths: [120, '*'], body: [
@@ -4331,7 +4331,7 @@ async function generateTeaser(lat, lng, overrides) {
   });
 
   // Deal Structure
-  content.push(sectionHead('Deal Structure'));
+  content.push({ text: 'Deal Structure', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
   content.push({
     table: { headerRows: 1, heights: function() { return 10; }, widths: [160, '*'], body: [
@@ -4347,12 +4347,13 @@ async function generateTeaser(lat, lng, overrides) {
   });
 
   // Sponsor
-  content.push(sectionHead('Sponsor'));
+  content.push({ text: 'Sponsor', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
   content.push({ text: S.sponsorName + ' is led by Matt Lucido and Joe Salerno, whose 5-year co-founder partnership at Yardsworth \u2014 a California RE platform operating at the intersection of housing policy, capital markets, and residential development \u2014 has produced ground-up residential development, active portfolio operations across Los Angeles, and the structuring of $350M+ in institutional equity and private credit. The team combines institutional rigor (9 years at Moelis & Company / UBS, 25+ transactions >$1B, UCLA Anderson MBA, USC Engineering) with hands-on operator-level execution across 9 assets developed or managed. Construction will be managed under a fixed-price contract with a licensed general contractor.', style: 'bodyText', margin: [0, 0, 0, 12] });
 
   // CTA Box
   content.push({
+    unbreakable: true,
     table: { widths: ['*'], body: [[{
       stack: [
         { text: 'For additional information or to request the full Offering Memorandum:', bold: true, fontSize: 7.9, color: TC.navy, alignment: 'center', margin: [0, 0, 0, 2] },
@@ -4378,7 +4379,7 @@ async function generateTeaser(lat, lng, overrides) {
 
   var docDefinition = {
     pageSize: 'LETTER',
-    pageMargins: [45, 50, 43, 45],
+    pageMargins: [45, 50, 43, 35],
     header: function(currentPage, pageCount) {
       return {
         margin: [45, 17, 43, 0],
