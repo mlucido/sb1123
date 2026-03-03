@@ -177,6 +177,10 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var titleCell = ws.getCell('B2');
   titleCell.value = 'SB 1123 Pro Forma';
   titleCell.font = { bold: true, size: 14 };
+  var now = new Date();
+  ws.getCell('F2').value = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  ws.getCell('F2').font = { size: 10, color: { argb: 'FF888888' } };
+  ws.getCell('F2').alignment = { horizontal: 'right' };
 
   // ── Left: Property & Development ──
   ws.getCell('B4').value = 'PROPERTY';

@@ -10,6 +10,7 @@ The XLS is the single source of truth. This script is a presentation layer only.
 """
 
 import openpyxl, sys, os, math
+from datetime import datetime
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
@@ -272,7 +273,7 @@ def hdr(s, title, sub=None):
 
 def ftr(s, d):
     _t(s, Inches(0.5), Inches(5.28), Inches(5), Inches(0.25),
-       f"CONFIDENTIAL  |  Lucid Development, LLC  |  February 2026", sz=7, color=S400)
+       f"CONFIDENTIAL  |  Lucid Development, LLC  |  {datetime.now().strftime('%B %Y')}", sz=7, color=S400)
 
 def stat(s, x, y, w, h, val, label, vs=26, vc=NAVY):
     _r(s, x, y, w, h, WHITE, line=S200, lw=0.5)
@@ -362,7 +363,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
         _r(s, mx, my, Inches(0.05), Inches(0.65), TEAL)
         _t(s, mx+Inches(0.2), my+Inches(0.02), Inches(3), Inches(0.35), val, sz=20, bold=True, color=NAVY)
         _t(s, mx+Inches(0.2), my+Inches(0.4), Inches(3), Inches(0.2), label, sz=8, color=S500)
-    _t(s, Inches(0.7), Inches(5.0), Inches(3), Inches(0.2), "February 2026", sz=9, color=S400)
+    _t(s, Inches(0.7), Inches(5.0), Inches(3), Inches(0.2), datetime.now().strftime('%B %Y'), sz=9, color=S400)
     _t(s, Inches(5.5), Inches(5.0), Inches(4), Inches(0.2),
        "Prepared by Lucid Development, LLC", sz=9, color=S400, align=PP_ALIGN.RIGHT)
 
