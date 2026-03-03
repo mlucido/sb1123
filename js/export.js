@@ -1177,7 +1177,7 @@ function buildBTRTab(wb) {
   setFormula(ws, 'C27', 'C18-Assumptions!G16', 0, '$#,##0');
 
   labelCell(ws, 28, 2, 'Return on Equity');
-  setFormula(ws, 'C28', 'IF(Assumptions!G14=0,0,(C9-Assumptions!G15*Assumptions!G18)/Assumptions!G14)', 0, '0.0%');
+  setFormula(ws, 'C28', 'IF(C25=0,0,(C9-C20)/C25)', 0, '0.0%');
   ws.getCell('C28').font = { bold: true };
 
   autoFitColumns(ws, { fixed: { 1: 2 } });
