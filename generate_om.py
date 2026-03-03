@@ -432,7 +432,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
        "exit math \u2014 because they've studied and prepared for them for five years.",
        sz=10, color=S600)
     for i, (v, l) in enumerate([("5 Years","Co-Founder Partnership"),("$350M+","Capital Structured"),
-        ("100+","Infill Sites Evaluated"),("9","Assets Under Management")]):
+        ("100+","Infill Sites Evaluated"),("10","Assets Under Management")]):
         stat(s, Inches(6.3), Inches(0.85+i*1.0), Inches(3.2), Inches(0.85), v, l, vs=22)
     ftr(s, d)
 
@@ -456,7 +456,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
        "25+ transactions, many >$1B. MBA honors, UCLA Anderson. MS & BS, USC.", sz=8, color=S600)
     _r(s, Inches(0.5), Inches(3.5), Inches(9.0), Inches(0.03), TEAL)
     _t(s, Inches(0.5), Inches(3.65), Inches(9), Inches(0.2), "PLATFORM & TRACK RECORD", sz=9, bold=True, color=NAVY)
-    for i, item in enumerate(["9 rental properties under active management",
+    for i, item in enumerate(["10 rental properties under active management",
         "4 ADU developments (structured land lease model)",
         "$350M+ equity and credit term sheets structured",
         "Active SB 1123 pipeline across Greater LA"]):
