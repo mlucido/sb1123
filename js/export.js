@@ -1633,6 +1633,8 @@ async function exportOM(lat, lng, overrides) {
     soft_cost_pct: SOFT_PCT,
     soft_costs: softCosts,
     demo_cost: 0,
+    subdivision_cost: 0,
+    ae_cost: 0,
     total_dev_costs: totalDev,
 
     // Exit

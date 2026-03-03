@@ -209,7 +209,7 @@ def _calc_moic(d, exit_psf=None, build_cost_psf=None, hold_months=None):
     u = d['units']; usf = d['unit_sf']; bsf = u * usf
     ap = d['asking_price']
     hard = bsf * bp; soft = hard * d['soft_cost_pct']
-    tdev = hard + soft + d['demo_cost'] + d['subdivision_cost'] + d['ae_cost']
+    tdev = hard + soft + d.get('demo_cost', 0) + d.get('subdivision_cost', 0) + d.get('ae_cost', 0)
     pdm = d['predev_months']; cm = d['construction_months']
     sm = max(1, hm - pdm - cm)
     mt = ap * d['prop_tax_rate'] / 12; mi = d['insurance_annual'] / 12
@@ -528,9 +528,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     # ── P9: CONSTRUCTION BUDGET ───────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Construction Budget")
     b_rows = [("Cost Category", "Total", "$/SF", "% of Dev."),
-        ("Subdivision / Entitlement", fm(d['subdivision_cost']), f"${d['subdivision_cost']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['subdivision_cost']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
-        ("A&E / Design", fm(d['ae_cost']), f"${d['ae_cost']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['ae_cost']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
-        ("Hard Costs (Vertical)", fm(d['hard_costs']), f"${d['build_cost_psf']:,.0f}", f"{d['hard_costs']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
+        ("Hard Costs", fm(d['hard_costs']), f"${d['build_cost_psf']:,.0f}", f"{d['hard_costs']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
         ("Soft Costs ({:.0%} of hard)".format(d['soft_cost_pct']), fm(d['soft_costs']), f"${d['soft_costs']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['soft_costs']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
         ("Total Development", fm(d['total_dev_costs']), f"${d['total_dev_costs']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", "100%")]
     tbl(s, Inches(0.5), Inches(0.85), Inches(5.8), b_rows, [Inches(2.4), Inches(1.1), Inches(0.9), Inches(0.9)])
