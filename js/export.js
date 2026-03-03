@@ -1523,7 +1523,7 @@ async function exportOM(lat, lng, overrides) {
     if (m === 0) devUses = askingPrice + askingPrice * 0.01; // land + txn costs
     if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) {
       var si = m - PRE_DEV_MO;
-      devUses += hardCosts * SCURVE[si] + softCosts * SCURVE[si];
+      devUses += totalDev * SCURVE[si];
     }
     var carryUses = monthlyTaxAmt + monthlyInsAmt + AM_MONTHLY;
     if (m >= PRE_DEV_MO && m < PRE_DEV_MO + CONSTR_MO) carryUses += DM_MONTHLY;
