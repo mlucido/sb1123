@@ -1508,6 +1508,9 @@ async function exportOM(lat, lng, overrides) {
   var totalAssetMgmt = AM_MONTHLY * HOLD_MO;
   var totalDevMgmt = DM_MONTHLY * CONSTR_MO;
 
+  // ── Fees ──
+  var acqFee = askingPrice * ACQ_FEE_PCT;
+
   // ── Interest (month-by-month PIK matching XLS Cash Flow) ──
   var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
   var monthlyTaxAmt = askingPrice * TAX_RATE / 12;
@@ -1537,9 +1540,6 @@ async function exportOM(lat, lng, overrides) {
     // Closing balance (matching XLS Row 38)
     loanBalance += draw + monthInterest;
   }
-
-  // ── Fees ──
-  var acqFee = askingPrice * ACQ_FEE_PCT;
   var dispFee = 0;  // computed on exit below
   var totalSponsorFees = acqFee + totalAssetMgmt + totalDevMgmt;  // disposition added at exit
 
