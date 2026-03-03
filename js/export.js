@@ -1014,23 +1014,23 @@ function buildOutputsTab(wb, ed) {
     }
   }
 
-  // ── Table 2: Investor MOIC vs Exit $/SF × Purchase Price ──
-  var t2 = 33 + exitDeltas.length + 2; // row 42
+  // ── Table 2: Investor MOIC vs Exit $/SF × Build Cost $/SF ──
+  var t2 = 33 + exitDeltas.length + 2;
   ws.mergeCells('B' + t2 + ':G' + t2);
-  ws.getCell('B' + t2).value = 'Investor MOIC: Exit $/SF vs Purchase Price';
+  ws.getCell('B' + t2).value = 'Investor MOIC: Exit $/SF vs Build Cost $/SF';
   ws.getCell('B' + t2).font = { italic: true, size: 11 };
 
-  var h2 = t2 + 1; // row 43
-  var priceDeltas = [-0.15, -0.075, 0, 0.075, 0.15];
-  ws.getCell('B' + h2).value = 'Exit \u2193 / Price \u2192';
+  var h2 = t2 + 1;
+  var buildDeltas2 = [-0.15, -0.075, 0, 0.075, 0.15];
+  ws.getCell('B' + h2).value = 'Exit \u2193 / Build \u2192';
   ws.getCell('B' + h2).font = { bold: true, size: 9 };
-  for (var pi = 0; pi < priceDeltas.length; pi++) {
-    var cl3 = colLetter(pi + 3);
-    var pf2 = priceDeltas[pi] === 0 ? 'Assumptions!C16' : 'Assumptions!C16*' + (1 + priceDeltas[pi]);
-    setFormula(ws, cl3 + h2, pf2, 0, '$#,##0');
+  for (var bi3 = 0; bi3 < buildDeltas2.length; bi3++) {
+    var cl3 = colLetter(bi3 + 3);
+    var bf2 = buildDeltas2[bi3] === 0 ? 'Assumptions!C23' : 'Assumptions!C23*' + (1 + buildDeltas2[bi3]);
+    setFormula(ws, cl3 + h2, bf2, 0, '$#,##0');
     ws.getCell(cl3 + h2).font = { bold: true };
     ws.getCell(cl3 + h2).alignment = { horizontal: 'center' };
-    if (priceDeltas[pi] === 0) ws.getCell(cl3 + h2).fill = baseFill;
+    if (buildDeltas2[bi3] === 0) ws.getCell(cl3 + h2).fill = baseFill;
   }
 
   for (var ei2 = 0; ei2 < exitDeltas.length; ei2++) {
@@ -1040,15 +1040,15 @@ function buildOutputsTab(wb, ed) {
     ws.getCell('B' + row2).font = { bold: true };
     if (exitDeltas[ei2] === 0) ws.getCell('B' + row2).fill = baseFill;
 
-    for (var pi2 = 0; pi2 < priceDeltas.length; pi2++) {
-      var cl4 = colLetter(pi2 + 3);
+    for (var bi4 = 0; bi4 < buildDeltas2.length; bi4++) {
+      var cl4 = colLetter(bi4 + 3);
       var revE2 = 'Assumptions!C20*Assumptions!C21*$B' + row2 + '*(1-Assumptions!C37-Assumptions!G37)';
-      var costE2 = 'Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C16)*(1+Assumptions!G33)';
+      var costE2 = 'Assumptions!G16+(' + cl4 + '$' + h2 + '-Assumptions!C23)*Assumptions!C22';
       setFormula(ws, cl4 + row2, moicFormula(revE2, costE2, 'Assumptions!G8'), 0, '0.00x');
-      if (exitDeltas[ei2] === 0 && priceDeltas[pi2] === 0) {
+      if (exitDeltas[ei2] === 0 && buildDeltas2[bi4] === 0) {
         ws.getCell(cl4 + row2).fill = baseFill;
         ws.getCell(cl4 + row2).font = { bold: true };
-      } else if (exitDeltas[ei2] === 0 || priceDeltas[pi2] === 0) {
+      } else if (exitDeltas[ei2] === 0 || buildDeltas2[bi4] === 0) {
         ws.getCell(cl4 + row2).fill = crossFill;
       }
     }
