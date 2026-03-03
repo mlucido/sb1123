@@ -518,7 +518,6 @@ def build_om(d, matt_photo=None, joe_photo=None):
     # ── P9: CONSTRUCTION BUDGET ───────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Construction Budget")
     b_rows = [("Cost Category", "Total", "$/SF", "% of Dev."),
-        ("Demolition", fm(d['demo_cost']), f"${d['demo_cost']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['demo_cost']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
         ("Subdivision / Entitlement", fm(d['subdivision_cost']), f"${d['subdivision_cost']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['subdivision_cost']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
         ("A&E / Design", fm(d['ae_cost']), f"${d['ae_cost']/d['buildable_sf']:,.0f}" if d['buildable_sf'] else "$0", f"{d['ae_cost']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
         ("Hard Costs (Vertical)", fm(d['hard_costs']), f"${d['build_cost_psf']:,.0f}", f"{d['hard_costs']/d['total_dev_costs']:.1%}" if d['total_dev_costs'] else "0%"),
