@@ -990,6 +990,13 @@ function buildCashFlowTab(wb, l, ed, pf, wf) {
     setFormula(ws, cl + '63', cl + '62+' + cl + '9-' + cl + '32+' + cl + '48', 0, CF_FMT);
   }
 
+  // Hide month columns beyond the default hold period (24 months = cols 3..26)
+  // Formulas exist in hidden columns and work if user extends timeline then unhides
+  var defaultHold = 24; // 6 pre-dev + 12 constr + 6 sale
+  for (var hm = defaultHold; hm < MONTHS; hm++) {
+    ws.getColumn(hm + 3).hidden = true;
+  }
+
   // Freeze panes: B column labels + header rows
   var cfFixed = { 1: 2 };
   for (var fc = 3; fc <= totalCol; fc++) cfFixed[fc] = 11;
