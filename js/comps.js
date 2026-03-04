@@ -17,9 +17,9 @@ var PT_COLORS = {1:'#3b82f6', 2:'#a855f7', 3:'#22c55e'};
 var PT_DEFAULT_COLOR = '#94a3b8';
 
 // ── Sale comp grouping ──
-var SALE_GROUP_ORDER = ['sfr','condo','townhome','mf'];
-var SALE_GROUP_LABELS = {sfr:'Single Family', condo:'Condos', townhome:'Townhomes', mf:'Multi-Family'};
-var SALE_PT_TO_GROUP = {1:'sfr', 2:'condo', 3:'townhome', 4:'mf', 5:'mf'};
+var SALE_GROUP_ORDER = ['sfr','condo','townhome'];
+var SALE_GROUP_LABELS = {sfr:'Single Family', condo:'Condos', townhome:'Townhomes'};
+var SALE_PT_TO_GROUP = {1:'sfr', 2:'condo', 3:'townhome'};
 var SALE_GROUP_CAP = 10;
 
 // ── Sale comp state ──
