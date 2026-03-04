@@ -363,7 +363,7 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
 
   labelCell(ws, 42, 2, 'LP Pref Rate');      inputCell(ws, 'C42', 0.08, '0.0%');
   labelCell(ws, 43, 2, 'GP Promote %');       inputCell(ws, 'C43', 0.20, '0.0%');
-  labelCell(ws, 44, 2, 'GP Co-Invest % Price'); inputCell(ws, 'C44', 0.02, '0.0%');
+  labelCell(ws, 44, 2, 'GP Co-Invest % Equity'); inputCell(ws, 'C44', 0.05, '0.0%');
 
   ws.getCell('B47').value = 'BTR HOLD';
   ws.getCell('B47').font = _hdrFont; ws.getCell('B47').fill = _hdrFill;
@@ -464,11 +464,12 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   labelCell(ws, 8, 2, '  Capitalized Interest');
   setFormula(ws, 'C8', "'Cash Flow'!AA39", 0, '$#,##0');
 
+  var gpCoInvestVal = Math.round(ed.equity * 0.05);
   sectionHeader(ws, 10, 2, 'Equity');
   labelCell(ws, 11, 2, '  LP Equity');
-  setFormula(ws, 'C11', 'Assumptions!G14-Assumptions!C16*Assumptions!C44', ed.equity - (l.price || 0) * 0.02, '$#,##0');
+  setFormula(ws, 'C11', 'Assumptions!G14*(1-Assumptions!C44)', ed.equity - gpCoInvestVal, '$#,##0');
   labelCell(ws, 12, 2, '  GP Co-Invest');
-  setFormula(ws, 'C12', 'Assumptions!C16*Assumptions!C44', (l.price || 0) * 0.02, '$#,##0');
+  setFormula(ws, 'C12', 'Assumptions!G14*Assumptions!C44', gpCoInvestVal, '$#,##0');
 
   labelCell(ws, 14, 2, 'TOTAL SOURCES');
   ws.getCell('B14').font = { bold: true };
@@ -480,8 +481,8 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   // Source % of total
   setFormula(ws, 'D6', 'C6/C$14', ed.debt / (ed.debt + ed.equity), '0.0%');
   setFormula(ws, 'D8', 'C8/C$14', 0, '0.0%');
-  setFormula(ws, 'D11', 'C11/C$14', (ed.equity - (l.price || 0) * 0.02) / (ed.debt + ed.equity), '0.0%');
-  setFormula(ws, 'D12', 'C12/C$14', (l.price || 0) * 0.02 / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D11', 'C11/C$14', (ed.equity - gpCoInvestVal) / (ed.debt + ed.equity), '0.0%');
+  setFormula(ws, 'D12', 'C12/C$14', gpCoInvestVal / (ed.debt + ed.equity), '0.0%');
 
   // ── USES ──
   ws.getCell('F4').value = 'USES';
@@ -550,7 +551,7 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   return ws;
 }
 
-function buildCashFlowTab(wb, l, ed, pf) {
+function buildCashFlowTab(wb, l, ed, pf, wf) {
   var ws = wb.addWorksheet('Cash Flow');
   var MONTHS = 24;
   var CF_FMT = '$#,##0;-$#,##0;" "'; // hide $0 cells — show blank
@@ -618,17 +619,17 @@ function buildCashFlowTab(wb, l, ed, pf) {
 
   // Row 6: LP Equity Call — Month 0 only
   labelCell(ws, 6, 2, '  LP Equity Call');
-  var gpCoInvestVal = (l.price || 0) * 0.02;
+  var gpCoInvestVal = Math.round(ed.equity * 0.05);
   var lpEquityVal = ed.equity - gpCoInvestVal;
   monthFormula(6,
-    function(m) { return m === 0 ? 'Assumptions!G14-Assumptions!C16*Assumptions!C44' : '0'; },
+    function(m) { return m === 0 ? 'Assumptions!G14*(1-Assumptions!C44)' : '0'; },
     function(m) { return m === 0 ? lpEquityVal : 0; }
   );
 
   // Row 7: GP Co-Invest Call — Month 0 only
   labelCell(ws, 7, 2, '  GP Co-Invest Call');
   monthFormula(7,
-    function(m) { return m === 0 ? 'Assumptions!C16*Assumptions!C44' : '0'; },
+    function(m) { return m === 0 ? 'Assumptions!G14*Assumptions!C44' : '0'; },
     function(m) { return m === 0 ? gpCoInvestVal : 0; }
   );
 
@@ -911,15 +912,15 @@ function buildCashFlowTab(wb, l, ed, pf) {
   // Row 53: LP Return of Capital
   labelCell(ws, 53, 2, '  LP Return of Capital');
   monthFormula(53,
-    function(m) { return m === lastMo ? 'Assumptions!G14-Assumptions!C16*Assumptions!C44' : '0'; },
-    function(m) { return m === lastMo ? lpEquityVal : 0; }
+    function(m) { return m === lastMo ? 'Assumptions!G14*(1-Assumptions!C44)' : '0'; },
+    function(m) { return m === lastMo ? (wf ? wf.lpROC : lpEquityVal) : 0; }
   );
 
   // Row 54: GP Return of Capital
   labelCell(ws, 54, 2, '  GP Return of Capital');
   monthFormula(54,
-    function(m) { return m === lastMo ? 'Assumptions!C16*Assumptions!C44' : '0'; },
-    function(m) { return m === lastMo ? gpCoInvestVal : 0; }
+    function(m) { return m === lastMo ? 'Assumptions!G14*Assumptions!C44' : '0'; },
+    function(m) { return m === lastMo ? (wf ? wf.gpROC : gpCoInvestVal) : 0; }
   );
 
   // Row 55: LP Preferred Return
@@ -927,9 +928,9 @@ function buildCashFlowTab(wb, l, ed, pf) {
   monthFormula(55,
     function(m) {
       if (m !== lastMo) return '0';
-      return '(Assumptions!G14-Assumptions!C16*Assumptions!C44)*Assumptions!C42*Assumptions!G8/12';
+      return 'Assumptions!G14*(1-Assumptions!C44)*Assumptions!C42*Assumptions!G8/12';
     },
-    function(m) { return m === lastMo ? lpEquityVal * 0.08 * 24 / 12 : 0; }
+    function(m) { return m === lastMo ? (wf ? wf.lpPrefDollars : lpEquityVal * 0.08 * 24 / 12) : 0; }
   );
 
   // Row 56: GP Promote — MAX(0, NetCashToEquity - LP ROC - GP ROC - LP Pref) * promote %
@@ -939,7 +940,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
       if (m !== lastMo) return '0';
       return 'MAX(0,' + totalLtr + '50-' + cl + '53-' + cl + '54-' + cl + '55)*Assumptions!C43';
     },
-    function() { return 0; }
+    function(m) { return m === lastMo ? (wf ? wf.gpPromoteDollars : 0) : 0; }
   );
 
   // Row 57: LP Residual Share
@@ -949,7 +950,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
       if (m !== lastMo) return '0';
       return 'MAX(0,' + totalLtr + '50-' + cl + '53-' + cl + '54-' + cl + '55)*(1-Assumptions!C43)';
     },
-    function() { return 0; }
+    function(m) { return m === lastMo ? (wf ? wf.lpShareRemaining : 0) : 0; }
   );
 
   // ── Row 59: LP TOTAL DISTRIBUTION ──
@@ -957,14 +958,14 @@ function buildCashFlowTab(wb, l, ed, pf) {
   ws.getCell('B59').font = { bold: true };
   monthFormula(59,
     function(m, cl) { return cl + '53+' + cl + '55+' + cl + '57'; },
-    function() { return 0; }
+    function(m) { return m === lastMo ? (wf ? wf.lpTotalDist : 0) : 0; }
   );
 
   // Row 60: LP Net Profit
   labelCell(ws, 60, 2, 'LP Net Profit');
   monthFormula(60,
     function(m, cl) { return cl + '59-' + cl + '53'; },
-    function() { return 0; }
+    function(m) { return m === lastMo ? (wf ? wf.lpNetProfit : 0) : 0; }
   );
 
   // ── Row 61-63: LLC BANK BALANCE ──
@@ -1002,7 +1003,7 @@ function buildCashFlowTab(wb, l, ed, pf) {
   return ws;
 }
 
-function buildOutputsTab(wb, ed) {
+function buildOutputsTab(wb, ed, wf) {
   var ws = wb.addWorksheet('Outputs');
 
   // Title
@@ -1016,21 +1017,21 @@ function buildOutputsTab(wb, ed) {
   ws.getCell('C4').fill = _hdrFill;
 
   labelCell(ws, 5, 2, 'LP MOIC');
-  setFormula(ws, 'C5', "IF('Cash Flow'!AA6=0,0,'Cash Flow'!AA59/'Cash Flow'!AA6)", 0, '0.00x');
+  setFormula(ws, 'C5', "IF('Cash Flow'!AA6=0,0,'Cash Flow'!AA59/'Cash Flow'!AA6)", wf ? wf.lpMOIC : 0, '0.00x');
   ws.getCell('C5').font = { bold: true, size: 12 };
 
   labelCell(ws, 6, 2, 'LP IRR (ann.)');
-  setFormula(ws, 'C6', 'IF(C5<=0,0,(C5^(12/Assumptions!G8))-1)', 0, '0.0%');
+  setFormula(ws, 'C6', 'IF(C5<=0,0,(C5^(12/Assumptions!G8))-1)', wf ? wf.lpIRR : 0, '0.0%');
   ws.getCell('C6').font = { bold: true, size: 12 };
 
   labelCell(ws, 7, 2, 'LP Total Dist');
-  setFormula(ws, 'C7', "'Cash Flow'!AA59", 0, '$#,##0');
+  setFormula(ws, 'C7', "'Cash Flow'!AA59", wf ? wf.lpTotalDist : 0, '$#,##0');
 
   labelCell(ws, 8, 2, 'LP Equity In');
-  setFormula(ws, 'C8', "'Cash Flow'!AA6", 0, '$#,##0');
+  setFormula(ws, 'C8', "'Cash Flow'!AA6", wf ? wf.lpEquity : 0, '$#,##0');
 
   labelCell(ws, 9, 2, 'LP Net Profit');
-  setFormula(ws, 'C9', "'Cash Flow'!AA60", 0, '$#,##0');
+  setFormula(ws, 'C9', "'Cash Flow'!AA60", wf ? wf.lpNetProfit : 0, '$#,##0');
 
   // ── Project Metrics ──
   ws.getCell('B11').value = 'PROJECT METRICS';
@@ -1058,23 +1059,23 @@ function buildOutputsTab(wb, ed) {
   ws.getCell('C20').fill = _hdrFill;
 
   labelCell(ws, 21, 2, 'GP Promote $');
-  setFormula(ws, 'C21', "'Cash Flow'!AA56", 0, '$#,##0');
+  setFormula(ws, 'C21', "'Cash Flow'!AA56", wf ? wf.gpPromoteDollars : 0, '$#,##0');
 
   labelCell(ws, 22, 2, 'Acq Fee');
-  setFormula(ws, 'C22', 'Assumptions!G34', 0, '$#,##0');
+  setFormula(ws, 'C22', 'Assumptions!G34', wf ? wf.acqFee : 0, '$#,##0');
 
   labelCell(ws, 23, 2, 'Asset Mgmt Total');
-  setFormula(ws, 'C23', 'Assumptions!G35*Assumptions!G8', 0, '$#,##0');
+  setFormula(ws, 'C23', 'Assumptions!G35*Assumptions!G8', wf ? wf.totalAssetMgmt : 0, '$#,##0');
 
   labelCell(ws, 24, 2, 'Dev Mgmt Total');
-  setFormula(ws, 'C24', 'Assumptions!G36*Assumptions!G6', 0, '$#,##0');
+  setFormula(ws, 'C24', 'Assumptions!G36*Assumptions!G6', wf ? wf.totalDevMgmt : 0, '$#,##0');
 
   labelCell(ws, 25, 2, 'Disp Fee');
-  setFormula(ws, 'C25', 'Assumptions!G38', 0, '$#,##0');
+  setFormula(ws, 'C25', 'Assumptions!G38', wf ? wf.dispFee : 0, '$#,##0');
 
   labelCell(ws, 26, 2, 'GP Total Income');
   ws.getCell('B26').font = { bold: true };
-  setFormula(ws, 'C26', 'C21+C22+C23+C24+C25', 0, '$#,##0');
+  setFormula(ws, 'C26', 'C21+C22+C23+C24+C25', wf ? wf.totalSponsorFees : 0, '$#,##0');
   ws.getCell('C26').font = { bold: true };
   ws.getCell('C26').border = { top: { style: 'double', color: { argb: 'FF000000' } } };
 
@@ -1095,7 +1096,7 @@ function buildOutputsTab(wb, ed) {
   // LP total = LP equity + Pref + (1−promote) × Distributable
   // MOIC = LP total / LP equity;  IRR = MOIC^(12/M) − 1
   function moicFormula(R, K, M) {
-    var le = '(' + K + ')*Assumptions!G17-Assumptions!C16*Assumptions!C44';
+    var le = '(' + K + ')*Assumptions!G17*(1-Assumptions!C44)';
     var pr = '(' + le + ')*Assumptions!C42*' + M + '/12';
     var ci = "'Cash Flow'!AA39";
     var db = 'MAX(0,' + R + '-(' + K + ')-' + ci + '-' + pr + ')';
@@ -1542,6 +1543,7 @@ async function exportModel(lat, lng, overrides) {
   var buildableSF = units * avgUnitSF;
 
   var ed = sizeEquityAndDebt(ll.price, units, avgUnitSF, pfOv.adjBuildCostPerSf, exitPSF, monthlyRent);
+  var wf = computeWaterfall(ll.price, units, avgUnitSF, pfOv.adjBuildCostPerSf, exitPSF, monthlyRent);
   var btr = calculateBTRProForma(l);
 
   // Build workbook
@@ -1550,8 +1552,8 @@ async function exportModel(lat, lng, overrides) {
 
   buildAssumptionsTab(wb, ll, pfOv, ed, exitPSF, monthlyRent);
   buildSourcesUsesTab(wb, ll, ed, pfOv);
-  buildCashFlowTab(wb, ll, ed, pfOv);
-  buildOutputsTab(wb, ed);
+  buildCashFlowTab(wb, ll, ed, pfOv, wf);
+  buildOutputsTab(wb, ed, wf);
   buildBTRTab(wb);
   buildExitCompsTab(wb, l);
 
