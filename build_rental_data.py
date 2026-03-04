@@ -120,6 +120,13 @@ with open(src, encoding="utf-8", errors="replace") as f:
                 rec["addr"] = address
             if zipcode:
                 rec["zip"] = zipcode
+            # Add listing date from freshness timestamp
+            if freshness_ts:
+                try:
+                    dt_parsed = datetime.fromisoformat(freshness_ts.replace("Z", "+00:00"))
+                    rec["dt"] = dt_parsed.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
 
             comps.append(rec)
         except Exception:

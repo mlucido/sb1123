@@ -1373,9 +1373,9 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
                     matches.append((rpsf, beds, sqft))
         return matches
 
-    # Tier 1: rental-comp — 0.5mi→1mi, 3BR exact, 800-2500 SF, SFR/TH/Condo/MF2-4
+    # Tier 1: rental-comp — 0.5mi→1mi, 3BR exact, 1200-2300 SF, SFR/TH/Condo/MF2-4
     for radius in [0.007, 0.015]:
-        comps = collect_comps(radius, 3, 0, 800, 2500, SFR_TH_TYPES)
+        comps = collect_comps(radius, 3, 0, 1200, 2300, SFR_TH_TYPES)
         if len(comps) >= 3:
             psf_vals = [rpsf for rpsf, _, _ in comps]
             beds_list = [b for _, b, _ in comps]
@@ -1386,8 +1386,8 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
             adj_psf = size_adjust(raw_psf, med_sqft)
             return round(adj_psf, 2), "rental-comp", len(comps), miles, median_val(beds_list), med_sqft
 
-    # Tier 2: rental-comp-wide — 2mi, 3BR exact, 800-2500 SF, SFR/TH/Condo/MF2-4
-    comps = collect_comps(0.029, 3, 0, 800, 2500, SFR_TH_TYPES)
+    # Tier 2: rental-comp-wide — 2mi, 3BR exact, 1200-2300 SF, SFR/TH/Condo/MF2-4
+    comps = collect_comps(0.029, 3, 0, 1200, 2300, SFR_TH_TYPES)
     if len(comps) >= 3:
         psf_vals = [rpsf for rpsf, _, _ in comps]
         beds_list = [b for _, b, _ in comps]

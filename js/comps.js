@@ -305,57 +305,143 @@ function searchRentalCompsInRadius(lat,lng,radiusMi){
   return out;
 }
 
-export function findRentalCompsForListing(l){
-  var RENTAL_COMPS = _deps.getRENTAL_COMPS();
-  if(!RENTAL_COMPS.length) return {used:[],ref:[],radius:0,method:'none'};
-  var method = l.rentMethod||'';
+// ── Rental comp match scoring ──
+var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','mf'];
+var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',mf:'Multi-Family'};
+var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf'};
+var RENTAL_GROUP_CAP = 10;
 
-  var usedRadius = l.rentCompRadius || 1;
-  var wideRadius = Math.min(usedRadius * 2, 5);
-  var all = searchRentalCompsInRadius(l.lat, l.lng, wideRadius);
-
-  var used=[], ref=[];
-  for(var i=0;i<all.length;i++){
-    var c=all[i];
-    var inRadius = c.dist <= usedRadius + 0.05;
-    var isUsed = false;
-
-    if(method === 'rental-comp' || method === 'rental-comp-wide'){
-      var bdOk = (c.bd||0) === 3;
-      var sfOk = (c.sqft||0) >= 800 && (c.sqft||0) <= 2500;
-      var ptOk = SFR_TH_TYPES.includes(c.pt||0);
-      isUsed = inRadius && bdOk && sfOk && ptOk;
-    } else if(method === 'rental-adj'){
-      var bdOk2 = (c.bd||0) >= 2;
-      var sfOk2 = (c.sqft||0) >= 800;
-      isUsed = inRadius && bdOk2 && sfOk2;
-    } else {
-      isUsed = false;
+function rentalMatchScore(c, maxRadius){
+  var score = 0;
+  // Property type (40 pts): TH=40, Condo=30, SFR=20, MF=10
+  var ptScores = {3:40, 2:30, 1:20, 4:10};
+  score += ptScores[c.pt] || 0;
+  // Size proximity (30 pts): closer to 1750 SF = higher
+  var sqft = c.sqft || 0;
+  if(sqft > 0) score += Math.max(0, 30 * (1 - Math.abs(sqft - 1750) / 1750));
+  // Recency (20 pts): newer = higher, requires dt field
+  if(c.dt){
+    var dtParts = c.dt.split('-');
+    if(dtParts.length === 3){
+      var compDate = new Date(parseInt(dtParts[0]), parseInt(dtParts[1])-1, parseInt(dtParts[2]));
+      var ageDays = Math.max(0, (Date.now() - compDate.getTime()) / 86400000);
+      score += Math.max(0, 20 * (1 - ageDays / 365));
     }
-
-    c.isUsed = isUsed;
-    if(isUsed) used.push(c);
-    else ref.push(c);
   }
-
-  used.sort(function(a,b){return a.dist-b.dist;});
-  ref.sort(function(a,b){return a.dist-b.dist;});
-  return {used:used, ref:ref, radius:usedRadius, method:method};
+  // Distance (10 pts): closer = higher
+  if(maxRadius > 0) score += Math.max(0, 10 * (1 - (c.dist || 0) / maxRadius));
+  return Math.round(score);
 }
 
-function rentalCompRow(c){
+export function findRentalCompsForListing(l){
+  var RENTAL_COMPS = _deps.getRENTAL_COMPS();
+  if(!RENTAL_COMPS.length) return {groups:{},allComps:[],radius:0,totalCount:0,method:l.rentMethod||'none',summary:{medianRentPsf:0,p75RentPsf:0,primaryCount:0,supportingCount:0}};
+
+  // Search at 0.5mi first, expand to 1mi if <5 comps
+  var searchRadius = 0.5;
+  var all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
+
+  // Filter: 3BR exact, 1200-2300 SF, types 1-4
+  function passFilter(c){ return (c.bd||0)===3 && (c.sqft||0)>=1200 && (c.sqft||0)<=2300 && [1,2,3,4].indexOf(c.pt||0)!==-1; }
+  var filtered = all.filter(function(c){ return c.dist <= searchRadius + 0.05 && passFilter(c); });
+
+  if(filtered.length < 5){
+    searchRadius = 1.0;
+    all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
+    filtered = all.filter(function(c){ return c.dist <= searchRadius + 0.05 && passFilter(c); });
+  }
+
+  // Score each comp
+  var maxR = searchRadius;
+  filtered.forEach(function(c){
+    c.matchScore = rentalMatchScore(c, maxR);
+    c.isUsed = true; // all filtered comps are "used" in the new model
+  });
+
+  // Group by property type
+  var groups = {};
+  RENTAL_GROUP_ORDER.forEach(function(g){ groups[g] = []; });
+  filtered.forEach(function(c){
+    var g = RENTAL_PT_TO_GROUP[c.pt];
+    if(g) groups[g].push(c);
+  });
+
+  // Sort each group by matchScore desc, cap at 10
+  var totalCount = filtered.length;
+  RENTAL_GROUP_ORDER.forEach(function(g){
+    groups[g].sort(function(a,b){ return b.matchScore - a.matchScore; });
+    groups[g] = groups[g].slice(0, RENTAL_GROUP_CAP);
+  });
+
+  // Flat allComps for map markers (capped set)
+  var allComps = [];
+  RENTAL_GROUP_ORDER.forEach(function(g){ allComps = allComps.concat(groups[g]); });
+
+  // Summary stats
+  var rentPsfs = allComps.filter(function(c){return c.sqft>0;}).map(function(c){return c.rent/c.sqft;});
+  rentPsfs.sort(function(a,b){return a-b;});
+  var medianRentPsf = rentPsfs.length ? rentPsfs[Math.floor(rentPsfs.length/2)] : 0;
+  var p75RentPsf = rentPsfs.length ? rentPsfs[Math.floor(rentPsfs.length*0.75)] : 0;
+  var primaryCount = (groups.townhome||[]).length + (groups.condo||[]).length;
+  var supportingCount = (groups.sfr||[]).length + (groups.mf||[]).length;
+
+  return {
+    groups: groups,
+    allComps: allComps,
+    radius: searchRadius,
+    totalCount: totalCount,
+    method: l.rentMethod || '',
+    summary: {
+      medianRentPsf: Math.round(medianRentPsf * 100) / 100,
+      p75RentPsf: Math.round(p75RentPsf * 100) / 100,
+      primaryCount: primaryCount,
+      supportingCount: supportingCount
+    }
+  };
+}
+
+function formatRentalDate(dt){
+  if(!dt) return '\u2014';
+  var parts = dt.split('-');
+  if(parts.length < 3) return dt;
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var m = parseInt(parts[1], 10) - 1;
+  return (months[m]||parts[1]) + ' ' + parseInt(parts[2], 10);
+}
+
+function scoreColor(s){
+  if(s >= 80) return 'var(--green)';
+  if(s >= 50) return 'var(--yellow)';
+  return 'var(--text-dim)';
+}
+
+function rentalCompRow(c, group){
   var rentPsf = (c.sqft && c.sqft > 0) ? (c.rent / c.sqft).toFixed(2) : '\u2014';
-  var style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
-    +'<td style="text-align:center">'+(c.isUsed?'<span style="color:var(--green)">&#10003;</span>':'')+'</td>'
-    +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(c.addr||'\u2014')+'</td>'
+  var sc = c.matchScore || 0;
+  return '<tr style="cursor:pointer" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
+    +'<td style="white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+(c.addr||'\u2014')+'</td>'
     +'<td>$'+c.rent.toLocaleString()+'</td>'
     +'<td>'+(rentPsf==='\u2014'?'\u2014':'$'+rentPsf)+'</td>'
     +'<td>'+(c.bd||'\u2014')+'</td>'
     +'<td>'+(c.ba||'\u2014')+'</td>'
     +'<td>'+(c.sqft?c.sqft.toLocaleString():'\u2014')+'</td>'
-    +'<td>'+(RENTAL_PT_LABEL[c.pt]||'\u2014')+'</td>'
+    +'<td>'+formatRentalDate(c.dt)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
+    +'<td><span style="display:inline-block;min-width:28px;text-align:center;padding:1px 4px;border-radius:4px;font-size:10px;font-weight:700;background:'+scoreColor(sc)+';color:#fff">'+sc+'</span></td>'
+    +'</tr>';
+}
+
+function rentalGroupTheadRow(group){
+  return '<tr>'
+    +'<th data-sort="addr" onclick="sortRentalCompsTable(\'addr\',\''+group+'\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="rent" onclick="sortRentalCompsTable(\'rent\',\''+group+'\')" style="cursor:pointer">Rent<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="rentPsf" onclick="sortRentalCompsTable(\'rentPsf\',\''+group+'\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="bd" onclick="sortRentalCompsTable(\'bd\',\''+group+'\')" style="cursor:pointer">Beds<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="ba" onclick="sortRentalCompsTable(\'ba\',\''+group+'\')" style="cursor:pointer">Baths<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="sqft" onclick="sortRentalCompsTable(\'sqft\',\''+group+'\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="dt" onclick="sortRentalCompsTable(\'dt\',\''+group+'\')" style="cursor:pointer">Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="dist" onclick="sortRentalCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="matchScore" onclick="sortRentalCompsTable(\'matchScore\',\''+group+'\')" style="cursor:pointer">Score<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'</tr>';
 }
 
@@ -370,16 +456,28 @@ export function showRentalCompsTable(lat,lng){
   if(compsTableActive) hideCompsTable();
 
   var result = findRentalCompsForListing(l);
-  var used=result.used, ref=result.ref, radius=result.radius;
+  var groups = result.groups;
+  var radius = result.radius;
+  var summary = result.summary;
+  var totalShown = result.allComps.length;
+
+  // Est rent from listing
+  var estRent = l.estRentMonth || 0;
+  var estPsf = l.rentPsf || 0;
 
   document.getElementById('tableWrap').style.display='none';
   document.getElementById('mobileCards').style.display='none';
   var header = document.querySelector('.listings-panel-header');
   if(!rentalCompsTableActive && !compsTableActive) savedPipelineHeader = header.innerHTML;
+
+  var estLine = estRent > 0
+    ? 'Est. Rent: $'+estRent.toLocaleString()+'/mo ($'+estPsf.toFixed(2)+'/SF) &mdash; based on '+totalShown+' comps within '+radius.toFixed(1)+'mi'
+    : totalShown+' comps within '+radius.toFixed(1)+'mi';
+
   header.innerHTML = '<button onclick="hideRentalCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">RENTAL COMPS &mdash; '+l.address+'</div>'
-    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+used.length+' used / '+(used.length+ref.length)+' nearby within '+radius.toFixed(1)+'mi</div>'
+    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+estLine+'</div>'
     +'</div>'
     +'<button class="listings-panel-close" onclick="hideRentalCompsTable()">x</button>';
 
@@ -393,38 +491,45 @@ export function showRentalCompsTable(lat,lng){
   }
   wrap.style.display = '';
 
-  var thead = '<table class="listings-table"><thead><tr>'
-    +'<th style="width:30px">Used</th>'
-    +'<th onclick="sortRentalCompsTable(\'addr\')">Address</th>'
-    +'<th onclick="sortRentalCompsTable(\'rent\')">Rent $/mo</th>'
-    +'<th onclick="sortRentalCompsTable(\'rentPsf\')">$/SF/mo</th>'
-    +'<th onclick="sortRentalCompsTable(\'bd\')">Beds</th>'
-    +'<th onclick="sortRentalCompsTable(\'ba\')">Baths</th>'
-    +'<th onclick="sortRentalCompsTable(\'sqft\')">SqFt</th>'
-    +'<th>Type</th>'
-    +'<th onclick="sortRentalCompsTable(\'dist\')">Dist</th>'
-    +'</tr></thead>';
+  // Build grouped sections
+  var html = '';
+  RENTAL_GROUP_ORDER.forEach(function(g){
+    var comps = groups[g] || [];
+    if(!comps.length) return;
+    var label = RENTAL_GROUP_LABELS[g] || g;
+    html += '<div class="rental-group-section" data-group="'+g+'" style="margin-bottom:8px">'
+      +'<div class="rental-group-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px 6px 0 0;cursor:pointer" onclick="toggleRentalGroup(\''+g+'\')">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span></span>'
+      +'<span class="rental-group-chevron" style="font-size:10px;color:var(--text-dim)">\u25BC</span>'
+      +'</div>'
+      +'<div class="rental-group-body">'
+      +'<table class="listings-table" style="margin:0"><thead>'+rentalGroupTheadRow(g)+'</thead>'
+      +'<tbody data-group="'+g+'">'+comps.map(function(c){return rentalCompRow(c,g);}).join('')+'</tbody></table>'
+      +'</div></div>';
+  });
 
-  var dividerRow = ref.length ? '<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+ref.length+') &mdash;</td></tr>' : '';
-  var tbody = '<tbody>'+used.map(function(c){return rentalCompRow(c);}).join('')+dividerRow+ref.map(function(c){return rentalCompRow(c);}).join('')+'</tbody></table>';
-  wrap.innerHTML = thead + tbody;
+  if(!html){
+    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No rental comps found within '+radius.toFixed(1)+'mi matching 3BR / 1,200\u20132,300 SF filters</div>';
+  }
 
-  wrap._used = used;
-  wrap._ref = ref;
+  wrap.innerHTML = html;
+  wrap._groups = groups;
   wrap._listing = l;
+  wrap._result = result;
 
+  // Map markers — score-based sizing
   if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); }
   if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); }
   rentalCompsMapLayer = L.layerGroup();
-  used.forEach(function(c){
+  result.allComps.forEach(function(c){
+    var sc = c.matchScore || 0;
+    var r, fillOp, col;
+    if(sc >= 80){ r=7; fillOp=0.9; col='#3b82f6'; }
+    else if(sc >= 50){ r=5; fillOp=0.6; col='#3b82f6'; }
+    else { r=4; fillOp=0.35; col='#94a3b8'; }
     L.circleMarker([c.lat,c.lng],{
-      radius:6, color:'#3b82f6', fillColor:'#3b82f6', fillOpacity:0.8, weight:1
-    }).bindPopup('<b>'+(c.addr||'\u2014')+'</b><br>$'+c.rent.toLocaleString()+'/mo &bull; '+(c.bd||'?')+'bd/'+(c.ba||'?')+'ba &bull; '+(c.sqft?c.sqft.toLocaleString()+'sf':'\u2014')).addTo(rentalCompsMapLayer);
-  });
-  ref.forEach(function(c){
-    L.circleMarker([c.lat,c.lng],{
-      radius:4, color:'#64748b', fillColor:'#64748b', fillOpacity:0.4, weight:1
-    }).addTo(rentalCompsMapLayer);
+      radius:r, color:'#ffffff', fillColor:col, fillOpacity:fillOp, weight:1
+    }).bindPopup('<b>'+(c.addr||'\u2014')+'</b><br>$'+c.rent.toLocaleString()+'/mo &bull; '+(c.bd||'?')+'bd/'+(c.ba||'?')+'ba &bull; '+(c.sqft?c.sqft.toLocaleString()+'sf':'\u2014')+'<br>Score: '+sc+' &bull; '+c.dist.toFixed(2)+'mi').addTo(rentalCompsMapLayer);
   });
   rentalCompsRadiusCircle = L.circle([l.lat,l.lng],{
     radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
@@ -435,13 +540,20 @@ export function showRentalCompsTable(lat,lng){
   rentalCompsTableActive = true;
 }
 
-export function sortRentalCompsTable(key){
+export function sortRentalCompsTable(key, group){
   var wrap = document.getElementById('rentalCompsTableWrap');
-  if(!wrap || !wrap._used) return;
-  var prev = wrap.getAttribute('data-sort-key');
-  var dir = prev===key && wrap.getAttribute('data-sort-dir')!=='asc' ? 'asc' : 'desc';
-  wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir==='asc' ? 'desc' : 'asc');
+  if(!wrap || !wrap._groups) return;
+  var comps = wrap._groups[group];
+  if(!comps || !comps.length) return;
+
+  // Track sort state per group
+  var stateKey = 'data-sort-'+group;
+  var prev = wrap.getAttribute(stateKey+'-key');
+  var prevDir = wrap.getAttribute(stateKey+'-dir');
+  var dir = prev===key ? (prevDir==='asc' ? 'desc' : 'asc') : 'desc';
+  wrap.setAttribute(stateKey+'-key', key);
+  wrap.setAttribute(stateKey+'-dir', dir);
+
   var sorter = function(a,b){
     var va,vb;
     if(key==='rentPsf'){
@@ -450,14 +562,41 @@ export function sortRentalCompsTable(key){
     } else {
       va=a[key]; vb=b[key];
     }
-    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    if(typeof va==='string') return dir==='asc'?(va||'').localeCompare(vb||''):(vb||'').localeCompare(va||'');
     va=va||0;vb=vb||0;
     return dir==='asc'?va-vb:vb-va;
   };
-  wrap._used.sort(sorter);
-  wrap._ref.sort(sorter);
-  var dividerRow = wrap._ref.length ? '<tr><td colspan="9" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+wrap._ref.length+') &mdash;</td></tr>' : '';
-  wrap.querySelector('tbody').innerHTML = wrap._used.map(function(c){return rentalCompRow(c);}).join('') + dividerRow + wrap._ref.map(function(c){return rentalCompRow(c);}).join('');
+  comps.sort(sorter);
+
+  var tbody = wrap.querySelector('tbody[data-group="'+group+'"]');
+  if(tbody) tbody.innerHTML = comps.map(function(c){return rentalCompRow(c,group);}).join('');
+
+  // Update arrows within this group's section
+  var section = wrap.querySelector('.rental-group-section[data-group="'+group+'"]');
+  if(section){
+    section.querySelectorAll('th[data-sort]').forEach(function(th){
+      var arrow = th.querySelector('.sort-arrow');
+      var active = th.getAttribute('data-sort')===key;
+      arrow.textContent = active ? (dir==='asc'?' \u25B2':' \u25BC') : ' \u25BD';
+      arrow.style.opacity = active ? '1' : '0.4';
+    });
+  }
+}
+
+export function toggleRentalGroup(group){
+  var wrap = document.getElementById('rentalCompsTableWrap');
+  if(!wrap) return;
+  var section = wrap.querySelector('.rental-group-section[data-group="'+group+'"]');
+  if(!section) return;
+  var body = section.querySelector('.rental-group-body');
+  var chevron = section.querySelector('.rental-group-chevron');
+  if(body.style.display === 'none'){
+    body.style.display = '';
+    if(chevron) chevron.textContent = '\u25BC';
+  } else {
+    body.style.display = 'none';
+    if(chevron) chevron.textContent = '\u25B6';
+  }
 }
 
 export function hideRentalCompsTable(){
