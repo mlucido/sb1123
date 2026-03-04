@@ -3930,24 +3930,16 @@ function computeTeaserData(l, overrides) {
     return { moic: s.lpMOIC, irr: s.lpIRR };
   }
 
-  var fixedSteps = [650, 700, 750];
+  var sensStep = 50;
+  var sensBase = Math.round(exitPSF / sensStep) * sensStep;
   var sensEntries = [];
-  for (var i = 0; i < fixedSteps.length; i++) {
-    var s = fixedSteps[i];
-    if (s !== exitPSF) sensEntries.push({ label: '$' + s, moic: calcSens(s).moic, irr: calcSens(s).irr });
+  for (var si = -3; si <= 3; si++) {
+    var sp = sensBase + si * sensStep;
+    if (sp <= 0) continue;
+    var sr = calcSens(sp);
+    sensEntries.push({ label: '$' + sp + (si === 0 ? ' (Base)' : ''), moic: sr.moic, irr: sr.irr, isBase: si === 0 });
   }
-  sensEntries.push({ label: '$' + exitPSF + ' (Base)', moic: calcSens(exitPSF).moic, irr: calcSens(exitPSF).irr, isBase: true });
-  var upside = exitPSF + 100;
-  if (fixedSteps.indexOf(upside) === -1) sensEntries.push({ label: '$' + upside, moic: calcSens(upside).moic, irr: calcSens(upside).irr });
-  sensEntries.sort(function(a, b) {
-    return parseInt(a.label.replace(/[^0-9]/g, '')) - parseInt(b.label.replace(/[^0-9]/g, ''));
-  });
-  while (sensEntries.length < 5) {
-    var lastPrice = parseInt(sensEntries[sensEntries.length - 1].label.replace(/[^0-9]/g, ''));
-    var next = lastPrice + 50;
-    sensEntries.push({ label: '$' + next, moic: calcSens(next).moic, irr: calcSens(next).irr });
-  }
-  var sensScenarios = sensEntries.slice(0, 5);
+  var sensScenarios = sensEntries;
 
   var neighborhood = l.neighborhood || l.city || city;
   var minInvestment = 500000;
