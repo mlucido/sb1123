@@ -4096,8 +4096,7 @@ async function generateTeaser(lat, lng, overrides) {
   }
 
   content.push({ text: 'I N V E S T M E N T     O P P O R T U N I T Y', fontSize: 6.5, bold: true, color: TC.teal, margin: [0, 0, 0, 1] });
-  content.push({ text: D.addr, fontSize: 19, bold: true, color: TC.navy, margin: [0, 0, 0, 1] });
-  content.push({ text: D.city + ', CA ' + D.zip, fontSize: 9.6, color: '#666666', margin: [0, 0, 0, 10] });
+  content.push({ text: D.addr, fontSize: 19, bold: true, color: TC.navy, margin: [0, 0, 0, 6] });
 
   // Tagline bar
   content.push({
@@ -4114,7 +4113,7 @@ async function generateTeaser(lat, lng, overrides) {
       paddingTop: function() { return 3; },
       paddingBottom: function() { return 3; },
     },
-    margin: [0, 0, 0, 6],
+    margin: [0, 0, 0, 10],
   });
 
   // Metrics row
@@ -4130,21 +4129,21 @@ async function generateTeaser(lat, lng, overrides) {
       { text: '', border: [false, false, false, false] },
       metricBlock(D.fmt.pref, 'LP Pref'),
     ]] },
-    layout: noPadLayout, margin: [0, 0, 0, 12],
+    layout: noPadLayout, margin: [0, 0, 0, 16],
   });
 
   // SB 1123 Section
   content.push(sectionHead('CA SB 1123: A Legislatively-Created Supply Gap'));
   content.push(tealRule());
-  content.push({ text: "California\u2019s Starter Home Revitalization Act established a ministerial approval pathway for up to 10 fee-simple homes on a single parcel \u2014 no public hearing, no CEQA review, no discretionary review, and a 60-day statutory approval clock. SB 684 proved the framework on multifamily-zoned land beginning January 2024. SB 1123 (effective July 1, 2025) extends the identical process to single-family zoned parcels, unlocking tens of thousands of R1 lots statewide that were previously restricted to one home per parcel.", style: 'bodyText' });
-  content.push({ text: "The economic logic is straightforward: acquire at single-family land pricing, develop at townhome density, and sell at new construction $/SF. The spread between R1 land cost and multi-unit exit value is the return \u2014 and it exists precisely because this product has never been legally buildable on these parcels before. There is virtually zero new townhome inventory in the submarket today. SB 1123 is the first mechanism to create it at scale, and early movers capture the widest margin before the market reprices.", style: 'bodyText', margin: [0, 0, 0, 10] });
+  content.push({ text: "California\u2019s Starter Home Revitalization Act established a ministerial approval pathway for up to 10 fee-simple homes on a single parcel \u2014 no public hearing, no CEQA review, no discretionary review, and a 60-day statutory approval clock. SB 684 proved the framework on multifamily-zoned land beginning January 2024. SB 1123 (effective July 1, 2025) extends the identical process to single-family zoned parcels, unlocking tens of thousands of R1 lots statewide that were previously restricted to one home per parcel.", style: 'bodyText', margin: [0, 0, 0, 2] });
+  content.push({ text: "The economic logic is straightforward: acquire at single-family land pricing, develop at townhome density, and sell at new construction $/SF. The spread between R1 land cost and multi-unit exit value is the return \u2014 and it exists precisely because this product has never been legally buildable on these parcels before. There is virtually zero new townhome inventory in the submarket today. SB 1123 is the first mechanism to create it at scale, and early movers capture the widest margin before the market reprices.", style: 'bodyText', margin: [0, 0, 0, 12] });
 
   // Opportunity Overview
   content.push(sectionHead('Opportunity Overview'));
   content.push(tealRule());
   var locDesc = (D.neighborhood && D.neighborhood !== D.city) ? 'in the ' + D.neighborhood + ' neighborhood of ' + D.city : 'in ' + D.city;
-  content.push({ text: S.sponsorName + ' is seeking ' + D.fmt.equityRaise + ' in LP equity to acquire, subdivide, and develop a ' + D.lotSizeSF.toLocaleString() + ' SF (' + D.lotAcres + '-acre) parcel ' + locDesc + ', zoned ' + D.zone + ' and eligible for by-right approval under SB 1123. The business plan acquires the property for ' + fmt$(D.askingPrice) + ' and constructs ' + D.units + ' \u00d7 ' + D.unitSF.toLocaleString() + ' SF modern fee-simple townhomes. Completed units will be sold individually within a ' + D.holdMonths + '-month timeline.', style: 'bodyText' });
-  content.push({ text: 'All-in project cost of ~' + fmt$(D.allInPSF) + '/SF against an ' + fmt$(D.exitPSF) + '/SF exit provides a ' + D.costToValueRatio + 'x cost-to-value margin with break-even at ~' + fmt$(D.breakEvenPSF) + '/SF \u2014 well below ' + D.neighborhood + ' resale medians (' + fmt$(D.resaleMedianPSF) + '/SF). If sale conditions are unfavorable, the project converts to a build-to-rent strategy generating ' + fmt$(D.btrGrossMonthly) + '/month gross rent across ' + D.units + ' units (' + fmt$(D.btrNOI) + ' annual NOI).', style: 'bodyText', margin: [0, 0, 0, 10] });
+  content.push({ text: S.sponsorName + ' is seeking ' + D.fmt.equityRaise + ' in LP equity to acquire, subdivide, and develop a ' + D.lotSizeSF.toLocaleString() + ' SF (' + D.lotAcres + '-acre) parcel ' + locDesc + ', zoned ' + D.zone + ' and eligible for by-right approval under SB 1123. The business plan acquires the property for ' + fmt$(D.askingPrice) + ' and constructs ' + D.units + ' \u00d7 ' + D.unitSF.toLocaleString() + ' SF modern fee-simple townhomes. Completed units will be sold individually within a ' + D.holdMonths + '-month timeline.', style: 'bodyText', margin: [0, 0, 0, 2] });
+  content.push({ text: 'All-in project cost of ~' + fmt$(D.allInPSF) + '/SF against an ' + fmt$(D.exitPSF) + '/SF exit provides a ' + D.costToValueRatio + 'x cost-to-value margin with break-even at ~' + fmt$(D.breakEvenPSF) + '/SF \u2014 well below ' + D.neighborhood + ' resale medians (' + fmt$(D.resaleMedianPSF) + '/SF). If sale conditions are unfavorable, the project converts to a build-to-rent strategy generating ' + fmt$(D.btrGrossMonthly) + '/month gross rent across ' + D.units + ' units (' + fmt$(D.btrNOI) + ' annual NOI).', style: 'bodyText', margin: [0, 0, 0, 12] });
 
   // Investment Highlights
   content.push(sectionHead('Investment Highlights'));
