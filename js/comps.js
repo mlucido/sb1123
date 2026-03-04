@@ -145,6 +145,7 @@ function compRow(c){
     +'<td style="color:'+(c.t===1?'var(--green)':'var(--text-dim)')+'">T'+(c.t||'?')+'</td>'
     +'<td>'+formatCompDate(c.date)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
+    +'<td><a class="redfin-link" href="https://www.redfin.com/search?query='+encodeURIComponent(c.address||'')+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">View &#8599;</a></td>'
     +'</tr>';
 }
 
@@ -197,9 +198,10 @@ export function showCompsTable(lat,lng){
     +'<th data-sort="t" onclick="sortCompsTable(\'t\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="date" onclick="sortCompsTable(\'date\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="dist" onclick="sortCompsTable(\'dist\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th style="width:45px">Link</th>'
     +'</tr></thead>';
 
-  var dividerRow = ref.length ? '<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+ref.length+') &mdash;</td></tr>' : '';
+  var dividerRow = ref.length ? '<tr><td colspan="13" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+ref.length+') &mdash;</td></tr>' : '';
   var tbody = '<tbody>'+used.map(function(c){return compRow(c);}).join('')+dividerRow+ref.filter(function(c){return !c.isOutlier;}).map(function(c){return compRow(c);}).join('')+'</tbody></table>';
   wrap.innerHTML = thead + tbody;
 
@@ -214,7 +216,14 @@ export function showCompsTable(lat,lng){
     var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
     L.circleMarker([c.lat,c.lng],{
       radius:7, color:'#ffffff', fillColor:ptColor, fillOpacity:0.9, weight:2
-    }).bindPopup('<b>'+(c.address||'\u2014')+'</b><br>$'+c.price.toLocaleString()+' &bull; $'+c.ppsf+'/sf &bull; '+c.sqft+'sf<br>'+(c.date||'\u2014')+' &bull; T'+(c.t||'?')+' &bull; '+c.zone+' &bull; '+(PT_LABEL[c.pt]||'?')).addTo(compsMapLayer);
+    }).bindPopup(
+      '<b>'+(c.address||'\u2014')+'</b>'
+      +'<br>$'+c.price.toLocaleString()+' &bull; <b>$'+c.ppsf+'/SF</b> &bull; '+c.sqft.toLocaleString()+' SF'
+      +'<br>'+(c.bd||'\u2014')+'bd/'+(c.ba||'\u2014')+'ba &bull; Built '+(c.yb||'\u2014')
+      +'<br>'+(PT_LABEL[c.pt]||'\u2014')+' &bull; '+(c.zone||'\u2014')+' &bull; '+formatCompDate(c.date)
+      +'<br>'+c.dist.toFixed(2)+'mi'
+      +'<br><a href="https://www.redfin.com/search?query='+encodeURIComponent(c.address||'')+'" target="_blank" rel="noopener" style="color:#3b82f6;font-size:11px">View on Redfin &#8599;</a>'
+    ).addTo(compsMapLayer);
   });
   ref.filter(function(c){return !c.isOutlier;}).forEach(function(c){
     var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
@@ -247,7 +256,7 @@ export function sortCompsTable(key){
   };
   wrap._used.sort(sorter);
   wrap._ref.sort(sorter);
-  var dividerRow = wrap._ref.length ? '<tr><td colspan="12" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+wrap._ref.length+') &mdash;</td></tr>' : '';
+  var dividerRow = wrap._ref.length ? '<tr><td colspan="13" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+wrap._ref.length+') &mdash;</td></tr>' : '';
   wrap.querySelector('tbody').innerHTML = wrap._used.map(function(c){return compRow(c);}).join('') + dividerRow + wrap._ref.filter(function(c){return !c.isOutlier;}).map(function(c){return compRow(c);}).join('');
   // Update header arrows
   wrap.querySelectorAll('th[data-sort]').forEach(function(th){
@@ -438,6 +447,7 @@ function rentalCompRow(c, group){
     +'<td>'+formatRentalDate(c.dt)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
     +'<td><span style="display:inline-block;min-width:28px;text-align:center;padding:1px 4px;border-radius:4px;font-size:10px;font-weight:700;background:'+scoreColor(sc)+';color:#fff">'+sc+'</span></td>'
+    +'<td><a class="redfin-link" href="https://www.redfin.com/search?query='+encodeURIComponent(c.addr||'')+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">View &#8599;</a></td>'
     +'</tr>';
 }
 
@@ -466,6 +476,7 @@ function rentalGroupTheadRow(group){
     +'<th data-sort="dt" onclick="sortRentalCompsTable(\'dt\',\''+group+'\')" style="cursor:pointer">Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="dist" onclick="sortRentalCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="matchScore" onclick="sortRentalCompsTable(\'matchScore\',\''+group+'\')" style="cursor:pointer">Score<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th style="width:45px">Link</th>'
     +'</tr>';
 }
 
@@ -556,7 +567,14 @@ export function showRentalCompsTable(lat,lng){
     else { r=4; fillOp=0.35; col='#94a3b8'; }
     L.circleMarker([c.lat,c.lng],{
       radius:r, color:'#ffffff', fillColor:col, fillOpacity:fillOp, weight:1
-    }).bindPopup('<b>'+(c.addr||'\u2014')+'</b><br>$'+c.rent.toLocaleString()+'/mo &bull; '+(c.bd||'?')+'bd/'+(c.ba||'?')+'ba &bull; '+(c.sqft?c.sqft.toLocaleString()+'sf':'\u2014')+'<br>Score: '+sc+' &bull; '+c.dist.toFixed(2)+'mi').addTo(rentalCompsMapLayer);
+    }).bindPopup(
+      '<b>'+(c.addr||'\u2014')+'</b>'
+      +'<br>$'+c.rent.toLocaleString()+'/mo &bull; <b>$'+((c.sqft&&c.sqft>0)?(c.rent/c.sqft).toFixed(2):'\u2014')+'/SF</b>'
+      +'<br>'+(c.bd||'\u2014')+'bd/'+(c.ba||'\u2014')+'ba &bull; '+(c.sqft?c.sqft.toLocaleString()+' SF':'\u2014')
+      +'<br>'+(RENTAL_PT_LABEL[c.pt]||'\u2014')+' &bull; '+formatRentalDate(c.dt)
+      +'<br>'+c.dist.toFixed(2)+'mi &bull; Score: '+sc
+      +'<br><a href="https://www.redfin.com/search?query='+encodeURIComponent(c.addr||'')+'" target="_blank" rel="noopener" style="color:#3b82f6;font-size:11px">View on Redfin &#8599;</a>'
+    ).addTo(rentalCompsMapLayer);
   });
   rentalCompsRadiusCircle = L.circle([l.lat,l.lng],{
     radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
