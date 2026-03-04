@@ -306,14 +306,14 @@ function searchRentalCompsInRadius(lat,lng,radiusMi){
 }
 
 // ── Rental comp match scoring ──
-var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','apt'];
-var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',apt:'Apartments / Multi-Family'};
-var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'apt',5:'apt'};
+var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','mf'];
+var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',mf:'Multi-Family'};
+var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf',5:'mf'};
 var RENTAL_GROUP_CAP = 10;
 
 function rentalMatchScore(c, maxRadius){
   var score = 0;
-  // Property type (40 pts): TH=40, Condo=30, SFR=20, Apt/MF=15
+  // Property type (40 pts): TH=40, Condo=30, SFR=20, MF=15
   var ptScores = {3:40, 2:30, 1:20, 4:15, 5:15};
   score += ptScores[c.pt] || 0;
   // Bed match (15 pts): 3BR exact = 15, 2BR or 4BR = 8, else 0

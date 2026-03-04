@@ -43,9 +43,10 @@ PT_TO_LABEL = {
     6: "Single Family Residential",
     3: "Condo/Co-op",
     13: "Townhouse",
-    5: "Multi-Family (5+ Unit)",
     4: "Multi-Family (2-4 Unit)",
+    5: "Multi-Family (5+ Unit)",
 }
+unknown_pt_codes = {}  # Track unmapped property type codes
 
 # ── Counters ──
 all_listings = []
@@ -77,6 +78,8 @@ def parse_homes(homes):
         zipcode = addr_info.get("zip", "")
         prop_type_code = hd.get("propertyType", 0)
         prop_type = PT_TO_LABEL.get(prop_type_code, "Other")
+        if prop_type == "Other" and prop_type_code:
+            unknown_pt_codes[prop_type_code] = unknown_pt_codes.get(prop_type_code, 0) + 1
 
         # Date fields — freshnessTimestamp is when listing was posted/refreshed
         freshness = rx.get("freshnessTimestamp", "")  # ISO 8601 e.g. "2026-01-20T00:26:48.215Z"
@@ -346,6 +349,11 @@ def main():
     print(f"\n  Bed breakdown:")
     for b in sorted(bed_counts.keys()):
         print(f"     {b}BR: {bed_counts[b]:,}")
+
+    if unknown_pt_codes:
+        print(f"\n  Unknown propertyType codes (mapped as 'Other'):")
+        for code, count in sorted(unknown_pt_codes.items(), key=lambda x: -x[1]):
+            print(f"     code={code}: {count:,}")
 
     if not all_listings:
         print("\n  No rentals fetched.")
