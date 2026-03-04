@@ -1420,11 +1420,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 <!-- Listings Panel -->
 <div class="listings-panel" id="listingsPanel">
   <div class="listings-panel-resize" id="panelResize"></div>
-  <div class="listings-panel-header">
+  <div class="listings-panel-header" id="pipelineHeader">
     <h2><span>Deal Pipeline</span></h2>
     <span class="listings-panel-count" id="tablePanelCount">0</span>
     <button class="listings-panel-close" onclick="toggleListingsPanel()">x</button>
   </div>
+  <div class="listings-panel-header" id="compsHeader" style="display:none"></div>
+  <div class="listings-panel-header" id="rentalCompsHeader" style="display:none"></div>
   <div class="listings-table-wrap" id="tableWrap">
     <table class="listings-table">
       <thead>
@@ -3348,6 +3350,7 @@ function toggleListingsPanel(){
   const tab = document.getElementById('listingsPanelTab');
   listingsPanelOpen = !listingsPanelOpen;
   panel.classList.toggle('open', listingsPanelOpen);
+  if(!listingsPanelOpen) panel.style.height = '';
   if(tab) tab.style.display = listingsPanelOpen ? 'none' : 'flex';
   if(isMobile() && listingsPanelOpen) setSheetState('collapsed');
   setTimeout(() => map.invalidateSize(), 350);

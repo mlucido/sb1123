@@ -23,7 +23,6 @@ var compsRadiusCircle = null;
 var rentalCompsTableActive = false;
 var rentalCompsMapLayer = null;
 var rentalCompsRadiusCircle = null;
-var savedPipelineHeader = '';
 
 // ── Helpers ──
 
@@ -165,14 +164,15 @@ export function showCompsTable(lat,lng){
 
   document.getElementById('tableWrap').style.display='none';
   document.getElementById('mobileCards').style.display='none';
-  var header = document.querySelector('.listings-panel-header');
-  savedPipelineHeader = header.innerHTML;
-  header.innerHTML = '<button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
+  document.getElementById('pipelineHeader').style.display='none';
+  var compsHdr = document.getElementById('compsHeader');
+  compsHdr.innerHTML = '<button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; '+l.address+'</div>'
     +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+used.length+' used / '+(used.length+ref.length)+' nearby within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
     +'</div>'
     +'<button class="listings-panel-close" onclick="hideCompsTable()">x</button>';
+  compsHdr.style.display='';
 
   var wrap = document.getElementById('compsTableWrap');
   if(!wrap){
@@ -262,8 +262,8 @@ export function hideCompsTable(){
   var map = _deps.getMap();
   document.getElementById('tableWrap').style.display='';
   document.getElementById('mobileCards').style.display='';
-  var header = document.querySelector('.listings-panel-header');
-  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
+  document.getElementById('compsHeader').style.display='none';
+  document.getElementById('pipelineHeader').style.display='';
   var wrap = document.getElementById('compsTableWrap');
   if(wrap) wrap.remove();
   if(compsMapLayer){ map.removeLayer(compsMapLayer); compsMapLayer=null; }
@@ -491,19 +491,20 @@ export function showRentalCompsTable(lat,lng){
 
   document.getElementById('tableWrap').style.display='none';
   document.getElementById('mobileCards').style.display='none';
-  var header = document.querySelector('.listings-panel-header');
-  if(!rentalCompsTableActive && !compsTableActive) savedPipelineHeader = header.innerHTML;
+  document.getElementById('pipelineHeader').style.display='none';
 
   var estLine = estRent > 0
     ? 'Est. Rent: $'+estRent.toLocaleString()+'/mo ($'+estPsf.toFixed(2)+'/SF) &mdash; based on '+totalShown+' comps within '+radius.toFixed(1)+'mi'
     : totalShown+' comps within '+radius.toFixed(1)+'mi';
 
-  header.innerHTML = '<button onclick="hideRentalCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
+  var rentalHdr = document.getElementById('rentalCompsHeader');
+  rentalHdr.innerHTML = '<button onclick="hideRentalCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">RENTAL COMPS &mdash; '+l.address+'</div>'
     +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+estLine+'</div>'
     +'</div>'
     +'<button class="listings-panel-close" onclick="hideRentalCompsTable()">x</button>';
+  rentalHdr.style.display='';
 
   var wrap = document.getElementById('rentalCompsTableWrap');
   if(!wrap){
@@ -629,8 +630,8 @@ export function hideRentalCompsTable(){
   var map = _deps.getMap();
   document.getElementById('tableWrap').style.display='';
   document.getElementById('mobileCards').style.display='';
-  var header = document.querySelector('.listings-panel-header');
-  if(savedPipelineHeader) header.innerHTML = savedPipelineHeader;
+  document.getElementById('rentalCompsHeader').style.display='none';
+  document.getElementById('pipelineHeader').style.display='';
   var wrap = document.getElementById('rentalCompsTableWrap');
   if(wrap) wrap.remove();
   if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); rentalCompsMapLayer=null; }
