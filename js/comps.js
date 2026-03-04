@@ -178,7 +178,7 @@ function formatCompDate(d){
 function compRow(c){
   var style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
   return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
-    +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(c.address||'\u2014')+'</td>'
+    +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis"><a class="redfin-link" href="'+redfinLink(c.address)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on Redfin">'+(c.address||'\u2014')+' &#8599;</a></td>'
     +'<td>$'+c.price.toLocaleString()+'</td>'
     +'<td style="color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)')+'">$'+c.ppsf+'</td>'
     +'<td>'+c.sqft.toLocaleString()+'</td>'
@@ -188,7 +188,6 @@ function compRow(c){
     +'<td style="color:'+(c.t===1?'var(--green)':'var(--text-dim)')+'">T'+(c.t||'?')+'</td>'
     +'<td>'+formatCompDate(c.date)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
-    +'<td><a class="redfin-link" href="'+redfinLink(c.address)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">View &#8599;</a></td>'
     +'</tr>';
 }
 
@@ -204,7 +203,6 @@ function saleGroupTheadRow(group){
     +'<th data-sort="t" onclick="sortCompsTable(\'t\',\''+group+'\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="date" onclick="sortCompsTable(\'date\',\''+group+'\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="dist" onclick="sortCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th style="width:45px">Link</th>'
     +'</tr>';
 }
 
@@ -529,7 +527,7 @@ function rentalCompRow(c, group){
   var rentPsf = (c.sqft && c.sqft > 0) ? (c.rent / c.sqft).toFixed(2) : '\u2014';
   var sc = c.matchScore || 0;
   return '<tr style="cursor:pointer" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
-    +'<td style="white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+(c.addr||'\u2014')+'</td>'
+    +'<td style="white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis"><a class="redfin-link" href="'+redfinLink(c.addr)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on Redfin">'+(c.addr||'\u2014')+' &#8599;</a></td>'
     +'<td>$'+c.rent.toLocaleString()+'</td>'
     +'<td>'+(rentPsf==='\u2014'?'\u2014':'$'+rentPsf)+'</td>'
     +'<td>'+(c.bd||'\u2014')+'</td>'
@@ -538,7 +536,6 @@ function rentalCompRow(c, group){
     +'<td>'+formatRentalDate(c.dt)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
     +'<td><span style="display:inline-block;min-width:28px;text-align:center;padding:1px 4px;border-radius:4px;font-size:10px;font-weight:700;background:'+scoreColor(sc)+';color:#fff">'+sc+'</span></td>'
-    +'<td><a class="redfin-link" href="'+redfinLink(c.addr)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">View &#8599;</a></td>'
     +'</tr>';
 }
 
@@ -567,7 +564,6 @@ function rentalGroupTheadRow(group){
     +'<th data-sort="dt" onclick="sortRentalCompsTable(\'dt\',\''+group+'\')" style="cursor:pointer">Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="dist" onclick="sortRentalCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="matchScore" onclick="sortRentalCompsTable(\'matchScore\',\''+group+'\')" style="cursor:pointer">Score<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th style="width:45px">Link</th>'
     +'</tr>';
 }
 
