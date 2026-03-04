@@ -29,12 +29,13 @@ from tile_utils import build_grid, subdivide_tile, tile_to_poly, tile_label
 MAX_SUBDIVIDE_DEPTH = 3
 SEARCH_API = "/stingray/api/v1/search/rentals"
 
-# Property types to query (each separately to avoid apartment dominance)
-# uipt=1 → houses (PT 6), uipt=2 → condos (PT 3), uipt=3 → townhomes (PT 13)
+# Property types to query separately
+# uipt=1 → houses (PT 6), uipt=2 → condos (PT 3), uipt=3 → townhomes (PT 13), uipt=4 → multi-family/apartments
 PROPERTY_TYPES = [
     ("1", "Houses"),
     ("2", "Condos"),
     ("3", "Townhomes"),
+    ("4", "Multi-Family"),
 ]
 
 # Redfin rental propertyType → our CSV PROPERTY TYPE label

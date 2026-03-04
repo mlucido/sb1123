@@ -306,15 +306,15 @@ function searchRentalCompsInRadius(lat,lng,radiusMi){
 }
 
 // ── Rental comp match scoring ──
-var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','mf'];
-var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',mf:'Multi-Family'};
-var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf',5:'mf'};
+var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','apt'];
+var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',apt:'Apartments / Multi-Family'};
+var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'apt',5:'apt'};
 var RENTAL_GROUP_CAP = 10;
 
 function rentalMatchScore(c, maxRadius){
   var score = 0;
-  // Property type (40 pts): TH=40, Condo=30, SFR=20, MF=10
-  var ptScores = {3:40, 2:30, 1:20, 4:10, 5:10};
+  // Property type (40 pts): TH=40, Condo=30, SFR=20, Apt/MF=15
+  var ptScores = {3:40, 2:30, 1:20, 4:15, 5:15};
   score += ptScores[c.pt] || 0;
   // Bed match (15 pts): 3BR exact = 15, 2BR or 4BR = 8, else 0
   var bd = c.bd || 0;
@@ -341,19 +341,24 @@ export function findRentalCompsForListing(l){
   var RENTAL_COMPS = _deps.getRENTAL_COMPS();
   if(!RENTAL_COMPS.length) return {groups:{},allComps:[],radius:0,totalCount:0,method:l.rentMethod||'none',summary:{medianRentPsf:0,p75RentPsf:0,primaryCount:0,supportingCount:0}};
 
-  // Gate: 2+ BR, 1000-3000 SF, types 1-5 (SFR/Condo/TH/MF)
+  // Gate: 2+ BR, 700-4000 SF, types 1-5 (SFR/Condo/TH/Apt/MF)
   // Scoring handles relevance — 3BR near 1750 SF score highest
-  function passFilter(c){ return [1,2,3,4,5].indexOf(c.pt||0)!==-1 && (c.bd||0)>=2 && (c.sqft||0)>=1000 && (c.sqft||0)<=3000; }
+  function passFilter(c){ return [1,2,3,4,5].indexOf(c.pt||0)!==-1 && (c.bd||0)>=2 && (c.sqft||0)>=700 && (c.sqft||0)<=4000; }
 
-  // Expanding radius: 0.5mi → 1mi → 2mi, stop when we have ≥10 comps
-  var radii = [0.5, 1.0, 2.0];
+  // Expanding radius: 0.5mi → 1mi → 2mi → 3mi, stop when ≥10 per active group
+  var radii = [0.5, 1.0, 2.0, 3.0];
   var searchRadius = 0.5;
   var filtered = [];
   for(var ri=0; ri<radii.length; ri++){
     searchRadius = radii[ri];
     var all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
     filtered = all.filter(function(c){ return c.dist <= searchRadius + 0.05 && passFilter(c); });
-    if(filtered.length >= 10) break;
+    // Check per-group coverage: stop when every active group has ≥10
+    var groupCounts = {};
+    filtered.forEach(function(c){ var g=RENTAL_PT_TO_GROUP[c.pt]; if(g) groupCounts[g]=(groupCounts[g]||0)+1; });
+    var activeGroups = Object.keys(groupCounts);
+    var allFull = activeGroups.length > 0 && activeGroups.every(function(g){ return groupCounts[g] >= RENTAL_GROUP_CAP; });
+    if(allFull) break;
   }
 
   // Score each comp
@@ -530,7 +535,7 @@ export function showRentalCompsTable(lat,lng){
   });
 
   if(!html){
-    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No rental comps found within '+radius.toFixed(1)+'mi matching 2+ BR / 1,000\u20133,000 SF filters</div>';
+    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No rental comps found within '+radius.toFixed(1)+'mi matching 2+ BR / 700\u20134,000 SF filters</div>';
   }
 
   wrap.innerHTML = html;
