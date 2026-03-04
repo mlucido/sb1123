@@ -16,6 +16,12 @@ var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS 
 var PT_COLORS = {1:'#3b82f6', 2:'#a855f7', 3:'#22c55e'};
 var PT_DEFAULT_COLOR = '#94a3b8';
 
+// ── Sale comp grouping ──
+var SALE_GROUP_ORDER = ['sfr','condo','townhome','mf'];
+var SALE_GROUP_LABELS = {sfr:'Single Family', condo:'Condos', townhome:'Townhomes', mf:'Multi-Family'};
+var SALE_PT_TO_GROUP = {1:'sfr', 2:'condo', 3:'townhome', 4:'mf', 5:'mf'};
+var SALE_GROUP_CAP = 10;
+
 // ── Sale comp state ──
 var compsTableActive = false;
 var compsMapLayer = null;
@@ -116,7 +122,42 @@ export function findCompsForListing(l){
 
   used.sort(function(a,b){return a.dist-b.dist;});
   ref.sort(function(a,b){return a.dist-b.dist;});
-  return {used:used,ref:ref,source:source,radius:searchRadius};
+
+  // Group by property type for table display
+  var pool = used.concat(ref.filter(function(c){return !c.isOutlier;}));
+  var groups = {};
+  SALE_GROUP_ORDER.forEach(function(g){ groups[g] = []; });
+  pool.forEach(function(c){
+    var g = SALE_PT_TO_GROUP[c.pt];
+    if(g) groups[g].push(c);
+  });
+  // Sort each group by distance, cap at SALE_GROUP_CAP
+  var totalCount = pool.length;
+  SALE_GROUP_ORDER.forEach(function(g){
+    groups[g].sort(function(a,b){return a.dist-b.dist;});
+    groups[g] = groups[g].slice(0, SALE_GROUP_CAP);
+  });
+  var allComps = [];
+  SALE_GROUP_ORDER.forEach(function(g){ allComps = allComps.concat(groups[g]); });
+
+  return {used:used,ref:ref,groups:groups,allComps:allComps,source:source,radius:searchRadius,usedCount:used.length,totalCount:totalCount};
+}
+
+// ── Sale comp helpers ──
+
+function saleGroupAvgs(comps){
+  if(!comps.length) return {avgPrice:0, avgPpsf:0, avgSqft:0};
+  var prices=[], psfs=[], sqfts=[];
+  comps.forEach(function(c){
+    prices.push(c.price);
+    if(c.ppsf) psfs.push(c.ppsf);
+    if(c.sqft) sqfts.push(c.sqft);
+  });
+  return {
+    avgPrice: prices.length ? Math.round(prices.reduce(function(a,b){return a+b;},0)/prices.length) : 0,
+    avgPpsf: psfs.length ? Math.round(psfs.reduce(function(a,b){return a+b;},0)/psfs.length) : 0,
+    avgSqft: sqfts.length ? Math.round(sqfts.reduce(function(a,b){return a+b;},0)/sqfts.length) : 0
+  };
 }
 
 // ── Comp table display ──
@@ -129,23 +170,35 @@ function formatCompDate(d){
 }
 
 function compRow(c){
-  var outlier = c.isOutlier;
-  var style = outlier ? 'opacity:0.4' : c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  var tag = outlier ? ' <span style="color:var(--orange);font-size:9px">&#9888; outlier</span>' : '';
+  var style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
   return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
-    +'<td style="text-align:center">'+(c.isUsed&&!outlier?'<span style="color:var(--green)">&#10003;</span>':'')+'</td>'
-    +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(c.address||'\u2014')+tag+'</td>'
+    +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(c.address||'\u2014')+'</td>'
     +'<td>$'+c.price.toLocaleString()+'</td>'
     +'<td style="color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)')+'">$'+c.ppsf+'</td>'
     +'<td>'+c.sqft.toLocaleString()+'</td>'
     +'<td>'+(c.bd||'\u2014')+'/'+(c.ba||'\u2014')+'</td>'
-    +'<td style="color:'+(PT_COLORS[c.pt]||PT_DEFAULT_COLOR)+';font-weight:600">'+(PT_LABEL[c.pt]||ZONE_TYPE_MAP[c.zone]||c.zone||'\u2014')+'</td>'
     +'<td>'+(c.zone||'\u2014')+'</td>'
     +'<td>'+(c.yb||'\u2014')+'</td>'
     +'<td style="color:'+(c.t===1?'var(--green)':'var(--text-dim)')+'">T'+(c.t||'?')+'</td>'
     +'<td>'+formatCompDate(c.date)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
     +'<td><a class="redfin-link" href="https://www.redfin.com/search?query='+encodeURIComponent(c.address||'')+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">View &#8599;</a></td>'
+    +'</tr>';
+}
+
+function saleGroupTheadRow(group){
+  return '<tr>'
+    +'<th data-sort="address" onclick="sortCompsTable(\'address\',\''+group+'\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="price" onclick="sortCompsTable(\'price\',\''+group+'\')" style="cursor:pointer">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\',\''+group+'\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\',\''+group+'\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th>Bd/Ba</th>'
+    +'<th data-sort="zone" onclick="sortCompsTable(\'zone\',\''+group+'\')" style="cursor:pointer">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="yb" onclick="sortCompsTable(\'yb\',\''+group+'\')" style="cursor:pointer">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="t" onclick="sortCompsTable(\'t\',\''+group+'\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="date" onclick="sortCompsTable(\'date\',\''+group+'\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="dist" onclick="sortCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th style="width:45px">Link</th>'
     +'</tr>';
 }
 
@@ -160,8 +213,11 @@ export function showCompsTable(lat,lng){
   if(rentalCompsTableActive) hideRentalCompsTable();
 
   var result = findCompsForListing(l);
-  var used=result.used, ref=result.ref, source=result.source, radius=result.radius;
+  var groups = result.groups;
+  var source = result.source;
+  var radius = result.radius;
   var sourceLabel = {subdiv:'Subdivision',newcon:'New Construction',zone:'Zone-Matched'}[source]||source;
+  var totalShown = result.allComps.length;
 
   document.getElementById('tableWrap').style.display='none';
   document.getElementById('mobileCards').style.display='none';
@@ -170,7 +226,7 @@ export function showCompsTable(lat,lng){
   compsHdr.innerHTML = '<button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; '+l.address+'</div>'
-    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+used.length+' used / '+(used.length+ref.length)+' nearby within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
+    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+totalShown+' comps within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
     +'</div>'
     +'<button class="listings-panel-close" onclick="hideCompsTable()">x</button>';
   compsHdr.style.display='';
@@ -185,37 +241,47 @@ export function showCompsTable(lat,lng){
   }
   wrap.style.display = '';
 
-  var thead = '<table class="listings-table"><thead><tr>'
-    +'<th style="width:30px">Used</th>'
-    +'<th data-sort="address" onclick="sortCompsTable(\'address\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="price" onclick="sortCompsTable(\'price\')" style="cursor:pointer">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th>Bd/Ba</th>'
-    +'<th>Type</th>'
-    +'<th data-sort="zone" onclick="sortCompsTable(\'zone\')" style="cursor:pointer">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="yb" onclick="sortCompsTable(\'yb\')" style="cursor:pointer">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="t" onclick="sortCompsTable(\'t\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="date" onclick="sortCompsTable(\'date\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="dist" onclick="sortCompsTable(\'dist\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th style="width:45px">Link</th>'
-    +'</tr></thead>';
+  // Build grouped sections
+  var html = '';
+  SALE_GROUP_ORDER.forEach(function(g){
+    var comps = groups[g] || [];
+    if(!comps.length) return;
+    var label = SALE_GROUP_LABELS[g] || g;
+    var avgs = saleGroupAvgs(comps);
+    var avgLine = avgs.avgPrice ? 'Avg: $'+(avgs.avgPrice>=1000000?(avgs.avgPrice/1000000).toFixed(1)+'M':(avgs.avgPrice/1000).toFixed(0)+'K')+' | $'+avgs.avgPpsf+'/SF | '+avgs.avgSqft.toLocaleString()+' SF' : '';
+    html += '<div class="sale-group-section" data-group="'+g+'" style="margin-bottom:8px">'
+      +'<div class="sale-group-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px 6px 0 0;cursor:pointer" onclick="toggleSaleGroup(\''+g+'\')">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span>'+(avgLine ? ' <span style="font-weight:400;font-size:11px;color:var(--text-dim);margin-left:8px">'+avgLine+'</span>' : '')+'</span>'
+      +'<span class="sale-group-chevron" style="font-size:10px;color:var(--text-dim)">\u25BC</span>'
+      +'</div>'
+      +'<div class="sale-group-body">'
+      +'<table class="listings-table" style="margin:0"><thead>'+saleGroupTheadRow(g)+'</thead>'
+      +'<tbody data-group="'+g+'">'+comps.map(function(c){return compRow(c);}).join('')+'</tbody></table>'
+      +'</div></div>';
+  });
 
-  var dividerRow = ref.length ? '<tr><td colspan="13" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+ref.length+') &mdash;</td></tr>' : '';
-  var tbody = '<tbody>'+used.map(function(c){return compRow(c);}).join('')+dividerRow+ref.filter(function(c){return !c.isOutlier;}).map(function(c){return compRow(c);}).join('')+'</tbody></table>';
-  wrap.innerHTML = thead + tbody;
+  if(!html){
+    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No sale comps found within '+radius.toFixed(1)+'mi</div>';
+  }
 
-  wrap._used = used;
-  wrap._ref = ref;
+  wrap.innerHTML = html;
+  wrap._groups = groups;
   wrap._listing = l;
+  wrap._result = result;
 
+  // Map markers
   if(compsMapLayer){ map.removeLayer(compsMapLayer); }
   if(compsRadiusCircle){ map.removeLayer(compsRadiusCircle); }
   compsMapLayer = L.layerGroup();
-  used.forEach(function(c){
+  result.allComps.forEach(function(c){
     var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
+    var isUsed = c.isUsed;
     L.circleMarker([c.lat,c.lng],{
-      radius:7, color:'#ffffff', fillColor:ptColor, fillOpacity:0.9, weight:2
+      radius: isUsed ? 7 : 4,
+      color: isUsed ? '#ffffff' : ptColor,
+      fillColor: ptColor,
+      fillOpacity: isUsed ? 0.9 : 0.25,
+      weight: isUsed ? 2 : 1
     }).bindPopup(
       '<b>'+(c.address||'\u2014')+'</b>'
       +'<br>$'+c.price.toLocaleString()+' &bull; <b>$'+c.ppsf+'/SF</b> &bull; '+c.sqft.toLocaleString()+' SF'
@@ -224,12 +290,6 @@ export function showCompsTable(lat,lng){
       +'<br>'+c.dist.toFixed(2)+'mi'
       +'<br><a href="https://www.redfin.com/search?query='+encodeURIComponent(c.address||'')+'" target="_blank" rel="noopener" style="color:#3b82f6;font-size:11px">View on Redfin &#8599;</a>'
     ).addTo(compsMapLayer);
-  });
-  ref.filter(function(c){return !c.isOutlier;}).forEach(function(c){
-    var ptColor = PT_COLORS[c.pt] || PT_DEFAULT_COLOR;
-    L.circleMarker([c.lat,c.lng],{
-      radius:4, color:ptColor, fillColor:ptColor, fillOpacity:0.25, weight:1
-    }).addTo(compsMapLayer);
   });
   compsRadiusCircle = L.circle([l.lat,l.lng],{
     radius: radius*1609.34, color:'#22c55e', fillColor:'#22c55e',
@@ -240,31 +300,56 @@ export function showCompsTable(lat,lng){
   compsTableActive = true;
 }
 
-export function sortCompsTable(key){
+export function sortCompsTable(key, group){
   var wrap = document.getElementById('compsTableWrap');
-  if(!wrap || !wrap._used) return;
-  var prev = wrap.getAttribute('data-sort-key');
-  var prevDir = wrap.getAttribute('data-sort-dir');
+  if(!wrap || !wrap._groups) return;
+  var comps = wrap._groups[group];
+  if(!comps || !comps.length) return;
+
+  var stateKey = 'data-sort-'+group;
+  var prev = wrap.getAttribute(stateKey+'-key');
+  var prevDir = wrap.getAttribute(stateKey+'-dir');
   var dir = prev===key ? (prevDir==='asc' ? 'desc' : 'asc') : 'desc';
-  wrap.setAttribute('data-sort-key', key);
-  wrap.setAttribute('data-sort-dir', dir);
+  wrap.setAttribute(stateKey+'-key', key);
+  wrap.setAttribute(stateKey+'-dir', dir);
+
   var sorter = function(a,b){
     var va=a[key],vb=b[key];
     if(typeof va==='string') return dir==='asc'?(va||'').localeCompare(vb||''):(vb||'').localeCompare(va||'');
     va=va||0;vb=vb||0;
     return dir==='asc'?va-vb:vb-va;
   };
-  wrap._used.sort(sorter);
-  wrap._ref.sort(sorter);
-  var dividerRow = wrap._ref.length ? '<tr><td colspan="13" style="text-align:center;padding:6px;color:var(--text-dim);font-size:11px;border-top:2px solid var(--border);border-bottom:1px solid var(--border)">&mdash; Additional comps for reference ('+wrap._ref.length+') &mdash;</td></tr>' : '';
-  wrap.querySelector('tbody').innerHTML = wrap._used.map(function(c){return compRow(c);}).join('') + dividerRow + wrap._ref.filter(function(c){return !c.isOutlier;}).map(function(c){return compRow(c);}).join('');
-  // Update header arrows
-  wrap.querySelectorAll('th[data-sort]').forEach(function(th){
-    var arrow = th.querySelector('.sort-arrow');
-    var active = th.getAttribute('data-sort')===key;
-    arrow.textContent = active ? (dir==='asc'?' \u25B2':' \u25BC') : ' \u25BD';
-    arrow.style.opacity = active ? '1' : '0.4';
-  });
+  comps.sort(sorter);
+
+  var tbody = wrap.querySelector('tbody[data-group="'+group+'"]');
+  if(tbody) tbody.innerHTML = comps.map(function(c){return compRow(c);}).join('');
+
+  // Update arrows within this group's section
+  var section = wrap.querySelector('.sale-group-section[data-group="'+group+'"]');
+  if(section){
+    section.querySelectorAll('th[data-sort]').forEach(function(th){
+      var arrow = th.querySelector('.sort-arrow');
+      var active = th.getAttribute('data-sort')===key;
+      arrow.textContent = active ? (dir==='asc'?' \u25B2':' \u25BC') : ' \u25BD';
+      arrow.style.opacity = active ? '1' : '0.4';
+    });
+  }
+}
+
+export function toggleSaleGroup(group){
+  var wrap = document.getElementById('compsTableWrap');
+  if(!wrap) return;
+  var section = wrap.querySelector('.sale-group-section[data-group="'+group+'"]');
+  if(!section) return;
+  var body = section.querySelector('.sale-group-body');
+  var chevron = section.querySelector('.sale-group-chevron');
+  if(body.style.display === 'none'){
+    body.style.display = '';
+    if(chevron) chevron.textContent = '\u25BC';
+  } else {
+    body.style.display = 'none';
+    if(chevron) chevron.textContent = '\u25B6';
+  }
 }
 
 export function hideCompsTable(){
