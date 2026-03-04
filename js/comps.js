@@ -308,13 +308,13 @@ function searchRentalCompsInRadius(lat,lng,radiusMi){
 // ── Rental comp match scoring ──
 var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','mf'];
 var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',mf:'Multi-Family'};
-var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf'};
+var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf',5:'mf'};
 var RENTAL_GROUP_CAP = 10;
 
 function rentalMatchScore(c, maxRadius){
   var score = 0;
   // Property type (40 pts): TH=40, Condo=30, SFR=20, MF=10
-  var ptScores = {3:40, 2:30, 1:20, 4:10};
+  var ptScores = {3:40, 2:30, 1:20, 4:10, 5:10};
   score += ptScores[c.pt] || 0;
   // Bed match (15 pts): 3BR exact = 15, 2BR or 4BR = 8, else 0
   var bd = c.bd || 0;
@@ -341,9 +341,9 @@ export function findRentalCompsForListing(l){
   var RENTAL_COMPS = _deps.getRENTAL_COMPS();
   if(!RENTAL_COMPS.length) return {groups:{},allComps:[],radius:0,totalCount:0,method:l.rentMethod||'none',summary:{medianRentPsf:0,p75RentPsf:0,primaryCount:0,supportingCount:0}};
 
-  // Permissive filter: types 1-4, sqft > 0, any beds
+  // Gate: 2+ BR, 1000-3000 SF, types 1-5 (SFR/Condo/TH/MF)
   // Scoring handles relevance — 3BR near 1750 SF score highest
-  function passFilter(c){ return [1,2,3,4].indexOf(c.pt||0)!==-1 && (c.sqft||0) > 0; }
+  function passFilter(c){ return [1,2,3,4,5].indexOf(c.pt||0)!==-1 && (c.bd||0)>=2 && (c.sqft||0)>=1000 && (c.sqft||0)<=3000; }
 
   // Expanding radius: 0.5mi → 1mi → 2mi, stop when we have ≥10 comps
   var radii = [0.5, 1.0, 2.0];
@@ -436,6 +436,20 @@ function rentalCompRow(c, group){
     +'</tr>';
 }
 
+function rentalGroupAvgs(comps){
+  if(!comps.length) return {avgRent:0, avgPsf:0, avgSqft:0};
+  var rents=[], psfs=[], sqfts=[];
+  comps.forEach(function(c){
+    rents.push(c.rent);
+    if(c.sqft > 0){ psfs.push(c.rent / c.sqft); sqfts.push(c.sqft); }
+  });
+  return {
+    avgRent: rents.length ? Math.round(rents.reduce(function(a,b){return a+b;},0)/rents.length) : 0,
+    avgPsf: psfs.length ? Math.round(psfs.reduce(function(a,b){return a+b;},0)/psfs.length*100)/100 : 0,
+    avgSqft: sqfts.length ? Math.round(sqfts.reduce(function(a,b){return a+b;},0)/sqfts.length) : 0
+  };
+}
+
 function rentalGroupTheadRow(group){
   return '<tr>'
     +'<th data-sort="addr" onclick="sortRentalCompsTable(\'addr\',\''+group+'\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
@@ -502,9 +516,11 @@ export function showRentalCompsTable(lat,lng){
     var comps = groups[g] || [];
     if(!comps.length) return;
     var label = RENTAL_GROUP_LABELS[g] || g;
+    var avgs = rentalGroupAvgs(comps);
+    var avgLine = avgs.avgRent ? 'Avg: $'+avgs.avgRent.toLocaleString()+'/mo &bull; $'+avgs.avgPsf.toFixed(2)+'/SF &bull; '+avgs.avgSqft.toLocaleString()+' SF' : '';
     html += '<div class="rental-group-section" data-group="'+g+'" style="margin-bottom:8px">'
       +'<div class="rental-group-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px 6px 0 0;cursor:pointer" onclick="toggleRentalGroup(\''+g+'\')">'
-      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span></span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span>'+(avgLine ? ' <span style="font-weight:400;font-size:11px;color:var(--text-dim);margin-left:8px">'+avgLine+'</span>' : '')+'</span>'
       +'<span class="rental-group-chevron" style="font-size:10px;color:var(--text-dim)">\u25BC</span>'
       +'</div>'
       +'<div class="rental-group-body">'
@@ -514,7 +530,7 @@ export function showRentalCompsTable(lat,lng){
   });
 
   if(!html){
-    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No rental comps found within '+radius.toFixed(1)+'mi matching 3BR / 1,200\u20132,300 SF filters</div>';
+    html = '<div style="padding:20px;text-align:center;color:var(--text-dim)">No rental comps found within '+radius.toFixed(1)+'mi matching 2+ BR / 1,000\u20133,000 SF filters</div>';
   }
 
   wrap.innerHTML = html;
