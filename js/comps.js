@@ -177,7 +177,7 @@ function formatCompDate(d){
 
 function compRow(c){
   var style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
+  return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)" onmouseenter="highlightCompPin('+c.lat+','+c.lng+')" onmouseleave="unhighlightCompPin()">'
     +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis"><a class="redfin-link" href="'+redfinLink(c.address)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on Redfin">'+(c.address||'\u2014')+' &#8599;</a></td>'
     +'<td>$'+c.price.toLocaleString()+'</td>'
     +'<td style="color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)')+'">$'+c.ppsf+'</td>'
@@ -285,7 +285,8 @@ export function showCompsTable(lat,lng){
       color: isUsed ? '#ffffff' : ptColor,
       fillColor: ptColor,
       fillOpacity: isUsed ? 0.9 : 0.25,
-      weight: isUsed ? 2 : 1
+      weight: isUsed ? 2 : 1,
+      bubblingMouseEvents: false
     }).bindPopup(
       '<b>'+(c.address||'\u2014')+'</b>'
       +'<br>$'+c.price.toLocaleString()+' &bull; <b>$'+c.ppsf+'/SF</b> &bull; '+c.sqft.toLocaleString()+' SF'
@@ -526,7 +527,7 @@ function scoreColor(s){
 function rentalCompRow(c, group){
   var rentPsf = (c.sqft && c.sqft > 0) ? (c.rent / c.sqft).toFixed(2) : '\u2014';
   var sc = c.matchScore || 0;
-  return '<tr style="cursor:pointer" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)">'
+  return '<tr style="cursor:pointer" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)" onmouseenter="highlightCompPin('+c.lat+','+c.lng+')" onmouseleave="unhighlightCompPin()">'
     +'<td style="white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis"><a class="redfin-link" href="'+redfinLink(c.addr)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on Redfin">'+(c.addr||'\u2014')+' &#8599;</a></td>'
     +'<td>$'+c.rent.toLocaleString()+'</td>'
     +'<td>'+(rentPsf==='\u2014'?'\u2014':'$'+rentPsf)+'</td>'
@@ -653,7 +654,8 @@ export function showRentalCompsTable(lat,lng){
     else if(sc >= 50){ r=5; fillOp=0.6; col='#3b82f6'; }
     else { r=4; fillOp=0.35; col='#94a3b8'; }
     L.circleMarker([c.lat,c.lng],{
-      radius:r, color:'#ffffff', fillColor:col, fillOpacity:fillOp, weight:1
+      radius:r, color:'#ffffff', fillColor:col, fillOpacity:fillOp, weight:1,
+      bubblingMouseEvents: false
     }).bindPopup(
       '<b>'+(c.addr||'\u2014')+'</b>'
       +'<br>$'+c.rent.toLocaleString()+'/mo &bull; <b>$'+((c.sqft&&c.sqft>0)?(c.rent/c.sqft).toFixed(2):'\u2014')+'/SF</b>'
@@ -742,6 +744,42 @@ export function hideRentalCompsTable(){
   if(rentalCompsMapLayer){ map.removeLayer(rentalCompsMapLayer); rentalCompsMapLayer=null; }
   if(rentalCompsRadiusCircle){ map.removeLayer(rentalCompsRadiusCircle); rentalCompsRadiusCircle=null; }
   rentalCompsTableActive = false;
+}
+
+// ── Hover highlight (pulse pin on table row hover) ──
+var _pulseTimer = null;
+var _pulseMarker = null;
+var _pulseOrig = null;
+
+export function highlightCompPin(lat, lng){
+  unhighlightCompPin();
+  var layer = compsMapLayer || rentalCompsMapLayer;
+  if(!layer) return;
+  layer.eachLayer(function(m){
+    if(!m.getLatLng) return;
+    var ll = m.getLatLng();
+    if(Math.abs(ll.lat-lat)<0.00001 && Math.abs(ll.lng-lng)<0.00001){
+      _pulseMarker = m;
+      _pulseOrig = {radius:m.getRadius(), color:m.options.color, weight:m.options.weight, fillOpacity:m.options.fillOpacity};
+      var big = true;
+      m.setRadius(_pulseOrig.radius+6);
+      m.setStyle({color:'#fbbf24', weight:3});
+      _pulseTimer = setInterval(function(){
+        m.setRadius(big ? _pulseOrig.radius+3 : _pulseOrig.radius+6);
+        m.setStyle({fillOpacity: big ? 0.4 : _pulseOrig.fillOpacity});
+        big = !big;
+      }, 400);
+    }
+  });
+}
+
+export function unhighlightCompPin(){
+  if(_pulseTimer){ clearInterval(_pulseTimer); _pulseTimer=null; }
+  if(_pulseMarker && _pulseOrig){
+    _pulseMarker.setRadius(_pulseOrig.radius);
+    _pulseMarker.setStyle({color:_pulseOrig.color, weight:_pulseOrig.weight, fillOpacity:_pulseOrig.fillOpacity});
+    _pulseMarker=null; _pulseOrig=null;
+  }
 }
 
 // ── State queries (for other modules) ──

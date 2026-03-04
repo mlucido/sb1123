@@ -1461,7 +1461,7 @@ import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
 import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal, computeWaterfall } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
-import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive } from './js/comps.js';
+import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin } from './js/comps.js';
 
 // ── Constants ──
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',LAND:'#b45309'};
@@ -4358,6 +4358,8 @@ window.generateTeaser = generateTeaser;
 window.flyToListing = flyToListing;
 window.hideCompsTable = hideCompsTable;
 window.hideRentalCompsTable = hideRentalCompsTable;
+window.highlightCompPin = highlightCompPin;
+window.unhighlightCompPin = unhighlightCompPin;
 window.highlightMarker = highlightMarker;
 window.onMinUnitsChange = onMinUnitsChange;
 window.onProformaChange = onProformaChange;
