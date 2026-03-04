@@ -316,9 +316,13 @@ function rentalMatchScore(c, maxRadius){
   // Property type (40 pts): TH=40, Condo=30, SFR=20, MF=10
   var ptScores = {3:40, 2:30, 1:20, 4:10};
   score += ptScores[c.pt] || 0;
-  // Size proximity (30 pts): closer to 1750 SF = higher
+  // Bed match (15 pts): 3BR exact = 15, 2BR or 4BR = 8, else 0
+  var bd = c.bd || 0;
+  if(bd === 3) score += 15;
+  else if(bd === 2 || bd === 4) score += 8;
+  // Size proximity (15 pts): closer to 1750 SF = higher
   var sqft = c.sqft || 0;
-  if(sqft > 0) score += Math.max(0, 30 * (1 - Math.abs(sqft - 1750) / 1750));
+  if(sqft > 0) score += Math.max(0, 15 * (1 - Math.abs(sqft - 1750) / 1750));
   // Recency (20 pts): newer = higher, requires dt field
   if(c.dt){
     var dtParts = c.dt.split('-');
@@ -337,18 +341,19 @@ export function findRentalCompsForListing(l){
   var RENTAL_COMPS = _deps.getRENTAL_COMPS();
   if(!RENTAL_COMPS.length) return {groups:{},allComps:[],radius:0,totalCount:0,method:l.rentMethod||'none',summary:{medianRentPsf:0,p75RentPsf:0,primaryCount:0,supportingCount:0}};
 
-  // Search at 0.5mi first, expand to 1mi if <5 comps
+  // Permissive filter: types 1-4, sqft > 0, any beds
+  // Scoring handles relevance — 3BR near 1750 SF score highest
+  function passFilter(c){ return [1,2,3,4].indexOf(c.pt||0)!==-1 && (c.sqft||0) > 0; }
+
+  // Expanding radius: 0.5mi → 1mi → 2mi, stop when we have ≥10 comps
+  var radii = [0.5, 1.0, 2.0];
   var searchRadius = 0.5;
-  var all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
-
-  // Filter: 3BR exact, 1200-2300 SF, types 1-4
-  function passFilter(c){ return (c.bd||0)===3 && (c.sqft||0)>=1200 && (c.sqft||0)<=2300 && [1,2,3,4].indexOf(c.pt||0)!==-1; }
-  var filtered = all.filter(function(c){ return c.dist <= searchRadius + 0.05 && passFilter(c); });
-
-  if(filtered.length < 5){
-    searchRadius = 1.0;
-    all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
+  var filtered = [];
+  for(var ri=0; ri<radii.length; ri++){
+    searchRadius = radii[ri];
+    var all = searchRentalCompsInRadius(l.lat, l.lng, searchRadius);
     filtered = all.filter(function(c){ return c.dist <= searchRadius + 0.05 && passFilter(c); });
+    if(filtered.length >= 10) break;
   }
 
   // Score each comp
