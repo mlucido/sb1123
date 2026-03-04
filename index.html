@@ -4221,20 +4221,6 @@ async function generateTeaser(lat, lng, overrides) {
     margin: [0, 0, 0, 6],
   });
 
-  // Page 2 metrics row
-  content.push({
-    table: { widths: ['*', 4, '*', 4, '*', 4, '*'], body: [[
-      metricBlock(D.fmt.moic, 'LP MOIC'),
-      { text: '', border: [false, false, false, false] },
-      metricBlock(D.fmt.irr, 'LP IRR'),
-      { text: '', border: [false, false, false, false] },
-      metricBlock(D.fmt.hold, 'Hold Period'),
-      { text: '', border: [false, false, false, false] },
-      metricBlock(D.fmt.pref, 'LP Pref'),
-    ]] },
-    layout: noPadLayout, margin: [0, 0, 0, 6],
-  });
-
   // Sensitivity Analysis
   content.push({ text: 'Sensitivity Analysis', style: 'sectionHeading', margin: [0, 2, 0, 0] });
   content.push(tealRule());
