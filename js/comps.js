@@ -77,9 +77,7 @@ export function findCompsForListing(l){
 
   var source,searchRadius,targetCount;
 
-  if(l.subdivExitPsf){
-    source='subdiv'; searchRadius=l.subdivCompRadius||2; targetCount=l.subdivCompCount||0;
-  } else if(l.exitPsf){
+  if(l.exitPsf){
     source='spatial'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
   } else {
     return {used:[],ref:[],source:'none',radius:0};
@@ -94,12 +92,8 @@ export function findCompsForListing(l){
     var inRadius = c.dist <= searchRadius + 0.05;
     var isUsed = false;
 
-    if(source==='subdiv'){
-      isUsed = inRadius && c.yb && c.yb>=2021;
-    } else {
-      var inBand2 = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
-      isUsed = inRadius && inBand2;
-    }
+    var inBand2 = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
+    isUsed = inRadius && inBand2;
 
     c.isUsed = isUsed;
     c.isOutlier = c.sqft<400 || c.ppsf>2000;
@@ -108,7 +102,7 @@ export function findCompsForListing(l){
     else ref.push(c);
   }
 
-  if(source==='spatial' && used.length < targetCount){
+  if(used.length < targetCount){
     for(var j=ref.length-1;j>=0;j--){
       var c2=ref[j];
       if(c2.dist<=searchRadius+0.05 && !c2.isOutlier){

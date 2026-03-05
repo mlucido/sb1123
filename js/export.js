@@ -175,7 +175,7 @@ function exportCSV(){
   const favs = _deps.loadFavorites();
   const rows = filtered.map(l=>[
     favs[_deps.listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.lw||'', l.maxUnits, l.subdivExitPsf||l.newconPpsf||l.clusterT1psf||l.exitPsf||0,
+    l.lotSf||'', l.lw||'', l.maxUnits, l.exitPsf||0,
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',
@@ -567,7 +567,7 @@ function buildCashFlowTab(wb, l, ed, pf, wf) {
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
   var hardCosts = Math.round(totalBuildCost / 1.25);
   var softCosts = Math.round(hardCosts * 0.25);
-  var exitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+  var exitPSF = l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
   var SCURVE = [0.04, 0.07, 0.10, 0.12, 0.13, 0.14, 0.13, 0.11, 0.08, 0.05, 0.02, 0.01];
@@ -1405,14 +1405,14 @@ function showExportModal(lat, lng, type) {
   if (!l) { alert('Listing not found'); return; }
   var pf = calculateProForma(l);
 
-  var defExitPSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+  var defExitPSF = l.exitPsf || 0;
   var defBuildPSF = pf.adjBuildCostPerSf;
   var defUnits = pf.maxUnits;
   var defAvgUnitSF = proforma.avgUnitSf;
   var defRent = l.estRentMonth || l.fmr3br || 4000;
   var defPrice = l.price || 0;
 
-  var exitSrc = l.subdivExitPsf ? 'subdiv' : l.newconPpsf ? 'new-con' : l.clusterT1psf ? 'T1 norm' : l.exitPsf ? 'zone P75' : 'none';
+  var exitSrc = l.exitPsf ? 'P75' : 'none';
   var slopePct = l.slope || 0;
   var buildSrc = slopePct > 0 ? 'slope-adj ' + slopePct + '%' : 'base';
   var rentSrc = l.estRentMonth ? 'est rent' : l.fmr3br ? 'HUD SAFMR' : 'default';
@@ -1532,12 +1532,12 @@ async function exportModel(lat, lng, overrides) {
   var pfOv = Object.assign({}, pf);
 
   if (ov.askingPrice != null) ll.price = ov.askingPrice;
-  if (ov.exitPSF != null) { ll.subdivExitPsf = ov.exitPSF; ll.newconPpsf = 0; ll.clusterT1psf = 0; ll.exitPsf = 0; }
+  if (ov.exitPSF != null) { ll.exitPsf = ov.exitPSF; }
   if (ov.monthlyRent != null) ll.estRentMonth = ov.monthlyRent;
   if (ov.units != null) pfOv.maxUnits = ov.units;
   if (ov.allInBuildPSF != null) pfOv.adjBuildCostPerSf = ov.allInBuildPSF;
 
-  var exitPSF = ll.subdivExitPsf || ll.newconPpsf || ll.clusterT1psf || ll.exitPsf || 0;
+  var exitPSF = ll.exitPsf || 0;
   var monthlyRent = ll.estRentMonth || ll.fmr3br || 4000;
   var units = pfOv.maxUnits;
   var savedAvgUnitSf = proforma.avgUnitSf;
@@ -1584,7 +1584,7 @@ async function exportOM(lat, lng, overrides) {
 
   var pf = calculateProForma(l);
   var btr = calculateBTRProForma(l);
-  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0);
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.exitPsf || 0);
   var monthlyRent = ov.monthlyRent != null ? ov.monthlyRent : (l.estRentMonth || l.fmr3br || 4000);
   var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
   var units = ov.units != null ? ov.units : pf.maxUnits;

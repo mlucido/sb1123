@@ -1095,28 +1095,21 @@ if os.path.exists(SUBDIV_FILE):
 
         return None, 0, 0, 0, 0
 
-    # Stamp each listing
+    # Compute subdiv stats for diagnostics (no longer stamped onto listings)
     subdiv_found = 0
+    subdiv_vals = []
     for l in listings:
         val, count, radius_mi, avg_appr, avg_cluster = find_subdiv_exit_ppsf(
             l["lat"], l["lng"]
         )
         if val:
-            l["subdivExitPsf"] = val
-            l["subdivCompCount"] = count
-            l["subdivCompRadius"] = radius_mi
-            l["subdivAvgAppr"] = avg_appr
-            l["subdivAvgCluster"] = avg_cluster
+            subdiv_vals.append(val)
             subdiv_found += 1
 
-    print(f"   Subdiv pricing used: {subdiv_found:,}/{len(listings):,} listings ({subdiv_found/len(listings)*100:.1f}%)")
+    print(f"   Subdiv pricing (diagnostic only): {subdiv_found:,}/{len(listings):,} listings ({subdiv_found/len(listings)*100:.1f}%)")
     if subdiv_found:
-        sv = sorted([l["subdivExitPsf"] for l in listings if l.get("subdivExitPsf")])
-        nc_comparable = [l.get("newconPpsf") for l in listings if l.get("subdivExitPsf") and l.get("newconPpsf")]
-        print(f"   Subdiv $/SF: median ${sv[len(sv)//2]:,}")
-        if nc_comparable:
-            nc_comparable.sort()
-            print(f"   vs New-con $/SF (where both exist): median ${nc_comparable[len(nc_comparable)//2]:,}")
+        subdiv_vals.sort()
+        print(f"   Subdiv $/SF: median ${subdiv_vals[len(subdiv_vals)//2]:,}")
 else:
     print(f"\n⚠️  {SUBDIV_FILE} not found — run: python3 build_subdiv_comps.py")
 
@@ -1582,7 +1575,7 @@ source_ages = {
 ages_js = ",".join(f'{k}:{v}' for k, v in source_ages.items())
 
 # Strip debug-only fields not used by the frontend (saves ~1-2% payload)
-PRUNE_FIELDS = {"subdivAvgCluster", "rentCompMedianBeds", "rentCompMedianSqft"}
+PRUNE_FIELDS = {"rentCompMedianBeds", "rentCompMedianSqft"}
 if "--debug" not in sys.argv:
     pruned = 0
     for l in listings:
