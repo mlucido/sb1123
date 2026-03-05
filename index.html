@@ -1872,11 +1872,7 @@ function isSB1123Eligible(l){
 function compConfidence(l){
   // Determine active comp source + count
   let count = 0, method = '', radius = 0;
-  if(l.subdivExitPsf){
-    count = l.subdivCompCount || 0;
-    method = 'subdiv';
-    radius = l.subdivCompRadius || 0;
-  } else if(l.exitPsf){
+  if(l.exitPsf){
     count = l.compCount || 0;
     method = l.compMethod || 'none';
     radius = l.compRadius || 0;
@@ -1896,8 +1892,7 @@ function compConfidence(l){
   else score += count * 3;
 
   // Method quality (0-40 pts)
-  if(method === 'subdiv') score += 40;           // Best: actual subdivision sales
-  else if(method === 'spatial') score += 30;     // Good: spatial PT-filtered
+  if(method === 'spatial') score += 30;          // Good: spatial PT-filtered
   else if(method === 'spatial-thin') score += 15; // Weak: thin spatial
   else if(method.includes('zip')) score += 8;    // Poor: zip fallback
   else score += 5;
@@ -2093,24 +2088,17 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  // Priority: subdiv comps > general P75 (newcon shown as reference only)
-  if(l.subdivExitPsf){
-    const count = l.subdivCompCount || 0;
-    const radius = l.subdivCompRadius || '';
-    const appr = l.subdivAvgAppr ? ` (${l.subdivAvgAppr > 0 ? '+' : ''}${l.subdivAvgAppr.toFixed(1)}% adj)` : '';
-    return {psf: l.subdivExitPsf, label: `SUBDIV COMP — ${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv'};
-  }
+  // P75 general is the primary exit — subdiv + newcon shown as reference only
   const exitPsf = l.exitPsf || 0;
   if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
-  // General P75 — primary exit assumption
   const count = l.compCount || 0;
   const radius = l.compRadius || '';
-  // Show newcon as reference if available
-  let ncRef = '';
-  if(l.newconPpsf){
-    ncRef = ` (newcon ref: $${l.newconPpsf}/sf, ${l.newconCount || 0} comps)`;
-  }
-  const label = `P75 — ${count} comps within ${radius}mi${ncRef}`;
+  // Show subdiv and newcon as reference data
+  let refs = [];
+  if(l.subdivExitPsf) refs.push(`subdiv $${l.subdivExitPsf}/sf`);
+  if(l.newconPpsf) refs.push(`newcon $${l.newconPpsf}/sf`);
+  const refStr = refs.length ? ` (${refs.join(', ')})` : '';
+  const label = `P75 — ${count} comps within ${radius}mi${refStr}`;
   const color = count >= 5 ? 'var(--green)' : 'var(--text-dim)';
   return {psf: exitPsf, label, color, short: 'P75'};
 }

@@ -56,7 +56,7 @@ COMP_SQFT_MAX = 3500      # Max comp SF — exclude mega-homes that drag down $/
 # Search radii in degrees: 0.25mi, 0.5mi, 1mi — tighter start for hyperlocal comps
 SEARCH_RADII_DEG = [0.0036, 0.007, 0.015]
 ELIGIBLE_PT = {1, 2, 3}       # SFR, Condo, Townhome — exclude multi-family
-T1_WEIGHT = 1.5               # New/remodel (T1) comps weighted 1.5x over existing (T2)
+T1_WEIGHT = 1.75              # New/remodel (T1) comps weighted 1.75x over existing (T2)
 
 # ── Step 1: Load comps and build spatial index ──
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
