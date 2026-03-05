@@ -117,6 +117,34 @@ def classify_zoning_la_county(zone_code):
     return None
 
 
+def classify_zoning_santa_monica(zone_code):
+    """Santa Monica zoning code → SB 1123 category.
+
+    SM uses R1-R4 plus Ocean Park variants (OP1-OP4, OPD).
+    Mixed-use/commercial zones are MF-eligible under SB 1123.
+    """
+    if not zone_code:
+        return None
+    upper = zone_code.strip().upper()
+    # Direct residential
+    if upper == "R1" or upper == "OP1":
+        return "R1"
+    if upper in ("R2", "OP2", "OPD"):
+        return "R2"
+    if upper in ("R3", "OP3"):
+        return "R3"
+    if upper in ("R4", "OP4"):
+        return "R4"
+    # Mixed-use / commercial → MF eligible
+    if upper in ("MUC", "MUB", "MUBL", "HMU", "TA", "BTV", "NV", "GC",
+                 "NC", "LT", "WT", "OT", "OC", "OF"):
+        return "R4"
+    # Non-residential — not SB 1123 eligible
+    if upper in ("OS", "PL", "CC", "IC", "RMH", "BC", "CCS", "CAC"):
+        return None
+    return None
+
+
 def classify_zoning_sd_city(zone_name):
     """City of San Diego zone code → SB 1123 category.
 
@@ -219,6 +247,7 @@ def classify_zoning_sd_county(use_reg):
 CLASSIFY_FNS = {
     "classify_zoning_la_city": classify_zoning_la_city,
     "classify_zoning_la_county": classify_zoning_la_county,
+    "classify_zoning_santa_monica": classify_zoning_santa_monica,
     "classify_zoning_sd_city": classify_zoning_sd_city,
     "classify_zoning_sd_county": classify_zoning_sd_county,
 }
@@ -283,6 +312,17 @@ MARKETS = {
                 "zone_field": "Zoning",
                 "category_field": "CATEGORY",
                 "classify_fn": "classify_zoning_la_city",
+            },
+            {
+                "name": "Santa Monica",
+                "url": (
+                    "https://gis.santamonica.gov/server/rest/services/"
+                    "Zoning/FeatureServer/2/query"
+                ),
+                "out_fields": "zoning,zonedesc",
+                "zone_field": "zoning",
+                "category_field": "zonedesc",
+                "classify_fn": "classify_zoning_santa_monica",
             },
             {
                 "name": "LA County (DRP)",

@@ -2390,7 +2390,7 @@ function getFilteredListings(skipZoneFilter){
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
     const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
-    const isLand = l.zone === 'LAND';
+    const isLand = l.zone === 'LAND' || !l.sqft || l.type === 'Vacant Land';
     const psfOk = isLand || (l.ppsf >= filters.psf.min && l.ppsf <= filters.psf.max);
     const sqftOk = isLand || (l.sqft >= filters.sqft.min && l.sqft <= filters.sqft.max);
     const lotVal = l.lotSf || 0;
@@ -2525,7 +2525,7 @@ var CITY_ABBR = {
 };
 
 function getZoneHeight(l){
-  var zone = (l.zone||'').replace(/[-\s]?\d+$/,'');
+  var zone = (l.zone||'').replace(/[-\s]\d+$/,'');
   var city = l.city || '';
   var table = ZONE_HEIGHT[zone];
   if(!table) return {height:'—',sub:''};

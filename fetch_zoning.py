@@ -116,7 +116,7 @@ def load_listings_from_js(market):
     with open(js_file, encoding="utf-8") as f:
         content = f.read()
 
-    match = re.search(r'const LOADED_LISTINGS\s*=\s*(\[.*\])', content, re.DOTALL)
+    match = re.search(r'(?:const|var)\s+LOADED_LISTINGS\s*=\s*(\[.*\])', content, re.DOTALL)
     if not match:
         print(f"  Could not parse {js_file}")
         sys.exit(1)
