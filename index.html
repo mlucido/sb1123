@@ -2105,7 +2105,6 @@ function exitLabel(l){
   const radius = l.compRadius || '';
   // Show subdiv and newcon as reference data
   let refs = [];
-  if(l.subdivExitPsf) refs.push(`subdiv $${l.subdivExitPsf}/sf`);
   if(l.newconPpsf) refs.push(`newcon $${l.newconPpsf}/sf`);
   const refStr = refs.length ? ` (${refs.join(', ')})` : '';
   const label = `P75 — ${count} comps within ${radius}mi${refStr}`;
@@ -2245,7 +2244,7 @@ function buildLotLayoutSVG(l, pf){
 }
 
 function lotPlannerUrl(l){
-  var exitSF = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+  var exitSF = l.exitPsf || 0;
   var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
   p += '&address='+encodeURIComponent(l.address||'');
   p += '&asking='+(l.price||0);
@@ -2441,63 +2440,63 @@ function rebuildMarkers(cachedComps){
 // Heights are the municipal code maximum building height for that zone.
 var ZONE_HEIGHT = {
   'R1': {
-    'Los Angeles':36,'Long Beach':35,'Pasadena':32,'Glendale':35,'Torrance':35,
-    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':30,'Compton':35,
-    'Burbank':35,'Santa Monica':32,'Culver City':30,'West Hollywood':35,
-    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':28,'Hermosa Beach':30,
-    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
-    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
-    'San Diego':30,'Chula Vista':35,'Oceanside':30,'Escondido':35,'Carlsbad':30,
-    'Vista':35,'San Marcos':35,'Encinitas':26,'La Mesa':35,'El Cajon':35,
-    'National City':35,'Imperial Beach':30,'Coronado':28,'Lemon Grove':30,
+    'Los Angeles':33,'Long Beach':28,'Pasadena':32,'Glendale':32,'Torrance':27,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':25,'Compton':35,
+    'Burbank':30,'Santa Monica':28,'Culver City':30,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':26,'Hermosa Beach':30,
+    'El Segundo':32,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':25,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':30,'Chula Vista':28,'Oceanside':27,'Escondido':35,'Carlsbad':30,
+    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':30,'El Cajon':35,
+    'National City':35,'Imperial Beach':26,'Coronado':35,'Lemon Grove':25,
     'Santee':35,'Poway':35
   },
   'R2': {
-    'Los Angeles':33,'Long Beach':40,'Pasadena':32,'Glendale':35,'Torrance':35,
-    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':35,'Compton':35,
-    'Burbank':35,'Santa Monica':32,'Culver City':35,'West Hollywood':35,
-    'Beverly Hills':33,'Redondo Beach':35,'Manhattan Beach':28,'Hermosa Beach':30,
-    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
-    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
-    'San Diego':40,'Chula Vista':45,'Oceanside':35,'Escondido':35,'Carlsbad':35,
-    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':40,'El Cajon':40,
-    'National City':45,'Imperial Beach':30,'Coronado':28,'Lemon Grove':35,
+    'Los Angeles':33,'Long Beach':33,'Pasadena':36,'Glendale':35,'Torrance':35,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':30,'Compton':35,
+    'Burbank':35,'Santa Monica':30,'Culver City':30,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':30,'Hermosa Beach':30,
+    'El Segundo':32,'South Gate':50,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':35,'Arcadia':35,'Monrovia':27,'Azusa':35,'Pomona':35,
+    'San Diego':30,'Chula Vista':28,'Oceanside':35,'Escondido':35,'Carlsbad':30,
+    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':30,'El Cajon':35,
+    'National City':35,'Imperial Beach':26,'Coronado':35,'Lemon Grove':35,
     'Santee':35,'Poway':35
   },
   'R3': {
-    'Los Angeles':45,'Long Beach':40,'Pasadena':40,'Glendale':45,'Torrance':40,
-    'Inglewood':40,'Carson':35,'Hawthorne':40,'Gardena':35,'Compton':35,
-    'Burbank':40,'Santa Monica':45,'Culver City':40,'West Hollywood':45,
-    'Beverly Hills':45,'Redondo Beach':40,'Manhattan Beach':30,'Hermosa Beach':30,
-    'El Segundo':35,'South Gate':40,'Downey':40,'Norwalk':35,'Whittier':40,
-    'Alhambra':40,'Arcadia':35,'Monrovia':40,'Azusa':40,'Pomona':40,
-    'San Diego':40,'Chula Vista':45,'Oceanside':40,'Escondido':40,'Carlsbad':35,
-    'Vista':40,'San Marcos':40,'Encinitas':30,'La Mesa':40,'El Cajon':45,
-    'National City':45,'Imperial Beach':35,'Coronado':36,'Lemon Grove':40,
-    'Santee':40,'Poway':35
+    'Los Angeles':33,'Long Beach':33,'Pasadena':32,'Glendale':35,'Torrance':35,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':35,'Compton':35,
+    'Burbank':35,'Santa Monica':40,'Culver City':30,'West Hollywood':45,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':30,'Hermosa Beach':30,
+    'El Segundo':35,'South Gate':50,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':40,'Chula Vista':28,'Oceanside':35,'Escondido':35,'Carlsbad':35,
+    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':35,'El Cajon':35,
+    'National City':35,'Imperial Beach':35,'Coronado':35,'Lemon Grove':35,
+    'Santee':35,'Poway':35
   },
   'R4': {
-    'Los Angeles':45,'Long Beach':50,'Pasadena':45,'Glendale':50,'Torrance':45,
-    'Inglewood':45,'Carson':40,'Hawthorne':45,'Gardena':40,'Compton':40,
-    'Burbank':45,'Santa Monica':60,'Culver City':45,'West Hollywood':45,
-    'Beverly Hills':45,'Redondo Beach':45,'Manhattan Beach':30,'Hermosa Beach':30,
-    'El Segundo':40,'South Gate':45,'Downey':45,'Norwalk':40,'Whittier':45,
+    'Los Angeles':45,'Long Beach':33,'Pasadena':38,'Glendale':45,'Torrance':45,
+    'Inglewood':45,'Carson':40,'Hawthorne':45,'Gardena':40,'Compton':35,
+    'Burbank':45,'Santa Monica':45,'Culver City':45,'West Hollywood':45,
+    'Beverly Hills':45,'Redondo Beach':35,'Manhattan Beach':30,'Hermosa Beach':30,
+    'El Segundo':35,'South Gate':50,'Downey':45,'Norwalk':40,'Whittier':45,
     'Alhambra':45,'Arcadia':40,'Monrovia':45,'Azusa':45,'Pomona':45,
-    'San Diego':60,'Chula Vista':60,'Oceanside':45,'Escondido':50,'Carlsbad':45,
-    'Vista':45,'San Marcos':45,'Encinitas':30,'La Mesa':50,'El Cajon':50,
-    'National City':60,'Imperial Beach':40,'Coronado':40,'Lemon Grove':45,
+    'San Diego':40,'Chula Vista':46,'Oceanside':45,'Escondido':50,'Carlsbad':45,
+    'Vista':45,'San Marcos':45,'Encinitas':30,'La Mesa':40,'El Cajon':45,
+    'National City':45,'Imperial Beach':40,'Coronado':40,'Lemon Grove':45,
     'Santee':45,'Poway':40
   },
   'LAND': {
-    'Los Angeles':36,'Long Beach':35,'Pasadena':32,'Glendale':35,'Torrance':35,
-    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':30,'Compton':35,
-    'Burbank':35,'Santa Monica':32,'Culver City':30,'West Hollywood':35,
-    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':28,'Hermosa Beach':30,
-    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
-    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
-    'San Diego':30,'Chula Vista':35,'Oceanside':30,'Escondido':35,'Carlsbad':30,
-    'Vista':35,'San Marcos':35,'Encinitas':26,'La Mesa':35,'El Cajon':35,
-    'National City':35,'Imperial Beach':30,'Coronado':28,'Lemon Grove':30,
+    'Los Angeles':33,'Long Beach':28,'Pasadena':32,'Glendale':32,'Torrance':27,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':25,'Compton':35,
+    'Burbank':30,'Santa Monica':28,'Culver City':30,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':26,'Hermosa Beach':30,
+    'El Segundo':32,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':25,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':30,'Chula Vista':28,'Oceanside':27,'Escondido':35,'Carlsbad':30,
+    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':30,'El Cajon':35,
+    'National City':35,'Imperial Beach':26,'Coronado':35,'Lemon Grove':25,
     'Santee':35,'Poway':35
   }
 };
@@ -2693,7 +2692,7 @@ function rebuildListings(cachedListings){
   filtered.forEach(l => {
     l._onForSaleLayer = true;
     // Color fill by exit $/SF
-    const ePsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const ePsf = l.exitPsf || 0;
     const fillColor = exitPsfColor(ePsf);
 
     const lotSf = l.lotSf || 0;
@@ -2761,7 +2760,7 @@ function buildNeighborhoodLayer(){
   const cells = {};
   LISTINGS.forEach(l => {
     if(!l.sb1123Eligible) return;
-    const exitPsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const exitPsf = l.exitPsf || 0;
     if(!exitPsf) return;
     const cellLat = Math.floor(l.lat / CELL_SIZE) * CELL_SIZE;
     const cellLng = Math.floor(l.lng / CELL_SIZE) * CELL_SIZE;
@@ -2834,7 +2833,7 @@ function buildOffMarketLayer(){
     if(!l.sb1123Eligible) return false;
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const hood_psf = l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2875,7 +2874,7 @@ function buildOffMarketLayer(){
   });
 
   offMarketListings.forEach(l => {
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const hood_psf = l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
 
     // Est. Market Value = hood_psf × structure_sf
@@ -2950,7 +2949,7 @@ function buildOffMarketLayer(){
     const omProxy = Object.assign({}, l, {price: Math.round(est_offer)});
     const pf = calculateProForma(omProxy);
     const btr = calculateBTRProForma(omProxy);
-    const omExitPsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const omExitPsf = l.exitPsf || 0;
     const omEstMvPsf = (est_market_value && l.lotSf) ? Math.round(est_market_value / l.lotSf) : null;
 
     marker.bindPopup(`
@@ -3465,7 +3464,7 @@ function updateLayerCounts(){
   let offMarketN = 0;
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
-    const hood_psf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+    const hood_psf = l.exitPsf || 0;
     const structure_sf = l.sqft || 0;
     const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
@@ -3635,7 +3634,7 @@ function rebuildTable(filtered){
     const profitClass = (l.estProfit||0)>=0?'profit-pos':'profit-neg';
     const marginClass = (l.estMargin||0)>=0?'profit-pos':'profit-neg';
     const starred = isFavorite(l);
-    const exitPpsf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf;
+    const exitPpsf = l.exitPsf || 0;
     return `<tr onclick="flyToListing(${l.lat},${l.lng})" onmouseenter="highlightMarker(${l.lat},${l.lng})" onmouseleave="unhighlightMarker()">
       <td class="col-fav"><span class="fav-star ${starred?'active':''}" onclick="event.stopPropagation();toggleFavorite(${l.lat},${l.lng})">&#9733;</span></td>
       <td class="col-addr" title="${l.address}">${l.address}</td>
@@ -3925,7 +3924,7 @@ function computeTeaserData(l, overrides) {
 
   // Override resolution — use != null (matches exportOM, avoids falsy 0 bug)
   var askingPrice = ov.askingPrice != null ? ov.askingPrice : (l.price || 0);
-  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0);
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.exitPsf || 0);
   var units = ov.units != null ? ov.units : pf.maxUnits;
   var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
   var allInBuildPSF = ov.allInBuildPSF != null ? ov.allInBuildPSF : pf.adjBuildCostPerSf;
