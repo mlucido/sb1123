@@ -171,6 +171,29 @@ def iqr_trim(vals):
     return trimmed if trimmed else vals
 
 
+def rental_iqr_trim(vals):
+    """Remove outliers from rental comps using IQR method (1.5x multiplier).
+    vals: list of (rpsf, beds, sqft) tuples.
+    Needs ≥4 comps to trim (lower threshold than sale comps — rental pools are thinner).
+    1.5x multiplier (vs 1.0x for sale comps) — rental variance is naturally higher."""
+    if len(vals) < 4:
+        return vals
+    ppsfs = sorted(v[0] for v in vals)
+    n = len(ppsfs)
+    q1 = ppsfs[n // 4]
+    q3 = ppsfs[(3 * n) // 4]
+    iqr = q3 - q1
+    if iqr == 0:
+        return vals
+    lo = q1 - 1.5 * iqr
+    hi = q3 + 1.5 * iqr
+    trimmed = [v for v in vals if lo <= v[0] <= hi]
+    # Don't trim too aggressively — keep at least 60% of comps
+    if len(trimmed) < len(vals) * 0.6:
+        return vals
+    return trimmed if trimmed else vals
+
+
 def wp75(vals):
     """Weighted P75 with tier + attached product weighting.
     IQR outlier trimming applied first.
@@ -1308,48 +1331,51 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
                         continue
                     rpsf = rent / sqft
                     # Sanity filter: reject outlier $/SF
-                    if rpsf < 0.50 or rpsf > 10.00:
+                    # $8/SF ceiling: 3BR at $8+/SF = $14K+/mo for 1,750 SF — ultra-luxury, not SB 1123 product
+                    if rpsf < 0.50 or rpsf > 8.00:
                         continue
                     matches.append((rpsf, beds, sqft))
         return matches
 
-    # Tier 1: rental-comp — 0.5mi→1mi, 3BR exact, 1200-2300 SF, SFR/TH/Condo/MF2-4
+    # Tier 1: rental-comp — 0.5mi→1mi, 3BR exact, 1000-2300 SF, SFR/TH/Condo/MF2-4
+    # Per-comp size normalization: normalize each comp's $/SF to 1,750 SF target
+    # BEFORE aggregating. Prevents small-unit $/SF inflation from dominating median.
     for radius in [0.007, 0.015]:
-        comps = collect_comps(radius, 3, 0, 1200, 2300, SFR_TH_TYPES)
+        comps = collect_comps(radius, 3, 0, 1000, 2300, SFR_TH_TYPES)
+        comps = rental_iqr_trim(comps)
         if len(comps) >= 3:
-            psf_vals = [rpsf for rpsf, _, _ in comps]
+            norm_psf_vals = [rpsf * (sqft / 1750) ** SIZE_ELASTICITY for rpsf, _, sqft in comps]
             beds_list = [b for _, b, _ in comps]
             sqft_list = [s for _, _, s in comps]
             miles = round(radius * 69, 2)
             med_sqft = round(median_val(list(sqft_list)))
-            raw_psf = pick_psf(psf_vals)
-            adj_psf = size_adjust(raw_psf, med_sqft)
+            adj_psf = pick_psf(norm_psf_vals)
             return round(adj_psf, 2), "rental-comp", len(comps), miles, median_val(beds_list), med_sqft
 
-    # Tier 2: rental-comp-wide — 2mi, 3BR exact, 1200-2300 SF, SFR/TH/Condo/MF2-4
-    comps = collect_comps(0.029, 3, 0, 1200, 2300, SFR_TH_TYPES)
+    # Tier 2: rental-comp-wide — 2mi, 3BR exact, 1000-2300 SF, SFR/TH/Condo/MF2-4
+    comps = collect_comps(0.029, 3, 0, 1000, 2300, SFR_TH_TYPES)
+    comps = rental_iqr_trim(comps)
     if len(comps) >= 3:
-        psf_vals = [rpsf for rpsf, _, _ in comps]
+        norm_psf_vals = [rpsf * (sqft / 1750) ** SIZE_ELASTICITY for rpsf, _, sqft in comps]
         beds_list = [b for _, b, _ in comps]
         sqft_list = [s for _, _, s in comps]
         med_sqft = round(median_val(list(sqft_list)))
-        raw_psf = pick_psf(psf_vals)
-        adj_psf = size_adjust(raw_psf, med_sqft)
+        adj_psf = pick_psf(norm_psf_vals)
         return round(adj_psf, 2), "rental-comp-wide", len(comps), round(0.029 * 69, 2), median_val(beds_list), med_sqft
 
     # Tier 3: rental-adj — 1mi, 2+ BR, 800+ SF, ALL types, +15% if median beds < 3
     comps = collect_comps(0.015, None, 2, 800, 0, None)
+    comps = rental_iqr_trim(comps)
     if len(comps) >= 3:
-        psf_vals = [rpsf for rpsf, _, _ in comps]
+        norm_psf_vals = [rpsf * (sqft / 1750) ** SIZE_ELASTICITY for rpsf, _, sqft in comps]
         beds_list = [b for _, b, _ in comps]
         sqft_list = [s for _, _, s in comps]
         med_beds = median_val(list(beds_list))
         med_sqft = round(median_val(list(sqft_list)))
-        rent_psf = pick_psf(psf_vals)
+        rent_psf = pick_psf(norm_psf_vals)
         if med_beds < 3:
             rent_psf = rent_psf * 1.15
-        adj_psf = size_adjust(rent_psf, med_sqft)
-        return round(adj_psf, 2), "rental-adj", len(comps), round(0.015 * 69, 2), med_beds, med_sqft
+        return round(rent_psf, 2), "rental-adj", len(comps), round(0.015 * 69, 2), med_beds, med_sqft
 
     # Tier 4: Census tract-level rent — nearest centroid within 0.02° (~1.4 mi)
     # Convert 3BR rent to $/SF: (rent3br × 1.20) / 1200
