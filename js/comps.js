@@ -13,6 +13,13 @@ var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var SFR_TH_TYPES = [1,2,3,4];
 var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS exit comps
+var MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+function parseSaleDate(d){
+  if(!d) return 0;
+  var parts=d.split('-');
+  if(parts.length>=3){var m=MONTH_MAP[parts[0].toLowerCase()]||0; return parseInt(parts[2])*10000+m*100+parseInt(parts[1]);}
+  return 0;
+}
 var PT_COLORS = {1:'#3b82f6', 2:'#a855f7', 3:'#22c55e'};
 var PT_DEFAULT_COLOR = '#94a3b8';
 
@@ -182,7 +189,7 @@ function saleGroupTheadRow(group){
     +'<th data-sort="price" onclick="sortCompsTable(\'price\',\''+group+'\')" style="cursor:pointer">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\',\''+group+'\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\',\''+group+'\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th>Bd/Ba</th>'
+    +'<th data-sort="bd" onclick="sortCompsTable(\'bd\',\''+group+'\')" style="cursor:pointer">Bd/Ba<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="zone" onclick="sortCompsTable(\'zone\',\''+group+'\')" style="cursor:pointer">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="yb" onclick="sortCompsTable(\'yb\',\''+group+'\')" style="cursor:pointer">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
     +'<th data-sort="t" onclick="sortCompsTable(\'t\',\''+group+'\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
@@ -304,7 +311,10 @@ export function sortCompsTable(key, group){
   wrap.setAttribute(stateKey+'-dir', dir);
 
   var sorter = function(a,b){
-    var va=a[key],vb=b[key];
+    var va,vb;
+    if(key==='date'){va=parseSaleDate(a.date);vb=parseSaleDate(b.date);}
+    else if(key==='bd'){va=a.bd||0;vb=b.bd||0;}
+    else{va=a[key];vb=b[key];}
     if(typeof va==='string') return dir==='asc'?(va||'').localeCompare(vb||''):(vb||'').localeCompare(va||'');
     va=va||0;vb=vb||0;
     return dir==='asc'?va-vb:vb-va;
