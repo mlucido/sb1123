@@ -2526,8 +2526,6 @@ function dealCardEconomics(l, pf, el){
 
   var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
   h += '<div class="dp-row"><span class="dp-k">Acquisition</span><span class="dp-v">'+fmtDollar(pf.acquisition)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Hard Costs</span><span class="dp-v">'+fmtDollar(pf.hardCosts)+psfSuffix(pf.hardCosts)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Soft Costs</span><span class="dp-v">'+fmtDollar(pf.softCosts)+psfSuffix(pf.softCosts)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Build</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+psfSuffix(pf.constructionCost)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Total Project</span><span class="dp-v">'+fmtDollar(pf.totalProjectCost)+psfSuffix(pf.totalProjectCost)+'</span></div>';
   if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
@@ -2540,12 +2538,9 @@ function dealCardEconomics(l, pf, el){
 }
 
 function dealCardSite(l, pf){
-  var effPct = pf.lot_efficiency ? Math.round(pf.lot_efficiency*100) : 0;
   var h = '<div class="dp-col"><div class="dp-col-head">Site</div>';
   h += '<div class="dp-row"><span class="dp-k">Lot Size</span><span class="dp-v">'+(l.lotSf?commas(l.lotSf)+' sf':'—')+'</span></div>';
   if(l.lw&&l.ld) h += '<div class="dp-row"><span class="dp-k">Dimensions</span><span class="dp-v">'+l.lw+'\' &times; '+l.ld+'\'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Efficiency</span><span class="dp-v" style="color:'+(effPct>=100?'var(--green)':effPct>=60?'var(--yellow)':'var(--red)')+'">'+effPct+'%</span></div>';
-  if(l.slope!=null) h += '<div class="dp-row"><span class="dp-k">Slope</span><span class="dp-v" style="color:'+(l.slope<5?'var(--green)':l.slope<15?'var(--yellow)':l.slope<25?'var(--orange)':'var(--red)')+'">'+l.slope+'%</span></div>';
   if(l.dom!=null) h += '<div class="dp-row"><span class="dp-k">DOM</span><span class="dp-v">'+l.dom+'</span></div>';
   if(l.beds) h += '<div class="dp-row"><span class="dp-k">Beds / Baths</span><span class="dp-v">'+l.beds+' / '+l.baths+'</span></div>';
   if(l.existingUnits) h += '<div class="dp-row"><span class="dp-k">Existing Units</span><span class="dp-v">'+l.existingUnits+'</span></div>';
@@ -2570,11 +2565,9 @@ function dealCardProForma(l, pf){
   h += '<div class="dp-row"><span class="dp-k">Net Margin</span><span class="dp-v" style="color:'+(margin>=30?'var(--green)':margin>=15?'var(--yellow)':'var(--red)')+'">'+margin.toFixed(1)+'%</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Return on Cost</span><span class="dp-v" style="color:'+(pf.return_on_cost>=0?'var(--green)':'var(--red)')+'">'+pf.return_on_cost.toFixed(1)+'%</span></div>';
   h += '<div class="dp-sep"></div>';
-  h += '<div class="dp-row"><span class="dp-k">Buy / Unit</span><span class="dp-v">'+fmtDollar(pf.pricePerUnit)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Sell / Unit</span><span class="dp-v">'+fmtDollar(sellPerUnit)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Profit / Unit</span><span class="dp-v" style="color:'+(profitPerUnit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(profitPerUnit)+'</span></div>';
   h += '<div class="dp-row"><span class="dp-k">Land Basis</span><span class="dp-v" style="color:'+lbColor+'">'+fmtDollar(pf.land_basis_psf)+'/sf</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Interest Carry</span><span class="dp-v">'+fmtDollar(pf.carryInterest)+'</span></div>';
   h += '</div>';
   return h;
 }
