@@ -57,6 +57,7 @@ COMP_SQFT_MAX = 3500      # Max comp SF — exclude mega-homes that drag down $/
 SEARCH_RADII_DEG = [0.0036, 0.007, 0.015]
 ELIGIBLE_PT = {1, 2, 3}       # SFR, Condo, Townhome — exclude multi-family
 T1_WEIGHT = 1.75              # New/remodel (T1) comps weighted 1.75x over existing (T2)
+ATTACHED_BOOST = 1.5          # Condo/TH (pt=2,3) weighted 1.5x — closer to our attached product
 
 # ── Step 1: Load comps and build spatial index ──
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
@@ -105,22 +106,22 @@ for c in comps:
     # Grid cell
     grow = math.floor(clat / GRID_SIZE)
     gcol = math.floor(clng / GRID_SIZE)
-    entry = (clat, clng, cppsf, csqft)
+    entry = (clat, clng, cppsf, csqft, cpt)
 
     comp_grid.setdefault((grow, gcol), []).append(entry)
 
     # New-con grid (year_built >= 2021)
     yb = c.get("yb")
     if yb and yb >= 2021:
-        nc_entry = (clat, clng, cppsf, csqft, yb)
+        nc_entry = (clat, clng, cppsf, csqft, yb, cpt)
         newcon_grid.setdefault((grow, gcol), []).append(nc_entry)
         newcon_count += 1
 
-    # Zip-level fallback (carry tier + recency weight)
+    # Zip-level fallback (carry tier + recency weight + pt)
     ctier = c.get("t", 2)  # default T2
     crw = recency_weight(c.get("date", ""))
     if czip:
-        zip_ppsfs.setdefault(czip, []).append((cppsf, ctier, crw))
+        zip_ppsfs.setdefault(czip, []).append((cppsf, ctier, crw, cpt))
 
 print(f"   Spatial index: {len(comp_grid):,} grid cells (PT 1/2/3 only)")
 print(f"     SFR (pt=1): {pt_counts.get(1, 0):,}")
@@ -148,16 +149,44 @@ for c in comps:
 print(f"   T1 (new/remodel) comps: {t1_count:,} (weighted {T1_WEIGHT}x)")
 
 
+def iqr_trim(vals):
+    """Remove outliers using IQR method (1.0x multiplier for tighter trim).
+    vals: list of (ppsf, ...) tuples.
+    Needs ≥5 comps to trim; otherwise returns original list."""
+    if len(vals) < 5:
+        return vals
+    ppsfs = sorted(v[0] for v in vals)
+    n = len(ppsfs)
+    q1 = ppsfs[n // 4]
+    q3 = ppsfs[(3 * n) // 4]
+    iqr = q3 - q1
+    if iqr == 0:
+        return vals
+    lo = q1 - 1.0 * iqr
+    hi = q3 + 1.0 * iqr
+    trimmed = [v for v in vals if lo <= v[0] <= hi]
+    # Don't trim too aggressively — keep at least 60% of comps
+    if len(trimmed) < len(vals) * 0.6:
+        return vals
+    return trimmed if trimmed else vals
+
+
 def wp75(vals):
-    """Weighted P75 — T1 (new/remodel) comps get 1.5x weight, recency-weighted.
-    vals: list of (ppsf, tier, rw) tuples."""
+    """Weighted P75 with tier + attached product weighting.
+    IQR outlier trimming applied first.
+    vals: list of (ppsf, tier, rw) or (ppsf, tier, rw, pt) tuples.
+    Weights: T1 1.75x, Condo/TH (pt 2,3) 1.5x — stacks multiplicatively."""
     if not vals:
         return 0
+    vals = iqr_trim(vals)
     weighted = []
     for item in vals:
         ppsf, tier = item[0], item[1]
         rw = item[2] if len(item) > 2 else 1.0
+        pt = item[3] if len(item) > 3 else 0
         w = (T1_WEIGHT if tier == 1 else 1.0) * rw
+        if pt in (2, 3):  # Condo/TH — attached product boost
+            w *= ATTACHED_BOOST
         weighted.append((ppsf, w))
     weighted.sort(key=lambda x: x[0])
     total = sum(w for _, w in weighted)
@@ -170,11 +199,29 @@ def wp75(vals):
     return round(weighted[-1][0])
 
 
+def detached_discount(ppsf, vals):
+    """Apply a discount when comps are predominantly detached SFR.
+    SB 1123 builds attached townhomes; detached SFR commands a premium.
+    Discount scales with SFR concentration: 0% at ≤50% SFR, up to 15% at 100% SFR.
+    Only applies when there are enough comps (≥5) for reliable stats."""
+    if not vals or len(vals) < 5:
+        return ppsf
+    sfr_count = sum(1 for v in vals if len(v) > 3 and v[3] == 1)
+    sfr_ratio = sfr_count / len(vals)
+    if sfr_ratio <= 0.50:
+        return ppsf
+    # Graduated discount: (ratio - 0.50) * 0.30 → ~15% max at 100% SFR
+    discount = (sfr_ratio - 0.50) * 0.30
+    return round(ppsf * (1.0 - discount))
+
+
 def find_exit_ppsf(lat, lng, zipcode):
     """Find exit $/SF (P75) using PT-filtered, tier-weighted radius search.
 
     Searches SFR/Condo/Townhome comps only (multi-family excluded).
-    T1 (new/remodel) comps get 1.5x weight over T2 (existing).
+    T1 (new/remodel) comps get 1.75x weight over T2 (existing).
+    Condo/TH comps get 1.5x attached product boost.
+    Detached premium discount applied when comps are >65% SFR.
     Three radii: 0.25mi, 0.5mi, 1mi — tighter start for hyperlocal comps.
     Size-band 1300-3500 SF preferred; thin-comp fallback if 1-4 comps found.
 
@@ -191,19 +238,19 @@ def find_exit_ppsf(lat, lng, zipcode):
         return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
 
     def _collect(radius):
-        """Collect (ppsf, tier, rw) tuples from comp_grid within radius, split by size band."""
+        """Collect (ppsf, tier, rw, pt) tuples from comp_grid within radius, split by size band."""
         cells = int(radius / GRID_SIZE) + 1
         band, all_ = [], []
         for dr in range(-cells, cells + 1):
             for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf, csqft in comp_grid.get((grow + dr, gcol + dc), []):
+                for clat, clng, cppsf, csqft, cpt in comp_grid.get((grow + dr, gcol + dc), []):
                     if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
                         key = f"{clat},{clng}"
                         ctier = comp_tier_map.get(key, 2)
                         rw = recency_weight(comp_date_map.get(key, ""))
-                        all_.append((cppsf, ctier, rw))
+                        all_.append((cppsf, ctier, rw, cpt))
                         if in_band(csqft):
-                            band.append((cppsf, ctier, rw))
+                            band.append((cppsf, ctier, rw, cpt))
         return band, all_
 
     # Spatial search with expanding radii
@@ -214,14 +261,14 @@ def find_exit_ppsf(lat, lng, zipcode):
         nearby_band, nearby_all = _collect(radius)
         if len(nearby_band) >= MIN_COMPS:
             miles = round(radius * 69, 2)
-            return wp75(nearby_band), len(nearby_band), miles, "spatial"
+            return detached_discount(wp75(nearby_band), nearby_band), len(nearby_band), miles, "spatial"
         last_band = nearby_band
         last_all = nearby_all
         last_miles = round(radius * 69, 2)
 
     # At widest radius: try all-size fallback, then thin-comp
     if len(last_all) >= MIN_COMPS:
-        return wp75(last_all), len(last_all), last_miles, "spatial"
+        return detached_discount(wp75(last_all), last_all), len(last_all), last_miles, "spatial"
     if len(last_band) > 0:
         return wp75(last_band), len(last_band), last_miles, "spatial-thin"
     if len(last_all) > 0:
@@ -230,7 +277,7 @@ def find_exit_ppsf(lat, lng, zipcode):
     # Fallback: zip-level
     if zipcode in zip_ppsfs and len(zip_ppsfs[zipcode]) >= 3:
         vals = list(zip_ppsfs[zipcode])
-        return wp75(vals), len(vals), 0, "zip"
+        return detached_discount(wp75(vals), vals), len(vals), 0, "zip"
 
     return 0, 0, 0, "none"
 
@@ -272,29 +319,29 @@ def find_newcon_ppsf(lat, lng, exit_psf):
         return result
 
     def try_tiers(raw_comps):
-        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,tier,rw)_list, tier_label, has_stale)."""
+        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,tier,rw,pt)_list, tier_label, has_stale)."""
         # Tier 1: 2024-2025 only
         t1 = [(cppsf, csqft, comp_tier_map.get(f"{clat},{clng}", 2),
-               recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
-              for clat, clng, cppsf, csqft, yb in raw_comps
+               recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
+              for clat, clng, cppsf, csqft, yb, cpt in raw_comps
               if yb >= 2024 and in_band(csqft)]
         if len(t1) >= MIN_COMPS:
-            return [(p, tier, rw) for p, _, tier, rw in t1], "2024-25", False
+            return [(p, tier, rw, pt) for p, _, tier, rw, pt in t1], "2024-25", False
 
         # Tier 2: 2023+ (includes tier 1)
         t2 = [(cppsf, csqft, comp_tier_map.get(f"{clat},{clng}", 2),
-               recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
-              for clat, clng, cppsf, csqft, yb in raw_comps
+               recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
+              for clat, clng, cppsf, csqft, yb, cpt in raw_comps
               if yb >= 2023 and in_band(csqft)]
         if len(t2) >= MIN_COMPS:
-            return [(p, tier, rw) for p, _, tier, rw in t2], "2023+", False
+            return [(p, tier, rw, pt) for p, _, tier, rw, pt in t2], "2023+", False
 
         # Tier 3: 2021-2022 with -10% haircut, added to tier 2 comps
         t3_adj = [(round(cppsf * 0.90), comp_tier_map.get(f"{clat},{clng}", 2),
-                   recency_weight(comp_date_map.get(f"{clat},{clng}", "")))
-                  for clat, clng, cppsf, csqft, yb in raw_comps
+                   recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
+                  for clat, clng, cppsf, csqft, yb, cpt in raw_comps
                   if 2021 <= yb <= 2022 and in_band(csqft)]
-        combined = [(p, tier, rw) for p, _, tier, rw in t2] + t3_adj
+        combined = [(p, tier, rw, pt) for p, _, tier, rw, pt in t2] + t3_adj
         if len(combined) >= NEWCON_MIN:
             tier_label = "2021-22 adj" if t3_adj else "2023+"
             return combined, tier_label, bool(t3_adj)
