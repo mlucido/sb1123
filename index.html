@@ -2558,9 +2558,6 @@ function generateDealCard(l, opts){
   var profitPerUnit = pf.maxUnits > 0 ? Math.round(pf.profit / pf.maxUnits) : 0;
   var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
   var zh = getZoneHeight(l);
-  var saleCompCount = l.compCount || 0;
-  var hasRentalComps = typeof RENTAL_COMPS !== 'undefined' && RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp');
-  var rentCompCount = hasRentalComps ? (l.rentCompCount || 0) : 0;
 
   // I/O Loan abbreviation
   var loanAbbr = btr.loanAmount >= 1e6 ? '$' + (btr.loanAmount / 1e6).toFixed(1) + 'M' : '$' + (btr.loanAmount / 1e3).toFixed(0) + 'K';
@@ -2680,7 +2677,7 @@ function generateDealCard(l, opts){
   } else {
     ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
   }
-  h += '<span class="dc3-bottom-comps"><a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">' + saleCompCount + ' sale comps</a> &middot; <a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">' + rentCompCount + ' rent comps</a></span>';
+  h += '<span class="dc3-bottom-comps"><a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">Sale Comps</a> &middot; <a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">Rent Comps</a></span>';
   h += '</div>';
 
   // Right: action buttons
