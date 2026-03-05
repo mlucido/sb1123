@@ -9,7 +9,7 @@ export function initComps(deps){ _deps = deps; }
 var COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500;
 var ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',LAND:'Land'};
 var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
-var ADJ_ZONES = {R1:['R2'],R2:['R1','R3'],R3:['R2','R4'],R4:['R3'],LAND:['R1']};
+// Zone matching removed — comp filtering now uses PT + tier only
 var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var SFR_TH_TYPES = [1,2,3,4];
 var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS exit comps
@@ -79,12 +79,8 @@ export function findCompsForListing(l){
 
   if(l.subdivExitPsf){
     source='subdiv'; searchRadius=l.subdivCompRadius||2; targetCount=l.subdivCompCount||0;
-  } else if(l.newconPpsf){
-    source='newcon'; searchRadius=2; targetCount=l.newconCount||0;
   } else if(l.exitPsf){
-    source='zone'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
-  } else if(l.clusterT1psf){
-    source='newcon'; searchRadius=2; targetCount=0;
+    source='spatial'; searchRadius=l.compRadius||1; targetCount=l.compCount||0;
   } else {
     return {used:[],ref:[],source:'none',radius:0};
   }
@@ -98,20 +94,11 @@ export function findCompsForListing(l){
     var inRadius = c.dist <= searchRadius + 0.05;
     var isUsed = false;
 
-    if(source==='newcon'){
-      var isNewcon = c.yb && c.yb >= 2021;
-      var zmOrAdj = l.newconZoneMatch
-        ? c.zone===l.zone
-        : (c.zone===l.zone || (ADJ_ZONES[l.zone]||[]).includes(c.zone));
-      var inBand = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
-      isUsed = inRadius && isNewcon && zmOrAdj && inBand;
-    } else if(source==='subdiv'){
-      isUsed = inRadius && c.zone===l.zone && c.yb && c.yb>=2021;
+    if(source==='subdiv'){
+      isUsed = inRadius && c.yb && c.yb>=2021;
     } else {
-      var method = l.compMethod||'';
-      var zoneMatch = method.startsWith('zone') ? c.zone===l.zone : true;
       var inBand2 = c.sqft>=COMP_SQFT_MIN && c.sqft<=COMP_SQFT_MAX;
-      isUsed = inRadius && zoneMatch && inBand2;
+      isUsed = inRadius && inBand2;
     }
 
     c.isUsed = isUsed;
@@ -121,12 +108,10 @@ export function findCompsForListing(l){
     else ref.push(c);
   }
 
-  if(source==='zone' && used.length < targetCount){
-    var method2 = l.compMethod||'';
-    var zoneMatch2 = method2.startsWith('zone');
+  if(source==='spatial' && used.length < targetCount){
     for(var j=ref.length-1;j>=0;j--){
       var c2=ref[j];
-      if(c2.dist<=searchRadius+0.05 && !c2.isOutlier && (zoneMatch2?c2.zone===l.zone:true)){
+      if(c2.dist<=searchRadius+0.05 && !c2.isOutlier){
         c2.isUsed=true;
         used.push(ref.splice(j,1)[0]);
       }
@@ -227,7 +212,7 @@ export function showCompsTable(lat,lng){
   var groups = result.groups;
   var source = result.source;
   var radius = result.radius;
-  var sourceLabel = {subdiv:'Subdivision',newcon:'New Construction',zone:'Zone-Matched'}[source]||source;
+  var sourceLabel = {subdiv:'Subdivision',spatial:'Spatial P75'}[source]||source;
   var totalShown = result.allComps.length;
 
   document.getElementById('tableWrap').style.display='none';
