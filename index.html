@@ -2661,7 +2661,7 @@ function generateDealCard(l, opts){
   } else {
     ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
   }
-  h += '<span class="dc3-bottom-comps">' + saleCompCount + ' sale comps &middot; ' + rentCompCount + ' rent comps</span>';
+  h += '<span class="dc3-bottom-comps"><a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">' + saleCompCount + ' sale comps</a> &middot; <a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">' + rentCompCount + ' rent comps</a></span>';
   h += '</div>';
 
   // Right: action buttons
