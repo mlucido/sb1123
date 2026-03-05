@@ -398,25 +398,25 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-hero-accent{color:#246424}
 
   /* Body grid: 4 data cols + verdict rail */
-  .dc3-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 172px}
-  .dc3-col{padding:14px 16px;border-right:1px solid #e8e4de;min-width:0}
+  .dc3-body{display:grid;grid-template-columns:1.35fr 0.95fr 0.95fr 1fr 152px}
+  .dc3-col{padding:14px 14px;border-right:1px solid #e8e4de;min-width:0}
   .dc3-col:last-child{border-right:none}
   .dc3-col-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#b8b5b0;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #e8e4de}
-  .dc3-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
-  .dc3-k{font-size:11px;font-weight:400;color:#6e6c68;white-space:nowrap}
-  .dc3-v{font-size:11.5px;font-weight:600;color:#1a1f26;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .dc3-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:6px}
+  .dc3-k{font-size:10.5px;font-weight:400;color:#6e6c68;white-space:nowrap}
+  .dc3-v{font-size:11px;font-weight:600;color:#1a1f26;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
   .dc3-v-green{color:#246424}
   .dc3-v-amber{color:#7a5e10}
-  .dc3-sub{font-size:9px;font-weight:300;color:#c0bdb8;margin-left:3px}
-  .dc3-computed{font-size:9px;font-style:italic;color:#b8b5b0;margin-left:3px}
+  .dc3-sub{font-size:8.5px;font-weight:300;color:#c0bdb8;margin-left:2px}
+  .dc3-computed{font-size:8.5px;font-style:italic;color:#b8b5b0;margin-left:3px}
   .dc3-sep{height:1px;background:#e8e4de;margin:7px 0}
 
-  /* Verdict rail */
-  .dc3-verdict{background:#1a1f26;border-left:2px solid #3a7a3a;padding:16px 15px;display:flex;flex-direction:column;justify-content:center;gap:14px;border-radius:0 0 4px 0}
+  /* Verdict rail — light background with bold accent values */
+  .dc3-verdict{background:#f8f7f4;border-left:2px solid #c8dcc8;padding:16px 14px;display:flex;flex-direction:column;justify-content:center;gap:14px;border-radius:0 0 4px 0}
   .dc3-verdict-metric{text-align:center}
-  .dc3-verdict-lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#3a5a3a;margin-bottom:2px}
-  .dc3-verdict-val{font-size:21px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
-  .dc3-verdict-sub{font-size:9.5px;color:#3a5a3a;margin-top:2px}
+  .dc3-verdict-lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8a8880;margin-bottom:2px}
+  .dc3-verdict-val{font-size:20px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .dc3-verdict-sub{font-size:9px;color:#a0a098;margin-top:2px}
 
   /* Bottom bar */
   .dc3-bottom{display:flex;align-items:stretch;background:#f0ede8;border-top:1px solid #dedad4;border-radius:0 0 4px 4px}
@@ -2582,15 +2582,15 @@ function generateDealCard(l, opts){
 
   // COL 1 — ECONOMICS
   h += '<div class="dc3-col"><div class="dc3-col-title">Economics</div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Acquisition</span><span class="dc3-v">' + fmtDollar(pf.acquisition) + '</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Total Build</span><span class="dc3-v">' + fmtDollar(pf.constructionCost) + '<span class="dc3-sub">$' + Math.round(pf.constructionCost / bsf) + '/sf</span></span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Total Project</span><span class="dc3-v">' + fmtDollar(pf.totalProjectCost) + '<span class="dc3-sub">$' + allInPsf + '/sf</span></span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">LP Equity<span class="dc3-computed">computed</span></span><span class="dc3-v">' + fmtDollar(lpEquity) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Acquisition</span><span class="dc3-v">' + fmtShort(pf.acquisition) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Total Build</span><span class="dc3-v">' + fmtShort(pf.constructionCost) + '<span class="dc3-sub">$' + Math.round(pf.constructionCost / bsf) + '/sf</span></span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Total Project</span><span class="dc3-v">' + fmtShort(pf.totalProjectCost) + '<span class="dc3-sub">$' + allInPsf + '/sf</span></span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">LP Equity<span class="dc3-computed">computed</span></span><span class="dc3-v">' + fmtShort(lpEquity) + '</span></div>';
   h += '<div class="dc3-sep"></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Gross Revenue</span><span class="dc3-v">' + fmtDollar(pf.grossRevenue) + '</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Net Revenue</span><span class="dc3-v">' + fmtDollar(pf.netRevenue) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Gross Revenue</span><span class="dc3-v">' + fmtShort(pf.grossRevenue) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Net Revenue</span><span class="dc3-v">' + fmtShort(pf.netRevenue) + '</span></div>';
   h += '<div class="dc3-row"><span class="dc3-k">Spread</span><span class="dc3-v dc3-v-green">$' + spread + '/sf</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Est. Profit</span><span class="dc3-v dc3-v-green">' + fmtDollar(pf.profit) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Est. Profit</span><span class="dc3-v dc3-v-green">' + fmtShort(pf.profit) + '</span></div>';
   h += '</div>';
 
   // COL 2 — PRO FORMA
@@ -2633,12 +2633,12 @@ function generateDealCard(l, opts){
 
   // COL 5 — VERDICT RAIL
   h += '<div class="dc3-verdict">';
-  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Est. Profit</div><div class="dc3-verdict-val" style="color:#5acc5a">' + fmtShort(pf.profit) + '</div><div class="dc3-verdict-sub">' + pf.maxUnits + ' units</div></div>';
-  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Return on Cost</div><div class="dc3-verdict-val" style="color:#c8a030">' + pf.return_on_cost.toFixed(1) + '%</div><div class="dc3-verdict-sub">of ' + fmtShort(pf.totalCost) + '</div></div>';
+  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Est. Profit</div><div class="dc3-verdict-val" style="color:#1a7a2a">' + fmtShort(pf.profit) + '</div><div class="dc3-verdict-sub">' + pf.maxUnits + ' units</div></div>';
+  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Return on Cost</div><div class="dc3-verdict-val" style="color:#8a6a10">' + pf.return_on_cost.toFixed(1) + '%</div><div class="dc3-verdict-sub">of ' + fmtShort(pf.totalCost) + '</div></div>';
   if (btr.rentPsf > 0) {
-    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#5888cc;font-size:18px">' + (btr.yieldOnCost * 100).toFixed(1) + '%</div><div class="dc3-verdict-sub">DSCR ' + btr.dscr.toFixed(2) + 'x</div></div>';
+    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#2a5a9a;font-size:17px">' + (btr.yieldOnCost * 100).toFixed(1) + '%</div><div class="dc3-verdict-sub">DSCR ' + btr.dscr.toFixed(2) + 'x</div></div>';
   } else {
-    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#5888cc;font-size:18px">—</div><div class="dc3-verdict-sub">no rent data</div></div>';
+    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#2a5a9a;font-size:17px">—</div><div class="dc3-verdict-sub">no rent data</div></div>';
   }
   h += '</div>';
 
