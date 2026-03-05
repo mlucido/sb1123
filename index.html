@@ -1331,81 +1331,112 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   </div>
 </div>
 
-<!-- Data Key Modal -->
+<!-- How It Works Modal -->
 <div class="modal-overlay" id="dataKeyModal" role="dialog" aria-modal="true" aria-labelledby="dataKeyTitle" onclick="if(event.target===this) closeDataKeyModal()">
   <div class="modal-panel data-key-panel">
     <div class="modal-header">
-      <h3 id="dataKeyTitle">Data Key</h3>
+      <h3 id="dataKeyTitle">How It Works</h3>
       <button class="modal-close" onclick="closeDataKeyModal()">&times;</button>
     </div>
     <div class="modal-body">
 
       <div class="data-key-section">
-        <h4>Deal Metrics (Top Row)</h4>
-        <dl class="data-key-item"><dt>Price</dt><dd>Listing price from MLS. For off-market, enter your own estimate.</dd></dl>
-        <dl class="data-key-item"><dt>Units</dt><dd>Number of SB 1123 townhome units the lot can support. R1/LAND: floor(lotSF &divide; 1,200), cap 10. R2&ndash;R4: floor(lotSF &divide; 600), cap 10. Layout constraints (setbacks, driveway) may reduce this further.</dd></dl>
-        <dl class="data-key-item"><dt>Lot SF</dt><dd>Total lot area in square feet. Primary source is MLS listing data; falls back to county parcel data if MLS is missing. Source shown as &ldquo;mls&rdquo; or &ldquo;parcel.&rdquo;</dd></dl>
-        <dl class="data-key-item"><dt>Exit $/SF</dt><dd>Estimated sale price per square foot for finished townhomes. Prefers new-construction comps within 1 mile; falls back to zone-matched resale comps with expanding search radius (0.25mi &rarr; 4mi). Color indicates comp type: <span style="color:#4ecdc4">teal = new-con</span>, <span style="color:#ffe66d">gold = zone comps</span>.</dd></dl>
-        <dl class="data-key-item"><dt>Spread</dt><dd>Exit $/SF minus all-in build cost (default $400/SF). Higher spread = more margin for profit.</dd></dl>
-        <dl class="data-key-item"><dt>Net Margin</dt><dd>Estimated profit &divide; gross revenue. Green (&ge;20%) = strong, yellow (10&ndash;20%) = marginal, red (&lt;10%) = risky.</dd></dl>
+        <h4>What This App Does</h4>
+        <dl class="data-key-item"><dd>California SB 1123 lets you build up to 10 townhomes on a single residential lot &mdash; without a rezoning or discretionary approval. This app scans active MLS listings, figures out which lots qualify, estimates how many units fit, and runs a full financial model so you can quickly tell if a deal pencils.<br><br>Every listing on this map has been pre-screened for SB 1123 eligibility and enriched with neighborhood sale comps, parcel data, rental estimates, and due diligence flags.</dd></dl>
       </div>
 
       <div class="data-key-section">
-        <h4>Comp Quality</h4>
-        <dl class="data-key-item"><dt>Comp Confidence</dt><dd>Score from 0&ndash;100 rating reliability of the exit $/SF estimate. Based on: number of comps found, distance from subject, recency, and whether new-construction comps are available. Shown as a colored bar in the deal card.</dd></dl>
-        <dl class="data-key-item"><dt>Comp Type</dt><dd><b>New-con (subdiv)</b>: Recent new-construction sales &mdash; most reliable for SB 1123 product. <b>Zone comps</b>: Resale comps matched by zoning type (R1 with R1, etc.) &mdash; used when no new-con available.</dd></dl>
-        <dl class="data-key-item"><dt>Comp Count &amp; Radius</dt><dd>Number of comparable sales found and the search radius used. More comps at shorter radius = higher confidence.</dd></dl>
+        <h4>Reading the Map</h4>
+        <dl class="data-key-item"><dt>Pin size</dt><dd>Bigger pin = bigger lot. Helps you spot larger parcels at a glance.</dd></dl>
+        <dl class="data-key-item"><dt>Pin color</dt><dd>Shows what finished townhomes sell for in that neighborhood (Exit $/SF). Ranges from indigo (lower values) through green and yellow to orange (higher values).</dd></dl>
+        <dl class="data-key-item"><dt>Pin border</dt><dd><span style="color:#22c55e">Green border</span> = newly listed (last ~7 days). <span style="color:#f97316">Orange border</span> = active listing. <span style="color:#eab308">Gold border</span> = strong for both build-to-sell AND build-to-rent.</dd></dl>
+        <dl class="data-key-item"><dt>Clicking a pin</dt><dd>Opens the full deal card with financials, site details, comp data, and action buttons.</dd></dl>
       </div>
 
       <div class="data-key-section">
-        <h4>Unit Count &amp; Layout</h4>
-        <dl class="data-key-item"><dt>Lot Dimensions</dt><dd>Width &times; Depth estimated from parcel geometry. &ldquo;Irregular&rdquo; flag appears when effective rectangle area differs &gt;15% from actual lot area (pie-shaped, flag lots, etc.).</dd></dl>
-        <dl class="data-key-item"><dt>Layout Constraint</dt><dd>Unit count may be reduced by physical fit: buildable width = lot width minus 20&rsquo; driveway minus 4&rsquo; far-side setback. Driveway is flush to property line and encroaches into the setback on its side. Use the Layout Planner tool to experiment with driveway placement.</dd></dl>
-        <dl class="data-key-item"><dt>FAR (Floor Area Ratio)</dt><dd>Maximum buildable SF &divide; lot SF. SB 1123 allows: 1.25 FAR for 8&ndash;10 units, 1.0 for 3&ndash;7 units, 0.5 for &lt;3 units. Buildable SF = min(units &times; avg unit size, lot &times; FAR).</dd></dl>
-        <dl class="data-key-item"><dt>Density Cap</dt><dd>SB 1123 caps at 10 units per lot regardless of lot size. R1/LAND uses 1,200 SF/unit divisor; R2&ndash;R4 uses 600 SF/unit.</dd></dl>
+        <h4>Map Layers</h4>
+        <dl class="data-key-item"><dt>On-Market</dt><dd>Active MLS listings that pass SB 1123 screening. This is the primary layer.</dd></dl>
+        <dl class="data-key-item"><dt>Sale $/SF</dt><dd>Color-coded grid overlay showing neighborhood sale prices per square foot. Helps you see market value patterns across the map.</dd></dl>
+        <dl class="data-key-item"><dt>Off-Market</dt><dd>Parcels that aren&rsquo;t listed for sale but meet strict criteria: strong spread, high margin, no fire zone, manageable slope. These are potential direct-to-owner outreach targets.</dd></dl>
+        <dl class="data-key-item"><dt>BTR</dt><dd>Listings where build-to-rent makes financial sense (strong yield on cost and debt coverage). Shown as orange diamond markers.</dd></dl>
+        <dl class="data-key-item"><dt>Overlay toggles</dt><dd>Turn on <b>Fire</b>, <b>Flood</b>, or <b>Quake</b> zones to see hazard areas on the map. <b>Parcels</b> shows county parcel boundaries.</dd></dl>
       </div>
 
       <div class="data-key-section">
-        <h4>Financial Model</h4>
-        <dl class="data-key-item"><dt>Buildable SF</dt><dd>Total square footage of finished product. = units &times; avg unit size (default 1,200 SF), capped by FAR limit.</dd></dl>
-        <dl class="data-key-item"><dt>Gross Revenue</dt><dd>Buildable SF &times; Exit $/SF. What you&rsquo;d gross if you sold all units.</dd></dl>
-        <dl class="data-key-item"><dt>Sale Discount</dt><dd>5% reduction from gross revenue to account for broker commissions, concessions, and closing costs.</dd></dl>
-        <dl class="data-key-item"><dt>Net Revenue</dt><dd>Gross revenue minus sale discount.</dd></dl>
-        <dl class="data-key-item"><dt>Hard Costs</dt><dd>Core construction cost (structure, MEP, finishes, demo). Derived from all-in build cost ($400/SF default) after subtracting subdivision and A&amp;E line items.</dd></dl>
-        <dl class="data-key-item"><dt>Soft Costs</dt><dd>25% of hard costs (default). Covers architecture, engineering, permits, insurance, legal, financing.</dd></dl>
-        <dl class="data-key-item"><dt>Total Development Cost</dt><dd>Hard + soft + land acquisition (asking price).</dd></dl>
-        <dl class="data-key-item"><dt>Est. Profit</dt><dd>Net revenue minus total development cost.</dd></dl>
-        <dl class="data-key-item"><dt>Buy/Unit</dt><dd>Asking price &divide; number of units. Lower = more land efficiency.</dd></dl>
-        <dl class="data-key-item"><dt>Land Basis</dt><dd>Asking price &divide; buildable SF. What you&rsquo;re paying per SF of finished product for the land alone.</dd></dl>
-        <dl class="data-key-item"><dt>Max Offer</dt><dd>Maximum land price that still achieves the target margin (default 20%). Calculated as: net revenue &minus; construction costs &minus; target profit.</dd></dl>
+        <h4>Filters &amp; Deal Pipeline</h4>
+        <dl class="data-key-item"><dt>Sidebar filters</dt><dd>Narrow results by margin, lot size, minimum units, asking price, lot width, and more. Changes update the map and table in real time.</dd></dl>
+        <dl class="data-key-item"><dt>Deal Pipeline table</dt><dd>Every qualifying listing in a sortable table. Click any column header to sort. Click a row to fly to that pin on the map and open its deal card.</dd></dl>
+        <dl class="data-key-item"><dt>Favorites</dt><dd>Star any listing to save it. Your favorites are stored in your browser and persist across sessions. Use the &ldquo;Saved&rdquo; button at the bottom to filter to just your starred deals.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>The Key Numbers</h4>
+        <dl class="data-key-item"><dt>Exit $/SF</dt><dd>What finished townhomes sell for per square foot in this neighborhood. This is the most important number &mdash; it drives the entire pro forma. We calculate it from recent sales nearby, prioritizing the closest comps. You can click the comp count link on any deal card to see exactly which sales we used.</dd></dl>
+        <dl class="data-key-item"><dt>Units</dt><dd>How many townhomes fit on the lot. SB 1123 allows up to 10 per parcel. The count depends on lot size and zoning, and may be further reduced if the lot is too narrow for the units plus a driveway.</dd></dl>
+        <dl class="data-key-item"><dt>Buildable SF</dt><dd>Total square footage of finished product (units &times; average unit size). Capped by SB 1123&rsquo;s FAR (floor area ratio) rules, which limit how much building you can put on a given lot.</dd></dl>
+        <dl class="data-key-item"><dt>Spread</dt><dd>Exit $/SF minus your all-in cost per SF. This is the gap between what it costs to build and what you can sell for. Bigger spread = better deal.</dd></dl>
+        <dl class="data-key-item"><dt>Net Margin</dt><dd>Your estimated profit as a percentage of revenue. <span style="color:#4ecdc4">Green (&ge;20%)</span> = strong deal. <span style="color:#ffe66d">Yellow (10&ndash;20%)</span> = thin but viable. <span style="color:#ff6b6b">Red (&lt;10%)</span> = doesn&rsquo;t pencil at asking price.</dd></dl>
+        <dl class="data-key-item"><dt>Land Basis</dt><dd>What you&rsquo;re paying per square foot of finished product just for the land. Lower is better. <span style="color:#4ecdc4">Green (&lt;$120/sf)</span> is ideal, <span style="color:#ffe66d">yellow ($120&ndash;160)</span> is workable, <span style="color:#ff6b6b">red (&gt;$160)</span> is expensive.</dd></dl>
+        <dl class="data-key-item"><dt>Max Offer</dt><dd>The highest price you could pay for the land and still hit your target margin. Useful for making offers below asking.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>How the Pro Forma Works</h4>
+        <dl class="data-key-item"><dd>The app runs a ground-up development pro forma for every listing. Here&rsquo;s the flow:
+          <br><br><b>Revenue side:</b> We estimate how many units fit, multiply by unit size to get total buildable SF, then multiply by Exit $/SF to get gross revenue. We subtract a sale discount (commissions + closing costs) to get net revenue.
+          <br><br><b>Cost side:</b> Land acquisition (asking price) + construction costs (default $400/SF all-in, covering hard costs, soft costs, demo, and subdivision) + financing carry (interest, insurance, property tax during construction) + transaction costs.
+          <br><br><b>Bottom line:</b> Net revenue minus total costs = your estimated profit. Margin is that profit as a percentage of revenue.
+          <br><br>All assumptions are adjustable &mdash; click the gear icon at the bottom of the sidebar to change build costs, unit sizes, hold period, financing terms, and more. Changes update every deal instantly.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Comp Quality &amp; Confidence</h4>
+        <dl class="data-key-item"><dd>The reliability of Exit $/SF depends on the comps behind it. Each deal card shows:
+          <br><br><b>Comp count &amp; radius:</b> How many recent sales we found and how far away they are. More comps at a shorter distance = more reliable. Click the link to see the full comp table.
+          <br><br><b>Comp type:</b> We use the 75th percentile of general sales (all property types) within the closest radius that yields enough comps. The search expands from 0.25 miles outward until we find at least 5 comps. New-construction and subdivision sales are shown as reference points but don&rsquo;t drive the primary estimate &mdash; they tend to skew high in luxury markets.</dd></dl>
       </div>
 
       <div class="data-key-section">
         <h4>Build-to-Rent (BTR)</h4>
-        <dl class="data-key-item"><dt>Monthly Rent</dt><dd>Estimated market rent per unit from HUD Small Area Fair Market Rents (SAFMR) for the property&rsquo;s ZIP code, sized to unit bedroom count.</dd></dl>
-        <dl class="data-key-item"><dt>Gross Annual Income</dt><dd>Monthly rent &times; units &times; 12 months.</dd></dl>
-        <dl class="data-key-item"><dt>NOI (Net Operating Income)</dt><dd>Gross income minus operating expenses (default 35% of gross: property management, maintenance, insurance, taxes, vacancy).</dd></dl>
-        <dl class="data-key-item"><dt>Yield on Cost (YOC)</dt><dd>NOI &divide; total development cost. The unlevered return on your all-in investment. Target: &ge;5.5%. Shown as pass/fail badge.</dd></dl>
-        <dl class="data-key-item"><dt>Cap Rate Valuation</dt><dd>NOI &divide; market cap rate (default 5%). Estimates what the completed, stabilized property would sell for as a rental asset.</dd></dl>
-        <dl class="data-key-item"><dt>Refi Loan (70% LTV)</dt><dd>70% of the cap rate valuation. Estimates how much permanent debt you could place after stabilization.</dd></dl>
-        <dl class="data-key-item"><dt>Equity Remaining</dt><dd>Total development cost minus refi loan. The cash you&rsquo;d still have tied up after refinancing.</dd></dl>
+        <dl class="data-key-item"><dd>Not every deal has to be build-to-sell. The app also models a build-to-rent scenario for each listing:
+          <br><br><b>Rent estimates</b> come from HUD Small Area Fair Market Rents for the property&rsquo;s ZIP code.
+          <br><br><b>NOI (Net Operating Income)</b> = annual rental income minus operating expenses (management, maintenance, insurance, taxes, vacancy).
+          <br><br><b>Yield on Cost</b> = NOI divided by your total development cost. This is your unlevered return &mdash; what you earn on every dollar invested.
+          <br><br><b>Stabilized Value</b> = what the completed, rented project would be worth as an investment property (NOI divided by market cap rate).
+          <br><br><b>Refi scenario:</b> Shows how much permanent debt you could place, the resulting debt service coverage, and how much of your equity you could pull out through a refinance.</dd></dl>
       </div>
 
       <div class="data-key-section">
-        <h4>Due Diligence Flags</h4>
-        <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>Very High Fire Hazard Severity Zone. SB 1123 projects are <b>not eligible</b> in VHFHSZ areas. These listings are flagged but still shown for awareness.</dd></dl>
-        <dl class="data-key-item"><dt>Protected Area</dt><dd>Listings inside public parks, national forests, or conservation easements (from California Protected Areas Database). These are <b>not eligible</b> for SB 1123 development.</dd></dl>
-        <dl class="data-key-item"><dt>Slope</dt><dd>Average ground slope percentage from USGS LiDAR elevation data. Steeper slopes increase grading costs and may require retaining walls. &gt;15% is flagged as challenging.</dd></dl>
-        <dl class="data-key-item"><dt>Tenant Risk</dt><dd>Risk level (0&ndash;3) for existing tenant displacement issues. Factors: occupied/improved property, 3+ bedrooms, 5+ bedrooms, multi-family structures, pre-2000 construction, RSO (rent stabilization) overlay. Higher risk = more relocation costs and legal complexity.</dd></dl>
-        <dl class="data-key-item"><dt>HOA</dt><dd>Existing HOA may restrict or prevent SB 1123 development. R1 properties with HOA are flagged as potentially ineligible.</dd></dl>
-        <dl class="data-key-item"><dt>Lot Source</dt><dd>Where lot size data comes from: &ldquo;MLS&rdquo; (listing agent, more reliable) or &ldquo;Parcel&rdquo; (county GIS, may match wrong parcel on irregular lots).</dd></dl>
+        <h4>Unit Count &amp; Site Layout</h4>
+        <dl class="data-key-item"><dt>How units are calculated</dt><dd>SB 1123 allows one unit per 1,200 SF of lot area on R1/vacant land (or per 600 SF on R2&ndash;R4 zoned lots), capped at 10 units per lot. But the raw density number is just the starting point &mdash; the app also checks whether the units physically fit by accounting for the 20&rsquo; driveway, setbacks, and lot shape.</dd></dl>
+        <dl class="data-key-item"><dt>FAR limits</dt><dd>SB 1123 sets a floor area ratio that caps total building size: 0.5 for small projects (under 3 units), 1.0 for mid-size (3&ndash;7 units), and 1.25 for larger projects (8&ndash;10 units).</dd></dl>
+        <dl class="data-key-item"><dt>Layout diagram</dt><dd>The deal card includes a site plan sketch showing how units, the driveway, and setbacks fit on the lot. Lots flagged as &ldquo;irregular&rdquo; may not match the rectangular layout shown.</dd></dl>
       </div>
 
       <div class="data-key-section">
-        <h4>Deal Margin Colors</h4>
-        <dl class="data-key-item"><dt style="color:#4ecdc4">Green (Net Margin &ge; 20%)</dt><dd>Strong deal &mdash; meets or exceeds target profit margin.</dd></dl>
-        <dl class="data-key-item"><dt style="color:#ffe66d">Yellow (Net Margin 10&ndash;20%)</dt><dd>Marginal deal &mdash; profit exists but thin. Sensitive to cost overruns or market softening.</dd></dl>
-        <dl class="data-key-item"><dt style="color:#ff6b6b">Red (Net Margin &lt; 10%)</dt><dd>Risky deal &mdash; little to no profit cushion. Likely not viable at asking price.</dd></dl>
+        <h4>Red Flags &amp; Due Diligence</h4>
+        <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>SB 1123 projects are <b>not allowed</b> in Very High Fire Hazard Severity Zones. These listings are flagged but still visible so you know they exist.</dd></dl>
+        <dl class="data-key-item"><dt>Protected Area</dt><dd>Listings inside public parks, national forests, or conservation easements. <b>Not eligible</b> for development.</dd></dl>
+        <dl class="data-key-item"><dt>Tenant Risk</dt><dd>If the property is occupied (especially multi-family or rent-stabilized), displacing tenants adds cost, time, and legal complexity. The app flags risk levels from low to high based on property characteristics. In LA, rent-stabilized buildings require an Ellis Act withdrawal, which triggers mandatory relocation payments.</dd></dl>
+        <dl class="data-key-item"><dt>HOA</dt><dd>An existing homeowners association may restrict or block SB 1123 development. Single-family lots with HOA are flagged.</dd></dl>
+        <dl class="data-key-item"><dt>Slope</dt><dd>Steeper terrain increases grading costs and may need retaining walls. Lots above 15% average slope are flagged. The app adjusts build costs upward for sloped sites.</dd></dl>
+        <dl class="data-key-item"><dt>Burn zone</dt><dd>Properties in recent fire-affected areas (LA only). Not a legal disqualifier, but adds uncertainty around rebuilding timelines and insurance.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Tools &amp; Export</h4>
+        <dl class="data-key-item"><dt>XLS Export</dt><dd>Download a full financial model for any deal &mdash; includes cash flow schedule, sources &amp; uses, refinance analysis, and the underlying comp data.</dd></dl>
+        <dl class="data-key-item"><dt>Teaser PDF</dt><dd>A 2-page investor-ready summary you can share with partners or lenders.</dd></dl>
+        <dl class="data-key-item"><dt>CSV Export</dt><dd>Export the filtered deal pipeline table for your own analysis.</dd></dl>
+        <dl class="data-key-item"><dt>Share</dt><dd>Copy a link that preserves your current filters and map view. Anyone who opens it sees the same setup.</dd></dl>
+        <dl class="data-key-item"><dt>Settings (gear icon)</dt><dd>Adjust all financial assumptions: build cost per SF, unit sizes, hold period, financing terms, sale discount, BTR parameters, and more. Changes recalculate every deal in real time.</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>Color Guide</h4>
+        <dl class="data-key-item"><dt style="color:#4ecdc4">Green</dt><dd>Strong / favorable. For margin: &ge;20%. For land basis: under $120/sf. For due diligence: no issues found.</dd></dl>
+        <dl class="data-key-item"><dt style="color:#ffe66d">Yellow</dt><dd>Marginal / caution. For margin: 10&ndash;20%. Viable but sensitive to cost overruns or market shifts.</dd></dl>
+        <dl class="data-key-item"><dt style="color:#ff6b6b">Red</dt><dd>Risky / unfavorable. For margin: under 10%. For due diligence: disqualifying issue (fire zone, protected area).</dd></dl>
       </div>
 
     </div>
