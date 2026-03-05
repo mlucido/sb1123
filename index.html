@@ -429,16 +429,17 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-verdict-sub{font-size:9.5px;color:#b0ada8;margin-top:3px}
 
   /* 5. Bottom bar */
-  .dc3-bottom{display:flex;align-items:stretch;background:#f5f5f5;border-top:1px solid #e8e8e8}
-  .dc3-bottom-left{flex:1;display:flex;align-items:center;padding:8px 22px;gap:16px;font-size:11px;color:#7a7870;flex-wrap:wrap}
-  .dc3-bottom-left .dc3-check{color:#246424;font-weight:600}
-  .dc3-bottom-left .dc3-warn{color:#7a5e10;font-weight:600}
-  .dc3-bottom-comps{border-left:1px solid #e8e8e8;padding-left:16px;color:#a8a5a0;font-size:10px;white-space:nowrap}
-  .dc3-bottom-actions{display:flex;align-items:stretch;border-left:1px solid #e8e8e8;flex-shrink:0}
-  .dc3-bottom-actions button,.dc3-bottom-actions a{display:flex;align-items:center;padding:8px 13px;font-size:10px;font-weight:500;color:#a8a5a0;border:none;border-right:1px solid #e8e8e8;background:#fff;cursor:pointer;text-decoration:none;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap}
+  .dc3-bottom{border-top:1px solid #e8e8e8}
+  .dc3-bottom-dd{display:flex;align-items:center;padding:6px 22px;gap:16px;font-size:11px;color:#7a7870;background:#fff;border-bottom:1px solid #e8e8e8;flex-wrap:wrap}
+  .dc3-bottom-dd .dc3-check{color:#246424;font-weight:600}
+  .dc3-bottom-dd .dc3-warn{color:#7a5e10;font-weight:600}
+  .dc3-bottom-dd:empty{display:none}
+  .dc3-bottom-actions{display:flex;align-items:stretch;background:#f5f5f5}
+  .dc3-bottom-actions button,.dc3-bottom-actions a{flex:1;display:flex;align-items:center;justify-content:center;padding:9px 8px;font-size:10px;font-weight:500;color:#888;border:none;border-right:1px solid #e8e8e8;background:#f5f5f5;cursor:pointer;text-decoration:none;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap}
   .dc3-bottom-actions button:last-child,.dc3-bottom-actions a:last-child{border-right:none}
-  .dc3-bottom-actions button:hover,.dc3-bottom-actions a:hover{background:#f0f0f0;color:#1a1f26}
+  .dc3-bottom-actions button:hover,.dc3-bottom-actions a:hover{background:#eee;color:#1a1f26}
   .dc3-bottom-actions .dc3-saved-active{color:#a07810;font-weight:600}
+  .dc3-bottom-actions .dc3-btn-comp{color:#2a6fb5;font-weight:600;background:#edf4fb}
 
   @media (max-width: 820px){
     .deal-popup .leaflet-popup-content{min-width:340px;max-width:95vw}
@@ -2653,8 +2654,7 @@ function generateDealCard(l, opts){
   // ── BOTTOM BAR ──
   h += '<div class="dc3-bottom">';
 
-  // Left: DD warnings + comp links
-  h += '<div class="dc3-bottom-left">';
+  // DD warnings row (hidden if none)
   var ddFails = [];
   if (l.burnZone) ddFails.push('<span class="dc3-warn">&#9888;</span> Burn zone');
   else if (l.fireZone) ddFails.push('<span class="dc3-warn">&#9888;</span> VHFHSZ');
@@ -2662,13 +2662,16 @@ function generateDealCard(l, opts){
   if (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND') ddFails.push('<span class="dc3-warn">&#9888;</span> RSO');
   if (l.urbanArea === false) ddFails.push('<span class="dc3-warn">&#9888;</span> Not urban area');
   if (l.zone !== 'R1' && l.zone !== 'LAND' && l.tenantRisk >= 2) ddFails.push('<span class="dc3-warn">&#9888;</span> Tenant risk');
-  ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
-  h += '<a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent);font-size:10px">Sale Comps</a>';
-  h += '<a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent);font-size:10px">Rent Comps</a>';
-  h += '</div>';
+  if (ddFails.length) {
+    h += '<div class="dc3-bottom-dd">';
+    ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
+    h += '</div>';
+  }
 
-  // Right: action buttons
+  // Unified button row
   h += '<div class="dc3-bottom-actions">';
+  h += '<button class="dc3-btn-comp" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false">Sale Comps</button>';
+  h += '<button class="dc3-btn-comp" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false">Rent Comps</button>';
   h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'xls\')">XLS</button>';
   h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'om\')">OM</button>';
   h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'teaser\')" title="Download 2-page investor teaser">Teaser</button>';
