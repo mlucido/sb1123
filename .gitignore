@@ -37,6 +37,10 @@ REFACTOR_SPEC.md
 # Stale duplicates
 data_sd.js
 
+# ATTOM API
+attom_key.txt
+attom_*.json
+
 # OS files
 .DS_Store
 .claude/
