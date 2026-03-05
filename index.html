@@ -1878,8 +1878,7 @@ function compConfidence(l){
     radius = l.subdivCompRadius || 0;
   } else if(l.newconPpsf){
     count = l.newconCount || 0;
-    method = l.newconFlag === 'cross-zone' ? 'newcon-xz' : 'newcon';
-    // newcon doesn't store radius, estimate from tier
+    method = 'newcon';
   } else if(l.exitPsf){
     count = l.compCount || 0;
     method = l.compMethod || 'none';
@@ -1900,19 +1899,15 @@ function compConfidence(l){
   else score += count * 3;
 
   // Method quality (0-40 pts)
-  if(method === 'subdiv') score += 40;        // Best: actual subdivision sales
-  else if(method === 'newcon') score += 35;    // Great: zone-matched new construction
-  else if(method === 'newcon-xz') score += 25; // Good: cross-zone new construction
-  else if(method === 'zone') score += 30;      // Good: zone-matched all sales
-  else if(method === 'all') score += 20;       // OK: all-zone
-  else if(method === 'zone-thin') score += 15; // Weak: thin zone-matched
-  else if(method === 'all-thin') score += 10;  // Weak: thin all-zone
-  else if(method.includes('zip')) score += 8;  // Poor: zip fallback
+  if(method === 'subdiv') score += 40;           // Best: actual subdivision sales
+  else if(method === 'newcon') score += 35;      // Great: new construction
+  else if(method === 'spatial') score += 30;     // Good: spatial PT-filtered
+  else if(method === 'spatial-thin') score += 15; // Weak: thin spatial
+  else if(method.includes('zip')) score += 8;    // Poor: zip fallback
   else score += 5;
 
   // Flags: penalize
   if(l.newconFlag === 'sanity-high') score -= 10;
-  if(l.compMethod && l.compMethod.includes('thin')) score -= 10;
 
   score = Math.max(0, Math.min(100, score));
 
@@ -2115,12 +2110,10 @@ function exitLabel(l){
   if(l.newconPpsf){
     const tier = l.newconTier || '';
     const count = l.newconCount || 0;
-    const zm = l.newconZoneMatch !== false ? 'zone-matched' : 'cross-zone';
     const flag = l.newconFlag;
-    let label = `NEW-CON — ${count} comps, ${tier}, ${zm}`;
+    let label = `NEW-CON — ${count} comps, ${tier}`;
     let color = 'var(--accent)';
     if(flag === 'thin'){ label += ' ⚠️ thin'; color = '#f59e0b'; }
-    else if(flag === 'cross-zone'){ color = '#f59e0b'; }
     else if(flag === 'sanity-high'){ label += ' ⚠️ high'; color = '#f59e0b'; }
     return {psf: l.newconPpsf, label, color, short: 'new-con'};
   }
@@ -2140,8 +2133,8 @@ function exitLabel(l){
   let reason = '';
   if(l.newconFlag === 'sanity-low') reason = ' — newcon failed sanity check';
   else if(l.newconFlag === 'sanity-high') reason = ' — newcon flagged high';
-  const label = `ALL SALES — ${count} comps within ${radius}mi${reason}`;
-  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'all sales'};
+  const label = `P75 — ${count} comps within ${radius}mi${reason}`;
+  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'P75'};
 }
 
 // calculateProForma — see js/proforma.js
@@ -3915,7 +3908,7 @@ function computeTeaserData(l, overrides) {
 
   var buildableSF = wf.buildableSF;
   var holdMonths = wf.holdMonths;
-  var resaleMedianPSF = l.hoodPpsf || l.exitPsf || 565;
+  var resaleMedianPSF = l.exitPsf || 565;
 
   // Cost metrics
   var allInPSF = Math.round(wf.allInPsf);
