@@ -2663,7 +2663,7 @@ function generateDealCard(l, opts){
   // ── BOTTOM BAR ──
   h += '<div class="dc3-bottom">';
 
-  // Left: DD checks + comp counts
+  // Left: DD warnings + comp links
   h += '<div class="dc3-bottom-left">';
   var ddFails = [];
   if (l.burnZone) ddFails.push('<span class="dc3-warn">&#9888;</span> Burn zone');
@@ -2672,12 +2672,9 @@ function generateDealCard(l, opts){
   if (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND') ddFails.push('<span class="dc3-warn">&#9888;</span> RSO');
   if (l.urbanArea === false) ddFails.push('<span class="dc3-warn">&#9888;</span> Not urban area');
   if (l.zone !== 'R1' && l.zone !== 'LAND' && l.tenantRisk >= 2) ddFails.push('<span class="dc3-warn">&#9888;</span> Tenant risk');
-  if (ddFails.length === 0) {
-    h += '<span><span class="dc3-check">&#10003;</span> All checks passed</span>';
-  } else {
-    ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
-  }
-  h += '<span class="dc3-bottom-comps"><a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">Sale Comps</a> &middot; <a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent)">Rent Comps</a></span>';
+  ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
+  h += '<a href="#" onclick="showCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent);font-size:10px">Sale Comps</a>';
+  h += '<a href="#" onclick="showRentalCompsTable(' + l.lat + ',' + l.lng + ');return false" style="color:var(--accent);font-size:10px">Rent Comps</a>';
   h += '</div>';
 
   // Right: action buttons
