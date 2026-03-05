@@ -1362,7 +1362,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <dl class="data-key-item"><dt>Weighting</dt><dd>T1 new/remodel &times; 1.75, attached product (TH/condo) &times; 1.5, recency decay (1.0&times; at 6mo &rarr; 0.2&times; at 36mo+)</dd></dl>
         <dl class="data-key-item"><dt>Outlier trim</dt><dd>IQR-based outlier removal applied before P75 calculation</dd></dl>
         <dl class="data-key-item"><dt>Detached SFR discount</dt><dd>If comps &gt;50% SFR, graduated discount up to 15% (SB 1123 builds attached product, not detached SFR)</dd></dl>
-        <dl class="data-key-item"><dt>Newcon &amp; subdiv comps</dt><dd>Shown as reference only &mdash; do not drive primary estimate (inflate in luxury markets)</dd></dl>
+        <dl class="data-key-item"><dt>Newcon comps</dt><dd>Shown as reference only &mdash; do not drive primary estimate (inflate in luxury markets)</dd></dl>
         <dl class="data-key-item"><dt>Confidence score</dt><dd>0&ndash;100. Count pts: &le;2 comps (3/ea), 3&ndash;4 (15), 5&ndash;9 (25), 10&ndash;19 (40), 20&ndash;29 (50), 30+ (60). Method pts: spatial +30, spatial-thin +15, zip +8, other +5</dd></dl>
       </div>
 
@@ -2098,12 +2098,12 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  // P75 general is the primary exit — subdiv + newcon shown as reference only
+  // P75 general is the primary exit — newcon shown as reference only
   const exitPsf = l.exitPsf || 0;
   if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
   const count = l.compCount || 0;
   const radius = l.compRadius || '';
-  // Show subdiv and newcon as reference data
+  // Show newcon as reference data
   let refs = [];
   if(l.newconPpsf) refs.push(`newcon $${l.newconPpsf}/sf`);
   const refStr = refs.length ? ` (${refs.join(', ')})` : '';
@@ -2569,7 +2569,7 @@ function generateDealCard(l, opts){
 
   // ── HERO STRIP ──
   h += '<div class="dc3-hero">';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val dc3-hero-accent">' + fmtShort(l.price) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val dc3-hero-accent">' + fmtDollar(l.price) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF</div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
