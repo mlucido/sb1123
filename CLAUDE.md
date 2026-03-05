@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Multi-market architecture**: All scripts accept `--market <slug>` (default: `la`). Market configs live in `market_config.py`. Current markets: `la` (Los Angeles), `sd` (San Diego).
 
-Deployed via GitHub Pages: `https://mlucido.github.io/la-comps-map/`
+Deployed via GitHub Pages: `https://mlucido.github.io/sb1123/`
 
 ## Run Commands
 

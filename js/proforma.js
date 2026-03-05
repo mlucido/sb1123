@@ -65,7 +65,7 @@ export function calculateProForma(l){
     }
   }
   const pf = proforma;
-  const valuePerSf = l.subdivExitPsf || l.newconPpsf || l.clusterT1psf || l.exitPsf || 0;
+  const valuePerSf = l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
   const effective_buildable_sf = maxUnits * pf.avgUnitSf;
