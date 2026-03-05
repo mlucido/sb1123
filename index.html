@@ -1876,9 +1876,6 @@ function compConfidence(l){
     count = l.subdivCompCount || 0;
     method = 'subdiv';
     radius = l.subdivCompRadius || 0;
-  } else if(l.newconPpsf){
-    count = l.newconCount || 0;
-    method = 'newcon';
   } else if(l.exitPsf){
     count = l.compCount || 0;
     method = l.compMethod || 'none';
@@ -1900,14 +1897,10 @@ function compConfidence(l){
 
   // Method quality (0-40 pts)
   if(method === 'subdiv') score += 40;           // Best: actual subdivision sales
-  else if(method === 'newcon') score += 35;      // Great: new construction
   else if(method === 'spatial') score += 30;     // Good: spatial PT-filtered
   else if(method === 'spatial-thin') score += 15; // Weak: thin spatial
   else if(method.includes('zip')) score += 8;    // Poor: zip fallback
   else score += 5;
-
-  // Flags: penalize
-  if(l.newconFlag === 'sanity-high') score -= 10;
 
   score = Math.max(0, Math.min(100, score));
 
@@ -2100,41 +2093,26 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  // Priority: subdiv comps > new-con comps > T1 norm > all-sales P75
+  // Priority: subdiv comps > general P75 (newcon shown as reference only)
   if(l.subdivExitPsf){
     const count = l.subdivCompCount || 0;
     const radius = l.subdivCompRadius || '';
     const appr = l.subdivAvgAppr ? ` (${l.subdivAvgAppr > 0 ? '+' : ''}${l.subdivAvgAppr.toFixed(1)}% adj)` : '';
     return {psf: l.subdivExitPsf, label: `SUBDIV COMP — ${count} comps within ${radius}mi${appr}`, color: '#10b981', short: 'subdiv'};
   }
-  if(l.newconPpsf){
-    const tier = l.newconTier || '';
-    const count = l.newconCount || 0;
-    const flag = l.newconFlag;
-    let label = `NEW-CON — ${count} comps, ${tier}`;
-    let color = 'var(--accent)';
-    if(flag === 'thin'){ label += ' ⚠️ thin'; color = '#f59e0b'; }
-    else if(flag === 'sanity-high'){ label += ' ⚠️ high'; color = '#f59e0b'; }
-    return {psf: l.newconPpsf, label, color, short: 'new-con'};
-  }
-  if(l.clusterT1psf){
-    const t1n = l.clusterT1n || 0;
-    const fb = l.clusterFb;
-    const fbTag = fb === 0 ? 'per-cell' : fb === 1 ? 'blended' : 'median';
-    const conf = (l.clusterRw >= 0.8 && t1n >= 8) ? 'high' : (l.clusterRw >= 0.5 && t1n >= 4) ? 'med' : 'low';
-    const color = conf === 'high' ? '#22c55e' : conf === 'med' ? 'var(--accent)' : '#f59e0b';
-    return {psf: l.clusterT1psf, label: `T1 NORM — ${t1n} comps, ${fbTag}, ${conf} conf`, color, short: 'T1 norm'};
-  }
   const exitPsf = l.exitPsf || 0;
   if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
-  // General P75 fallback
+  // General P75 — primary exit assumption
   const count = l.compCount || 0;
   const radius = l.compRadius || '';
-  let reason = '';
-  if(l.newconFlag === 'sanity-low') reason = ' — newcon failed sanity check';
-  else if(l.newconFlag === 'sanity-high') reason = ' — newcon flagged high';
-  const label = `P75 — ${count} comps within ${radius}mi${reason}`;
-  return {psf: exitPsf, label, color: 'var(--text-dim)', short: 'P75'};
+  // Show newcon as reference if available
+  let ncRef = '';
+  if(l.newconPpsf){
+    ncRef = ` (newcon ref: $${l.newconPpsf}/sf, ${l.newconCount || 0} comps)`;
+  }
+  const label = `P75 — ${count} comps within ${radius}mi${ncRef}`;
+  const color = count >= 5 ? 'var(--green)' : 'var(--text-dim)';
+  return {psf: exitPsf, label, color, short: 'P75'};
 }
 
 // calculateProForma — see js/proforma.js
