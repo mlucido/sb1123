@@ -50,7 +50,7 @@ window.CLUSTERS = window.CLUSTERS || [];
 window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --r1:#2563eb;--r2:#16a34a;--r3:#ea580c;--r4:#9333ea;--land:#b45309;
@@ -371,78 +371,74 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .popup-collapse-body{overflow:hidden;max-height:0;transition:max-height 0.3s ease-out}
   .popup-collapse-body.open{max-height:800px;transition:max-height 0.4s ease-in}
 
-  /* Deal Card v2 */
-  .deal-popup .leaflet-popup-content-wrapper{overflow:visible!important}
-  .deal-popup .leaflet-popup-content{min-width:560px;max-width:660px;margin:0!important;padding:0!important;overflow:visible!important}
-  .deal-popup .leaflet-popup-close-button{width:28px!important;height:28px!important;font-size:18px!important;line-height:28px!important;text-align:center!important;padding:0!important;top:6px!important;right:6px!important;color:#94a3b8!important;background:rgba(30,41,59,0.7)!important;border-radius:6px!important;transition:all 0.15s!important;z-index:10!important}
-  .deal-popup .leaflet-popup-close-button:hover{color:#fff!important;background:rgba(30,41,59,0.95)!important}
-  .dp-card{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text)}
+  /* ── Deal Card v3 (H1-B Utility) ── */
+  .deal-popup .leaflet-popup-content-wrapper{overflow:visible!important;background:#fff!important;border-radius:4px!important;border:1px solid #dedad4!important;box-shadow:0 4px 24px rgba(0,0,0,0.18)!important;padding:0!important}
+  .deal-popup .leaflet-popup-tip{background:#fff!important}
+  .deal-popup .leaflet-popup-content{min-width:900px;max-width:900px;margin:0!important;padding:0!important;overflow:visible!important;font-family:'IBM Plex Sans',sans-serif!important}
+  .deal-popup .leaflet-popup-close-button{width:24px!important;height:24px!important;font-size:16px!important;line-height:24px!important;text-align:center!important;padding:0!important;top:4px!important;right:6px!important;color:#94a3b8!important;background:rgba(26,31,38,0.7)!important;border-radius:4px!important;transition:all 0.15s!important;z-index:10!important}
+  .deal-popup .leaflet-popup-close-button:hover{color:#fff!important;background:rgba(26,31,38,0.95)!important}
 
-  /* Strip (always visible) */
-  .dp-strip{display:grid;grid-template-columns:1.8fr repeat(4,1fr);align-items:center;gap:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin:6px 6px 0}
-  .dp-addr{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;line-height:1.25;text-transform:capitalize}
-  .dp-addr .dp-city{font-weight:400;font-size:11px;color:var(--text-dim)}
-  .dp-addr .dp-zip{color:#888;font-weight:500;font-size:11px}
-  .dp-addr .dp-badges-inline{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
-  .dp-addr .dp-badges-inline .popup-badge{margin:0;font-size:9px;padding:1px 6px}
-  .dp-metric{text-align:center}
-  .dp-metric .dp-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px}
-  .dp-metric .dp-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;line-height:1.2}
-  /* Alert badges row (burn zone, tenant risk etc) */
-  .dp-alerts{display:flex;gap:4px;flex-wrap:wrap;padding:4px 8px 0}
+  .dc3{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#1a1f26;line-height:1.3}
 
-  /* 3-column body */
-  .dp-body{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;margin:6px 6px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
-  .dp-col{min-width:0;padding:8px 10px}
-  .dp-col+.dp-col{border-left:1px solid var(--border)}
-  .dp-col-head{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin-bottom:6px}
-  .dp-row{display:flex;justify-content:space-between;font-size:11px;line-height:1.7}
-  .dp-row .dp-k{color:var(--text-dim);white-space:nowrap}
-  .dp-row .dp-v{font-family:'JetBrains Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
-  .dp-sep{border-top:1px solid var(--border);margin:4px 0}
+  /* Topbar */
+  .dc3-topbar{display:flex;align-items:center;justify-content:space-between;background:#1a1f26;border-bottom:2px solid #3a7a3a;padding:7px 14px;border-radius:4px 4px 0 0}
+  .dc3-topbar-addr{font-size:12px;font-weight:600;color:#e8e4de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize}
+  .dc3-topbar-tags{display:flex;gap:5px;flex-shrink:0;margin-left:12px}
+  .dc3-tag{font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px;padding:2px 8px;white-space:nowrap}
+  .dc3-tag-land{background:#1a341a;color:#72c472;border:1px solid #264826}
+  .dc3-tag-bts{background:#302810;color:#c0a840;border:1px solid #483c18}
+  .dc3-tag-btr{background:#101e36;color:#5888cc;border:1px solid #1a2e56}
 
-  /* Comp buttons */
-  .dp-comps{display:flex;gap:16px;padding:6px 8px 0;align-items:center}
-  .dp-comp-btn{display:inline-flex;align-items:center;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;color:#2563eb;text-decoration:none;white-space:nowrap;line-height:1.3}
-  .dp-comp-btn:hover{text-decoration:underline}
-  .dp-comp-arrow{font-size:10px}
+  /* Hero strip */
+  .dc3-hero{display:grid;grid-template-columns:repeat(6,1fr);background:#f4f2ee;border-bottom:1px solid #dedad4}
+  .dc3-hero-cell{text-align:center;padding:11px 12px;border-right:1px solid #e2deda}
+  .dc3-hero-cell:last-child{border-right:none}
+  .dc3-hero-lbl{font-size:8.5px;font-weight:600;color:#a8a5a0;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+  .dc3-hero-val{font-size:15px;font-weight:600;color:#1a1f26;font-variant-numeric:tabular-nums}
+  .dc3-hero-accent{color:#246424}
 
-  /* BTR section */
-  .dp-btr{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:8px 8px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
-  .dp-btr-col{padding:8px 10px}
-  .dp-btr-col+.dp-btr-col{border-left:1px solid var(--border)}
-  .dp-btr .dp-row .dp-k{color:var(--text-dim)}
+  /* Body grid: 4 data cols + verdict rail */
+  .dc3-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 172px}
+  .dc3-col{padding:14px 16px;border-right:1px solid #e8e4de;min-width:0}
+  .dc3-col:last-child{border-right:none}
+  .dc3-col-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#b8b5b0;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #e8e4de}
+  .dc3-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
+  .dc3-k{font-size:11px;font-weight:400;color:#6e6c68;white-space:nowrap}
+  .dc3-v{font-size:11.5px;font-weight:600;color:#1a1f26;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .dc3-v-green{color:#246424}
+  .dc3-v-amber{color:#7a5e10}
+  .dc3-sub{font-size:9px;font-weight:300;color:#c0bdb8;margin-left:3px}
+  .dc3-computed{font-size:9px;font-style:italic;color:#b8b5b0;margin-left:3px}
+  .dc3-sep{height:1px;background:#e8e4de;margin:7px 0}
 
-  /* DD bar */
-  .dp-dd{padding:8px 12px;font-size:11px;color:var(--text-dim);margin:8px 6px 0;line-height:1.5}
+  /* Verdict rail */
+  .dc3-verdict{background:#1a1f26;border-left:2px solid #3a7a3a;padding:16px 15px;display:flex;flex-direction:column;justify-content:center;gap:14px;border-radius:0 0 4px 0}
+  .dc3-verdict-metric{text-align:center}
+  .dc3-verdict-lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#3a5a3a;margin-bottom:2px}
+  .dc3-verdict-val{font-size:21px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+  .dc3-verdict-sub{font-size:9.5px;color:#3a5a3a;margin-top:2px}
 
-  /* Action buttons toolbar */
-  .dp-actions{display:flex;justify-content:space-around;background:#fafafa;border-top:1px solid #e5e7eb;border-radius:0 0 6px 6px;padding:6px 8px;margin-top:4px;gap:0}
-  .dp-actions a,.dp-actions button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 10px;background:none;border:none;border-radius:6px;color:#64748b;font-family:inherit;font-size:8px;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;text-decoration:none;line-height:1.2}
-  .dp-actions a:hover,.dp-actions button:hover{background:#e5e7eb}
-  .dp-actions .dp-icon{font-size:13px;line-height:1}
-  .dp-actions .active{border:none;background:none;color:#f59e0b}
-  .dp-actions .active:hover{background:#e5e7eb}
-  .dp-actions .active .dp-icon{color:#f59e0b}
+  /* Bottom bar */
+  .dc3-bottom{display:flex;align-items:stretch;background:#f0ede8;border-top:1px solid #dedad4;border-radius:0 0 4px 4px}
+  .dc3-bottom-left{flex:1;display:flex;align-items:center;padding:7px 20px;gap:16px;font-size:10px;color:#6e6c68;flex-wrap:wrap}
+  .dc3-bottom-left .dc3-check{color:#246424;font-weight:600}
+  .dc3-bottom-left .dc3-warn{color:#7a5e10;font-weight:600}
+  .dc3-bottom-comps{border-left:1px solid #dedad4;padding-left:16px;color:#a8a5a0;font-size:9.5px;white-space:nowrap}
+  .dc3-bottom-actions{display:flex;align-items:stretch;border-left:1px solid #dedad4;flex-shrink:0}
+  .dc3-bottom-actions button,.dc3-bottom-actions a{display:flex;align-items:center;padding:7px 13px;font-size:9.5px;font-weight:500;color:#a8a5a0;border:none;border-right:1px solid #dedad4;background:#fafaf8;cursor:pointer;text-decoration:none;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap}
+  .dc3-bottom-actions button:last-child,.dc3-bottom-actions a:last-child{border-right:none}
+  .dc3-bottom-actions button:hover,.dc3-bottom-actions a:hover{background:#e8e4de;color:#1a1f26}
+  .dc3-bottom-actions .dc3-saved-active{color:#a07810;font-weight:600}
 
-  /* Lot layout toggle in drawer */
-  .dp-lot-toggle{cursor:pointer;user-select:none;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:5px}
-  .dp-lot-toggle:hover{color:var(--text)}
-  .dp-lot-toggle .tri{font-size:8px;transition:transform 0.2s}
-  .dp-lot-toggle.open .tri{transform:rotate(90deg)}
-  .dp-lot-body{overflow:hidden;max-height:0;transition:max-height 0.3s ease-out}
-  .dp-lot-body.open{max-height:2000px;transition:max-height 0.4s ease-in}
-  .dp-lot-body svg{display:block;margin:4px auto 0;max-width:100%}
-
-  @media (max-width: 768px){
-    .deal-popup .leaflet-popup-content{min-width:320px}
-    .dp-body{grid-template-columns:1fr;gap:0}
-    .dp-col+.dp-col{border-left:none;border-top:1px solid var(--border)}
-    .dp-strip{grid-template-columns:1.5fr repeat(2,1fr);font-size:11px}
-    .dp-strip .dp-metric:nth-child(4),.dp-strip .dp-metric:nth-child(5){display:none}
-    .dp-btr{grid-template-columns:1fr}
-    .dp-btr-col+.dp-btr-col{border-left:none;border-top:1px solid var(--border)}
-    .dp-actions{flex-wrap:wrap}
+  @media (max-width: 960px){
+    .deal-popup .leaflet-popup-content{min-width:340px;max-width:95vw}
+    .dc3-hero{grid-template-columns:repeat(3,1fr)}
+    .dc3-hero-cell:nth-child(n+4){display:none}
+    .dc3-body{grid-template-columns:1fr;gap:0}
+    .dc3-col{border-right:none;border-bottom:1px solid #e8e4de}
+    .dc3-verdict{border-left:none;border-top:2px solid #3a7a3a;border-radius:0 0 4px 4px;flex-direction:row;justify-content:space-around;padding:12px}
+    .dc3-bottom{flex-wrap:wrap}
+    .dc3-bottom-actions{flex-wrap:wrap}
   }
 
   /* Pin Color Legend */
@@ -2440,172 +2436,93 @@ function rebuildMarkers(cachedComps){
 
 // ── Format helpers — see js/format.js ──
 
-function dealCardBadges(l, ctx, isDualViable){
-  // Inline badges (zone, BTS/BTR, DEMO — shown inside strip)
-  var inline = '';
-  inline += '<div class="popup-badge" style="background:'+(ZONE_COLORS[l.zone]||'#666')+'22;color:'+(ZONE_COLORS[l.zone]||'#666')+'">'+(l.zone||'?')+'</div>';
-  if(ctx==='btr'){
-    inline += (l.estMargin||0)<=0
-      ? '<div class="popup-badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">BTR-ONLY</div>'
-      : '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">BTR</div>';
-  } else {
-    inline += '<div class="popup-badge" style="background:rgba(34,197,94,0.15);color:#22c55e">BTS</div>';
-    if(isDualViable) inline += '<div class="popup-badge" style="background:rgba(234,179,8,0.15);color:#eab308">BTR</div>';
+// ── Zone Height Lookup Table ──
+// Keyed by normalized zone (strip numeric suffix), then by city name.
+// Heights are the municipal code maximum building height for that zone.
+var ZONE_HEIGHT = {
+  'R1': {
+    'Los Angeles':36,'Long Beach':35,'Pasadena':32,'Glendale':35,'Torrance':35,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':30,'Compton':35,
+    'Burbank':35,'Santa Monica':32,'Culver City':30,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':28,'Hermosa Beach':30,
+    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':30,'Chula Vista':35,'Oceanside':30,'Escondido':35,'Carlsbad':30,
+    'Vista':35,'San Marcos':35,'Encinitas':26,'La Mesa':35,'El Cajon':35,
+    'National City':35,'Imperial Beach':30,'Coronado':28,'Lemon Grove':30,
+    'Santee':35,'Poway':35
+  },
+  'R2': {
+    'Los Angeles':33,'Long Beach':40,'Pasadena':32,'Glendale':35,'Torrance':35,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':35,'Compton':35,
+    'Burbank':35,'Santa Monica':32,'Culver City':35,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':35,'Manhattan Beach':28,'Hermosa Beach':30,
+    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':40,'Chula Vista':45,'Oceanside':35,'Escondido':35,'Carlsbad':35,
+    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':40,'El Cajon':40,
+    'National City':45,'Imperial Beach':30,'Coronado':28,'Lemon Grove':35,
+    'Santee':35,'Poway':35
+  },
+  'R3': {
+    'Los Angeles':45,'Long Beach':40,'Pasadena':40,'Glendale':45,'Torrance':40,
+    'Inglewood':40,'Carson':35,'Hawthorne':40,'Gardena':35,'Compton':35,
+    'Burbank':40,'Santa Monica':45,'Culver City':40,'West Hollywood':45,
+    'Beverly Hills':45,'Redondo Beach':40,'Manhattan Beach':30,'Hermosa Beach':30,
+    'El Segundo':35,'South Gate':40,'Downey':40,'Norwalk':35,'Whittier':40,
+    'Alhambra':40,'Arcadia':35,'Monrovia':40,'Azusa':40,'Pomona':40,
+    'San Diego':40,'Chula Vista':45,'Oceanside':40,'Escondido':40,'Carlsbad':35,
+    'Vista':40,'San Marcos':40,'Encinitas':30,'La Mesa':40,'El Cajon':45,
+    'National City':45,'Imperial Beach':35,'Coronado':36,'Lemon Grove':40,
+    'Santee':40,'Poway':35
+  },
+  'R4': {
+    'Los Angeles':45,'Long Beach':50,'Pasadena':45,'Glendale':50,'Torrance':45,
+    'Inglewood':45,'Carson':40,'Hawthorne':45,'Gardena':40,'Compton':40,
+    'Burbank':45,'Santa Monica':60,'Culver City':45,'West Hollywood':45,
+    'Beverly Hills':45,'Redondo Beach':45,'Manhattan Beach':30,'Hermosa Beach':30,
+    'El Segundo':40,'South Gate':45,'Downey':45,'Norwalk':40,'Whittier':45,
+    'Alhambra':45,'Arcadia':40,'Monrovia':45,'Azusa':45,'Pomona':45,
+    'San Diego':60,'Chula Vista':60,'Oceanside':45,'Escondido':50,'Carlsbad':45,
+    'Vista':45,'San Marcos':45,'Encinitas':30,'La Mesa':50,'El Cajon':50,
+    'National City':60,'Imperial Beach':40,'Coronado':40,'Lemon Grove':45,
+    'Santee':45,'Poway':40
+  },
+  'LAND': {
+    'Los Angeles':36,'Long Beach':35,'Pasadena':32,'Glendale':35,'Torrance':35,
+    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':30,'Compton':35,
+    'Burbank':35,'Santa Monica':32,'Culver City':30,'West Hollywood':35,
+    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':28,'Hermosa Beach':30,
+    'El Segundo':30,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
+    'Alhambra':35,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
+    'San Diego':30,'Chula Vista':35,'Oceanside':30,'Escondido':35,'Carlsbad':30,
+    'Vista':35,'San Marcos':35,'Encinitas':26,'La Mesa':35,'El Cajon':35,
+    'National City':35,'Imperial Beach':30,'Coronado':28,'Lemon Grove':30,
+    'Santee':35,'Poway':35
   }
-  if(l.hasStructure) inline += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO</div>';
-  if(l.isNew) inline += '<div class="popup-badge" style="background:rgba(34,197,94,0.2);color:#22c55e">NEW</div>';
+};
+var CITY_ABBR = {
+  'Los Angeles':'LA','Long Beach':'LB','Pasadena':'PAS','Glendale':'GLE','Torrance':'TOR',
+  'Inglewood':'ING','Carson':'CAR','Hawthorne':'HAW','Gardena':'GAR','Compton':'COM',
+  'Burbank':'BUR','Santa Monica':'SM','Culver City':'CC','West Hollywood':'WeHo',
+  'Beverly Hills':'BH','Redondo Beach':'RB','Manhattan Beach':'MB','Hermosa Beach':'HB',
+  'El Segundo':'ES','South Gate':'SG','Downey':'DOW','Norwalk':'NOR','Whittier':'WHI',
+  'Alhambra':'ALH','Arcadia':'ARC','Monrovia':'MON','Azusa':'AZU','Pomona':'POM',
+  'San Diego':'SD','Chula Vista':'CV','Oceanside':'OCS','Escondido':'ESC','Carlsbad':'CBad',
+  'Vista':'VIS','San Marcos':'SMar','Encinitas':'ENC','La Mesa':'LM','El Cajon':'EC',
+  'National City':'NC','Imperial Beach':'IB','Coronado':'COR','Lemon Grove':'LG',
+  'Santee':'SAN','Poway':'POW'
+};
 
-  // Alert badges (burn zone, tenant risk, etc — shown above strip)
-  var alerts = '';
-  if(l.burnZone) alerts += '<div class="popup-badge" style="background:#dc2626;color:#fff;font-weight:700;padding:2px 8px">&#128293; BURN ZONE — '+l.burnZone+' Fire</div>';
-  if(l.urbanArea===false) alerts += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>';
-  if(l.compMethod&&l.compMethod.includes('thin')) alerts += '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">THIN COMPS</div>';
-  else if(!l.exitPsf&&!l.newconPpsf&&!l.clusterT1psf&&!l.subdivExitPsf) alerts += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NO COMP DATA</div>';
-  if(l.zone!=='R1'&&l.zone!=='LAND'){
-    if(l.tenantRisk>=3) alerts += '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>';
-    else if(l.tenantRisk>=2) alerts += '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>';
-    if(l.rsoRisk) alerts += '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT</div>';
-  }
-  if(l.remainderViable) alerts += '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER: '+commas(l.remainderSf)+' SF &#8594; '+l.remainderUnits+' units</div>';
-  else if(l.remainderUnits>0) alerts += '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+commas(l.remainderSf)+' SF ('+l.remainderUnits+')</div>';
-  return {inline: inline, alerts: alerts};
-}
-
-function dealCardStrip(l, pf, el, inlineBadges){
-  var margin = pf.margin;
-  var marginColor = margin>=30?'#22c55e':margin>=20?'#facc15':'#9ca3af';
-  var addrParts = (l.address||'N/A').split(',');
-  var mainAddr = addrParts.length > 1 ? addrParts.slice(0,-1).join(',').trim() : l.address||'N/A';
-  var cityLine = addrParts.length > 1 ? addrParts[addrParts.length-1].trim() : '';
-  var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
-
-  var s = '<div class="dp-strip">';
-  var zipInCity = l.zip && cityLine.indexOf(l.zip) >= 0;
-  s += '<div class="dp-addr"><span class="dp-addr-text">'+mainAddr+(cityLine?', <span class="dp-city">'+cityLine+'</span>':'')+(!zipInCity && l.zip?' <span class="dp-zip">'+l.zip+'</span>':'')+'</span>';
-  s += '<div class="dp-badges-inline">'+inlineBadges+'</div></div>';
-  s += '<div class="dp-metric"><div class="dp-lbl">List Price</div><div class="dp-val" style="color:'+marginColor+'">'+fmtShort(l.price)+'</div></div>';
-  s += '<div class="dp-metric"><div class="dp-lbl">Exit $/SF</div><div class="dp-val" style="color:'+el.color+'">$'+commas(el.psf)+'</div></div>';
-  s += '<div class="dp-metric"><div class="dp-lbl">Lot Size</div><div class="dp-val">'+(l.lotSf?commas(l.lotSf):'—')+'</div></div>';
-  s += '<div class="dp-metric"><div class="dp-lbl">Units</div><div class="dp-val" style="color:var(--green)">'+unitsLabel+'</div></div>';
-  s += '</div>';
-  return s;
-}
-
-function dealCardEconomics(l, pf, el){
-  var bsf = pf.effective_buildable_sf || 1;
-  var psfSuffix = function(v){ return ' <small style="color:var(--text-dim)">($'+Math.round(v/bsf)+'/sf)</small>'; };
-  var allInPsf = Math.round(pf.totalProjectCost/bsf);
-  var spread = el.psf - allInPsf;
-
-  var h = '<div class="dp-col"><div class="dp-col-head">Economics</div>';
-  h += '<div class="dp-row"><span class="dp-k">Acquisition</span><span class="dp-v">'+fmtDollar(pf.acquisition)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Total Build</span><span class="dp-v">'+fmtDollar(pf.constructionCost)+psfSuffix(pf.constructionCost)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Total Project</span><span class="dp-v">'+fmtDollar(pf.totalProjectCost)+psfSuffix(pf.totalProjectCost)+'</span></div>';
-  if(pf.ellisRelocation>0) h += '<div class="dp-row"><span class="dp-k">Ellis Relocation</span><span class="dp-v" style="color:var(--red)">'+fmtDollar(pf.ellisRelocation)+' <small style="color:var(--text-dim)">(+'+pf.ellisHoldMonths+'mo)</small></span></div>';
-  h += '<div class="dp-sep"></div>';
-  h += '<div class="dp-row"><span class="dp-k">Spread</span><span class="dp-v" style="color:'+(spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)')+'">'+fmtDollar(spread)+'/sf</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Est Profit</span><span class="dp-v" style="color:'+(pf.profit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(pf.profit)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Net Revenue</span><span class="dp-v">'+fmtDollar(pf.netRevenue)+'</span></div>';
-  h += '</div>';
-  return h;
-}
-
-function dealCardSite(l, pf){
-  var h = '<div class="dp-col"><div class="dp-col-head">Site</div>';
-  h += '<div class="dp-row"><span class="dp-k">Lot Size</span><span class="dp-v">'+(l.lotSf?commas(l.lotSf)+' sf':'—')+'</span></div>';
-  if(l.lw&&l.ld) h += '<div class="dp-row"><span class="dp-k">Dimensions</span><span class="dp-v">'+l.lw+'\' &times; '+l.ld+'\'</span></div>';
-  if(l.dom!=null) h += '<div class="dp-row"><span class="dp-k">DOM</span><span class="dp-v">'+l.dom+'</span></div>';
-  if(l.beds) h += '<div class="dp-row"><span class="dp-k">Beds / Baths</span><span class="dp-v">'+l.beds+' / '+l.baths+'</span></div>';
-  if(l.existingUnits) h += '<div class="dp-row"><span class="dp-k">Existing Units</span><span class="dp-v">'+l.existingUnits+'</span></div>';
-  if(l.lw&&l.ld&&pf.maxUnits>0&&pf.max_offer>0){
-    var lotId = 'dp-lot-'+Math.random().toString(36).slice(2,8);
-    h += '<div class="dp-lot-toggle" onclick="var b=document.getElementById(\''+lotId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\');event.stopPropagation()"><span class="tri">&#9654;</span> Layout &middot; '+pf.maxUnits+'u</div>';
-    h += '<div class="dp-lot-body" id="'+lotId+'">'+buildLotLayoutSVG(l,pf)+'</div>';
-  }
-  h += '</div>';
-  return h;
-}
-
-function dealCardProForma(l, pf){
-  var margin = pf.margin;
-  var sellPerUnit = pf.maxUnits>0 ? Math.round(pf.netRevenue/pf.maxUnits) : 0;
-  var profitPerUnit = pf.maxUnits>0 ? Math.round(pf.profit/pf.maxUnits) : 0;
-  var lbColor = pf.land_basis_psf<120?'var(--green)':pf.land_basis_psf<=160?'var(--yellow)':'var(--red)';
-
-  var h = '<div class="dp-col"><div class="dp-col-head">Pro Forma</div>';
-  h += '<div class="dp-row"><span class="dp-k">Units</span><span class="dp-v">'+pf.maxUnits+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Buildable SF</span><span class="dp-v">'+commas(pf.effective_buildable_sf)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Net Margin</span><span class="dp-v" style="color:'+(margin>=30?'var(--green)':margin>=15?'var(--yellow)':'var(--red)')+'">'+margin.toFixed(1)+'%</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Return on Cost</span><span class="dp-v" style="color:'+(pf.return_on_cost>=0?'var(--green)':'var(--red)')+'">'+pf.return_on_cost.toFixed(1)+'%</span></div>';
-  h += '<div class="dp-sep"></div>';
-  h += '<div class="dp-row"><span class="dp-k">Sell / Unit</span><span class="dp-v">'+fmtDollar(sellPerUnit)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Profit / Unit</span><span class="dp-v" style="color:'+(profitPerUnit>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(profitPerUnit)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Land Basis</span><span class="dp-v" style="color:'+lbColor+'">'+fmtDollar(pf.land_basis_psf)+'/sf</span></div>';
-  h += '</div>';
-  return h;
-}
-
-function dealCardCompButtons(l){
-  var saleCount = l.compCount || 0;
-  var h = '<div class="dp-comps">';
-  h += '<a class="dp-comp-btn" href="#" onclick="showCompsTable('+l.lat+','+l.lng+');return false">'+saleCount+' Sale Comps <span class="dp-comp-arrow">&#8599;</span></a>';
-  var hasRentalComps = typeof RENTAL_COMPS!=='undefined'&&RENTAL_COMPS.length>0&&l.rentMethod&&l.rentMethod.startsWith('rental-comp');
-  if(hasRentalComps){
-    h += '<a class="dp-comp-btn" href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--orange)">Rent Comps <span class="dp-comp-arrow">&#8599;</span></a>';
-  }
-  h += '</div>';
-  return h;
-}
-
-function dealCardBTR(l, btr){
-  if(btr.rentPsf<=0) return '';
-  var h = '<div class="dp-btr">';
-  h += '<div class="dp-btr-col">';
-  h += '<div class="dp-row"><span class="dp-k">Rent / Unit</span><span class="dp-v" style="color:var(--green)">$'+btr.rentPerUnit.toLocaleString()+'/mo</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">NOI</span><span class="dp-v">'+fmtDollar(btr.annualNOI)+'</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">YoC</span><span class="dp-v" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</span></div>';
-  var loanAbbr = btr.loanAmount >= 1e6 ? '$'+(btr.loanAmount/1e6).toFixed(1)+'M' : '$'+(btr.loanAmount/1e3).toFixed(0)+'K';
-  h += '<div class="dp-row"><span class="dp-k">I/O Loan</span><span class="dp-v">'+loanAbbr+' <small style="color:var(--text-dim)">$'+Math.round(btr.annualDebtService).toLocaleString()+'/yr</small></span></div>';
-  h += '</div>';
-  h += '<div class="dp-btr-col">';
-  h += '<div class="dp-row"><span class="dp-k">Stabilized Value</span><span class="dp-v" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">'+fmtShort(btr.stabilizedValue)+'</span></div>';
-  var dscrOk = btr.dscr >= 1.25;
-  var dscrColor = dscrOk ? 'var(--green)' : btr.dscr >= 1.15 ? 'var(--yellow)' : 'var(--red)';
-  h += '<div class="dp-row"><span class="dp-k">DSCR</span><span class="dp-v" style="color:'+dscrColor+'">'+btr.dscr.toFixed(2)+'x</span></div>';
-  h += '<div class="dp-row"><span class="dp-k">Cash Flow</span><span class="dp-v" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">'+fmtDollar(btr.cashFlow)+'/yr</span></div>';
-  h += '</div>';
-  h += '</div>';
-  return h;
-}
-
-function dealCardDD(l){
-  var ddItems = [];
-  if(l.burnZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> Burn zone');
-  else if(l.fireZone) ddItems.push('<span style="color:var(--red)">&#10007;</span> VHFHSZ');
-  if(l.openSpace) ddItems.push('<span style="color:var(--red)">&#10007;</span> Protected area');
-  if(l.rsoRisk) ddItems.push('<span style="color:var(--red)">&#10007;</span> RSO');
-  var sb = slopeBadge(l);
-  if(sb&&sb.includes('&#10007;')) ddItems.push(sb.replace(/^ • /,'').replace(/<br>.*/,''));
-  if(ddItems.length===0) ddItems.push('<span style="color:var(--green)">&#10003;</span> All checks passed');
-  ddItems.push('<span style="color:var(--yellow)">&#9888;</span> TPA = 0 parking');
-  return '<div class="dp-dd">'+ddItems.join(' &nbsp;&middot;&nbsp; ')+'</div>';
-}
-
-function dealCardActions(l){
-  var isSaved = isFavorite(l);
-  var h = '<div class="dp-actions">';
-  h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'xls\')"><span class="dp-icon">&#8595;</span>XLS</button>';
-  h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'om\')"><span class="dp-icon">&#128196;</span>OM</button>';
-  h += '<button onclick="showExportModal('+l.lat+','+l.lng+',\'teaser\')" title="Download 2-page investor teaser"><span class="dp-icon">&#128196;</span>Teaser</button>';
-  h += '<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&amp;t=k&amp;z=19" target="_blank"><span class="dp-icon">&#128205;</span>Maps</a>';
-  if(l.url) h += '<a href="'+l.url+'" target="_blank"><span class="dp-icon">&#127968;</span>Redfin</a>';
-  else h += '<span></span>';
-  if(l.lw&&l.ld) h += '<a href="'+lotPlannerUrl(l)+'" target="_blank"><span class="dp-icon">&#128208;</span>Planner</a>';
-  else h += '<span></span>';
-  h += '<button class="'+(isSaved?'active':'')+'" onclick="toggleFavorite('+l.lat+','+l.lng+');this.classList.toggle(\'active\');this.querySelector(\'span:last-child\').textContent=this.classList.contains(\'active\')?\'Saved\':\'Save\'"><span class="dp-icon">&#9733;</span><span>'+(isSaved?'Saved':'Save')+'</span></button>';
-  h += '<button onclick="sharePin('+l.lat+','+l.lng+',event)"><span class="dp-icon">&#8599;</span>Share</button>';
-  h += '</div>';
-  return h;
+function getZoneHeight(l){
+  var zone = (l.zone||'').replace(/[-\s]?\d+$/,'');
+  var city = l.city || '';
+  var table = ZONE_HEIGHT[zone];
+  if(!table) return {height:'—',sub:''};
+  var h = table[city];
+  if(!h) return {height:'—',sub: zone+(city?' / '+city:'')};
+  var abbr = CITY_ABBR[city] || city.substring(0,3).toUpperCase();
+  return {height: h+"'", sub: zone+' / '+abbr};
 }
 
 function generateDealCard(l, opts){
@@ -2615,17 +2532,155 @@ function generateDealCard(l, opts){
   var btr = calculateBTRProForma(l);
   var el = exitLabel(l);
   var isDualViable = (pf.margin >= 20) && l.btrViable;
+  var bsf = pf.effective_buildable_sf || 1;
 
-  var badges = dealCardBadges(l, ctx, isDualViable);
-  var h = '<div class="dp-card">';
-  if(badges.alerts) h += '<div class="dp-alerts">'+badges.alerts+'</div>';
-  h += dealCardStrip(l, pf, el, badges.inline);
-  h += '<div class="dp-body">'+dealCardEconomics(l, pf, el)+dealCardSite(l, pf)+dealCardProForma(l, pf)+'</div>';
-  h += dealCardCompButtons(l);
-  h += dealCardBTR(l, btr);
-  h += dealCardDD(l);
-  h += dealCardActions(l);
+  // ── Compute LP Equity via waterfall model ──
+  var wf = computeWaterfall(l.price, pf.maxUnits, proforma.avgUnitSf, pf.adjBuildCostPerSf, el.psf, btr.rentPerUnit || 0);
+  var lpEquity = wf.lpEquity || 0;
+
+  // Derived values
+  var allInPsf = Math.round(pf.totalProjectCost / bsf);
+  var spread = el.psf - allInPsf;
+  var sellPerUnit = pf.maxUnits > 0 ? Math.round(pf.netRevenue / pf.maxUnits) : 0;
+  var profitPerUnit = pf.maxUnits > 0 ? Math.round(pf.profit / pf.maxUnits) : 0;
+  var unitsLabel = pf.layoutMax != null && pf.layoutMax < pf.densityUnits ? pf.maxUnits + ' of ' + pf.densityUnits : '' + pf.maxUnits;
+  var zh = getZoneHeight(l);
+  var saleCompCount = l.compCount || 0;
+  var hasRentalComps = typeof RENTAL_COMPS !== 'undefined' && RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp');
+  var rentCompCount = hasRentalComps ? (l.rentCompCount || 0) : 0;
+
+  // I/O Loan abbreviation
+  var loanAbbr = btr.loanAmount >= 1e6 ? '$' + (btr.loanAmount / 1e6).toFixed(1) + 'M' : '$' + (btr.loanAmount / 1e3).toFixed(0) + 'K';
+
+  var h = '<div class="dc3">';
+
+  // ── TOPBAR ──
+  var addr = (l.address || 'N/A').split(',')[0].trim();
+  h += '<div class="dc3-topbar">';
+  h += '<div class="dc3-topbar-addr">' + addr + '</div>';
+  h += '<div class="dc3-topbar-tags">';
+  if (l.zone === 'LAND') h += '<span class="dc3-tag dc3-tag-land">LAND</span>';
+  if (ctx === 'btr') {
+    h += '<span class="dc3-tag dc3-tag-btr">BTR</span>';
+  } else {
+    h += '<span class="dc3-tag dc3-tag-bts">BTS</span>';
+    if (isDualViable) h += '<span class="dc3-tag dc3-tag-btr">BTR</span>';
+  }
+  h += '</div></div>';
+
+  // ── HERO STRIP ──
+  h += '<div class="dc3-hero">';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val dc3-hero-accent">' + fmtShort(l.price) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF</div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Zoning</div><div class="dc3-hero-val">' + (l.zone || '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot Width</div><div class="dc3-hero-val">' + (l.lw ? l.lw + "'" : '—') + '</div></div>';
   h += '</div>';
+
+  // ── BODY (5 columns) ──
+  h += '<div class="dc3-body">';
+
+  // COL 1 — ECONOMICS
+  h += '<div class="dc3-col"><div class="dc3-col-title">Economics</div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Acquisition</span><span class="dc3-v">' + fmtDollar(pf.acquisition) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Total Build</span><span class="dc3-v">' + fmtDollar(pf.constructionCost) + '<span class="dc3-sub">$' + Math.round(pf.constructionCost / bsf) + '/sf</span></span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Total Project</span><span class="dc3-v">' + fmtDollar(pf.totalProjectCost) + '<span class="dc3-sub">$' + allInPsf + '/sf</span></span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">LP Equity<span class="dc3-computed">computed</span></span><span class="dc3-v">' + fmtDollar(lpEquity) + '</span></div>';
+  h += '<div class="dc3-sep"></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Gross Revenue</span><span class="dc3-v">' + fmtDollar(pf.grossRevenue) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Net Revenue</span><span class="dc3-v">' + fmtDollar(pf.netRevenue) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Spread</span><span class="dc3-v dc3-v-green">$' + spread + '/sf</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Est. Profit</span><span class="dc3-v dc3-v-green">' + fmtDollar(pf.profit) + '</span></div>';
+  h += '</div>';
+
+  // COL 2 — PRO FORMA
+  h += '<div class="dc3-col"><div class="dc3-col-title">Pro Forma</div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Buildable SF</span><span class="dc3-v">' + commas(pf.effective_buildable_sf) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Net Margin</span><span class="dc3-v dc3-v-green">' + pf.margin.toFixed(1) + '%</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Return on Cost</span><span class="dc3-v dc3-v-green">' + pf.return_on_cost.toFixed(1) + '%</span></div>';
+  h += '<div class="dc3-sep"></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Sell / Unit</span><span class="dc3-v">' + fmtDollar(sellPerUnit) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Profit / Unit</span><span class="dc3-v dc3-v-green">' + fmtDollar(profitPerUnit) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Land Basis</span><span class="dc3-v">' + fmtDollar(pf.land_basis_psf) + '/sf</span></div>';
+  h += '</div>';
+
+  // COL 3 — SITE
+  h += '<div class="dc3-col"><div class="dc3-col-title">Site</div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Lot Size</span><span class="dc3-v">' + (l.lotSf ? commas(l.lotSf) + ' sf' : '—') + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Dimensions</span><span class="dc3-v">' + (l.lw && l.ld ? l.lw + "' &times; " + l.ld + "'" : '—') + '</span></div>';
+  var domClass = l.dom != null && l.dom > 30 ? ' dc3-v-amber' : '';
+  h += '<div class="dc3-row"><span class="dc3-k">Days on Market</span><span class="dc3-v' + domClass + '">' + (l.dom != null ? l.dom : '—') + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Existing Units</span><span class="dc3-v">' + (l.existingUnits || '—') + '</span></div>';
+  h += '<div class="dc3-sep"></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Max Unit Height</span><span class="dc3-v">' + zh.height + (zh.sub ? '<span class="dc3-sub">' + zh.sub + '</span>' : '') + '</span></div>';
+  h += '</div>';
+
+  // COL 4 — BUILD TO RENT
+  h += '<div class="dc3-col"><div class="dc3-col-title">Build to Rent</div>';
+  if (btr.rentPsf > 0) {
+    h += '<div class="dc3-row"><span class="dc3-k">Rent / Unit</span><span class="dc3-v dc3-v-green">$' + btr.rentPerUnit.toLocaleString() + '/mo</span></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">NOI</span><span class="dc3-v">' + fmtDollar(btr.annualNOI) + '</span></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">Yield on Cost</span><span class="dc3-v dc3-v-green">' + (btr.yieldOnCost * 100).toFixed(1) + '%</span></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">I/O Loan</span><span class="dc3-v">' + loanAbbr + '<span class="dc3-sub">$' + Math.round(btr.annualDebtService).toLocaleString() + '/yr</span></span></div>';
+    h += '<div class="dc3-sep"></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">Stabilized Value</span><span class="dc3-v">' + fmtShort(btr.stabilizedValue) + '</span></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">DSCR</span><span class="dc3-v dc3-v-green">' + btr.dscr.toFixed(2) + 'x</span></div>';
+    h += '<div class="dc3-row"><span class="dc3-k">Cash Flow / yr</span><span class="dc3-v dc3-v-green">' + fmtDollar(btr.cashFlow) + '</span></div>';
+  } else {
+    h += '<div style="color:#a8a5a0;font-size:10px;padding:8px 0">No rent data available</div>';
+  }
+  h += '</div>';
+
+  // COL 5 — VERDICT RAIL
+  h += '<div class="dc3-verdict">';
+  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Est. Profit</div><div class="dc3-verdict-val" style="color:#5acc5a">' + fmtShort(pf.profit) + '</div><div class="dc3-verdict-sub">' + pf.maxUnits + ' units</div></div>';
+  h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Return on Cost</div><div class="dc3-verdict-val" style="color:#c8a030">' + pf.return_on_cost.toFixed(1) + '%</div><div class="dc3-verdict-sub">of ' + fmtShort(pf.totalCost) + '</div></div>';
+  if (btr.rentPsf > 0) {
+    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#5888cc;font-size:18px">' + (btr.yieldOnCost * 100).toFixed(1) + '%</div><div class="dc3-verdict-sub">DSCR ' + btr.dscr.toFixed(2) + 'x</div></div>';
+  } else {
+    h += '<div class="dc3-verdict-metric"><div class="dc3-verdict-lbl">Yield on Cost</div><div class="dc3-verdict-val" style="color:#5888cc;font-size:18px">—</div><div class="dc3-verdict-sub">no rent data</div></div>';
+  }
+  h += '</div>';
+
+  h += '</div>'; // end dc3-body
+
+  // ── BOTTOM BAR ──
+  h += '<div class="dc3-bottom">';
+
+  // Left: DD checks + comp counts
+  h += '<div class="dc3-bottom-left">';
+  var ddFails = [];
+  if (l.burnZone) ddFails.push('<span class="dc3-warn">&#9888;</span> Burn zone');
+  else if (l.fireZone) ddFails.push('<span class="dc3-warn">&#9888;</span> VHFHSZ');
+  if (l.openSpace) ddFails.push('<span class="dc3-warn">&#9888;</span> Protected area');
+  if (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND') ddFails.push('<span class="dc3-warn">&#9888;</span> RSO');
+  if (l.urbanArea === false) ddFails.push('<span class="dc3-warn">&#9888;</span> Not urban area');
+  if (l.zone !== 'R1' && l.zone !== 'LAND' && l.tenantRisk >= 2) ddFails.push('<span class="dc3-warn">&#9888;</span> Tenant risk');
+  if (ddFails.length === 0) {
+    h += '<span><span class="dc3-check">&#10003;</span> All checks passed</span>';
+  } else {
+    ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
+  }
+  h += '<span class="dc3-bottom-comps">' + saleCompCount + ' sale comps &middot; ' + rentCompCount + ' rent comps</span>';
+  h += '</div>';
+
+  // Right: action buttons
+  h += '<div class="dc3-bottom-actions">';
+  h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'xls\')">XLS</button>';
+  h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'om\')">OM</button>';
+  h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'teaser\')" title="Download 2-page investor teaser">Teaser</button>';
+  h += '<a href="https://www.google.com/maps?q=' + l.lat + ',' + l.lng + '&amp;t=k&amp;z=19" target="_blank">Maps</a>';
+  if (l.url) h += '<a href="' + l.url + '" target="_blank">Redfin</a>';
+  if (l.lw && l.ld) h += '<a href="' + lotPlannerUrl(l) + '" target="_blank">Planner</a>';
+  var isSaved = isFavorite(l);
+  h += '<button class="' + (isSaved ? 'dc3-saved-active' : '') + '" onclick="toggleFavorite(' + l.lat + ',' + l.lng + ');var a=this.classList.contains(\'dc3-saved-active\');this.classList.toggle(\'dc3-saved-active\');this.textContent=a?\'\\u2605 Save\':\'\\u2605 Saved\'">&#9733; ' + (isSaved ? 'Saved' : 'Save') + '</button>';
+  h += '<button onclick="sharePin(' + l.lat + ',' + l.lng + ',event)">Share</button>';
+  h += '</div>';
+
+  h += '</div>'; // end dc3-bottom
+
+  h += '</div>'; // end dc3
   return h;
 }
 
@@ -2657,7 +2712,7 @@ function rebuildListings(cachedListings){
       className: isNewListing ? 'listing-marker-new' : '',
     });
 
-    cm.bindPopup(generateDealCard(l),{maxWidth:660,className:'deal-popup'});
+    cm.bindPopup(generateDealCard(l),{maxWidth:900,className:'deal-popup'});
     cm.addTo(listingsLayer);
   });
 
@@ -2686,7 +2741,7 @@ function buildBTRLayer(cachedListings){
     });
 
     const marker = L.marker([l.lat, l.lng], { icon: btrIcon });
-    marker.bindPopup(generateDealCard(l, {context:'btr'}), {maxWidth:660, className:'deal-popup'});
+    marker.bindPopup(generateDealCard(l, {context:'btr'}), {maxWidth:900, className:'deal-popup'});
     marker.addTo(btrLayer);
   });
 
@@ -4632,7 +4687,7 @@ window.addEventListener('DOMContentLoaded', function(){
                   return Math.abs(x.lat - lat) < 0.0001 && Math.abs(x.lng - lng) < 0.0001;
                 });
                 if(pinListing){
-                  L.popup({maxWidth:660, className:'deal-popup'})
+                  L.popup({maxWidth:900, className:'deal-popup'})
                     .setLatLng([lat, lng])
                     .setContent(generateDealCard(pinListing))
                     .openOn(map);
