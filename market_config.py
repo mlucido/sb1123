@@ -149,6 +149,22 @@ def classify_zoning_santa_monica(zone_code):
     return None
 
 
+def classify_zoning_malibu(zone_code):
+    """City of Malibu zoning code → SB 1123 category.
+
+    Malibu uses RR{acreage} for rural residential, SFL/SFM for single-family,
+    MF/MFBF for multi-family.
+    """
+    if not zone_code:
+        return None
+    z = zone_code.strip().upper()
+    if z.startswith("RR") or z in ("SFL", "SFM", "MH"):
+        return "R1"
+    if z in ("MF", "MFBF"):
+        return "R3"
+    return None
+
+
 def classify_zoning_sd_city(zone_name):
     """City of San Diego zone code → SB 1123 category.
 
@@ -252,6 +268,7 @@ CLASSIFY_FNS = {
     "classify_zoning_la_city": classify_zoning_la_city,
     "classify_zoning_la_county": classify_zoning_la_county,
     "classify_zoning_santa_monica": classify_zoning_santa_monica,
+    "classify_zoning_malibu": classify_zoning_malibu,
     "classify_zoning_sd_city": classify_zoning_sd_city,
     "classify_zoning_sd_county": classify_zoning_sd_county,
 }
@@ -270,7 +287,7 @@ MARKETS = {
 
         # Bounding box
         "lat_min": 33.70,
-        "lat_max": 34.85,
+        "lat_max": 34.40,
         "lng_min": -118.95,
         "lng_max": -117.55,
 
@@ -329,14 +346,24 @@ MARKETS = {
                 "classify_fn": "classify_zoning_santa_monica",
             },
             {
+                "name": "Malibu",
+                "url": (
+                    "https://services3.arcgis.com/w2LtkSgyOOlg6OKZ/"
+                    "arcgis/rest/services/Zoning_Malibu/FeatureServer/0/query"
+                ),
+                "out_fields": "MALIBUZONE",
+                "zone_field": "MALIBUZONE",
+                "classify_fn": "classify_zoning_malibu",
+            },
+            {
                 "name": "LA County (DRP)",
                 "url": (
-                    "https://arcgis.lacounty.gov/arcgis/rest/services/"
-                    "DRP/Zoning/MapServer/0/query"
+                    "https://arcgis.gis.lacounty.gov/arcgis/rest/services/"
+                    "DRP/ZNET_Public/MapServer/4/query"
                 ),
-                "out_fields": "*",
-                "zone_field": "ZONE_CMPLT",
-                "category_field": "CATEGORY",
+                "out_fields": "ZONE,Z_CATEGORY,Z_DESC",
+                "zone_field": "ZONE",
+                "category_field": "Z_CATEGORY",
                 "classify_fn": "classify_zoning_la_county",
             },
         ],
