@@ -2445,6 +2445,7 @@ function rebuildMarkers(cachedComps){
 }
 
 // ── Format helpers — see js/format.js ──
+function titleAddr(a){return (a||'').replace(/\b[A-Z]{2,}\b/g,function(w){return w.charAt(0)+w.slice(1).toLowerCase()});}
 
 // ── Zone Height Lookup Table ──
 // Keyed by normalized zone (strip numeric suffix), then by city name.
@@ -2562,7 +2563,7 @@ function generateDealCard(l, opts){
   var h = '<div class="dc3">';
 
   // ── 1. TOPBAR ──
-  var addr = (l.address || 'N/A');
+  var addr = titleAddr(l.address || 'N/A');
   h += '<div class="dc3-topbar">';
   h += '<div class="dc3-topbar-addr">' + addr + '</div>';
   h += '<div class="dc3-topbar-tags">';
@@ -2965,7 +2966,7 @@ function buildOffMarketLayer(){
       ${l.zone!=='R1'&&l.zone!=='LAND' ? (l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : '') : ''}
       ${l.zone!=='R1'&&l.zone!=='LAND'&&l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
       ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
-      <div class="popup-title">${l.address || 'N/A'}</div>
+      <div class="popup-title">${titleAddr(l.address || 'N/A')}</div>
 
       <div class="popup-grid">
         <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
@@ -3639,7 +3640,7 @@ function rebuildTable(filtered){
     const exitPpsf = l.exitPsf || 0;
     return `<tr onclick="flyToListing(${l.lat},${l.lng})" onmouseenter="highlightMarker(${l.lat},${l.lng})" onmouseleave="unhighlightMarker()">
       <td class="col-fav"><span class="fav-star ${starred?'active':''}" onclick="event.stopPropagation();toggleFavorite(${l.lat},${l.lng})">&#9733;</span></td>
-      <td class="col-addr" title="${l.address}">${l.address}</td>
+      <td class="col-addr" title="${titleAddr(l.address)}">${titleAddr(l.address)}</td>
       <td class="col-zone"><span class="zone-pill" style="background:${zoneColor}22;color:${zoneColor}">${l.zone||'—'}</span></td>
       <td class="col-price mono">$${l.price.toLocaleString()}</td>
       <td class="col-lot mono">${l.lotSf?l.lotSf.toLocaleString():'—'}</td>
@@ -3917,7 +3918,7 @@ function computeTeaserData(l, overrides) {
   var pf = calculateProForma(l);
 
   // Property basics
-  var addr = l.address || '';
+  var addr = titleAddr(l.address || '');
   var city = l.city || 'Los Angeles';
   var zip = l.zip || '';
   var zone = (l.zone || 'R1').toUpperCase();
@@ -4771,7 +4772,7 @@ function rebuildMobileCards(sorted) {
     var profitStr = profitK >= 0 ? '+$' + profitK.toLocaleString() + 'K' : '-$' + Math.abs(profitK).toLocaleString() + 'K';
     var newBadge = l.isNew ? ' <span class="new-badge">NEW</span>' : (l.isNewThisWeek ? ' <span class="new-badge week">7d</span>' : '');
     return '<div class="mobile-card" onclick="flyToListing(' + l.lat + ',' + l.lng + ')">' +
-      '<div class="card-addr">' + l.address + newBadge + '</div>' +
+      '<div class="card-addr">' + titleAddr(l.address) + newBadge + '</div>' +
       '<div class="card-grid">' +
         '<div class="card-row"><span class="card-label">Zone</span><span class="card-value" style="color:' + (ZONE_COLORS[l.zone] || '#666') + '">' + (l.zone || '\u2014') + '</span></div>' +
         '<div class="card-row"><span class="card-label">Price</span><span class="card-value">$' + l.price.toLocaleString() + '</span></div>' +
