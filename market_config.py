@@ -190,6 +190,8 @@ def classify_zoning_sd_city(zone_name):
                 return 'R3'  # RM-2-* (1 DU / 1,000-1,500 SF)
             if tier == '3':
                 return 'R4'  # RM-3-* (1 DU / 400-800 SF)
+            if tier == '4':
+                return 'R4'  # RM-4-* (1 DU / 200-400 SF, highest density)
         return 'R2'  # fallback
 
     if prefix == 'RT':
