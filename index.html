@@ -2498,18 +2498,6 @@ var ZONE_HEIGHT = {
     'Vista':45,'San Marcos':45,'Encinitas':30,'La Mesa':40,'El Cajon':45,
     'National City':45,'Imperial Beach':40,'Coronado':40,'Lemon Grove':45,
     'Santee':45,'Poway':40
-  },
-  'LAND': {
-    'Los Angeles':33,'Long Beach':28,'Pasadena':32,'Glendale':32,'Torrance':27,
-    'Inglewood':35,'Carson':35,'Hawthorne':35,'Gardena':25,'Compton':35,
-    'Burbank':30,'Santa Monica':28,'Culver City':30,'West Hollywood':35,
-    'Beverly Hills':33,'Redondo Beach':30,'Manhattan Beach':26,'Hermosa Beach':30,
-    'El Segundo':32,'South Gate':35,'Downey':35,'Norwalk':35,'Whittier':35,
-    'Alhambra':25,'Arcadia':35,'Monrovia':35,'Azusa':35,'Pomona':35,
-    'San Diego':30,'Chula Vista':28,'Oceanside':27,'Escondido':35,'Carlsbad':30,
-    'Vista':35,'San Marcos':35,'Encinitas':30,'La Mesa':30,'El Cajon':35,
-    'National City':35,'Imperial Beach':26,'Coronado':35,'Lemon Grove':25,
-    'Santee':35,'Poway':35
   }
 };
 var CITY_ABBR = {
@@ -2527,6 +2515,7 @@ var CITY_ABBR = {
 
 function getZoneHeight(l){
   var zone = (l.zone||'').replace(/[-\s]\d+$/,'');
+  if(zone === 'LAND') return {height:'—',sub:'Verify zoning'};
   var city = l.city || '';
   var table = ZONE_HEIGHT[zone];
   if(!table) return {height:'—',sub:''};
