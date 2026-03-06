@@ -116,12 +116,15 @@ def load_listings_from_js(market):
     with open(js_file, encoding="utf-8") as f:
         content = f.read()
 
-    match = re.search(r'(?:const|var)\s+LOADED_LISTINGS\s*=\s*(\[.*\])', content, re.DOTALL)
-    if not match:
+    # Find the JSON array start without slow re.DOTALL regex
+    marker = "LOADED_LISTINGS"
+    idx = content.find(marker)
+    if idx == -1:
         print(f"  Could not parse {js_file}")
         sys.exit(1)
-
-    listings_raw = json.loads(match.group(1))
+    bracket = content.index("[", idx)
+    decoder = json.JSONDecoder()
+    listings_raw, _ = decoder.raw_decode(content, bracket)
     listings = []
     for item in listings_raw:
         lat = item.get("lat")

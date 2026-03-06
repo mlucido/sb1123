@@ -68,7 +68,13 @@ def classify_zoning_la_city(zoning_code):
     """
     if not zoning_code:
         return None
-    code = re.sub(r'^\[.*?\]', '', zoning_code).strip()
+    # Strip all bracket/paren overlays: [Q], (T)(Q), [MB1-CDF1-5] [IX4-FA], etc.
+    code = re.sub(r'[\[\(].*?[\]\)]', '', zoning_code).strip()
+    # Also strip leading Q/T condition letters without parens (e.g. QR3-1)
+    code = re.sub(r'^[QT]+(?=[A-Z])', '', code)
+    if not code:
+        # All-bracketed form-based codes (DTLA) are mixed-use
+        return "MU"
     prefix = code.split("-")[0].upper().strip()
 
     # Mixed-use track — must check BEFORE SF track (RAS3/RAS4 startswith "RA")
@@ -100,19 +106,23 @@ def classify_zoning_la_city(zoning_code):
 
 
 def classify_zoning_la_county(zone_code):
-    """LA County DRP zoning code → SB 1123 category."""
+    """LA County DRP zoning code → SB 1123 category.
+
+    New ZNET_Public endpoint returns codes like R-1-10000, R-A-10000,
+    R-C-10,000, RPD-6000-6U, R-2, R-3, C-3, etc.
+    """
     if not zone_code:
         return None
     upper = zone_code.strip().upper()
-    if upper.startswith(("R-1", "R1", "RA", "RE", "RS")):
+    if upper.startswith(("R-1", "R1", "R-A", "RA", "R-C", "RE", "RS")):
         return "R1"
-    if upper.startswith(("R-2", "R2")):
+    if upper.startswith(("R-2", "R2", "RD")):
         return "R2"
-    if upper.startswith(("R-3", "R3")):
-        return "R3"
+    if upper.startswith(("R-3", "R3", "RPD")):
+        return "R3"  # Residential Planned Dev → higher density
     if upper.startswith(("R-4", "R4", "R-5", "R5")):
         return "R4"
-    if upper.startswith(("A", "A1", "A2")):
+    if upper.startswith(("A-", "A1", "A2")):
         return None  # Agricultural
     if upper.startswith(("OS", "O")):
         return None  # Open space
