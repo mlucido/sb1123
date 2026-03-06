@@ -534,12 +534,13 @@ if os.path.exists(PARCEL_FILE):
                 l["lotSource"] = "none"
                 lot_source_counts["none"] += 1
             parcel_stamped += 1
-            # Override address with ArcGIS situs address when available
-            # Redfin sometimes returns truncated/mangled addresses
-            if p.get("situsAddress"):
+            # Use ArcGIS situs address as FALLBACK only when Redfin address is missing
+            # Redfin MLS address is primary (listing agent sourced, matches the listing URL)
+            # ArcGIS situs can differ on corner lots (e.g. commercial vs residential frontage)
+            redfin_addr = l.get("address", "").split(",")[0].strip()
+            if not redfin_addr and p.get("situsAddress"):
                 situs = p["situsAddress"].strip()
                 if situs:
-                    # Rebuild address with parcel situs + city + zip
                     addr_parts = [situs, l.get("city", ""), l.get("zip", "")]
                     l["address"] = ", ".join(p for p in addr_parts if p)
             # Fire zone from ArcGIS
