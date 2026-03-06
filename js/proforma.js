@@ -48,7 +48,7 @@ export function calculateProForma(l){
   if (l.lw && l.ld) {
     const driveW = 20;
     const sideSet = 4;
-    const frontSet = (l.zone === 'R2' || l.zone === 'R3' || l.zone === 'R4') ? 15 : 20;
+    const frontSet = (l.zone === 'R2' || l.zone === 'R3' || l.zone === 'R4' || l.zone === 'MU') ? 15 : 20;
     const rearSet = 4;
     const unitBuildW = l.lw - driveW - sideSet;
     if (unitBuildW >= 20) {

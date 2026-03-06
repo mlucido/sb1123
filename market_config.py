@@ -71,6 +71,12 @@ def classify_zoning_la_city(zoning_code):
     code = re.sub(r'^\[.*?\]', '', zoning_code).strip()
     prefix = code.split("-")[0].upper().strip()
 
+    # Mixed-use track — must check BEFORE SF track (RAS3/RAS4 startswith "RA")
+    if prefix.startswith(("RAS3", "RAS4")):
+        return "MU"
+    if prefix.startswith("C"):
+        return "MU"  # Commercial → MF eligible (mixed-use)
+
     # SF track
     if prefix.startswith(("A", "RA", "RE", "RS", "R1", "RU", "RZ", "RW1")):
         if prefix.startswith("RW2"):
@@ -80,12 +86,10 @@ def classify_zoning_la_city(zoning_code):
     # MF track
     if prefix.startswith(("R2", "RD")):
         return "R2"
-    if prefix.startswith(("R3", "RAS3", "RW2")):
+    if prefix.startswith(("R3", "RW2")):
         return "R3"
-    if prefix.startswith(("R4", "RAS4", "R5")):
+    if prefix.startswith(("R4", "R5")):
         return "R4"
-    if prefix.startswith("C"):
-        return "R4"  # Commercial → MF eligible
 
     if prefix.startswith(("M", "P")):
         return "COMMERCIAL"
@@ -113,7 +117,7 @@ def classify_zoning_la_county(zone_code):
     if upper.startswith(("OS", "O")):
         return None  # Open space
     if upper.startswith("C"):
-        return "R4"  # Commercial → MF eligible
+        return "MU"  # Commercial → MF eligible (mixed-use)
     return None
 
 
@@ -138,7 +142,7 @@ def classify_zoning_santa_monica(zone_code):
     # Mixed-use / commercial → MF eligible
     if upper in ("MUC", "MUB", "MUBL", "HMU", "TA", "BTV", "NV", "GC",
                  "NC", "LT", "WT", "OT", "OC", "OF"):
-        return "R4"
+        return "MU"
     # Non-residential — not SB 1123 eligible
     if upper in ("OS", "PL", "CC", "IC", "RMH", "BC", "CCS", "CAC"):
         return None
@@ -177,11 +181,11 @@ def classify_zoning_sd_city(zone_name):
 
     # Employment Mixed-Use — MF eligible
     if prefix == 'EMX':
-        return 'R4'
+        return 'MU'
 
     # Commercial zones — MF eligible under SB 1123
     if prefix in ('CN', 'CO', 'CC', 'CR', 'CV'):
-        return 'R4'
+        return 'MU'
 
     # Planned districts (LJPD, OPD, *PD-* patterns)
     if prefix in ('LJPD', 'OPD') or 'PD' in prefix:
@@ -190,7 +194,7 @@ def classify_zoning_sd_city(zone_name):
         if '-MF' in upper_name or '-RM' in upper_name:
             return 'R3'
         if '-MU' in upper_name or '-MX' in upper_name:
-            return 'R4'
+            return 'MU'
         return 'R2'  # Default planned district → R2
 
     # Ineligible
@@ -227,11 +231,11 @@ def classify_zoning_sd_county(use_reg):
 
     # Commercial — MF eligible
     if upper.startswith('C'):
-        return 'R4'
+        return 'MU'
 
     # Village zones — MF eligible
     if upper.startswith('V'):
-        return 'R4'
+        return 'MU'
 
     # Agricultural, open space, industrial — ineligible
     if upper.startswith(('A', 'S', 'M')):
