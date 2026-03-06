@@ -949,7 +949,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <div class="stat-pills" id="statPills" aria-live="polite">
       <span class="pill"><span class="pill-val" id="pillOnMarket">0</span><span class="pill-label">on-mkt</span></span>
       <span class="pill"><span class="pill-val" id="pillComps">0</span><span class="pill-label">comps</span></span>
-      <span class="pill"><span class="pill-val" id="pillMinMargin">30%</span><span class="pill-label">min margin</span></span>
+      <span class="pill"><span class="pill-val" id="pillMinMargin">10%</span><span class="pill-label">min margin</span></span>
     </div>
     <div class="header-actions">
       <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
@@ -1061,8 +1061,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <div class="kf-header">
           <span class="kf-label">Margin</span>
           <div class="kf-chips">
-            <button class="kf-chip active" onclick="setMarginPreset(30,this)">30%+</button>
-            <button class="kf-chip" onclick="setMarginPreset(10,this)">10%+</button>
+            <button class="kf-chip" onclick="setMarginPreset(30,this)">30%+</button>
+            <button class="kf-chip active" onclick="setMarginPreset(10,this)">10%+</button>
             <button class="kf-chip" onclick="setMarginPreset(0,this)">0%+</button>
           </div>
         </div>
@@ -1573,7 +1573,7 @@ const filters = {
   lot:  { min:0, max:65000, dataMin:0, dataMax:65000, step:500, cap:65000, defaultMin:12000, defaultMax:null },
   lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:null },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
-  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:30, defaultMax:85 },
+  margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:10, defaultMax:85 },
 };
 
 let currentSort = { key:null, dir:'desc' };
