@@ -106,6 +106,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .pill-val{display:block;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#1e293b}
   .pill-label{display:block;font-size:9px;color:#94a3b8;margin-top:1px}
 
+  /* Header action buttons */
+  .header-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .header-actions .analytics-btn,.header-actions .refresh-btn{font-size:9px;padding:3px 8px}
+
   /* Sidebar scroll wrapper */
   .sidebar-scroll{flex:1;overflow-y:auto;padding-bottom:80px}
 
@@ -667,8 +671,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       align-items: center; gap: 8px;
     }
 
-    .sidebar-header .refresh-btn { display: none; }
-    .sidebar-header .analytics-btn { display: none; }
+    .sidebar-header .header-actions { display: none; }
 
     /* Stats grid: 2 columns */
     .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -939,13 +942,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
   </div>
   <div class="sidebar-header">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <h1><span>SB 1123</span> Deal Finder</h1>
-      <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
-      <a href="city_guide.html" class="analytics-btn" id="cityGuideLink" title="City Development Guide">&#9670; City Guide</a>
-      <a href="" class="analytics-btn" id="marketSwitchLink" title="Switch market"></a>
-      <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard" aria-label="Copy refresh command">&#8635; Refresh</button>
-    </div>
+    <h1><span>SB 1123</span> Deal Finder</h1>
     <p id="marketSubtitle">Townhome development sites in Los Angeles</p>
     <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
@@ -953,6 +950,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <span class="pill"><span class="pill-val" id="pillOnMarket">0</span><span class="pill-label">on-mkt</span></span>
       <span class="pill"><span class="pill-val" id="pillComps">0</span><span class="pill-label">comps</span></span>
       <span class="pill"><span class="pill-val" id="pillMinMargin">30%</span><span class="pill-label">min margin</span></span>
+    </div>
+    <div class="header-actions">
+      <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
+      <a href="city_guide.html" class="analytics-btn" id="cityGuideLink" title="City Development Guide">&#9670; City Guide</a>
+      <a href="" class="analytics-btn" id="marketSwitchLink" title="Switch market"></a>
+      <button class="refresh-btn" onclick="copyRefreshCmd()" title="Copy refresh command to clipboard" aria-label="Copy refresh command">&#8635; Refresh</button>
     </div>
   </div>
 
@@ -1059,7 +1062,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
           <span class="kf-label">Margin</span>
           <div class="kf-chips">
             <button class="kf-chip active" onclick="setMarginPreset(30,this)">30%+</button>
-            <button class="kf-chip" onclick="setMarginPreset(20,this)">20%+</button>
+            <button class="kf-chip" onclick="setMarginPreset(10,this)">10%+</button>
             <button class="kf-chip" onclick="setMarginPreset(0,this)">0%+</button>
           </div>
         </div>
