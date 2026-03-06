@@ -21,7 +21,7 @@ import csv, json, re, os, glob, statistics, time, math, sys
 from datetime import datetime, timezone
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from market_config import get_market, market_file, TYPE_TO_ZONE
+from market_config import get_market, market_file, TYPE_TO_ZONE, CLASSIFY_FNS
 
 
 def recency_weight(sale_date_str):
@@ -619,19 +619,37 @@ if os.path.exists(ZONING_FILE):
         zoning_data = json.load(f)
     print(f"   Loaded {len(zoning_data):,} zoning records")
 
+    # Build source→classify_fn lookup for reclassification of cached entries
+    _source_classify = {}
+    for ep in market.get("zoning_endpoints", []):
+        _source_classify[ep["name"]] = CLASSIFY_FNS.get(ep["classify_fn"])
+
+    mu_reclassified = 0
     for l in listings:
         key = f"{l['lat']},{l['lng']}"
         if key in zoning_data:
             z = zoning_data[key]
             sb_zone = z.get("sb1123")
+            raw_code = z.get("zoning")
+            source = z.get("source")
+
+            # Re-run classify function to pick up MU reclassification
+            if sb_zone and raw_code and source and source in _source_classify:
+                fn = _source_classify[source]
+                if fn:
+                    new_zone = fn(raw_code)
+                    if new_zone and new_zone != sb_zone:
+                        sb_zone = new_zone
+                        mu_reclassified += 1
+
             if sb_zone:
-                l["zimasZone"] = z.get("zoning")       # Raw ZIMAS code (e.g. "R2-1")
+                l["zimasZone"] = raw_code       # Raw ZIMAS code (e.g. "R2-1")
                 l["zimasCategory"] = z.get("category")  # Descriptive category
                 old_zone = l["zone"]
                 if old_zone != sb_zone:
-                    if sb_zone in ("R2", "R3", "R4") and old_zone in ("R1", "LAND"):
+                    if sb_zone in ("R2", "R3", "R4", "MU") and old_zone in ("R1", "LAND"):
                         zimas_upgraded += 1
-                    elif old_zone in ("R2", "R3", "R4") and sb_zone in ("R1", "LAND"):
+                    elif old_zone in ("R2", "R3", "R4", "MU") and sb_zone in ("R1", "LAND"):
                         zimas_downgraded += 1
                 l["zone"] = sb_zone  # Override Redfin guess with ZIMAS truth
                 # Add track indicator (SF = single-family, MF = multifamily)
@@ -639,6 +657,7 @@ if os.path.exists(ZONING_FILE):
                 zimas_stamped += 1
 
     print(f"   ZIMAS zoning stamped: {zimas_stamped:,}/{len(listings):,}")
+    print(f"   MU reclassified (was R4): {mu_reclassified:,}")
     print(f"   Zone upgrades (R1/LAND→R2+): {zimas_upgraded:,} (more units allowed!)")
     print(f"   Zone downgrades (R2+→R1/LAND): {zimas_downgraded:,}")
 else:
@@ -1534,7 +1553,7 @@ zone_counts = {}
 for l in listings:
     z = l["zone"] or "Unknown"
     zone_counts[z] = zone_counts.get(z, 0) + 1
-for z in ["R1", "R2", "R3", "R4", "LAND", "Unknown"]:
+for z in ["R1", "R2", "R3", "R4", "MU", "LAND", "Unknown"]:
     if z in zone_counts:
         print(f"   {z}: {zone_counts[z]} listings")
 
@@ -1546,7 +1565,7 @@ print(f"   With lot size: {with_lot}/{len(listings)}")
 # Show zone-specific exit $/SF samples
 if with_exit:
     print(f"\n   Zone-specific exit $/SF (P75):")
-    for z in ["R1", "R2", "R3", "R4"]:
+    for z in ["R1", "R2", "R3", "R4", "MU"]:
         zone_exits = [l["exitPsf"] for l in listings if l["zone"] == z and l.get("exitPsf")]
         if zone_exits:
             zone_exits.sort()

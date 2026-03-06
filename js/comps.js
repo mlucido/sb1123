@@ -7,7 +7,7 @@ export function initComps(deps){ _deps = deps; }
 
 // ── Constants ──
 var COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500;
-var ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',LAND:'Land'};
+var ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',MU:'Mixed-Use',LAND:'Land'};
 var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 // Zone matching removed — comp filtering now uses PT + tier only
 var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};

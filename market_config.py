@@ -71,6 +71,12 @@ def classify_zoning_la_city(zoning_code):
     code = re.sub(r'^\[.*?\]', '', zoning_code).strip()
     prefix = code.split("-")[0].upper().strip()
 
+    # Mixed-use track — must check BEFORE SF track (RAS3/RAS4 startswith "RA")
+    if prefix.startswith(("RAS3", "RAS4")):
+        return "MU"
+    if prefix.startswith("C"):
+        return "MU"  # Commercial → MF eligible (mixed-use)
+
     # SF track
     if prefix.startswith(("A", "RA", "RE", "RS", "R1", "RU", "RZ", "RW1")):
         if prefix.startswith("RW2"):
@@ -80,12 +86,10 @@ def classify_zoning_la_city(zoning_code):
     # MF track
     if prefix.startswith(("R2", "RD")):
         return "R2"
-    if prefix.startswith(("R3", "RAS3", "RW2")):
+    if prefix.startswith(("R3", "RW2")):
         return "R3"
-    if prefix.startswith(("R4", "RAS4", "R5")):
+    if prefix.startswith(("R4", "R5")):
         return "R4"
-    if prefix.startswith("C"):
-        return "R4"  # Commercial → MF eligible
 
     if prefix.startswith(("M", "P")):
         return "COMMERCIAL"
@@ -113,7 +117,7 @@ def classify_zoning_la_county(zone_code):
     if upper.startswith(("OS", "O")):
         return None  # Open space
     if upper.startswith("C"):
-        return "R4"  # Commercial → MF eligible
+        return "MU"  # Commercial → MF eligible (mixed-use)
     return None
 
 
@@ -138,10 +142,73 @@ def classify_zoning_santa_monica(zone_code):
     # Mixed-use / commercial → MF eligible
     if upper in ("MUC", "MUB", "MUBL", "HMU", "TA", "BTV", "NV", "GC",
                  "NC", "LT", "WT", "OT", "OC", "OF"):
-        return "R4"
+        return "MU"
     # Non-residential — not SB 1123 eligible
     if upper in ("OS", "PL", "CC", "IC", "RMH", "BC", "CCS", "CAC"):
         return None
+    return None
+
+
+def classify_zoning_lancaster(zone_code):
+    """City of Lancaster zoning code → SB 1123 category.
+
+    Lancaster uses R-{lot_size} for SF, MDR/HDR for multifamily.
+    """
+    if not zone_code:
+        return None
+    z = zone_code.strip().upper()
+    # Single-family residential (all R- variants + rural)
+    if z.startswith("R-") or z in ("RR-1", "RR-2.5", "SRR", "MHP", "MHP-S"):
+        return "R1"
+    if z == "MDR":
+        return "R3"
+    if z == "HDR":
+        return "R4"
+    # Commercial / mixed-use → MF eligible
+    if z in ("C", "CPD", "MU-C", "MU-E", "MU-N", "OP", "TOD"):
+        return "MU"
+    return None
+
+
+def classify_zoning_palmdale(zone_code):
+    """City of Palmdale zoning code → SB 1123 category.
+
+    Palmdale uses R-1-{lot_size}, R-2, R-3, R-4 (30/50).
+    PZ suffix = prezone, treat same as base zone.
+    """
+    if not zone_code:
+        return None
+    z = zone_code.strip().upper()
+    if z.endswith(" PZ"):
+        z = z[:-3].strip()
+    if z.startswith("R-1"):
+        return "R1"
+    if z == "R-2":
+        return "R2"
+    if z == "R-3":
+        return "R3"
+    if z.startswith("R-4"):
+        return "R4"
+    if z.startswith("A-"):
+        return "R1"  # Light agriculture = large-lot SFR
+    if z.startswith("C-") or z == "C-D MX":
+        return "MU"
+    return None
+
+
+def classify_zoning_malibu(zone_code):
+    """City of Malibu zoning code → SB 1123 category.
+
+    Malibu uses RR{acreage} for rural residential, SFL/SFM for single-family,
+    MF/MFBF for multi-family.
+    """
+    if not zone_code:
+        return None
+    z = zone_code.strip().upper()
+    if z.startswith("RR") or z in ("SFL", "SFM", "MH"):
+        return "R1"
+    if z in ("MF", "MFBF"):
+        return "R3"
     return None
 
 
@@ -177,11 +244,11 @@ def classify_zoning_sd_city(zone_name):
 
     # Employment Mixed-Use — MF eligible
     if prefix == 'EMX':
-        return 'R4'
+        return 'MU'
 
     # Commercial zones — MF eligible under SB 1123
     if prefix in ('CN', 'CO', 'CC', 'CR', 'CV'):
-        return 'R4'
+        return 'MU'
 
     # Planned districts (LJPD, OPD, *PD-* patterns)
     if prefix in ('LJPD', 'OPD') or 'PD' in prefix:
@@ -190,7 +257,7 @@ def classify_zoning_sd_city(zone_name):
         if '-MF' in upper_name or '-RM' in upper_name:
             return 'R3'
         if '-MU' in upper_name or '-MX' in upper_name:
-            return 'R4'
+            return 'MU'
         return 'R2'  # Default planned district → R2
 
     # Ineligible
@@ -227,11 +294,11 @@ def classify_zoning_sd_county(use_reg):
 
     # Commercial — MF eligible
     if upper.startswith('C'):
-        return 'R4'
+        return 'MU'
 
     # Village zones — MF eligible
     if upper.startswith('V'):
-        return 'R4'
+        return 'MU'
 
     # Agricultural, open space, industrial — ineligible
     if upper.startswith(('A', 'S', 'M')):
@@ -248,6 +315,9 @@ CLASSIFY_FNS = {
     "classify_zoning_la_city": classify_zoning_la_city,
     "classify_zoning_la_county": classify_zoning_la_county,
     "classify_zoning_santa_monica": classify_zoning_santa_monica,
+    "classify_zoning_lancaster": classify_zoning_lancaster,
+    "classify_zoning_palmdale": classify_zoning_palmdale,
+    "classify_zoning_malibu": classify_zoning_malibu,
     "classify_zoning_sd_city": classify_zoning_sd_city,
     "classify_zoning_sd_county": classify_zoning_sd_county,
 }
@@ -325,14 +395,46 @@ MARKETS = {
                 "classify_fn": "classify_zoning_santa_monica",
             },
             {
+                "name": "Lancaster",
+                "url": (
+                    "https://maps.cityoflancasterca.org/server/rest/services/"
+                    "Parcel_PopupReference/FeatureServer/8/query"
+                ),
+                "out_fields": "Zoning,ZoneDesc",
+                "zone_field": "Zoning",
+                "category_field": "ZoneDesc",
+                "classify_fn": "classify_zoning_lancaster",
+            },
+            {
+                "name": "Palmdale",
+                "url": (
+                    "https://mapserver.cityofpalmdale.org/arcgis/rest/services/"
+                    "Planning_Zoning/PlanningZoning/FeatureServer/4/query"
+                ),
+                "out_fields": "CITY_ZONE,ZONE_NAME",
+                "zone_field": "CITY_ZONE",
+                "category_field": "ZONE_NAME",
+                "classify_fn": "classify_zoning_palmdale",
+            },
+            {
+                "name": "Malibu",
+                "url": (
+                    "https://services3.arcgis.com/w2LtkSgyOOlg6OKZ/"
+                    "arcgis/rest/services/Zoning_Malibu/FeatureServer/0/query"
+                ),
+                "out_fields": "MALIBUZONE",
+                "zone_field": "MALIBUZONE",
+                "classify_fn": "classify_zoning_malibu",
+            },
+            {
                 "name": "LA County (DRP)",
                 "url": (
-                    "https://arcgis.lacounty.gov/arcgis/rest/services/"
-                    "DRP/Zoning/MapServer/0/query"
+                    "https://arcgis.gis.lacounty.gov/arcgis/rest/services/"
+                    "DRP/ZNET_Public/MapServer/4/query"
                 ),
-                "out_fields": "*",
-                "zone_field": "ZONE_CMPLT",
-                "category_field": "CATEGORY",
+                "out_fields": "ZONE,Z_CATEGORY,Z_DESC",
+                "zone_field": "ZONE",
+                "category_field": "Z_CATEGORY",
                 "classify_fn": "classify_zoning_la_county",
             },
         ],
