@@ -44383,7 +44383,7 @@
   "zoning": "MXD",
   "category": "MXD",
   "source": "LA County (DRP)",
-  "sb1123": null
+  "sb1123": "MU"
  },
  "33.934595,-118.229083": {
   "zoning": "R-2",
@@ -44473,7 +44473,7 @@
   "zoning": "MXD",
   "category": "MXD",
   "source": "LA County (DRP)",
-  "sb1123": null
+  "sb1123": "MU"
  },
  "33.926892,-118.050847": {
   "zoning": "R-2",
@@ -119785,7 +119785,7 @@
   "zoning": "MXD",
   "category": "MXD",
   "source": "LA County (DRP)",
-  "sb1123": null
+  "sb1123": "MU"
  },
  "33.947181,-118.296613": {
   "zoning": "R-2",
@@ -122149,7 +122149,7 @@
   "zoning": "R-R",
   "category": "R-R",
   "source": "LA County (DRP)",
-  "sb1123": null
+  "sb1123": "R1"
  },
  "34.138906,-118.861038": {
   "zoning": null,

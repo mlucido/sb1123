@@ -114,7 +114,7 @@ def classify_zoning_la_county(zone_code):
     if not zone_code:
         return None
     upper = zone_code.strip().upper()
-    if upper.startswith(("R-1", "R1", "R-A", "RA", "R-C", "RE", "RS")):
+    if upper.startswith(("R-1", "R1", "R-A", "RA", "R-C", "R-R", "RE", "RS")):
         return "R1"
     if upper.startswith(("R-2", "R2", "RD")):
         return "R2"
@@ -126,8 +126,8 @@ def classify_zoning_la_county(zone_code):
         return None  # Agricultural
     if upper.startswith(("OS", "O")):
         return None  # Open space
-    if upper.startswith("C"):
-        return "MU"  # Commercial → MF eligible (mixed-use)
+    if upper.startswith("C") or upper.startswith("MXD"):
+        return "MU"  # Commercial / Mixed-Use → MF eligible
     return None
 
 
