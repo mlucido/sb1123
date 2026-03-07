@@ -5,19 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SB 1123 Deal Finder — LA County</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
-<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" onerror="console.warn('esri-leaflet failed to load')"></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com https://public.gis.lacounty.gov https://services.gis.ca.gov blob:; connect-src 'self' https://*.arcgis.com https://*.arcgisonline.com https://public.gis.lacounty.gov https://gis1.sandag.org https://gis.sandiegocounty.gov https://www.redfin.com https://geocoding.geo.census.gov https://services.arcgis.com https://services.gis.ca.gov;">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha384-NZLkVuBRMEeB4VeZz27WwTRvlhec30biQ8Xx7zG7JJnkvEKRg5qi6BNbEXo9ydwv" crossorigin="anonymous" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous" onerror="window._cdnFail=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha384-JP5UPxIO2Tm2o79Fb0tGYMa44jkWar53aBoCbd8ah0+LcCDoohTIYr+zIXyfGIJN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js" integrity="sha384-82q0nm29xZzIo5BMtDYnh2/NxeO6FoaK1S/0nF84w3cEsqbBfun3JdMyDVYWfVY5" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js" integrity="sha384-twf8YFpk0FSzm0AmW2GRJjjnqIuQ2y86vZXh2roYI8O+kFbEBjSUDUT6U72w8shL" crossorigin="anonymous" onerror="console.warn('esri-leaflet failed to load')"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" integrity="sha384-mFKkGiGvT5vo1fEyGCD3hshDdKmW3wzXW/x+fWriYJArD0R3gawT6lMvLboM22c0" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js" integrity="sha384-VFQrHzqBh5qiJIU0uGU5CIW3+OWpdGGJM9LBnGbuIH2mkICcFZ7lPd/AAtI7SNf7" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js" integrity="sha384-/RlQG9uf0M2vcTw3CX7fbqgbj/h8wKxw7C3zu9/GxcBPRKOEcESxaxufwRXqzq6n" crossorigin="anonymous"></script>
 <script>
 // Market config — select via ?market=sd URL param (default: la)
-var _urlMarket = new URLSearchParams(window.location.search).get('market') || 'la';
+var _rawMarket = new URLSearchParams(window.location.search).get('market') || 'la';
+var _urlMarket = ['la','sd'].includes(_rawMarket) ? _rawMarket : 'la';
 var MARKET_CONFIG = {
   la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:11,
         dataFile:'data.js', listingsFile:'listings.js', rentalDataFile:'rental_data.js',
@@ -931,6 +933,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </style>
 </head>
 <body class="light-mode">
+
+<div id="load-error" style="display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:#dc2626;color:#fff;padding:12px 20px;font-size:14px;font-weight:600;text-align:center">
+  Failed to load required libraries. Check your internet connection and refresh.
+</div>
 
 <div class="app-row">
 <aside class="sidebar" role="complementary" aria-label="Filters and controls">
@@ -4434,6 +4440,16 @@ initExport({
 });
 
 window.addEventListener('DOMContentLoaded', function(){
+  // CDN + data load checks
+  if(window._cdnFail){
+    var el = document.getElementById('load-error');
+    el.textContent = 'Critical library (Leaflet) failed to load. Check your internet connection and refresh.';
+    el.style.display = 'block';
+  } else if(!window.LOADED_LISTINGS || window.LOADED_LISTINGS.length === 0){
+    var el = document.getElementById('load-error');
+    el.textContent = 'Listing data failed to load. The map will be empty. Try refreshing.';
+    el.style.display = 'block';
+  }
   // Market-specific UI setup
   document.getElementById('marketSubtitle').textContent = MARKET.subtitle;
   if(!MARKET.burnZones) document.getElementById('burnZoneSection').style.display='none';

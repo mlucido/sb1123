@@ -41,6 +41,9 @@ data_sd.js
 attom_key.txt
 attom_*.json
 
+# Environment files
+.env*
+
 # OS files
 .DS_Store
 .claude/
