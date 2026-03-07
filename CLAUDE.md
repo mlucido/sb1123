@@ -37,6 +37,14 @@ python3 fetch_urban.py              # → urban.json (Census urban areas)
 
 No build step, no bundler, no test suite. Only Python dependency: `requests`.
 
+## Large Source Data Files (not in git)
+
+`market_build.py` requires two large files that are too big for git and must be re-downloaded if needed:
+- `zip_code_market_tracker.tsv000` (4.4 GB) — Zillow market tracker export
+- `comps_r1r4.csv` (1.2 GB) — raw comps source data
+
+All other pipeline scripts regenerate their inputs automatically (e.g. `fetch_listings.py` downloads a fresh `redfin_merged.csv` from Redfin's API).
+
 ## Multi-Market File Naming
 
 LA (default market) uses unprefixed filenames for backward compatibility:
