@@ -273,7 +273,7 @@ def hdr(s, title, sub=None):
 
 def ftr(s, d):
     _t(s, Inches(0.5), Inches(5.28), Inches(5), Inches(0.25),
-       f"CONFIDENTIAL  |  Lucid Development, LLC  |  {datetime.now().strftime('%B %Y')}", sz=7, color=S400)
+       f"CONFIDENTIAL  |  Lucid Residential  |  {datetime.now().strftime('%B %Y')}", sz=7, color=S400)
 
 def stat(s, x, y, w, h, val, label, vs=26, vc=NAVY):
     _r(s, x, y, w, h, WHITE, line=S200, lw=0.5)
@@ -342,7 +342,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     _r(s, 0, 0, Inches(0.4), SH, NAVY)
     _r(s, Inches(0.4), 0, SW, Inches(0.04), TEAL)
     _t(s, Inches(0.7), Inches(0.3), Inches(4), Inches(0.25),
-       "LUCID DEVELOPMENT", sz=10, bold=True, color=TEAL)
+       "LUCID RESIDENTIAL", sz=10, bold=True, color=TEAL)
     _r(s, Inches(0.7), Inches(1.4), Inches(1.2), Inches(0.04), TEAL)
     _t(s, Inches(0.7), Inches(1.6), Inches(5.0), Inches(1.0),
        d['address'].upper(), sz=30, bold=True, color=NAVY, font=FH)
@@ -365,7 +365,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
         _t(s, mx+Inches(0.2), my+Inches(0.4), Inches(3), Inches(0.2), label, sz=8, color=S500)
     _t(s, Inches(0.7), Inches(5.0), Inches(3), Inches(0.2), datetime.now().strftime('%B %Y'), sz=9, color=S400)
     _t(s, Inches(5.5), Inches(5.0), Inches(4), Inches(0.2),
-       "Prepared by Lucid Development, LLC", sz=9, color=S400, align=PP_ALIGN.RIGHT)
+       "Prepared by Lucid Residential", sz=9, color=S400, align=PP_ALIGN.RIGHT)
 
     # ── P2: DISCLAIMER ───────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE)
@@ -374,7 +374,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
        "CONFIDENTIAL \u2014 NOT FOR DISTRIBUTION", sz=14, bold=True, color=NAVY, font=FH)
     _r(s, Inches(1), Inches(1.0), Inches(2), Inches(0.02), TEAL)
     _t(s, Inches(1), Inches(1.2), Inches(8), Inches(3.5),
-       'This Confidential Offering Memorandum has been prepared by Lucid Development, LLC '
+       'This Confidential Offering Memorandum has been prepared by Lucid Residential '
        'solely for the purpose of providing prospective investors with information regarding '
        f'a potential investment in {d["address"]}, {d["city"]}, {d["state"]} {d["zip"]}.\n\n'
        'This Memorandum does not constitute an offer to sell or a solicitation of an offer to buy. '
@@ -388,7 +388,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     # ── P3: EXEC SUMMARY ─────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Executive Summary")
     _t(s, Inches(0.5), Inches(0.85), Inches(5.5), Inches(3.6),
-       f"Lucid Development, LLC is seeking approximately {fm(d['lp_equity_in'])} in LP equity "
+       f"Lucid Residential is seeking approximately {fm(d['lp_equity_in'])} in LP equity "
        f"to acquire, subdivide, and develop {d['address']} \u2014 a {fn(d['lot_sf'])} SF parcel "
        f"in {d['city']}, zoned {d['zoning']} and eligible for ministerial approval under "
        f"California SB 1123.\n\n"
@@ -432,7 +432,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     ftr(s, d)
 
     # ── P5: WHY LUCID ─────────────────────────────────────────
-    s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Why Lucid Development")
+    s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Why Lucid Residential")
     _t(s, Inches(0.5), Inches(1.2), Inches(5.5), Inches(3.2),
        "Matt Lucido and Joe Salerno have spent five years building Yardsworth \u2014 a California "
        "FinTech platform at the intersection of housing policy, capital markets, and residential "
@@ -840,7 +840,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
     _r(s, Inches(3), Inches(3.8), Inches(4), Inches(0.02), S200)
     _t(s, Inches(1), Inches(4.0), Inches(8), Inches(0.25), "Matt Lucido  |  matt@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
     _t(s, Inches(1), Inches(4.25), Inches(8), Inches(0.25), "Joe Salerno  |  joe@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
-    _t(s, Inches(1), Inches(4.8), Inches(8), Inches(0.25), "Lucid Development, LLC", sz=11, bold=True, color=TEAL, align=PP_ALIGN.CENTER)
+    _t(s, Inches(1), Inches(4.8), Inches(8), Inches(0.25), "Lucid Residential", sz=11, bold=True, color=TEAL, align=PP_ALIGN.CENTER)
 
     return pres
 
