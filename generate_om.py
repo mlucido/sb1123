@@ -370,10 +370,10 @@ def build_om(d, matt_photo=None, joe_photo=None):
     # ── P2: DISCLAIMER ───────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE)
     _r(s, 0, 0, SW, Inches(0.04), TEAL)
-    _t(s, Inches(1), Inches(0.6), Inches(8), Inches(0.35),
+    _t(s, Inches(1), Inches(1.3), Inches(8), Inches(0.35),
        "CONFIDENTIAL \u2014 NOT FOR DISTRIBUTION", sz=14, bold=True, color=NAVY, font=FH)
-    _r(s, Inches(1), Inches(1.0), Inches(2), Inches(0.02), TEAL)
-    _t(s, Inches(1), Inches(1.2), Inches(8), Inches(3.5),
+    _r(s, Inches(1), Inches(1.7), Inches(2), Inches(0.02), TEAL)
+    _t(s, Inches(1), Inches(1.9), Inches(8), Inches(2.8),
        'This Confidential Offering Memorandum has been prepared by Lucid Residential '
        'solely for the purpose of providing prospective investors with information regarding '
        f'a potential investment in {d["address"]}, {d["city"]}, {d["state"]} {d["zip"]}.\n\n'
@@ -387,7 +387,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
 
     # ── P3: EXEC SUMMARY ─────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Executive Summary")
-    _t(s, Inches(0.5), Inches(0.85), Inches(5.5), Inches(3.6),
+    _t(s, Inches(0.5), Inches(1.9), Inches(5.5), Inches(2.2),
        f"Lucid Residential is seeking approximately {fm(d['lp_equity_in'])} in LP equity "
        f"to acquire, subdivide, and develop {d['address']} \u2014 a {fn(d['lot_sf'])} SF parcel "
        f"in {d['city']}, zoned {d['zoning']} and eligible for ministerial approval under "
@@ -433,7 +433,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
 
     # ── P5: WHY LUCID ─────────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE); hdr(s, "Why Lucid Residential")
-    _t(s, Inches(0.5), Inches(1.2), Inches(5.5), Inches(3.2),
+    _t(s, Inches(0.5), Inches(2.1), Inches(5.5), Inches(2.0),
        "Matt Lucido and Joe Salerno have spent five years building Yardsworth \u2014 a California "
        "FinTech platform at the intersection of housing policy, capital markets, and residential "
        "development.\n\nThrough Yardsworth, the principals structured $350M+ in equity and credit "
@@ -443,7 +443,7 @@ def build_om(d, matt_photo=None, joe_photo=None):
        sz=10, color=S600)
     for i, (v, l) in enumerate([("5 Years","Co-Founder Partnership"),("$350M+","Capital Structured"),
         ("100+","Infill Sites Evaluated"),("10","Assets Under Management")]):
-        stat(s, Inches(6.3), Inches(0.85+i*1.0), Inches(3.2), Inches(0.85), v, l, vs=22)
+        stat(s, Inches(6.3), Inches(1.05+i*1.0), Inches(3.2), Inches(0.85), v, l, vs=22)
     ftr(s, d)
 
     # ── P6: SPONSOR OVERVIEW ──────────────────────────────────
@@ -579,12 +579,12 @@ def build_om(d, matt_photo=None, joe_photo=None):
              Inches(0.8), Inches(1.1), Inches(0.7)], rh=crh)
         bar_y = Inches(1.0) + crh * len(c_rows) + Inches(0.1)
     else:
-        _r(s, Inches(0.5), Inches(1.0), Inches(9), Inches(2.5), S100, S200, 0.5)
-        _r(s, Inches(0.5), Inches(1.0), Inches(0.06), Inches(2.5), TEAL)
-        _t(s, Inches(0.8), Inches(1.8), Inches(8.4), Inches(0.6),
+        _r(s, Inches(0.5), Inches(1.5), Inches(9), Inches(2.5), S100, S200, 0.5)
+        _r(s, Inches(0.5), Inches(1.5), Inches(0.06), Inches(2.5), TEAL)
+        _t(s, Inches(0.8), Inches(2.4), Inches(8.4), Inches(0.6),
            "No comparable sales data available.\nComps require desktop browser with full data loaded.",
            sz=10, color=S500, align=PP_ALIGN.CENTER)
-        bar_y = Inches(3.7)
+        bar_y = Inches(4.2)
     _r(s, Inches(0.3), bar_y, Inches(9.4), Inches(0.45), NAVY)
     tf=s.shapes[-1].text_frame; p=tf.paragraphs[0]; p.alignment=PP_ALIGN.CENTER
     r=p.add_run(); r.text=f"Target Exit: ${d['exit_psf']:,.0f}/SF   |   All-In: ${d['all_in_psf']:,.0f}/SF   |   Break-Even: ${d['break_even_psf']:,.0f}/SF"
@@ -648,30 +648,31 @@ def build_om(d, matt_photo=None, joe_photo=None):
     hold_vars = [base_hold-6, base_hold-3, base_hold, base_hold+3, base_hold+6]
     def moic_str(v): return f"{v:.2f}x" if v > 0 else "N/A"
     def irr_str(v): return f"{v:.0%}" if v > -1 else "N/A"
-    trh = Inches(0.22)  # tight row height
-    tcw = [Inches(0.9)]+[Inches(0.82)]*5  # tight column widths
-    tw = Inches(5.0)  # table width
+    trh = Inches(0.19)  # tight row height
+    tcw = [Inches(0.8)]+[Inches(0.72)]*5  # tight column widths
+    tw = Inches(4.4)  # table width
+    tx = Inches(2.8)  # centered on 10" slide: (10-4.4)/2
     # Table 1: LP IRR — Exit $/SF vs Build Cost $/SF
-    _t(s, Inches(0.3), Inches(0.78), Inches(5), Inches(0.18),
+    _t(s, tx, Inches(0.90), tw, Inches(0.18),
        "LP IRR \u2014 Exit $/SF vs Build $/SF", sz=7, bold=True, color=NAVY)
     t1 = [("Exit \\ Build",) + tuple(f"${b:,.0f}" for b in build_vars)]
     for ep in exit_vars:
         t1.append((f"${ep:,.0f}",) + tuple(irr_str(_calc_irr(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
-    ts1 = tbl(s, Inches(0.3), Inches(0.96), tw, t1, tcw, rh=trh)
+    ts1 = tbl(s, tx, Inches(1.08), tw, t1, tcw, rh=trh)
     # Table 2: LP MOIC — Exit $/SF vs Build Cost $/SF
-    _t(s, Inches(0.3), Inches(2.38), Inches(5), Inches(0.18),
+    _t(s, tx, Inches(2.32), tw, Inches(0.18),
        "LP MOIC \u2014 Exit $/SF vs Build $/SF", sz=7, bold=True, color=NAVY)
     t2 = [("Exit \\ Build",) + tuple(f"${b:,.0f}" for b in build_vars)]
     for ep in exit_vars:
         t2.append((f"${ep:,.0f}",) + tuple(moic_str(_calc_moic(d, exit_psf=ep, build_cost_psf=bp)) for bp in build_vars))
-    ts2 = tbl(s, Inches(0.3), Inches(2.56), tw, t2, tcw, rh=trh)
+    ts2 = tbl(s, tx, Inches(2.50), tw, t2, tcw, rh=trh)
     # Table 3: LP IRR — Exit $/SF vs Hold Period
-    _t(s, Inches(0.3), Inches(3.98), Inches(5), Inches(0.18),
+    _t(s, tx, Inches(3.74), tw, Inches(0.18),
        "LP IRR \u2014 Hold Period vs Exit $/SF", sz=7, bold=True, color=NAVY)
     t3 = [("Exit \\ Hold",) + tuple(f"{h} mo" for h in hold_vars)]
     for ep in exit_vars:
         t3.append((f"${ep:,.0f}",) + tuple(irr_str(_calc_irr(d, exit_psf=ep, hold_months=h)) for h in hold_vars))
-    ts3 = tbl(s, Inches(0.3), Inches(4.16), tw, t3, tcw, rh=trh)
+    ts3 = tbl(s, tx, Inches(3.92), tw, t3, tcw, rh=trh)
     # Highlight base case cells (row 3 = base exit, col 3 = base build/hold)
     for ts_obj in [ts1, ts2, ts3]:
         t = ts_obj.table
@@ -691,9 +692,9 @@ def build_om(d, matt_photo=None, joe_photo=None):
             sf = tcPr.makeelement(qn('a:solidFill'), {})
             sf.append(sf.makeelement(qn('a:srgbClr'), {'val': 'ECFDF5'}))
             tcPr.append(sf)
-    _t(s, Inches(5.5), Inches(0.96), Inches(4), Inches(0.2),
+    _t(s, Inches(0.5), Inches(0.78), Inches(9), Inches(0.12),
        f"Base case: ${base_exit:,.0f}/SF exit  |  ${base_build:,.0f}/SF build  |  {base_hold} mo hold",
-       sz=7, color=S400)
+       sz=7, color=S400, align=PP_ALIGN.CENTER)
     ftr(s, d)
 
     # ── P14: BTR FALLBACK ─────────────────────────────────────
@@ -826,21 +827,21 @@ def build_om(d, matt_photo=None, joe_photo=None):
     # ── P19: CTA ──────────────────────────────────────────────
     s = pres.slides.add_slide(pres.slide_layouts[6]); bg(s, WHITE)
     _r(s, 0, 0, Inches(0.4), SH, NAVY); _r(s, Inches(0.4), 0, SW, Inches(0.04), TEAL)
-    _r(s, Inches(3.5), Inches(0.8), Inches(3), Inches(0.04), TEAL)
-    _t(s, Inches(1), Inches(1.0), Inches(8), Inches(0.5), "Investment Opportunity", sz=28, bold=True, color=NAVY, font=FH, align=PP_ALIGN.CENTER)
-    _t(s, Inches(1), Inches(1.55), Inches(8), Inches(0.3), f"{d['address']}  |  {d['city']}, {d['state']}", sz=12, color=S500, align=PP_ALIGN.CENTER)
+    _r(s, Inches(3.5), Inches(0.9), Inches(3), Inches(0.04), TEAL)
+    _t(s, Inches(1), Inches(1.15), Inches(8), Inches(0.5), "Investment Opportunity", sz=28, bold=True, color=NAVY, font=FH, align=PP_ALIGN.CENTER)
+    _t(s, Inches(1), Inches(1.7), Inches(8), Inches(0.3), f"{d['address']}  |  {d['city']}, {d['state']}", sz=12, color=S500, align=PP_ALIGN.CENTER)
     for i,(val,l) in enumerate([
         (fm(d['lp_equity_in']),"Target Equity"),(f"{d['lp_moic']:.2f}x","Target MOIC"),
         (fp(d['lp_irr']),"Target IRR"),(f"~{d['hold_months']} mo.","Target Hold"),
     ]):
         sx=Inches(0.8+i*2.3)
-        _r(s, sx+Inches(0.35), Inches(2.2), Inches(0.05), Inches(0.7), TEAL)
-        _t(s, sx+Inches(0.55), Inches(2.2), Inches(1.6), Inches(0.4), val, sz=22, bold=True, color=NAVY)
-        _t(s, sx+Inches(0.55), Inches(2.6), Inches(1.6), Inches(0.25), l, sz=8, color=S500)
-    _r(s, Inches(3), Inches(3.8), Inches(4), Inches(0.02), S200)
-    _t(s, Inches(1), Inches(4.0), Inches(8), Inches(0.25), "Matt Lucido  |  matt@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
-    _t(s, Inches(1), Inches(4.25), Inches(8), Inches(0.25), "Joe Salerno  |  joe@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
-    _t(s, Inches(1), Inches(4.8), Inches(8), Inches(0.25), "Lucid Residential", sz=11, bold=True, color=TEAL, align=PP_ALIGN.CENTER)
+        _r(s, sx+Inches(0.35), Inches(2.35), Inches(0.05), Inches(0.7), TEAL)
+        _t(s, sx+Inches(0.55), Inches(2.35), Inches(1.6), Inches(0.4), val, sz=22, bold=True, color=NAVY)
+        _t(s, sx+Inches(0.55), Inches(2.75), Inches(1.6), Inches(0.25), l, sz=8, color=S500)
+    _r(s, Inches(3), Inches(3.5), Inches(4), Inches(0.02), S200)
+    _t(s, Inches(1), Inches(3.7), Inches(8), Inches(0.25), "Matt Lucido  |  matt@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
+    _t(s, Inches(1), Inches(3.95), Inches(8), Inches(0.25), "Joe Salerno  |  joe@yardsworth.com", sz=10, color=NAVY, align=PP_ALIGN.CENTER)
+    _t(s, Inches(1), Inches(4.45), Inches(8), Inches(0.25), "Lucid Residential", sz=11, bold=True, color=TEAL, align=PP_ALIGN.CENTER)
 
     return pres
 
