@@ -930,6 +930,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     opacity:0.5 !important;width:8px !important;height:8px !important;
     margin-left:-4px !important;margin-top:-4px !important;
   }
+
+  .ghost-tooltip .leaflet-tooltip-content{font-family:'DM Mono',monospace;font-size:11px;color:#94a3b8}
 </style>
 </head>
 <body class="light-mode">
@@ -1266,13 +1268,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--mu)"></div> MU Mixed-Use</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
-  <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#6366f1;border-radius:50%"></div> &lt;$650/SF</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $650–700</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $700–750</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $750–800</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800–900</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900+</div>
+  <div class="legend-section" style="margin-top:8px">Listings (Spread $/SF)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#888;border-radius:50%;opacity:0.4"></div> &le;$0 non-viable</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $1&ndash;$75</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#14b8a6;border-radius:50%"></div> $76&ndash;$150</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#84cc16;border-radius:50%"></div> $151&ndash;$225</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $226&ndash;$300</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dc2626;border-radius:50%"></div> $301+</div>
 </div>
 </div><!-- /app-row -->
 
@@ -1517,8 +1519,17 @@ const TC = {
 };
 let _teaserHeroB64 = undefined; // loaded on first use
 
-// Exit $/SF color scale: cool (cheap) → hot (expensive)
-// RECENTERED for SFV: $600-$1,000 decision range
+// Spread-based color scale (Exit $/SF - All-In $/SF)
+function spreadColor(spread){
+  if(spread == null || spread <= 0) return '#888';
+  if(spread <= 75)  return '#3b82f6';   // Blue - marginal
+  if(spread <= 150) return '#14b8a6';   // Teal - break-even+
+  if(spread <= 225) return '#84cc16';   // Yellow-green - healthy
+  if(spread <= 300) return '#f97316';   // Orange - strong
+  return '#dc2626';                     // Crimson - high opportunity
+}
+
+// Legacy exit $/SF scale - used by neighborhood grid + comp heatmap
 function exitPsfColor(ppsf){
   if(!ppsf || ppsf <= 0) return '#888';
   if(ppsf < 650) return '#6366f1';   // Indigo — weak exit market
@@ -2707,17 +2718,21 @@ function rebuildListings(cachedListings){
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
-    const nonViable = (l.maxOffer != null && l.maxOffer <= 0);
+    // Compute spread for color mapping
+    const pf_pin = calculateProForma(l);
+    const exitPsf_pin = exitLabel(l).psf;
+    const allInPsf_pin = pf_pin.effective_buildable_sf > 0 ? Math.round(pf_pin.totalProjectCost / pf_pin.effective_buildable_sf) : 0;
+    const pinSpread = exitPsf_pin - allInPsf_pin;
+    const nonViable = !l.maxOffer || l.maxOffer <= 0;
 
-    // Color fill by exit $/SF — ghost non-viable pins
-    const ePsf = l.exitPsf || 0;
-    const fillColor = nonViable ? '#9ca3af' : exitPsfColor(ePsf);
+    // Color fill by spread — ghost non-viable pins
+    const fillColor = nonViable ? '#888' : spreadColor(pinSpread);
 
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
     const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const borderColor = nonViable ? '#9ca3af' : (isNewListing ? '#22c55e' : '#f97316');
+    const borderColor = nonViable ? '#666' : (isNewListing ? '#22c55e' : '#f97316');
     const markerWeight = isNewListing ? 4 : 2;
     const margin = l.estMargin || 0;
     const isDualViable = !nonViable && margin >= 20 && l.btrViable;
@@ -2730,6 +2745,7 @@ function rebuildListings(cachedListings){
     });
 
     if(nonViable){
+      cm.bindTooltip('Non-viable at current assumptions. Adjust sliders to explore.', {direction:'top',className:'ghost-tooltip'});
       cm.bindPopup('<div style="font-size:12px;color:#94a3b8;padding:8px;text-align:center"><b>Non-viable at current assumptions</b><br><small>' + titleAddr(l.address || 'N/A') + '</small></div>',{maxWidth:300});
     } else {
       cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
@@ -2979,12 +2995,8 @@ function buildOffMarketLayer(){
     // Color coding for headroom
     const headroomColor = headroom > 0 ? '#22c55e' : '#ef4444';
     
-    // Color by spread for pin
-    let pinColor = '#ef4444'; // red
-    if(spread >= 300) pinColor = '#059669'; // deep green
-    else if(spread >= 200) pinColor = '#22c55e'; // green
-    else if(spread >= 100) pinColor = '#eab308'; // yellow
-    else if(spread >= 0) pinColor = '#f97316'; // orange
+    // Unified spread color scale
+    const pinColor = spreadColor(spread);
     
     const offMarketIcon = L.divIcon({
       className: '',
@@ -3194,13 +3206,13 @@ function updatePinLegend(){
   
   // Show For Sale legend if listings layer is on
   if(layerState.listings){
-    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Listing Exit $/SF</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border:1.5px solid #f97316"></div> &lt;$650</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $650–700</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border:1.5px solid #f97316"></div> $700–750</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border:1.5px solid #f97316"></div> $750–800</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border:1.5px solid #f97316"></div> $800–900</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $900+</div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Deal Spread (Exit\u2212All-In)</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#888;opacity:0.4;border:1.5px solid #666"></div> \u2264$0 non-viable</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $1\u2013$75</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6;border:1.5px solid #f97316"></div> $76\u2013$150</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#84cc16;border:1.5px solid #f97316"></div> $151\u2013$225</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $226\u2013$300</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#dc2626;border:1.5px solid #f97316"></div> $301+</div>';
   }
   
   // Show BTR legend if Build to Rent layer is on
