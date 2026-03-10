@@ -472,6 +472,29 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     .dc3-bottom-actions{flex-wrap:wrap}
   }
 
+  /* DSCR Waterfall table */
+  .dc3-waterfall{width:100%;border-collapse:collapse;font-size:10.5px;font-family:'JetBrains Mono','IBM Plex Sans',monospace}
+  .dc3-waterfall th{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:#a8a5a0;font-weight:600;text-align:right;padding:2px 6px}
+  .dc3-waterfall th:first-child{text-align:left}
+  .dc3-waterfall td{padding:2px 6px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid #f5f5f5}
+  .dc3-waterfall td:first-child{text-align:left;color:#6e6c68;font-family:'IBM Plex Sans',sans-serif;font-size:10.5px}
+  .dc3-waterfall .wf-noi td{font-weight:700;border-top:1px solid #ddd;border-bottom:1px solid #ddd}
+  .dc3-waterfall .wf-dscr td{font-weight:600}
+  .dc3-waterfall .wf-yoc td{font-weight:700;border-top:1px solid #ddd}
+  .dc3-waterfall .wf-sub td{color:#b8b5b0;font-size:10px}
+  .dc3-verdict-badge{display:inline-block;padding:4px 12px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:0.05em;margin-top:6px}
+
+  /* Deal Status Select */
+  .dc3-status-select{font-family:'IBM Plex Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:1px solid #e8e8e8;border-radius:2px;padding:3px 8px;cursor:pointer;outline:none;appearance:auto;-webkit-appearance:auto}
+
+  /* Status Filter Panel */
+  .status-filter-panel{position:absolute;top:10px;right:10px;z-index:900;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1);font-family:'DM Sans',sans-serif;font-size:11px;min-width:160px}
+  .status-filter-header{padding:6px 10px;cursor:pointer;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#475569;display:flex;align-items:center;justify-content:space-between}
+  .status-filter-body{padding:4px 10px 8px;border-top:1px solid #eee}
+  .status-filter-row{display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer;font-size:11px}
+  .status-filter-row input{margin:0}
+  .status-filter-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
   /* Pin Color Legend */
   .pin-legend{
     position:absolute;bottom:10px;left:10px;
@@ -1357,6 +1380,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="pin-legend" id="pinLegend">
     <!-- Dynamically populated based on active layers -->
   </div>
+  <!-- Deal Status Filter Panel (top-right of map) -->
+  <div class="status-filter-panel" id="statusFilterPanel">
+    <div class="status-filter-header" onclick="document.getElementById('statusFilterBody').style.display=document.getElementById('statusFilterBody').style.display==='none'?'block':'none';this.querySelector('.sfp-arrow').textContent=document.getElementById('statusFilterBody').style.display==='none'?'▼':'▲'">
+      <span>Status Filter</span><span class="sfp-arrow">▼</span>
+    </div>
+    <div class="status-filter-body" id="statusFilterBody" style="display:none"></div>
+  </div>
 </div>
 
 <div class="map-legend">
@@ -1699,6 +1729,48 @@ function resetMinUnits(){ AppState.set('minUnitsFilter', 10); document.getElemen
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
+
+// ── Deal Status (localStorage) ──
+const DEAL_STATUSES = ['Screening','Analyzing','LOI Submitted','Under Contract','Closed','Passed'];
+const STATUS_COLORS = {Screening:'#94a3b8',Analyzing:'#1B3A6B','LOI Submitted':'#E8682A','Under Contract':'#d97706',Closed:'#22c55e',Passed:'#cbd5e1'};
+const statusFilterState = {Screening:true,Analyzing:true,'LOI Submitted':true,'Under Contract':true,Closed:true,Passed:true};
+
+function loadDealStatuses(){ try{return JSON.parse(localStorage.getItem('sb1123_dealStatuses'))||{};}catch(e){return{};} }
+function saveDealStatuses(s){ localStorage.setItem('sb1123_dealStatuses', JSON.stringify(s)); }
+function getDealStatus(lat,lng){ return loadDealStatuses()[lat+','+lng] || 'Screening'; }
+function setDealStatus(lat,lng,status){
+  var s = loadDealStatuses();
+  s[lat+','+lng] = status;
+  saveDealStatuses(s);
+  rebuildListings();
+}
+
+function buildStatusFilterBody(){
+  var body = document.getElementById('statusFilterBody');
+  if(!body) return;
+  body.innerHTML = '';
+  DEAL_STATUSES.forEach(function(st){
+    var row = document.createElement('label');
+    row.className = 'status-filter-row';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = statusFilterState[st];
+    cb.onchange = function(){
+      statusFilterState[st] = this.checked;
+      applyFilters();
+    };
+    var dot = document.createElement('span');
+    dot.className = 'status-filter-dot';
+    dot.style.background = STATUS_COLORS[st];
+    var lbl = document.createElement('span');
+    lbl.textContent = st;
+    if(st === 'Passed') lbl.style.fontStyle = 'italic';
+    row.appendChild(cb);
+    row.appendChild(dot);
+    row.appendChild(lbl);
+    body.appendChild(row);
+  });
+}
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
@@ -2479,6 +2551,8 @@ function getFilteredListings(skipZoneFilter){
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
+    const lStatus = getDealStatus(l.lat, l.lng);
+    if(!statusFilterState[lStatus]) return false;
     const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND' || !l.sqft || l.type === 'Vacant Land';
@@ -2656,8 +2730,17 @@ function generateDealCard(l, opts){
 
   // ── 1. TOPBAR ──
   var addr = titleAddr(l.address || 'N/A');
+  var curStatus = getDealStatus(l.lat, l.lng);
+  var statusBg = STATUS_COLORS[curStatus] || '#94a3b8';
+  var statusTextColor = (curStatus === 'Analyzing' || curStatus === 'LOI Submitted') ? '#fff' : '#1a1f26';
+  var statusSelectHtml = '<select class="dc3-status-select" style="background:' + statusBg + ';color:' + statusTextColor + '" onchange="setDealStatus(' + l.lat + ',' + l.lng + ',this.value)">';
+  DEAL_STATUSES.forEach(function(st){
+    statusSelectHtml += '<option value="' + st + '"' + (st === curStatus ? ' selected' : '') + '>' + st + '</option>';
+  });
+  statusSelectHtml += '</select>';
   h += '<div class="dc3-topbar">';
   h += '<div class="dc3-topbar-addr">' + addr + '</div>';
+  h += statusSelectHtml;
   h += '<div class="dc3-topbar-tags">';
   if (l.zone === 'LAND') h += '<span class="dc3-tag dc3-tag-land">LAND</span>';
   if (ctx === 'btr') {
@@ -2721,19 +2804,73 @@ function generateDealCard(l, opts){
   h += '<div class="dc3-row"><span class="dc3-k">Max Unit Height</span><span class="dc3-v">' + zh.height + '</span></div>';
   h += '</div></div></div>';
 
-  // BOTTOM-RIGHT — BUILD TO RENT
-  h += '<div class="dc3-quad dc3-quad-br"><div class="dc3-quad-title">Build to Rent</div>';
+  // BOTTOM-RIGHT — DSCR WATERFALL (Build to Rent)
+  h += '<div class="dc3-quad dc3-quad-br"><div class="dc3-quad-title">DSCR Waterfall — Build to Rent</div>';
   if (btr.rentPsf > 0) {
-    h += '<div class="dc3-subcols"><div class="dc3-subcol">';
-    h += '<div class="dc3-row"><span class="dc3-k">Rent / Unit</span><span class="dc3-v dc3-v-green">$' + btr.rentPerUnit.toLocaleString() + '/mo</span></div>';
-    h += '<div class="dc3-row"><span class="dc3-k">NOI</span><span class="dc3-v">' + fmtShort(btr.annualNOI) + '</span></div>';
-    h += '<div class="dc3-row"><span class="dc3-k">Yield on Cost</span><span class="dc3-v dc3-v-green">' + (btr.yieldOnCost * 100).toFixed(1) + '%</span></div>';
-    h += '<div class="dc3-row"><span class="dc3-k">I/O Loan</span><span class="dc3-v">' + loanAbbr + '<span class="dc3-sub">$' + Math.round(btr.annualDebtService).toLocaleString() + '/yr</span></span></div>';
-    h += '</div><div class="dc3-subcol">';
-    h += '<div class="dc3-row"><span class="dc3-k">Stabilized Value</span><span class="dc3-v">' + fmtShort(btr.stabilizedValue) + '</span></div>';
-    h += '<div class="dc3-row"><span class="dc3-k">DSCR</span><span class="dc3-v dc3-v-green">' + btr.dscr.toFixed(2) + 'x</span></div>';
-    h += '<div class="dc3-row"><span class="dc3-k">Cash Flow / yr</span><span class="dc3-v dc3-v-green">' + fmtShort(btr.cashFlow) + '</span></div>';
-    h += '</div></div>';
+    // Compute three scenarios: Conservative / Base / Aggressive
+    var opexRatio = btr.opexRatio || 0.30;
+    var loanAmount = btr.loanAmount;
+    var debtService = btr.annualDebtService;
+    var totalCost = btr.totalProjectCost || btr.totalCost || pf.totalProjectCost;
+    var baseRentPerUnit = btr.rentPerUnit;
+    var scenarioRents = [
+      l.rentConservative || Math.round(baseRentPerUnit * 0.90),
+      baseRentPerUnit,
+      l.rentAggressive || Math.round(baseRentPerUnit * 1.10)
+    ];
+    var scenarios = scenarioRents.map(function(rentPU){
+      var grossMonthly = rentPU * btr.units;
+      var annualGross = grossMonthly * 12;
+      var vacancy = annualGross * 0.05;
+      var opex = (annualGross - vacancy) * opexRatio;
+      var noi = annualGross - vacancy - opex;
+      var maxLoanDSCR = noi / 1.25 / 0.065;
+      var dscr = debtService > 0 ? noi / debtService : 0;
+      var yoc = totalCost > 0 ? noi / totalCost : 0;
+      return {rentPU, grossMonthly, annualGross, vacancy, opex, noi, maxLoanDSCR, dscr, yoc};
+    });
+    var sc = scenarios;
+
+    function wfFmt(n){ return n >= 1e6 ? '$'+(n/1e6).toFixed(2)+'M' : '$'+(n/1e3).toFixed(0)+'K'; }
+    function dscrColor(d){ return d >= 1.25 ? '#246424' : d >= 1.0 ? '#7a5e10' : '#b91c1c'; }
+    function yocColor(y){ return y >= 0.04 ? '#246424' : y >= 0.03 ? '#7a5e10' : '#b91c1c'; }
+
+    h += '<table class="dc3-waterfall">';
+    h += '<thead><tr><th></th><th>Cons.</th><th>Base</th><th>Aggr.</th></tr></thead>';
+    h += '<tbody>';
+    h += '<tr><td>Monthly Gross Rent</td><td>$'+sc[0].rentPU.toLocaleString()+'</td><td>$'+sc[1].rentPU.toLocaleString()+'</td><td>$'+sc[2].rentPU.toLocaleString()+'</td></tr>';
+    h += '<tr><td>Annual Gross Rent</td><td>'+wfFmt(sc[0].annualGross)+'</td><td>'+wfFmt(sc[1].annualGross)+'</td><td>'+wfFmt(sc[2].annualGross)+'</td></tr>';
+    h += '<tr class="wf-sub"><td>Less: Vacancy (5%)</td><td>('+wfFmt(sc[0].vacancy)+')</td><td>('+wfFmt(sc[1].vacancy)+')</td><td>('+wfFmt(sc[2].vacancy)+')</td></tr>';
+    h += '<tr class="wf-sub"><td>Less: Op. Expenses</td><td>('+wfFmt(sc[0].opex)+')</td><td>('+wfFmt(sc[1].opex)+')</td><td>('+wfFmt(sc[2].opex)+')</td></tr>';
+    h += '<tr class="wf-noi"><td>= Net Op. Income</td><td>'+wfFmt(sc[0].noi)+'</td><td>'+wfFmt(sc[1].noi)+'</td><td>'+wfFmt(sc[2].noi)+'</td></tr>';
+    h += '<tr><td>Max Loan @ 1.25x DSCR</td><td>'+wfFmt(sc[0].maxLoanDSCR)+'</td><td>'+wfFmt(sc[1].maxLoanDSCR)+'</td><td>'+wfFmt(sc[2].maxLoanDSCR)+'</td></tr>';
+    h += '<tr class="wf-sub"><td>Debt Service (6.5% I/O)</td><td colspan="3" style="text-align:center">'+wfFmt(debtService)+'/yr (fixed)</td></tr>';
+    h += '<tr class="wf-dscr"><td>= DSCR</td>';
+    sc.forEach(function(s){ h += '<td style="color:'+dscrColor(s.dscr)+'">'+s.dscr.toFixed(2)+'x</td>'; });
+    h += '</tr>';
+    h += '<tr class="wf-yoc"><td>= YoC on Equity</td>';
+    sc.forEach(function(s){ h += '<td style="color:'+yocColor(s.yoc)+'">'+((s.yoc)*100).toFixed(1)+'%</td>'; });
+    h += '</tr>';
+    h += '</tbody></table>';
+
+    // Footnote
+    h += '<div style="font-size:9px;color:#a8a5a0;margin-top:4px">Permanent financing: 6.5% I/O | LTV: 70% | Vacancy: 5% | OpEx: '+(opexRatio*100).toFixed(0)+'% | DSCR threshold: 1.25×</div>';
+
+    // Verdict badge
+    var baseDSCR = sc[1].dscr;
+    var aggrDSCR = sc[2].dscr;
+    var verdictHtml, verdictStyle;
+    if(baseDSCR >= 1.25){
+      verdictStyle = 'background:#dcfce7;color:#166534';
+      verdictHtml = 'BTR VIABLE — Base Case';
+    } else if(aggrDSCR >= 1.25){
+      verdictStyle = 'background:#fef9c3;color:#854d0e';
+      verdictHtml = 'BTR MARGINAL — Aggressive Case Only';
+    } else {
+      verdictStyle = 'background:#f1f5f9;color:#64748b';
+      verdictHtml = 'BTR NOT VIABLE — For-Sale Exit Recommended';
+    }
+    h += '<div class="dc3-verdict-badge" style="'+verdictStyle+'">'+verdictHtml+'</div>';
   } else {
     h += '<div style="color:#a8a5a0;font-size:11px;padding:8px 0">No rent data available</div>';
   }
@@ -2850,6 +2987,17 @@ function rebuildListings(cachedListings){
       cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
     }
     cm.addTo(listingsLayer);
+
+    // Status dot — show for non-default statuses
+    var pinStatus = getDealStatus(l.lat, l.lng);
+    if(pinStatus !== 'Screening'){
+      var dotColor = STATUS_COLORS[pinStatus] || '#94a3b8';
+      var dotMarker = L.circleMarker([l.lat - 0.0003, l.lng + 0.0003], {
+        radius: 4, color: '#fff', fillColor: dotColor,
+        fillOpacity: 1, weight: 1.5, pane: 'listingsPane'
+      });
+      dotMarker.addTo(listingsLayer);
+    }
   });
 
   document.getElementById('listingCount').textContent = filtered.length.toLocaleString();
@@ -4753,6 +4901,7 @@ window.addEventListener('DOMContentLoaded', function(){
       
       rebuildMarkers();
       rebuildListings();
+      buildStatusFilterBody();
       rebuildZoneToggles();
       refreshVisibility();
       updateStats();

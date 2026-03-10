@@ -44,6 +44,9 @@ attom_*.json
 # Environment files
 .env*
 
+# Netlify config (contains credentials — keep local only)
+netlify.toml
+
 # OS files
 .DS_Store
 .claude/
