@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function() {
+  var CORRECT = 'lucidresi';
+  var stored = sessionStorage.getItem('lu_auth');
+  if (stored !== CORRECT) {
+    var attempt = prompt('Lucid Urban Development\n\nEnter investor access code:');
+    if (attempt !== CORRECT) {
+      document.documentElement.innerHTML = '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#1B3A6B;color:white;"><div style="text-align:center"><h2>Access Denied</h2><p>Contact Lucid Urban Development for access.</p></div></body>';
+      throw new Error('Access denied');
+    }
+    sessionStorage.setItem('lu_auth', CORRECT);
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SB 1123 Deal Finder — LA County</title>
