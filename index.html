@@ -900,12 +900,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   }
   .modal-close:hover{color:var(--text);background:var(--surface2)}
   .modal-body{padding:20px}
-  .data-key-panel{max-width:640px}
-  .data-key-section{margin-bottom:16px}
-  .data-key-section h4{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
-  .data-key-item{margin-bottom:10px}
-  .data-key-item dt{font-weight:700;font-size:12px;color:var(--text);margin-bottom:2px}
-  .data-key-item dd{margin:0;font-size:11px;color:var(--text-dim);line-height:1.5}
   .gear-icon{
     display:inline-flex;align-items:center;justify-content:center;
     width:28px;height:28px;border-radius:6px;cursor:pointer;
@@ -1011,6 +1005,20 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .key-tier-t1 .key-tier-label{color:#14b8a6}
   .key-tier-t2 .key-tier-label{color:#64748b}
   .key-tier p{margin:0;font-size:12px;color:#475569;line-height:1.5}
+
+  /* ── Assumptions tab sliders ── */
+  .key-slider-group{margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:14px}
+  .key-slider-group:last-of-type{border-bottom:none}
+  .key-slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .key-slider-label b{font-size:12px;font-weight:600;color:#1e293b}
+  .key-slider-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#2563eb;min-width:60px;text-align:right}
+  .key-slider-range{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px}
+  .key-slider-input{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:#e2e8f0;outline:none;cursor:pointer}
+  .key-slider-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer}
+  .key-slider-input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer}
+  .key-slider-input:hover::-webkit-slider-thumb{background:#1d4ed8}
+  .key-reset-btn{display:block;width:100%;margin-top:16px;padding:8px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#64748b;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all 0.15s}
+  .key-reset-btn:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff}
 
   @media (max-width:768px){
     .key-panel{width:100%;right:-100%}
@@ -1441,100 +1449,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   </div>
 </div>
 
-<!-- App Logic Reference Modal -->
-<div class="modal-overlay" id="dataKeyModal" role="dialog" aria-modal="true" aria-labelledby="dataKeyTitle" onclick="if(event.target===this) closeDataKeyModal()">
-  <div class="modal-panel data-key-panel">
-    <div class="modal-header">
-      <h3 id="dataKeyTitle">App Logic Reference</h3>
-      <button class="modal-close" onclick="closeDataKeyModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-
-      <div class="data-key-section">
-        <h4>1. Eligibility Screen</h4>
-        <dl class="data-key-item"><dt>Zones</dt><dd>R1, R2, R3, R4, MU, LAND only</dd></dl>
-        <dl class="data-key-item"><dt>Excluded property types</dt><dd>Condo/Co-op, Townhouse (shared land &mdash; can&rsquo;t subdivide)</dd></dl>
-        <dl class="data-key-item"><dt>HOA rules</dt><dd>R1 + any HOA = excluded. Any zone + HOA &ge;$1K/mo = excluded</dd></dl>
-        <dl class="data-key-item"><dt>Hard disqualifiers</dt><dd>VHFHSZ fire zone, protected areas (parks/conservation), outside Census urban area</dd></dl>
-        <dl class="data-key-item"><dt>Lot minimums</dt><dd>R1/LAND: 2,400 SF (2 units &times; 1,200). R2&ndash;R4/MU: 1,200 SF (2 units &times; 600)</dd></dl>
-        <dl class="data-key-item"><dt>Lot caps</dt><dd>R1/LAND: 65,340 SF (1.5 ac). R2&ndash;R4/MU: 217,800 SF (5 ac)</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>2. Unit Count</h4>
-        <dl class="data-key-item"><dt>Density</dt><dd>R1/LAND: floor(lot SF &divide; 1,200), cap 10. R2&ndash;R4/MU: floor(lot SF &divide; 600), cap 10</dd></dl>
-        <dl class="data-key-item"><dt>Layout constraint</dt><dd>Buildable width = lot width &minus; 20&rsquo; driveway &minus; 4&rsquo; side setback. If width &ge; 20&rsquo;, units = floor(usable depth &divide; unit depth)</dd></dl>
-        <dl class="data-key-item"><dt>FAR</dt><dd>Caps total buildable SF: 0.5 (&lt;3 units), 1.0 (3&ndash;7 units), 1.25 (8&ndash;10 units)</dd></dl>
-        <dl class="data-key-item"><dt>Buildable SF</dt><dd>units &times; 1,750 SF (default avg unit), capped by FAR &times; lot SF</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>3. Exit $/SF</h4>
-        <dl class="data-key-item"><dt>Primary signal</dt><dd>P75 (weighted 75th percentile) of general comps</dd></dl>
-        <dl class="data-key-item"><dt>Search radius</dt><dd>Expands 0.25mi &rarr; 0.5mi &rarr; 1mi until &ge;5 comps found</dd></dl>
-        <dl class="data-key-item"><dt>Comp size band</dt><dd>1,300&ndash;3,500 SF (excludes outlier homes)</dd></dl>
-        <dl class="data-key-item"><dt>Weighting</dt><dd>T1 new/remodel &times; 1.75, attached product (TH/condo) &times; 1.5, recency decay (1.0&times; at 6mo &rarr; 0.2&times; at 36mo+)</dd></dl>
-        <dl class="data-key-item"><dt>Outlier trim</dt><dd>IQR-based outlier removal applied before P75 calculation</dd></dl>
-        <dl class="data-key-item"><dt>Detached SFR discount</dt><dd>If comps &gt;50% SFR, graduated discount up to 15% (SB 1123 builds attached product, not detached SFR)</dd></dl>
-        <dl class="data-key-item"><dt>Newcon comps</dt><dd>Shown as reference only &mdash; do not drive primary estimate (inflate in luxury markets)</dd></dl>
-        <dl class="data-key-item"><dt>Confidence score</dt><dd>0&ndash;100. Count pts: &le;2 comps (3/ea), 3&ndash;4 (15), 5&ndash;9 (25), 10&ndash;19 (40), 20&ndash;29 (50), 30+ (60). Method pts: spatial +30, spatial-thin +15, zip +8, other +5</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>4. Pro Forma</h4>
-        <dl class="data-key-item"><dt>Revenue</dt><dd>Buildable SF &times; exit $/SF = gross. Net = gross &times; (1 &minus; 4.7% txn costs) &minus; $40K fixed disposition</dd></dl>
-        <dl class="data-key-item"><dt>Build costs</dt><dd>$400/SF all-in (default). Includes hard, soft (25% of hard), subdivision ($10/SF), A&amp;E ($5/SF). Slope adds +$15/SF per 5% band above 5%</dd></dl>
-        <dl class="data-key-item"><dt>Financing</dt><dd>70% LTC loan at 9% carry. Interest on avg outstanding (acq full + 50% construction draw). Plus $40K insurance, 1% origination, 1.1% prop tax on acq</dd></dl>
-        <dl class="data-key-item"><dt>Hold period</dt><dd>24 months standard. +4 months if Ellis Act required</dd></dl>
-        <dl class="data-key-item"><dt>Ellis Act</dt><dd>$20K/unit relocation cost. Applies to LA RSO properties only (pre-1978, multi-unit, in RSO city)</dd></dl>
-        <dl class="data-key-item"><dt>Profit</dt><dd>Net revenue &minus; (acquisition + construction + carry)</dd></dl>
-        <dl class="data-key-item"><dt>Margin</dt><dd>Profit &divide; net revenue. <span style="color:#4ecdc4">&ge;20% green</span>, <span style="color:#ffe66d">10&ndash;20% yellow</span>, <span style="color:#ff6b6b">&lt;10% red</span></dd></dl>
-        <dl class="data-key-item"><dt>Return on Cost</dt><dd>Profit &divide; total cost</dd></dl>
-        <dl class="data-key-item"><dt>Land Basis</dt><dd>Acquisition &divide; buildable SF. <span style="color:#4ecdc4">&lt;$120 green</span>, <span style="color:#ffe66d">$120&ndash;160 yellow</span>, <span style="color:#ff6b6b">&gt;$160 red</span></dd></dl>
-        <dl class="data-key-item"><dt>Max Offer</dt><dd>Backward-solves for 30% net margin target</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>5. Build-to-Rent (BTR)</h4>
-        <dl class="data-key-item"><dt>Rent source</dt><dd>Spatial rental comps (primary), ZORI index, or HUD SAFMR &times; 1.25 new-construction premium (fallback)</dd></dl>
-        <dl class="data-key-item"><dt>NOI</dt><dd>Gross annual rent &times; (1 &minus; 30% opex)</dd></dl>
-        <dl class="data-key-item"><dt>Yield on Cost</dt><dd>NOI &divide; total development cost</dd></dl>
-        <dl class="data-key-item"><dt>Stabilized Value</dt><dd>NOI &divide; 5.5% cap rate</dd></dl>
-        <dl class="data-key-item"><dt>Refi</dt><dd>70% LTV at 6.5% rate</dd></dl>
-        <dl class="data-key-item"><dt>DSCR</dt><dd>NOI &divide; annual debt service. BTR &ldquo;pencils&rdquo; when DSCR &ge; 1.25</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>6. Due Diligence Flags</h4>
-        <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>Hard disqualifier</dd></dl>
-        <dl class="data-key-item"><dt>Protected Area</dt><dd>Hard disqualifier (parks, conservation)</dd></dl>
-        <dl class="data-key-item"><dt>Burn Zone</dt><dd>Informational only (LA Palisades/Eaton fires)</dd></dl>
-        <dl class="data-key-item"><dt>Slope</dt><dd>Build cost +$15/SF per 5% band above 5%. Badges: 31&ndash;50% moderate (yellow), 51&ndash;75% steep (orange), 76%+ severe (red)</dd></dl>
-        <dl class="data-key-item"><dt>Tenant Risk</dt><dd>0&ndash;3 scale. Factors: improved property, 3+ beds, 5+ beds, MF structure, pre-2000, RSO. Higher = more relocation cost/complexity</dd></dl>
-        <dl class="data-key-item"><dt>HOA</dt><dd>R1 + HOA = excluded. HOA &ge;$1K/mo = excluded on any zone</dd></dl>
-        <dl class="data-key-item"><dt>Remainder Parcel (R2&ndash;R4/MU)</dt><dd>Available SF = lot &minus; footprint &minus; 2,000 driveway. Viable if &ge;6,000 SF and &ge;4 units</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>7. Map &amp; Colors</h4>
-        <dl class="data-key-item"><dt>Pin color (exit $/SF)</dt><dd><span style="color:#6366f1">&lt;$650 indigo</span> &rarr; <span style="color:#3b82f6">$650 blue</span> &rarr; <span style="color:#22d3ee">$700 teal</span> &rarr; <span style="color:#22c55e">$750 green</span> &rarr; <span style="color:#eab308">$800 amber</span> &rarr; <span style="color:#f97316">$900+ orange</span></dd></dl>
-        <dl class="data-key-item"><dt>Pin size (lot area)</dt><dd>&lt;10K SF small, 10&ndash;15K medium, 15K+ large</dd></dl>
-        <dl class="data-key-item"><dt>Pin border</dt><dd><span style="color:#22c55e">Green</span> = new listing (~7d). <span style="color:#f97316">Orange</span> = active. <span style="color:#eab308">Gold</span> = dual-viable (BTS margin &ge;20% + BTR DSCR &ge;1.25)</dd></dl>
-      </div>
-
-      <div class="data-key-section">
-        <h4>8. Default Assumptions</h4>
-        <dl class="data-key-item"><dd>All adjustable via gear icon in sidebar.</dd></dl>
-        <dl class="data-key-item"><dt>Build</dt><dd>$400/SF all-in, 1,750 SF/unit, 24mo hold</dd></dl>
-        <dl class="data-key-item"><dt>Financing</dt><dd>9% carry, 1% origination, $40K insurance, 1.1% prop tax</dd></dl>
-        <dl class="data-key-item"><dt>Sale</dt><dd>4.7% txn costs + $40K fixed disposition</dd></dl>
-        <dl class="data-key-item"><dt>BTR</dt><dd>30% opex, 5.5% cap, 70% refi LTV, 6.5% refi rate</dd></dl>
-        <dl class="data-key-item"><dt>Ellis</dt><dd>$20K/unit (LA RSO only)</dd></dl>
-      </div>
-
-    </div>
-  </div>
-</div>
 
 <!-- Listings Panel Tab (visible when panel is closed) -->
 <div class="listings-panel-tab" id="listingsPanelTab" onclick="toggleListingsPanel()">
@@ -2907,7 +2821,8 @@ function rebuildListings(cachedListings){
     const exitPsf_pin = exitLabel(l).psf;
     const allInPsf_pin = pf_pin.effective_buildable_sf > 0 ? Math.round(pf_pin.totalProjectCost / pf_pin.effective_buildable_sf) : 0;
     const pinSpread = exitPsf_pin - allInPsf_pin;
-    const nonViable = !l.maxOffer || l.maxOffer <= 0;
+    const exitFloor = window._kaExitFloor || 0;
+    const nonViable = !l.maxOffer || l.maxOffer <= 0 || (exitFloor > 0 && exitPsf_pin < exitFloor);
 
     // Color fill by spread — ghost non-viable pins
     const fillColor = nonViable ? '#888' : spreadColor(pinSpread);
@@ -3484,7 +3399,7 @@ function closeAssumptionsModal(){
   document.getElementById('assumptionsModal').classList.remove('active');
 }
 function closeDataKeyModal(){
-  document.getElementById('dataKeyModal').classList.remove('active');
+  // Legacy stub — dataKeyModal removed, content moved to Key panel
 }
 
 // ── Escape key: close topmost modal/panel ──
@@ -3493,7 +3408,6 @@ document.addEventListener('keydown', function(e){
   var em = document.getElementById('exportModal');
   if(em) { closeExportModal(); return; }
   if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
-  else if(document.getElementById('dataKeyModal').classList.contains('active')) closeDataKeyModal();
   else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
   else if(isCompsTableActive()) hideCompsTable();
   else if(isRentalCompsTableActive()) hideRentalCompsTable();
@@ -5166,7 +5080,7 @@ map.on('click', function(e) {
     <button class="key-tab" data-tab="btrModel" role="tab" onclick="switchKeyTab(this)">BTR Model</button>
     <button class="key-tab" data-tab="eligibility" role="tab" onclick="switchKeyTab(this)">Eligibility</button>
     <button class="key-tab" data-tab="offMarket" role="tab" onclick="switchKeyTab(this)">Off-Market</button>
-    <button class="key-tab" data-tab="assumptions" role="tab" onclick="switchKeyTab(this)" style="color:#cbd5e1;font-style:italic">Assumptions</button>
+    <button class="key-tab" data-tab="assumptions" role="tab" onclick="switchKeyTab(this)">Assumptions</button>
   </div>
   <div class="key-body" id="keyBody">
 
@@ -5256,9 +5170,53 @@ map.on('click', function(e) {
       <p>Acquiring at pre-SB 1123 pricing is the core of our return model. The spread between acquisition cost and exit value is only achievable if we buy before the market reprices. Direct-to-homeowner outreach and speed of close (no listing process, no competing bids) are our structural advantages.</p>
     </div>
 
-    <!-- TAB 7: Assumptions (placeholder) -->
+    <!-- TAB 7: Assumptions (live sliders) -->
     <div class="key-tab-content" data-tab="assumptions" style="display:none">
-      <p style="color:#94a3b8;font-style:italic;margin-top:20px">Assumptions tab coming soon. Use the gear icon in the sidebar to adjust deal assumptions.</p>
+      <p style="font-size:11px;color:#64748b;margin-bottom:16px">Adjust assumptions below. All pins reprice live.</p>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Construction Cost ($/SF)</b><span class="key-slider-val" id="kaSliderVal_buildCost">$350</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="400" step="5" value="350" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$300</span><span>$400</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Soft Costs (% of Hard)</b><span class="key-slider-val" id="kaSliderVal_softPct">18%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="25" step="0.5" value="18" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>12%</span><span>25%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Bridge / Construction Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="12" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>8%</span><span>12%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Hold Period (months)</b><span class="key-slider-val" id="kaSliderVal_holdMonths">24</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_holdMonths" min="18" max="36" step="1" value="24" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>18 mo</span><span>36 mo</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Exit $/SF &mdash; Floor</b><span class="key-slider-val" id="kaSliderVal_exitFloor">$600</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_exitFloor" min="500" max="750" step="10" value="600" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$500</span><span>$750</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Exit $/SF &mdash; Ceiling</b><span class="key-slider-val" id="kaSliderVal_exitCeiling">$850</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_exitCeiling" min="700" max="1000" step="10" value="850" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$700</span><span>$1,000</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>6%</span><span>12%</span></div>
+      </div>
+
+      <button class="key-reset-btn" onclick="resetKeyAssumptions()">Reset to Defaults</button>
     </div>
 
   </div>
@@ -5283,6 +5241,56 @@ function switchKeyTab(el){
   if(content) content.style.display = '';
   document.getElementById('keyBody').scrollTop = 0;
 }
+// ── Assumptions tab slider logic ──
+var KA_DEFAULTS = {buildCost:350,softPct:18,carryRate:11.5,holdMonths:24,exitFloor:600,exitCeiling:850,prefReturn:8};
+var _kaTimer = null;
+function onKeyAssumptionChange(){
+  // Update display values
+  var v = {};
+  ['buildCost','softPct','carryRate','holdMonths','exitFloor','exitCeiling','prefReturn'].forEach(function(k){
+    var el = document.getElementById('kaSlider_'+k);
+    v[k] = parseFloat(el.value);
+  });
+  document.getElementById('kaSliderVal_buildCost').textContent = '$'+v.buildCost;
+  document.getElementById('kaSliderVal_softPct').textContent = v.softPct+'%';
+  document.getElementById('kaSliderVal_carryRate').textContent = v.carryRate+'%';
+  document.getElementById('kaSliderVal_holdMonths').textContent = v.holdMonths;
+  document.getElementById('kaSliderVal_exitFloor').textContent = '$'+v.exitFloor;
+  document.getElementById('kaSliderVal_exitCeiling').textContent = '$'+v.exitCeiling;
+  document.getElementById('kaSliderVal_prefReturn').textContent = v.prefReturn+'%';
+
+  // Debounce the expensive re-computation
+  clearTimeout(_kaTimer);
+  _kaTimer = setTimeout(function(){ applyKeyAssumptions(v); }, 150);
+}
+function applyKeyAssumptions(v){
+  // Sync to proforma module + existing modal inputs (keep them in sync)
+  // allInBuildPsf is truly all-in: hard*(1+soft%) + subdiv + A&E
+  // From the user's slider: hard=buildCost, soft%=softPct → allIn = hard*(1+soft%/100) + 10 + 5
+  var hardPsf = v.buildCost;
+  var allIn = Math.round(hardPsf * (1 + v.softPct/100) + 15); // +$10 subdiv + $5 A&E
+  // Dispatch to the module-scoped proforma object via the existing modal inputs
+  var pfBuild = document.getElementById('pfBuildCost');
+  if(pfBuild) pfBuild.value = allIn;
+  var pfCarry = document.getElementById('pfCarryRate');
+  if(pfCarry) pfCarry.value = v.carryRate;
+  var pfHold = document.getElementById('pfHoldMonths');
+  if(pfHold) pfHold.value = v.holdMonths;
+  // Update exit floor/ceiling globals (used by rebuildListings for ghost logic)
+  window._kaExitFloor = v.exitFloor;
+  window._kaExitCeiling = v.exitCeiling;
+  window._kaPrefReturn = v.prefReturn;
+  // Trigger the existing proforma change handler (which calls clearProformaCaches + enrichListings + applyFilters)
+  if(typeof onProformaChange === 'function') onProformaChange();
+}
+function resetKeyAssumptions(){
+  Object.keys(KA_DEFAULTS).forEach(function(k){
+    var el = document.getElementById('kaSlider_'+k);
+    if(el) el.value = KA_DEFAULTS[k];
+  });
+  onKeyAssumptionChange();
+}
+
 // Escape key closes key panel
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape' && document.getElementById('keyPanel').classList.contains('open')){
