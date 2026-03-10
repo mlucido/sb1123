@@ -2588,13 +2588,15 @@ function generateDealCard(l, opts){
   h += '</div></div>';
 
   // ── 2. HERO STRIP ──
+  var spreadPct = allInPsf > 0 ? Math.round((spread / allInPsf) * 100) : 0;
+  var spreadColor = spread >= 100 ? '#246424' : spread >= 0 ? '#7a5e10' : '#b91c1c';
   h += '<div class="dc3-hero">';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val dc3-hero-accent">' + fmtDollar(l.price) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF</div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">All-In $/SF</div><div class="dc3-hero-val">$' + commas(allInPsf) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">$' + spread + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val">' + fmtDollar(l.price) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Zoning</div><div class="dc3-hero-val">' + (l.zone || '—') + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot Width</div><div class="dc3-hero-val">' + (l.lw ? l.lw + "'" : '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
   h += '</div>';
 
   // ── 3. BODY — 2×2 GRID ──
@@ -2705,27 +2707,33 @@ function rebuildListings(cachedListings){
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
-    // Color fill by exit $/SF
+    const nonViable = (l.maxOffer != null && l.maxOffer <= 0);
+
+    // Color fill by exit $/SF — ghost non-viable pins
     const ePsf = l.exitPsf || 0;
-    const fillColor = exitPsfColor(ePsf);
+    const fillColor = nonViable ? '#9ca3af' : exitPsfColor(ePsf);
 
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
     const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const borderColor = isNewListing ? '#22c55e' : '#f97316'; // Orange border = for-sale identifier
+    const borderColor = nonViable ? '#9ca3af' : (isNewListing ? '#22c55e' : '#f97316');
     const markerWeight = isNewListing ? 4 : 2;
     const margin = l.estMargin || 0;
-    const isDualViable = margin >= 20 && l.btrViable;
+    const isDualViable = !nonViable && margin >= 20 && l.btrViable;
     const cm = L.circleMarker([l.lat,l.lng],{
       radius, color: isDualViable ? '#f59e0b' : borderColor, fillColor,
-      fillOpacity: 0.95,
+      fillOpacity: nonViable ? 0.4 : 0.95,
       weight: isDualViable ? 3 : markerWeight,
       pane:'listingsPane',
-      className: isNewListing ? 'listing-marker-new' : '',
+      className: isNewListing && !nonViable ? 'listing-marker-new' : '',
     });
 
-    cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
+    if(nonViable){
+      cm.bindPopup('<div style="font-size:12px;color:#94a3b8;padding:8px;text-align:center"><b>Non-viable at current assumptions</b><br><small>' + titleAddr(l.address || 'N/A') + '</small></div>',{maxWidth:300});
+    } else {
+      cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
+    }
     cm.addTo(listingsLayer);
   });
 
@@ -2830,6 +2838,39 @@ function buildNeighborhoodLayer(){
   document.getElementById('neighborhoodCount').textContent = Object.keys(cells).length.toLocaleString();
 }
 
+// ── Est. Market Value: Assessor AV (primary) → ZIP median $/SF (fallback) ──
+// Builds ZIP-level median existing-home $/SF from sold comps for fallback
+var _zipMedianPsf = null;
+function getZipMedianPsf(){
+  if(_zipMedianPsf) return _zipMedianPsf;
+  _zipMedianPsf = {};
+  var byZip = {};
+  COMPS.forEach(function(c){
+    if(!c.zip || !c.ppsf || c.ppsf <= 0) return;
+    if(c.t === 1) return; // Exclude T1 new/remodel — we want existing-home $/SF
+    if(!byZip[c.zip]) byZip[c.zip] = [];
+    byZip[c.zip].push(c.ppsf);
+  });
+  Object.keys(byZip).forEach(function(zip){
+    var vals = byZip[zip].sort(function(a,b){return a-b;});
+    _zipMedianPsf[zip] = vals.length % 2 ? vals[Math.floor(vals.length/2)] : Math.round((vals[Math.floor(vals.length/2)-1]+vals[Math.floor(vals.length/2)])/2);
+  });
+  return _zipMedianPsf;
+}
+
+function estimateMarketValue(l){
+  // PRIMARY: Assessor AV (land + improvement)
+  var av = (l.assessedLandValue || 0) + (l.assessedImpValue || 0);
+  if(av > 0) return {value: av, source: 'Assessor AV'};
+  // FALLBACK: ZIP median existing-home $/SF × structure sqft
+  var zipMed = getZipMedianPsf();
+  var medPsf = l.zip ? zipMed[l.zip] : null;
+  var sqft = l.sqft || 0;
+  if(medPsf && sqft > 0) return {value: Math.round(medPsf * sqft), source: 'ZIP median'};
+  // No data
+  return {value: null, source: null};
+}
+
 // ══════════════════════════════════════════
 //  PRIORITY 4: OFF-MARKET TARGETS
 // ══════════════════════════════════════════
@@ -2848,10 +2889,9 @@ function buildOffMarketLayer(){
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
     const hood_psf = l.exitPsf || 0;
-    const structure_sf = l.sqft || 0;
-
-    // Est. Market Value = hood_psf × structure_sf
-    const est_market_value = hood_psf * structure_sf;
+    const emv = estimateMarketValue(l);
+    const est_market_value = emv.value;
+    if(!est_market_value) return false; // No market value = skip
 
     // Est. Offer = est_market_value × 0.95 (5% below market)
     const est_offer = est_market_value * 0.95;
@@ -2889,10 +2929,9 @@ function buildOffMarketLayer(){
 
   offMarketListings.forEach(l => {
     const hood_psf = l.exitPsf || 0;
-    const structure_sf = l.sqft || 0;
-
-    // Est. Market Value = hood_psf × structure_sf
-    const est_market_value = hood_psf * structure_sf;
+    const emv = estimateMarketValue(l);
+    const est_market_value = emv.value || 0;
+    const emvSource = emv.source || '—';
 
     // Est. Offer = est_market_value × 0.95
     const est_offer = est_market_value * 0.95;
@@ -2980,7 +3019,7 @@ function buildOffMarketLayer(){
       <div class="popup-title">${titleAddr(l.address || 'N/A')}</div>
 
       <div class="popup-grid">
-        <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
+        <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'} <small style="color:var(--text-dim)">(${emvSource})</small></div></div>
         <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0)}/sf</div></div>
@@ -3479,8 +3518,9 @@ function updateLayerCounts(){
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
     const hood_psf = l.exitPsf || 0;
-    const structure_sf = l.sqft || 0;
-    const est_market_value = hood_psf * structure_sf;
+    const _emv = estimateMarketValue(l);
+    const est_market_value = _emv.value;
+    if(!est_market_value) continue;
     const est_offer = est_market_value * 0.95;
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
