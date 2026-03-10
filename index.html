@@ -434,16 +434,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-verdict-val{font-size:22px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
   .dc3-verdict-sub{font-size:9.5px;color:#b0ada8;margin-top:3px}
 
-  /* 4b. Exit Pricing Comp Anchors */
-  .dc3-comp-anchors{padding:10px 22px;border-top:1px solid #e8e8e8;background:#fafafa}
-  .dc3-comp-anchors-title{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#b8b5b0;margin-bottom:6px}
-  .dc3-comp-table{width:100%;border-collapse:collapse;font-size:11px}
-  .dc3-comp-table th{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:#a8a5a0;font-weight:600;text-align:left;padding:3px 8px 3px 0;border-bottom:1px solid #e8e8e8}
-  .dc3-comp-table td{padding:4px 8px 4px 0;border-bottom:1px solid #f0f0f0;font-variant-numeric:tabular-nums;color:#1a1f26}
-  .dc3-comp-addr{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dc3-comp-footer{font-size:10px;color:#a8a5a0;margin-top:6px;font-style:italic}
-  .dc3-info-tip{font-size:11px;color:#a8a5a0;cursor:help;margin-left:2px;font-style:normal;vertical-align:middle}
-
   /* 5. Bottom bar */
   .dc3-bottom{border-top:1px solid #e8e8e8}
   .dc3-bottom-dd{display:flex;align-items:center;padding:6px 22px;gap:16px;font-size:11px;color:#7a7870;background:#fff;border-bottom:1px solid #e8e8e8;flex-wrap:wrap}
@@ -900,6 +890,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   }
   .modal-close:hover{color:var(--text);background:var(--surface2)}
   .modal-body{padding:20px}
+  .data-key-panel{max-width:640px}
+  .data-key-section{margin-bottom:16px}
+  .data-key-section h4{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:700;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+  .data-key-item{margin-bottom:10px}
+  .data-key-item dt{font-weight:700;font-size:12px;color:var(--text);margin-bottom:2px}
+  .data-key-item dd{margin:0;font-size:11px;color:var(--text-dim);line-height:1.5}
   .gear-icon{
     display:inline-flex;align-items:center;justify-content:center;
     width:28px;height:28px;border-radius:6px;cursor:pointer;
@@ -933,103 +929,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .leaflet-edit-resize,.leaflet-marker-icon.leaflet-editing-icon[style*="opacity"]{
     opacity:0.5 !important;width:8px !important;height:8px !important;
     margin-left:-4px !important;margin-top:-4px !important;
-  }
-
-  .ghost-tooltip .leaflet-tooltip-content{font-family:'DM Mono',monospace;font-size:11px;color:#94a3b8}
-
-  /* ── Key Panel (slide-out right) ── */
-  .key-toggle-btn{
-    position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1100;
-    writing-mode:vertical-lr;text-orientation:mixed;
-    padding:14px 7px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;
-    letter-spacing:0.08em;text-transform:uppercase;
-    background:#fff;color:#475569;border:1px solid #d0d0d0;border-right:none;
-    border-radius:8px 0 0 8px;cursor:pointer;
-    box-shadow:-2px 0 8px rgba(0,0,0,0.08);transition:right 0.3s ease,background 0.15s;
-  }
-  .key-toggle-btn:hover{background:#f8fafc;color:#1e293b}
-  .key-toggle-btn.shifted{right:380px}
-
-  .key-panel{
-    position:fixed;top:0;right:-380px;width:380px;height:100vh;z-index:1090;
-    background:#fff;border-left:1px solid #d0d0d0;
-    box-shadow:-4px 0 24px rgba(0,0,0,0.08);
-    display:flex;flex-direction:column;
-    transition:right 0.3s ease;
-    font-family:'IBM Plex Sans',sans-serif;
-  }
-  .key-panel.open{right:0}
-
-  .key-panel-header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px 0;flex-shrink:0;
-  }
-  .key-panel-title{font-size:15px;font-weight:700;color:#1a1f26;letter-spacing:-0.01em}
-  .key-panel-close{
-    background:none;border:1px solid #e2e8f0;border-radius:6px;
-    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-    font-size:16px;color:#94a3b8;cursor:pointer;transition:all 0.15s;
-  }
-  .key-panel-close:hover{color:#1a1f26;border-color:#94a3b8}
-
-  .key-tabs{
-    display:flex;gap:0;border-bottom:1px solid #e2e8f0;padding:12px 20px 0;flex-shrink:0;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;
-  }
-  .key-tabs::-webkit-scrollbar{height:0}
-  .key-tab{
-    padding:6px 10px 10px;font-size:10.5px;font-weight:600;color:#94a3b8;
-    cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
-    transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;
-    font-family:'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:0.06em;
-  }
-  .key-tab:hover{color:#475569}
-  .key-tab.active{color:#1e293b;border-bottom-color:#2563eb}
-
-  .key-body{flex:1;overflow-y:auto;padding:20px;font-size:13px;line-height:1.65;color:#334155}
-  .key-body::-webkit-scrollbar{width:5px}
-  .key-body::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:3px}
-  .key-body::-webkit-scrollbar-track{background:transparent}
-
-  .key-body h3{font-size:13px;font-weight:700;color:#1e293b;margin:0 0 8px;letter-spacing:-0.01em}
-  .key-body h3:not(:first-child){margin-top:20px}
-  .key-body p{margin:0 0 12px}
-  .key-body .key-note{font-size:11px;color:#64748b;font-style:italic;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9}
-
-  .key-stack{margin:8px 0 12px;font-size:12px;font-family:'JetBrains Mono',monospace}
-  .key-stack div{padding:3px 0;color:#475569}
-  .key-stack .key-stack-total{font-weight:700;color:#1e293b;border-top:1px solid #e2e8f0;margin-top:4px;padding-top:6px}
-
-  .key-tier{margin:8px 0 12px;padding:10px 12px;border-radius:6px;border:1px solid #e2e8f0}
-  .key-tier-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
-  .key-tier-t1 .key-tier-label{color:#14b8a6}
-  .key-tier-t2 .key-tier-label{color:#64748b}
-  .key-tier p{margin:0;font-size:12px;color:#475569;line-height:1.5}
-
-  /* ── Assumptions tab sliders ── */
-  .key-slider-group{margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:14px}
-  .key-slider-group:last-of-type{border-bottom:none}
-  .key-slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .key-slider-label b{font-size:12px;font-weight:600;color:#1e293b}
-  .key-slider-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#2563eb;min-width:60px;text-align:right}
-  .key-slider-range{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px}
-  .key-slider-input{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:#e2e8f0;outline:none;cursor:pointer}
-  .key-slider-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer}
-  .key-slider-input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer}
-  .key-slider-input:hover::-webkit-slider-thumb{background:#1d4ed8}
-  .key-reset-btn{display:block;width:100%;margin-top:16px;padding:8px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#64748b;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all 0.15s}
-  .key-reset-btn:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff}
-
-  @media (max-width:768px){
-    .key-panel{width:100%;right:-100%}
-    .key-panel.open{right:0}
-    .key-toggle-btn{
-      writing-mode:horizontal-tb;text-orientation:initial;
-      position:fixed;right:10px;top:auto;bottom:70px;transform:none;
-      padding:8px 14px;border-radius:8px;border:1px solid #d0d0d0;
-      box-shadow:0 2px 8px rgba(0,0,0,0.12);
-    }
-    .key-toggle-btn.shifted{right:10px;bottom:70px}
   }
 </style>
 </head>
@@ -1367,13 +1266,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--mu)"></div> MU Mixed-Use</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
-  <div class="legend-section" style="margin-top:8px">Listings (Spread $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#888;border-radius:50%;opacity:0.4"></div> &le;$0 non-viable</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $1&ndash;$75</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#14b8a6;border-radius:50%"></div> $76&ndash;$150</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#84cc16;border-radius:50%"></div> $151&ndash;$225</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $226&ndash;$300</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#dc2626;border-radius:50%"></div> $301+</div>
+  <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6366f1;border-radius:50%"></div> &lt;$650/SF</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $650–700</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;border-radius:50%"></div> $700–750</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border-radius:50%"></div> $750–800</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eab308;border-radius:50%"></div> $800–900</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $900+</div>
 </div>
 </div><!-- /app-row -->
 
@@ -1449,6 +1348,100 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   </div>
 </div>
 
+<!-- App Logic Reference Modal -->
+<div class="modal-overlay" id="dataKeyModal" role="dialog" aria-modal="true" aria-labelledby="dataKeyTitle" onclick="if(event.target===this) closeDataKeyModal()">
+  <div class="modal-panel data-key-panel">
+    <div class="modal-header">
+      <h3 id="dataKeyTitle">App Logic Reference</h3>
+      <button class="modal-close" onclick="closeDataKeyModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="data-key-section">
+        <h4>1. Eligibility Screen</h4>
+        <dl class="data-key-item"><dt>Zones</dt><dd>R1, R2, R3, R4, MU, LAND only</dd></dl>
+        <dl class="data-key-item"><dt>Excluded property types</dt><dd>Condo/Co-op, Townhouse (shared land &mdash; can&rsquo;t subdivide)</dd></dl>
+        <dl class="data-key-item"><dt>HOA rules</dt><dd>R1 + any HOA = excluded. Any zone + HOA &ge;$1K/mo = excluded</dd></dl>
+        <dl class="data-key-item"><dt>Hard disqualifiers</dt><dd>VHFHSZ fire zone, protected areas (parks/conservation), outside Census urban area</dd></dl>
+        <dl class="data-key-item"><dt>Lot minimums</dt><dd>R1/LAND: 2,400 SF (2 units &times; 1,200). R2&ndash;R4/MU: 1,200 SF (2 units &times; 600)</dd></dl>
+        <dl class="data-key-item"><dt>Lot caps</dt><dd>R1/LAND: 65,340 SF (1.5 ac). R2&ndash;R4/MU: 217,800 SF (5 ac)</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>2. Unit Count</h4>
+        <dl class="data-key-item"><dt>Density</dt><dd>R1/LAND: floor(lot SF &divide; 1,200), cap 10. R2&ndash;R4/MU: floor(lot SF &divide; 600), cap 10</dd></dl>
+        <dl class="data-key-item"><dt>Layout constraint</dt><dd>Buildable width = lot width &minus; 20&rsquo; driveway &minus; 4&rsquo; side setback. If width &ge; 20&rsquo;, units = floor(usable depth &divide; unit depth)</dd></dl>
+        <dl class="data-key-item"><dt>FAR</dt><dd>Caps total buildable SF: 0.5 (&lt;3 units), 1.0 (3&ndash;7 units), 1.25 (8&ndash;10 units)</dd></dl>
+        <dl class="data-key-item"><dt>Buildable SF</dt><dd>units &times; 1,750 SF (default avg unit), capped by FAR &times; lot SF</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>3. Exit $/SF</h4>
+        <dl class="data-key-item"><dt>Primary signal</dt><dd>P75 (weighted 75th percentile) of general comps</dd></dl>
+        <dl class="data-key-item"><dt>Search radius</dt><dd>Expands 0.25mi &rarr; 0.5mi &rarr; 1mi until &ge;5 comps found</dd></dl>
+        <dl class="data-key-item"><dt>Comp size band</dt><dd>1,300&ndash;3,500 SF (excludes outlier homes)</dd></dl>
+        <dl class="data-key-item"><dt>Weighting</dt><dd>T1 new/remodel &times; 1.75, attached product (TH/condo) &times; 1.5, recency decay (1.0&times; at 6mo &rarr; 0.2&times; at 36mo+)</dd></dl>
+        <dl class="data-key-item"><dt>Outlier trim</dt><dd>IQR-based outlier removal applied before P75 calculation</dd></dl>
+        <dl class="data-key-item"><dt>Detached SFR discount</dt><dd>If comps &gt;50% SFR, graduated discount up to 15% (SB 1123 builds attached product, not detached SFR)</dd></dl>
+        <dl class="data-key-item"><dt>Newcon comps</dt><dd>Shown as reference only &mdash; do not drive primary estimate (inflate in luxury markets)</dd></dl>
+        <dl class="data-key-item"><dt>Confidence score</dt><dd>0&ndash;100. Count pts: &le;2 comps (3/ea), 3&ndash;4 (15), 5&ndash;9 (25), 10&ndash;19 (40), 20&ndash;29 (50), 30+ (60). Method pts: spatial +30, spatial-thin +15, zip +8, other +5</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>4. Pro Forma</h4>
+        <dl class="data-key-item"><dt>Revenue</dt><dd>Buildable SF &times; exit $/SF = gross. Net = gross &times; (1 &minus; 4.7% txn costs) &minus; $40K fixed disposition</dd></dl>
+        <dl class="data-key-item"><dt>Build costs</dt><dd>$400/SF all-in (default). Includes hard, soft (25% of hard), subdivision ($10/SF), A&amp;E ($5/SF). Slope adds +$15/SF per 5% band above 5%</dd></dl>
+        <dl class="data-key-item"><dt>Financing</dt><dd>70% LTC loan at 9% carry. Interest on avg outstanding (acq full + 50% construction draw). Plus $40K insurance, 1% origination, 1.1% prop tax on acq</dd></dl>
+        <dl class="data-key-item"><dt>Hold period</dt><dd>24 months standard. +4 months if Ellis Act required</dd></dl>
+        <dl class="data-key-item"><dt>Ellis Act</dt><dd>$20K/unit relocation cost. Applies to LA RSO properties only (pre-1978, multi-unit, in RSO city)</dd></dl>
+        <dl class="data-key-item"><dt>Profit</dt><dd>Net revenue &minus; (acquisition + construction + carry)</dd></dl>
+        <dl class="data-key-item"><dt>Margin</dt><dd>Profit &divide; net revenue. <span style="color:#4ecdc4">&ge;20% green</span>, <span style="color:#ffe66d">10&ndash;20% yellow</span>, <span style="color:#ff6b6b">&lt;10% red</span></dd></dl>
+        <dl class="data-key-item"><dt>Return on Cost</dt><dd>Profit &divide; total cost</dd></dl>
+        <dl class="data-key-item"><dt>Land Basis</dt><dd>Acquisition &divide; buildable SF. <span style="color:#4ecdc4">&lt;$120 green</span>, <span style="color:#ffe66d">$120&ndash;160 yellow</span>, <span style="color:#ff6b6b">&gt;$160 red</span></dd></dl>
+        <dl class="data-key-item"><dt>Max Offer</dt><dd>Backward-solves for 30% net margin target</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>5. Build-to-Rent (BTR)</h4>
+        <dl class="data-key-item"><dt>Rent source</dt><dd>Spatial rental comps (primary), ZORI index, or HUD SAFMR &times; 1.25 new-construction premium (fallback)</dd></dl>
+        <dl class="data-key-item"><dt>NOI</dt><dd>Gross annual rent &times; (1 &minus; 30% opex)</dd></dl>
+        <dl class="data-key-item"><dt>Yield on Cost</dt><dd>NOI &divide; total development cost</dd></dl>
+        <dl class="data-key-item"><dt>Stabilized Value</dt><dd>NOI &divide; 5.5% cap rate</dd></dl>
+        <dl class="data-key-item"><dt>Refi</dt><dd>70% LTV at 6.5% rate</dd></dl>
+        <dl class="data-key-item"><dt>DSCR</dt><dd>NOI &divide; annual debt service. BTR &ldquo;pencils&rdquo; when DSCR &ge; 1.25</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>6. Due Diligence Flags</h4>
+        <dl class="data-key-item"><dt>Fire Zone (VHFHSZ)</dt><dd>Hard disqualifier</dd></dl>
+        <dl class="data-key-item"><dt>Protected Area</dt><dd>Hard disqualifier (parks, conservation)</dd></dl>
+        <dl class="data-key-item"><dt>Burn Zone</dt><dd>Informational only (LA Palisades/Eaton fires)</dd></dl>
+        <dl class="data-key-item"><dt>Slope</dt><dd>Build cost +$15/SF per 5% band above 5%. Badges: 31&ndash;50% moderate (yellow), 51&ndash;75% steep (orange), 76%+ severe (red)</dd></dl>
+        <dl class="data-key-item"><dt>Tenant Risk</dt><dd>0&ndash;3 scale. Factors: improved property, 3+ beds, 5+ beds, MF structure, pre-2000, RSO. Higher = more relocation cost/complexity</dd></dl>
+        <dl class="data-key-item"><dt>HOA</dt><dd>R1 + HOA = excluded. HOA &ge;$1K/mo = excluded on any zone</dd></dl>
+        <dl class="data-key-item"><dt>Remainder Parcel (R2&ndash;R4/MU)</dt><dd>Available SF = lot &minus; footprint &minus; 2,000 driveway. Viable if &ge;6,000 SF and &ge;4 units</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>7. Map &amp; Colors</h4>
+        <dl class="data-key-item"><dt>Pin color (exit $/SF)</dt><dd><span style="color:#6366f1">&lt;$650 indigo</span> &rarr; <span style="color:#3b82f6">$650 blue</span> &rarr; <span style="color:#22d3ee">$700 teal</span> &rarr; <span style="color:#22c55e">$750 green</span> &rarr; <span style="color:#eab308">$800 amber</span> &rarr; <span style="color:#f97316">$900+ orange</span></dd></dl>
+        <dl class="data-key-item"><dt>Pin size (lot area)</dt><dd>&lt;10K SF small, 10&ndash;15K medium, 15K+ large</dd></dl>
+        <dl class="data-key-item"><dt>Pin border</dt><dd><span style="color:#22c55e">Green</span> = new listing (~7d). <span style="color:#f97316">Orange</span> = active. <span style="color:#eab308">Gold</span> = dual-viable (BTS margin &ge;20% + BTR DSCR &ge;1.25)</dd></dl>
+      </div>
+
+      <div class="data-key-section">
+        <h4>8. Default Assumptions</h4>
+        <dl class="data-key-item"><dd>All adjustable via gear icon in sidebar.</dd></dl>
+        <dl class="data-key-item"><dt>Build</dt><dd>$400/SF all-in, 1,750 SF/unit, 24mo hold</dd></dl>
+        <dl class="data-key-item"><dt>Financing</dt><dd>9% carry, 1% origination, $40K insurance, 1.1% prop tax</dd></dl>
+        <dl class="data-key-item"><dt>Sale</dt><dd>4.7% txn costs + $40K fixed disposition</dd></dl>
+        <dl class="data-key-item"><dt>BTR</dt><dd>30% opex, 5.5% cap, 70% refi LTV, 6.5% refi rate</dd></dl>
+        <dl class="data-key-item"><dt>Ellis</dt><dd>$20K/unit (LA RSO only)</dd></dl>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- Listings Panel Tab (visible when panel is closed) -->
 <div class="listings-panel-tab" id="listingsPanelTab" onclick="toggleListingsPanel()">
@@ -1524,82 +1517,8 @@ const TC = {
 };
 let _teaserHeroB64 = undefined; // loaded on first use
 
-// Spread-based color scale (Exit $/SF - All-In $/SF)
-function spreadColor(spread){
-  if(spread == null || spread <= 0) return '#888';
-  if(spread <= 75)  return '#3b82f6';   // Blue - marginal
-  if(spread <= 150) return '#14b8a6';   // Teal - break-even+
-  if(spread <= 225) return '#84cc16';   // Yellow-green - healthy
-  if(spread <= 300) return '#f97316';   // Orange - strong
-  return '#dc2626';                     // Crimson - high opportunity
-}
-
-// ── T1 comp anchor search for deal card ──
-// Finds top 3 T1 comps in same ZIP, sold within 18 months, closest in unit size
-function findT1CompAnchors(l){
-  var PT_LABEL = {1:'SFR',2:'Condo',3:'TH',4:'MF 2-4',5:'MF 5+'};
-  var zip = l.zip;
-  if(!zip || !COMPS.length) return {comps:[], total:0, zip:zip, dateRange:''};
-
-  // 18 months ago
-  var now = new Date();
-  var cutoff = new Date(now.getFullYear(), now.getMonth() - 18, now.getDate());
-  var MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
-
-  function parseDate(d){
-    if(!d) return null;
-    var parts = d.split('-');
-    if(parts.length < 3) return null;
-    var m = MONTH_MAP[parts[0].toLowerCase()] || 0;
-    var day = parseInt(parts[1]) || 1;
-    var yr = parseInt(parts[2]) || 0;
-    if(!m || !yr) return null;
-    return new Date(yr, m - 1, day);
-  }
-
-  var targetSf = proforma.avgUnitSf || 1200;
-  var t1Comps = [];
-
-  for(var i = 0; i < COMPS.length; i++){
-    var c = COMPS[i];
-    if(c.t !== 1) continue;
-    if(c.zip !== zip) continue;
-    var sd = parseDate(c.date);
-    if(!sd || sd < cutoff) continue;
-    t1Comps.push({
-      address: c.address || '—',
-      date: c.date,
-      dateParsed: sd,
-      ppsf: c.ppsf || 0,
-      sqft: c.sqft || 0,
-      pt: PT_LABEL[c.pt] || '—',
-      sizeDelta: Math.abs((c.sqft || 0) - targetSf)
-    });
-  }
-
-  // Sort by size proximity to target unit SF
-  t1Comps.sort(function(a,b){ return a.sizeDelta - b.sizeDelta; });
-  var top3 = t1Comps.slice(0, 3);
-
-  // Date range
-  var dateRange = '';
-  if(t1Comps.length){
-    var dates = t1Comps.map(function(c){ return c.dateParsed; }).sort(function(a,b){ return a-b; });
-    var fmt = function(d){ var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return mo[d.getMonth()]+' '+d.getFullYear(); };
-    dateRange = fmt(dates[0]) + ' – ' + fmt(dates[dates.length-1]);
-  }
-
-  return {comps: top3, total: t1Comps.length, zip: zip, dateRange: dateRange};
-}
-
-function formatAnchorDate(d){
-  if(!d) return '—';
-  var parts = d.split('-');
-  if(parts.length >= 3) return parts[0].substring(0,3) + ' ' + parts[2];
-  return d;
-}
-
-// Legacy exit $/SF scale - used by neighborhood grid + comp heatmap
+// Exit $/SF color scale: cool (cheap) → hot (expensive)
+// RECENTERED for SFV: $600-$1,000 decision range
 function exitPsfColor(ppsf){
   if(!ppsf || ppsf <= 0) return '#888';
   if(ppsf < 650) return '#6366f1';   // Indigo — weak exit market
@@ -2669,15 +2588,13 @@ function generateDealCard(l, opts){
   h += '</div></div>';
 
   // ── 2. HERO STRIP ──
-  var spreadPct = allInPsf > 0 ? Math.round((spread / allInPsf) * 100) : 0;
-  var spreadColor = spread >= 100 ? '#246424' : spread >= 0 ? '#7a5e10' : '#b91c1c';
   h += '<div class="dc3-hero">';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="T1 condition-tiered comps only. Excludes existing/unrenovated sales.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">All-In $/SF</div><div class="dc3-hero-val">$' + commas(allInPsf) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">$' + spread + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val">' + fmtDollar(l.price) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val dc3-hero-accent">' + fmtDollar(l.price) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF</div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Zoning</div><div class="dc3-hero-val">' + (l.zone || '—') + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot Width</div><div class="dc3-hero-val">' + (l.lw ? l.lw + "'" : '—') + '</div></div>';
   h += '</div>';
 
   // ── 3. BODY — 2×2 GRID ──
@@ -2741,34 +2658,6 @@ function generateDealCard(l, opts){
 
   h += '</div>'; // end dc3-body
 
-  // ── EXIT PRICING COMPS (T1 anchors) ──
-  var anchors = findT1CompAnchors(l);
-  if(anchors.comps.length > 0){
-    h += '<div class="dc3-comp-anchors">';
-    h += '<div class="dc3-comp-anchors-title">Exit Pricing Comps</div>';
-    h += '<table class="dc3-comp-table"><thead><tr>';
-    h += '<th>Address</th><th>Sale Date</th><th>$/SF</th><th>Tier</th><th>Size</th><th>Type</th>';
-    h += '</tr></thead><tbody>';
-    anchors.comps.forEach(function(c){
-      h += '<tr>';
-      h += '<td class="dc3-comp-addr">' + c.address + '</td>';
-      h += '<td>' + formatAnchorDate(c.date) + '</td>';
-      h += '<td style="color:#246424;font-weight:600">$' + c.ppsf + '</td>';
-      h += '<td><span style="color:#14b8a6;font-weight:600">T1</span></td>';
-      h += '<td>' + (c.sqft ? c.sqft.toLocaleString() + ' SF' : '—') + '</td>';
-      h += '<td>' + c.pt + '</td>';
-      h += '</tr>';
-    });
-    h += '</tbody></table>';
-    h += '<div class="dc3-comp-footer">Based on ' + anchors.total + ' T1 comp' + (anchors.total !== 1 ? 's' : '') + ' in ' + (anchors.zip || '—');
-    if(anchors.dateRange) h += ', ' + anchors.dateRange;
-    if(anchors.comps.length < 3) h += ' <span style="color:#7a5e10">(only ' + anchors.comps.length + ' found)</span>';
-    h += '</div>';
-    h += '</div>';
-  } else {
-    h += '<div class="dc3-comp-anchors"><div class="dc3-comp-anchors-title">Exit Pricing Comps</div>';
-    h += '<div class="dc3-comp-footer" style="padding:8px 0">No T1 comps found in ZIP ' + (l.zip || '—') + ' within 18 months</div></div>';
-  }
 
   // ── BOTTOM BAR ──
   h += '<div class="dc3-bottom">';
@@ -2816,39 +2705,27 @@ function rebuildListings(cachedListings){
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
-    // Compute spread for color mapping
-    const pf_pin = calculateProForma(l);
-    const exitPsf_pin = exitLabel(l).psf;
-    const allInPsf_pin = pf_pin.effective_buildable_sf > 0 ? Math.round(pf_pin.totalProjectCost / pf_pin.effective_buildable_sf) : 0;
-    const pinSpread = exitPsf_pin - allInPsf_pin;
-    const exitFloor = window._kaExitFloor || 0;
-    const nonViable = !l.maxOffer || l.maxOffer <= 0 || (exitFloor > 0 && exitPsf_pin < exitFloor);
-
-    // Color fill by spread — ghost non-viable pins
-    const fillColor = nonViable ? '#888' : spreadColor(pinSpread);
+    // Color fill by exit $/SF
+    const ePsf = l.exitPsf || 0;
+    const fillColor = exitPsfColor(ePsf);
 
     const lotSf = l.lotSf || 0;
     const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
     const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const borderColor = nonViable ? '#666' : (isNewListing ? '#22c55e' : '#f97316');
+    const borderColor = isNewListing ? '#22c55e' : '#f97316'; // Orange border = for-sale identifier
     const markerWeight = isNewListing ? 4 : 2;
     const margin = l.estMargin || 0;
-    const isDualViable = !nonViable && margin >= 20 && l.btrViable;
+    const isDualViable = margin >= 20 && l.btrViable;
     const cm = L.circleMarker([l.lat,l.lng],{
       radius, color: isDualViable ? '#f59e0b' : borderColor, fillColor,
-      fillOpacity: nonViable ? 0.4 : 0.95,
+      fillOpacity: 0.95,
       weight: isDualViable ? 3 : markerWeight,
       pane:'listingsPane',
-      className: isNewListing && !nonViable ? 'listing-marker-new' : '',
+      className: isNewListing ? 'listing-marker-new' : '',
     });
 
-    if(nonViable){
-      cm.bindTooltip('Non-viable at current assumptions. Adjust sliders to explore.', {direction:'top',className:'ghost-tooltip'});
-      cm.bindPopup('<div style="font-size:12px;color:#94a3b8;padding:8px;text-align:center"><b>Non-viable at current assumptions</b><br><small>' + titleAddr(l.address || 'N/A') + '</small></div>',{maxWidth:300});
-    } else {
-      cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
-    }
+    cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
     cm.addTo(listingsLayer);
   });
 
@@ -2953,39 +2830,6 @@ function buildNeighborhoodLayer(){
   document.getElementById('neighborhoodCount').textContent = Object.keys(cells).length.toLocaleString();
 }
 
-// ── Est. Market Value: Assessor AV (primary) → ZIP median $/SF (fallback) ──
-// Builds ZIP-level median existing-home $/SF from sold comps for fallback
-var _zipMedianPsf = null;
-function getZipMedianPsf(){
-  if(_zipMedianPsf) return _zipMedianPsf;
-  _zipMedianPsf = {};
-  var byZip = {};
-  COMPS.forEach(function(c){
-    if(!c.zip || !c.ppsf || c.ppsf <= 0) return;
-    if(c.t === 1) return; // Exclude T1 new/remodel — we want existing-home $/SF
-    if(!byZip[c.zip]) byZip[c.zip] = [];
-    byZip[c.zip].push(c.ppsf);
-  });
-  Object.keys(byZip).forEach(function(zip){
-    var vals = byZip[zip].sort(function(a,b){return a-b;});
-    _zipMedianPsf[zip] = vals.length % 2 ? vals[Math.floor(vals.length/2)] : Math.round((vals[Math.floor(vals.length/2)-1]+vals[Math.floor(vals.length/2)])/2);
-  });
-  return _zipMedianPsf;
-}
-
-function estimateMarketValue(l){
-  // PRIMARY: Assessor AV (land + improvement)
-  var av = (l.assessedLandValue || 0) + (l.assessedImpValue || 0);
-  if(av > 0) return {value: av, source: 'Assessor AV'};
-  // FALLBACK: ZIP median existing-home $/SF × structure sqft
-  var zipMed = getZipMedianPsf();
-  var medPsf = l.zip ? zipMed[l.zip] : null;
-  var sqft = l.sqft || 0;
-  if(medPsf && sqft > 0) return {value: Math.round(medPsf * sqft), source: 'ZIP median'};
-  // No data
-  return {value: null, source: null};
-}
-
 // ══════════════════════════════════════════
 //  PRIORITY 4: OFF-MARKET TARGETS
 // ══════════════════════════════════════════
@@ -3004,9 +2848,10 @@ function buildOffMarketLayer(){
     if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
 
     const hood_psf = l.exitPsf || 0;
-    const emv = estimateMarketValue(l);
-    const est_market_value = emv.value;
-    if(!est_market_value) return false; // No market value = skip
+    const structure_sf = l.sqft || 0;
+
+    // Est. Market Value = hood_psf × structure_sf
+    const est_market_value = hood_psf * structure_sf;
 
     // Est. Offer = est_market_value × 0.95 (5% below market)
     const est_offer = est_market_value * 0.95;
@@ -3044,9 +2889,10 @@ function buildOffMarketLayer(){
 
   offMarketListings.forEach(l => {
     const hood_psf = l.exitPsf || 0;
-    const emv = estimateMarketValue(l);
-    const est_market_value = emv.value || 0;
-    const emvSource = emv.source || '—';
+    const structure_sf = l.sqft || 0;
+
+    // Est. Market Value = hood_psf × structure_sf
+    const est_market_value = hood_psf * structure_sf;
 
     // Est. Offer = est_market_value × 0.95
     const est_offer = est_market_value * 0.95;
@@ -3094,8 +2940,12 @@ function buildOffMarketLayer(){
     // Color coding for headroom
     const headroomColor = headroom > 0 ? '#22c55e' : '#ef4444';
     
-    // Unified spread color scale
-    const pinColor = spreadColor(spread);
+    // Color by spread for pin
+    let pinColor = '#ef4444'; // red
+    if(spread >= 300) pinColor = '#059669'; // deep green
+    else if(spread >= 200) pinColor = '#22c55e'; // green
+    else if(spread >= 100) pinColor = '#eab308'; // yellow
+    else if(spread >= 0) pinColor = '#f97316'; // orange
     
     const offMarketIcon = L.divIcon({
       className: '',
@@ -3130,7 +2980,7 @@ function buildOffMarketLayer(){
       <div class="popup-title">${titleAddr(l.address || 'N/A')}</div>
 
       <div class="popup-grid">
-        <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'} <small style="color:var(--text-dim)">(${emvSource})</small></div></div>
+        <div><div class="popup-label">Est. Market Value</div><div class="popup-value" style="color:${marginColor}">$${est_market_value > 0 ? Math.round(est_market_value).toLocaleString() : '—'}</div></div>
         <div><div class="popup-label">Exit $/SF</div><div class="popup-value">$${exitLabel(l).psf} <small style="color:${exitLabel(l).color}">(${exitLabel(l).short}${l.newconCount?', '+l.newconCount:''})</small></div></div>
         <div><div class="popup-label">All-In $/SF</div><div class="popup-value">$${pf.effective_buildable_sf>0?Math.round(pf.totalCost/pf.effective_buildable_sf):0}/sf</div></div>
         <div><div class="popup-label">Spread</div><div class="popup-value" style="color:${(exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0))>=0?'var(--green)':'var(--red)'}">$${exitLabel(l).psf-(pf.effective_buildable_sf>0?Math.round(pf.totalProjectCost/pf.effective_buildable_sf):0)}/sf</div></div>
@@ -3305,13 +3155,13 @@ function updatePinLegend(){
   
   // Show For Sale legend if listings layer is on
   if(layerState.listings){
-    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Deal Spread (Exit\u2212All-In)</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#888;opacity:0.4;border:1.5px solid #666"></div> \u2264$0 non-viable</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $1\u2013$75</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6;border:1.5px solid #f97316"></div> $76\u2013$150</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#84cc16;border:1.5px solid #f97316"></div> $151\u2013$225</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $226\u2013$300</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#dc2626;border:1.5px solid #f97316"></div> $301+</div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Listing Exit $/SF</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border:1.5px solid #f97316"></div> &lt;$650</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $650–700</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border:1.5px solid #f97316"></div> $700–750</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border:1.5px solid #f97316"></div> $750–800</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border:1.5px solid #f97316"></div> $800–900</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $900+</div>';
   }
   
   // Show BTR legend if Build to Rent layer is on
@@ -3399,7 +3249,7 @@ function closeAssumptionsModal(){
   document.getElementById('assumptionsModal').classList.remove('active');
 }
 function closeDataKeyModal(){
-  // Legacy stub — dataKeyModal removed, content moved to Key panel
+  document.getElementById('dataKeyModal').classList.remove('active');
 }
 
 // ── Escape key: close topmost modal/panel ──
@@ -3408,6 +3258,7 @@ document.addEventListener('keydown', function(e){
   var em = document.getElementById('exportModal');
   if(em) { closeExportModal(); return; }
   if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
+  else if(document.getElementById('dataKeyModal').classList.contains('active')) closeDataKeyModal();
   else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
   else if(isCompsTableActive()) hideCompsTable();
   else if(isRentalCompsTableActive()) hideRentalCompsTable();
@@ -3628,9 +3479,8 @@ function updateLayerCounts(){
   for(const l of LISTINGS){
     if(!l.sb1123Eligible) continue;
     const hood_psf = l.exitPsf || 0;
-    const _emv = estimateMarketValue(l);
-    const est_market_value = _emv.value;
-    if(!est_market_value) continue;
+    const structure_sf = l.sqft || 0;
+    const est_market_value = hood_psf * structure_sf;
     const est_offer = est_market_value * 0.95;
     const maxUnits = getMaxUnits(l);
     const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
@@ -5065,239 +4915,5 @@ map.on('click', function(e) {
   L.popup({className:'dark-popup'}).setLatLng(e.latlng).setContent(html).openOn(map);
 });
 </script>
-
-<!-- ═══ KEY PANEL (slide-out right) ═══ -->
-<button class="key-toggle-btn" id="keyToggleBtn" onclick="toggleKeyPanel()" aria-label="Toggle Key panel">KEY ›</button>
-<div class="key-panel" id="keyPanel">
-  <div class="key-panel-header">
-    <span class="key-panel-title">Key</span>
-    <button class="key-panel-close" onclick="toggleKeyPanel()" aria-label="Close Key panel">&times;</button>
-  </div>
-  <div class="key-tabs" id="keyTabs" role="tablist">
-    <button class="key-tab active" data-tab="howItWorks" role="tab" onclick="switchKeyTab(this)">How It Works</button>
-    <button class="key-tab" data-tab="dealEcon" role="tab" onclick="switchKeyTab(this)">Deal Economics</button>
-    <button class="key-tab" data-tab="exitPricing" role="tab" onclick="switchKeyTab(this)">Exit Pricing</button>
-    <button class="key-tab" data-tab="btrModel" role="tab" onclick="switchKeyTab(this)">BTR Model</button>
-    <button class="key-tab" data-tab="eligibility" role="tab" onclick="switchKeyTab(this)">Eligibility</button>
-    <button class="key-tab" data-tab="offMarket" role="tab" onclick="switchKeyTab(this)">Off-Market</button>
-    <button class="key-tab" data-tab="assumptions" role="tab" onclick="switchKeyTab(this)">Assumptions</button>
-  </div>
-  <div class="key-body" id="keyBody">
-
-    <!-- TAB 1: How It Works -->
-    <div class="key-tab-content" data-tab="howItWorks">
-      <h3>What is SB 1123?</h3>
-      <p>SB 1123 (signed 2024) allows by-right subdivision of single R1 and multifamily-zoned parcels into up to 10 fee-simple lots without discretionary review. &ldquo;By-right&rdquo; means no planning commission hearings, no neighbor appeals, no conditional use permits &mdash; the city must approve ministerially if the project meets objective standards.</p>
-
-      <h3>Lucid Urban&rsquo;s Strategy</h3>
-      <p>We acquire directly from homeowners at pre-SB 1123 pricing &mdash; before the market has repriced for subdivision potential. We subdivide, build attached townhomes, and sell fee-simple lots to end buyers. Each deal targets a 40%+ IRR and 2&times; MOIC on a 24-month hold.</p>
-
-      <h3>Fee-Simple Lots</h3>
-      <p>Unlike condos, fee-simple buyers own their land outright. No shared ownership structure, no master HOA over the land. This is the same ownership structure as a single-family home &mdash; the most liquid and fundable product in the for-sale market.</p>
-    </div>
-
-    <!-- TAB 2: Deal Economics -->
-    <div class="key-tab-content" data-tab="dealEcon" style="display:none">
-      <h3>All-In Cost Build-Up</h3>
-      <div class="key-stack">
-        <div>+ Land Acquisition</div>
-        <div>+ Hard Costs <span style="color:#94a3b8">(construction, incl. 12% contingency)</span></div>
-        <div>+ Soft Costs <span style="color:#94a3b8">(permits, A&amp;E, title, legal)</span></div>
-        <div>+ Carry / Financing Costs</div>
-        <div>+ Sponsor Fees</div>
-        <div class="key-stack-total">= Total Project Cost (All-In)</div>
-      </div>
-      <p>All-In $/SF = Total Project Cost &divide; Total Sellable SF</p>
-
-      <h3>Exit &amp; Spread</h3>
-      <p>Exit $/SF is anchored to T1 (new construction / fully remodeled) comparable sales in the same ZIP, filtered by condition tier before any size adjustment. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
-
-      <p class="key-note">IRR and MOIC are shown at the deal level in the deal card and reflect LP economics after preferred return and promote. See deal cards for deal-specific figures.</p>
-    </div>
-
-    <!-- TAB 3: Exit Pricing -->
-    <div class="key-tab-content" data-tab="exitPricing" style="display:none">
-      <h3>Why Condition Tier Matters</h3>
-      <p>Raw $/SF variance in SFV ZIPs runs $425&ndash;$911/SF. The single biggest driver is condition &mdash; new construction and fully remodeled homes (T1) trade $200+/SF above unrenovated existing stock (T2). Blending T1 and T2 comps systematically underprices new construction exits. We isolate T1 comps before any size adjustment.</p>
-
-      <h3>Tier Definitions</h3>
-      <div class="key-tier key-tier-t1">
-        <div class="key-tier-label">T1 &mdash; New Construction or Full Remodel</div>
-        <p>Built or fully renovated within last 5 years. High-end finishes, open floor plan, updated MEP. These are the comps that anchor our exit pricing.</p>
-      </div>
-      <div class="key-tier key-tier-t2">
-        <div class="key-tier-label">T2 &mdash; Existing / Unrenovated</div>
-        <p>Original condition or cosmetic updates only. Used for context, not exit pricing.</p>
-      </div>
-
-      <h3>Size Adjustment</h3>
-      <p>Within T1, we size-adjust comps to the subject unit&rsquo;s average SF using a local $/SF-vs-size regression. Smaller units trade at a premium $/SF; larger units compress. We do not blend across condition tiers before this adjustment.</p>
-    </div>
-
-    <!-- TAB 4: BTR Model -->
-    <div class="key-tab-content" data-tab="btrModel" style="display:none">
-      <h3>When BTR Applies</h3>
-      <p>Build-to-Rent (BTR) is modeled as a secondary exit strategy for markets with strong rent fundamentals. It is not our primary strategy &mdash; the for-sale exit typically produces superior returns. BTR viability is constrained by DSCR: at current market rates and 65% LTV, most deals do not achieve 1.25&times; DSCR, which sets the cap on permanent loan proceeds and therefore on equity return.</p>
-
-      <h3>DSCR Mechanics</h3>
-      <p>DSCR = NOI &divide; Annual Debt Service. We require &ge;1.25&times; for a BTR deal to be considered viable. At 6.5% I/O permanent financing and 65% LTV, the DSCR constraint back-calculates the maximum sustainable NOI &mdash; which in turn caps the rent required to make the deal work.</p>
-
-      <h3>Rent Methodology</h3>
-      <p>Rent estimates use empirically-derived premium factors per ZIP, triangulated with HUD Small Area Fair Market Rents (SAFMR). Three scenarios are modeled: conservative (10th percentile), base (median), aggressive (75th percentile). The BTR card on each deal shows all three.</p>
-    </div>
-
-    <!-- TAB 5: Eligibility -->
-    <div class="key-tab-content" data-tab="eligibility" style="display:none">
-      <h3>Zone Eligibility</h3>
-      <p>SB 1123 applies to parcels where residential use is permitted as-of-right. Priority stack: R1 and MF zones are directly eligible. Commercial zones (CR, C-1, C-2) are eligible where residential use is listed in the zone&rsquo;s use table. C-4 is a gray zone requiring parcel-level verification. C-5 and CM are ineligible.</p>
-
-      <h3>VHFHSZ Exclusion</h3>
-      <p>Very High Fire Hazard Severity Zones are a statutory hard exclusion under Government Code &sect;66499.41. No city or county can waive this. Parcels in VHFHSZ are excluded from this map and cannot be SB 1123 projects regardless of zoning. This is not a local policy &mdash; it is state law.</p>
-
-      <h3>Lot Size</h3>
-      <p>SB 1123 requires a minimum lot size sufficient to create the proposed number of lots. On lots under 14,000 SF, the 1.25 FAR floor binds before the 1,750 SF average unit size cap &mdash; meaning full-size units may not be achievable on small lots. Breakeven for full-size units is approximately 14,000 SF.</p>
-    </div>
-
-    <!-- TAB 6: Off-Market -->
-    <div class="key-tab-content" data-tab="offMarket" style="display:none">
-      <h3>What Off-Market Means Here</h3>
-      <p>We acquire directly from homeowners before the property is listed, at prices that reflect current use (typically a single-family home) rather than SB 1123 subdivision potential. Most homeowners are unaware of SB 1123 or its value impact on their parcel.</p>
-
-      <h3>How Discount is Estimated</h3>
-      <p>Estimated market value is derived from LA County Assessor data (assessed land + improvement value), time-adjusted to current date using ZIP-level appreciation rates. Off-market discount = (Est. Market Value &minus; Max Offer) &divide; Est. Market Value. Pins with insufficient data to compute a reliable estimate are ghosted.</p>
-
-      <h3>Why This Matters</h3>
-      <p>Acquiring at pre-SB 1123 pricing is the core of our return model. The spread between acquisition cost and exit value is only achievable if we buy before the market reprices. Direct-to-homeowner outreach and speed of close (no listing process, no competing bids) are our structural advantages.</p>
-    </div>
-
-    <!-- TAB 7: Assumptions (live sliders) -->
-    <div class="key-tab-content" data-tab="assumptions" style="display:none">
-      <p style="font-size:11px;color:#64748b;margin-bottom:16px">Adjust assumptions below. All pins reprice live.</p>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Construction Cost ($/SF)</b><span class="key-slider-val" id="kaSliderVal_buildCost">$350</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="400" step="5" value="350" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$300</span><span>$400</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Soft Costs (% of Hard)</b><span class="key-slider-val" id="kaSliderVal_softPct">18%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="25" step="0.5" value="18" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>12%</span><span>25%</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Bridge / Construction Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="12" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>8%</span><span>12%</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Hold Period (months)</b><span class="key-slider-val" id="kaSliderVal_holdMonths">24</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_holdMonths" min="18" max="36" step="1" value="24" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>18 mo</span><span>36 mo</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Exit $/SF &mdash; Floor</b><span class="key-slider-val" id="kaSliderVal_exitFloor">$600</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_exitFloor" min="500" max="750" step="10" value="600" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$500</span><span>$750</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Exit $/SF &mdash; Ceiling</b><span class="key-slider-val" id="kaSliderVal_exitCeiling">$850</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_exitCeiling" min="700" max="1000" step="10" value="850" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$700</span><span>$1,000</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>6%</span><span>12%</span></div>
-      </div>
-
-      <button class="key-reset-btn" onclick="resetKeyAssumptions()">Reset to Defaults</button>
-    </div>
-
-  </div>
-</div>
-
-<script>
-function toggleKeyPanel(){
-  var panel = document.getElementById('keyPanel');
-  var btn = document.getElementById('keyToggleBtn');
-  var isOpen = panel.classList.toggle('open');
-  btn.classList.toggle('shifted', isOpen);
-  btn.textContent = isOpen ? '\u2039 KEY' : 'KEY \u203A';
-}
-function switchKeyTab(el){
-  var tabs = document.querySelectorAll('.key-tab');
-  var contents = document.querySelectorAll('.key-tab-content');
-  tabs.forEach(function(t){ t.classList.remove('active'); });
-  contents.forEach(function(c){ c.style.display = 'none'; });
-  el.classList.add('active');
-  var target = el.getAttribute('data-tab');
-  var content = document.querySelector('.key-tab-content[data-tab="'+target+'"]');
-  if(content) content.style.display = '';
-  document.getElementById('keyBody').scrollTop = 0;
-}
-// ── Assumptions tab slider logic ──
-var KA_DEFAULTS = {buildCost:350,softPct:18,carryRate:11.5,holdMonths:24,exitFloor:600,exitCeiling:850,prefReturn:8};
-var _kaTimer = null;
-function onKeyAssumptionChange(){
-  // Update display values
-  var v = {};
-  ['buildCost','softPct','carryRate','holdMonths','exitFloor','exitCeiling','prefReturn'].forEach(function(k){
-    var el = document.getElementById('kaSlider_'+k);
-    v[k] = parseFloat(el.value);
-  });
-  document.getElementById('kaSliderVal_buildCost').textContent = '$'+v.buildCost;
-  document.getElementById('kaSliderVal_softPct').textContent = v.softPct+'%';
-  document.getElementById('kaSliderVal_carryRate').textContent = v.carryRate+'%';
-  document.getElementById('kaSliderVal_holdMonths').textContent = v.holdMonths;
-  document.getElementById('kaSliderVal_exitFloor').textContent = '$'+v.exitFloor;
-  document.getElementById('kaSliderVal_exitCeiling').textContent = '$'+v.exitCeiling;
-  document.getElementById('kaSliderVal_prefReturn').textContent = v.prefReturn+'%';
-
-  // Debounce the expensive re-computation
-  clearTimeout(_kaTimer);
-  _kaTimer = setTimeout(function(){ applyKeyAssumptions(v); }, 150);
-}
-function applyKeyAssumptions(v){
-  // Sync to proforma module + existing modal inputs (keep them in sync)
-  // allInBuildPsf is truly all-in: hard*(1+soft%) + subdiv + A&E
-  // From the user's slider: hard=buildCost, soft%=softPct → allIn = hard*(1+soft%/100) + 10 + 5
-  var hardPsf = v.buildCost;
-  var allIn = Math.round(hardPsf * (1 + v.softPct/100) + 15); // +$10 subdiv + $5 A&E
-  // Dispatch to the module-scoped proforma object via the existing modal inputs
-  var pfBuild = document.getElementById('pfBuildCost');
-  if(pfBuild) pfBuild.value = allIn;
-  var pfCarry = document.getElementById('pfCarryRate');
-  if(pfCarry) pfCarry.value = v.carryRate;
-  var pfHold = document.getElementById('pfHoldMonths');
-  if(pfHold) pfHold.value = v.holdMonths;
-  // Update exit floor/ceiling globals (used by rebuildListings for ghost logic)
-  window._kaExitFloor = v.exitFloor;
-  window._kaExitCeiling = v.exitCeiling;
-  window._kaPrefReturn = v.prefReturn;
-  // Trigger the existing proforma change handler (which calls clearProformaCaches + enrichListings + applyFilters)
-  if(typeof onProformaChange === 'function') onProformaChange();
-}
-function resetKeyAssumptions(){
-  Object.keys(KA_DEFAULTS).forEach(function(k){
-    var el = document.getElementById('kaSlider_'+k);
-    if(el) el.value = KA_DEFAULTS[k];
-  });
-  onKeyAssumptionChange();
-}
-
-// Escape key closes key panel
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape' && document.getElementById('keyPanel').classList.contains('open')){
-    toggleKeyPanel();
-  }
-});
-</script>
-
 </body>
 </html>
