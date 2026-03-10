@@ -942,6 +942,87 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   }
 
   .ghost-tooltip .leaflet-tooltip-content{font-family:'DM Mono',monospace;font-size:11px;color:#94a3b8}
+
+  /* ── Key Panel (slide-out right) ── */
+  .key-toggle-btn{
+    position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1100;
+    writing-mode:vertical-lr;text-orientation:mixed;
+    padding:14px 7px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;
+    letter-spacing:0.08em;text-transform:uppercase;
+    background:#fff;color:#475569;border:1px solid #d0d0d0;border-right:none;
+    border-radius:8px 0 0 8px;cursor:pointer;
+    box-shadow:-2px 0 8px rgba(0,0,0,0.08);transition:right 0.3s ease,background 0.15s;
+  }
+  .key-toggle-btn:hover{background:#f8fafc;color:#1e293b}
+  .key-toggle-btn.shifted{right:380px}
+
+  .key-panel{
+    position:fixed;top:0;right:-380px;width:380px;height:100vh;z-index:1090;
+    background:#fff;border-left:1px solid #d0d0d0;
+    box-shadow:-4px 0 24px rgba(0,0,0,0.08);
+    display:flex;flex-direction:column;
+    transition:right 0.3s ease;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .key-panel.open{right:0}
+
+  .key-panel-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px 0;flex-shrink:0;
+  }
+  .key-panel-title{font-size:15px;font-weight:700;color:#1a1f26;letter-spacing:-0.01em}
+  .key-panel-close{
+    background:none;border:1px solid #e2e8f0;border-radius:6px;
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:#94a3b8;cursor:pointer;transition:all 0.15s;
+  }
+  .key-panel-close:hover{color:#1a1f26;border-color:#94a3b8}
+
+  .key-tabs{
+    display:flex;gap:0;border-bottom:1px solid #e2e8f0;padding:12px 20px 0;flex-shrink:0;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  .key-tabs::-webkit-scrollbar{height:0}
+  .key-tab{
+    padding:6px 10px 10px;font-size:10.5px;font-weight:600;color:#94a3b8;
+    cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+    transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;
+    font-family:'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:0.06em;
+  }
+  .key-tab:hover{color:#475569}
+  .key-tab.active{color:#1e293b;border-bottom-color:#2563eb}
+
+  .key-body{flex:1;overflow-y:auto;padding:20px;font-size:13px;line-height:1.65;color:#334155}
+  .key-body::-webkit-scrollbar{width:5px}
+  .key-body::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:3px}
+  .key-body::-webkit-scrollbar-track{background:transparent}
+
+  .key-body h3{font-size:13px;font-weight:700;color:#1e293b;margin:0 0 8px;letter-spacing:-0.01em}
+  .key-body h3:not(:first-child){margin-top:20px}
+  .key-body p{margin:0 0 12px}
+  .key-body .key-note{font-size:11px;color:#64748b;font-style:italic;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9}
+
+  .key-stack{margin:8px 0 12px;font-size:12px;font-family:'JetBrains Mono',monospace}
+  .key-stack div{padding:3px 0;color:#475569}
+  .key-stack .key-stack-total{font-weight:700;color:#1e293b;border-top:1px solid #e2e8f0;margin-top:4px;padding-top:6px}
+
+  .key-tier{margin:8px 0 12px;padding:10px 12px;border-radius:6px;border:1px solid #e2e8f0}
+  .key-tier-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+  .key-tier-t1 .key-tier-label{color:#14b8a6}
+  .key-tier-t2 .key-tier-label{color:#64748b}
+  .key-tier p{margin:0;font-size:12px;color:#475569;line-height:1.5}
+
+  @media (max-width:768px){
+    .key-panel{width:100%;right:-100%}
+    .key-panel.open{right:0}
+    .key-toggle-btn{
+      writing-mode:horizontal-tb;text-orientation:initial;
+      position:fixed;right:10px;top:auto;bottom:70px;transform:none;
+      padding:8px 14px;border-radius:8px;border:1px solid #d0d0d0;
+      box-shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    .key-toggle-btn.shifted{right:10px;bottom:70px}
+  }
 </style>
 </head>
 <body class="light-mode">
@@ -5070,5 +5151,145 @@ map.on('click', function(e) {
   L.popup({className:'dark-popup'}).setLatLng(e.latlng).setContent(html).openOn(map);
 });
 </script>
+
+<!-- ═══ KEY PANEL (slide-out right) ═══ -->
+<button class="key-toggle-btn" id="keyToggleBtn" onclick="toggleKeyPanel()" aria-label="Toggle Key panel">KEY ›</button>
+<div class="key-panel" id="keyPanel">
+  <div class="key-panel-header">
+    <span class="key-panel-title">Key</span>
+    <button class="key-panel-close" onclick="toggleKeyPanel()" aria-label="Close Key panel">&times;</button>
+  </div>
+  <div class="key-tabs" id="keyTabs" role="tablist">
+    <button class="key-tab active" data-tab="howItWorks" role="tab" onclick="switchKeyTab(this)">How It Works</button>
+    <button class="key-tab" data-tab="dealEcon" role="tab" onclick="switchKeyTab(this)">Deal Economics</button>
+    <button class="key-tab" data-tab="exitPricing" role="tab" onclick="switchKeyTab(this)">Exit Pricing</button>
+    <button class="key-tab" data-tab="btrModel" role="tab" onclick="switchKeyTab(this)">BTR Model</button>
+    <button class="key-tab" data-tab="eligibility" role="tab" onclick="switchKeyTab(this)">Eligibility</button>
+    <button class="key-tab" data-tab="offMarket" role="tab" onclick="switchKeyTab(this)">Off-Market</button>
+    <button class="key-tab" data-tab="assumptions" role="tab" onclick="switchKeyTab(this)" style="color:#cbd5e1;font-style:italic">Assumptions</button>
+  </div>
+  <div class="key-body" id="keyBody">
+
+    <!-- TAB 1: How It Works -->
+    <div class="key-tab-content" data-tab="howItWorks">
+      <h3>What is SB 1123?</h3>
+      <p>SB 1123 (signed 2024) allows by-right subdivision of single R1 and multifamily-zoned parcels into up to 10 fee-simple lots without discretionary review. &ldquo;By-right&rdquo; means no planning commission hearings, no neighbor appeals, no conditional use permits &mdash; the city must approve ministerially if the project meets objective standards.</p>
+
+      <h3>Lucid Urban&rsquo;s Strategy</h3>
+      <p>We acquire directly from homeowners at pre-SB 1123 pricing &mdash; before the market has repriced for subdivision potential. We subdivide, build attached townhomes, and sell fee-simple lots to end buyers. Each deal targets a 40%+ IRR and 2&times; MOIC on a 24-month hold.</p>
+
+      <h3>Fee-Simple Lots</h3>
+      <p>Unlike condos, fee-simple buyers own their land outright. No shared ownership structure, no master HOA over the land. This is the same ownership structure as a single-family home &mdash; the most liquid and fundable product in the for-sale market.</p>
+    </div>
+
+    <!-- TAB 2: Deal Economics -->
+    <div class="key-tab-content" data-tab="dealEcon" style="display:none">
+      <h3>All-In Cost Build-Up</h3>
+      <div class="key-stack">
+        <div>+ Land Acquisition</div>
+        <div>+ Hard Costs <span style="color:#94a3b8">(construction, incl. 12% contingency)</span></div>
+        <div>+ Soft Costs <span style="color:#94a3b8">(permits, A&amp;E, title, legal)</span></div>
+        <div>+ Carry / Financing Costs</div>
+        <div>+ Sponsor Fees</div>
+        <div class="key-stack-total">= Total Project Cost (All-In)</div>
+      </div>
+      <p>All-In $/SF = Total Project Cost &divide; Total Sellable SF</p>
+
+      <h3>Exit &amp; Spread</h3>
+      <p>Exit $/SF is anchored to T1 (new construction / fully remodeled) comparable sales in the same ZIP, filtered by condition tier before any size adjustment. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
+
+      <p class="key-note">IRR and MOIC are shown at the deal level in the deal card and reflect LP economics after preferred return and promote. See deal cards for deal-specific figures.</p>
+    </div>
+
+    <!-- TAB 3: Exit Pricing -->
+    <div class="key-tab-content" data-tab="exitPricing" style="display:none">
+      <h3>Why Condition Tier Matters</h3>
+      <p>Raw $/SF variance in SFV ZIPs runs $425&ndash;$911/SF. The single biggest driver is condition &mdash; new construction and fully remodeled homes (T1) trade $200+/SF above unrenovated existing stock (T2). Blending T1 and T2 comps systematically underprices new construction exits. We isolate T1 comps before any size adjustment.</p>
+
+      <h3>Tier Definitions</h3>
+      <div class="key-tier key-tier-t1">
+        <div class="key-tier-label">T1 &mdash; New Construction or Full Remodel</div>
+        <p>Built or fully renovated within last 5 years. High-end finishes, open floor plan, updated MEP. These are the comps that anchor our exit pricing.</p>
+      </div>
+      <div class="key-tier key-tier-t2">
+        <div class="key-tier-label">T2 &mdash; Existing / Unrenovated</div>
+        <p>Original condition or cosmetic updates only. Used for context, not exit pricing.</p>
+      </div>
+
+      <h3>Size Adjustment</h3>
+      <p>Within T1, we size-adjust comps to the subject unit&rsquo;s average SF using a local $/SF-vs-size regression. Smaller units trade at a premium $/SF; larger units compress. We do not blend across condition tiers before this adjustment.</p>
+    </div>
+
+    <!-- TAB 4: BTR Model -->
+    <div class="key-tab-content" data-tab="btrModel" style="display:none">
+      <h3>When BTR Applies</h3>
+      <p>Build-to-Rent (BTR) is modeled as a secondary exit strategy for markets with strong rent fundamentals. It is not our primary strategy &mdash; the for-sale exit typically produces superior returns. BTR viability is constrained by DSCR: at current market rates and 65% LTV, most deals do not achieve 1.25&times; DSCR, which sets the cap on permanent loan proceeds and therefore on equity return.</p>
+
+      <h3>DSCR Mechanics</h3>
+      <p>DSCR = NOI &divide; Annual Debt Service. We require &ge;1.25&times; for a BTR deal to be considered viable. At 6.5% I/O permanent financing and 65% LTV, the DSCR constraint back-calculates the maximum sustainable NOI &mdash; which in turn caps the rent required to make the deal work.</p>
+
+      <h3>Rent Methodology</h3>
+      <p>Rent estimates use empirically-derived premium factors per ZIP, triangulated with HUD Small Area Fair Market Rents (SAFMR). Three scenarios are modeled: conservative (10th percentile), base (median), aggressive (75th percentile). The BTR card on each deal shows all three.</p>
+    </div>
+
+    <!-- TAB 5: Eligibility -->
+    <div class="key-tab-content" data-tab="eligibility" style="display:none">
+      <h3>Zone Eligibility</h3>
+      <p>SB 1123 applies to parcels where residential use is permitted as-of-right. Priority stack: R1 and MF zones are directly eligible. Commercial zones (CR, C-1, C-2) are eligible where residential use is listed in the zone&rsquo;s use table. C-4 is a gray zone requiring parcel-level verification. C-5 and CM are ineligible.</p>
+
+      <h3>VHFHSZ Exclusion</h3>
+      <p>Very High Fire Hazard Severity Zones are a statutory hard exclusion under Government Code &sect;66499.41. No city or county can waive this. Parcels in VHFHSZ are excluded from this map and cannot be SB 1123 projects regardless of zoning. This is not a local policy &mdash; it is state law.</p>
+
+      <h3>Lot Size</h3>
+      <p>SB 1123 requires a minimum lot size sufficient to create the proposed number of lots. On lots under 14,000 SF, the 1.25 FAR floor binds before the 1,750 SF average unit size cap &mdash; meaning full-size units may not be achievable on small lots. Breakeven for full-size units is approximately 14,000 SF.</p>
+    </div>
+
+    <!-- TAB 6: Off-Market -->
+    <div class="key-tab-content" data-tab="offMarket" style="display:none">
+      <h3>What Off-Market Means Here</h3>
+      <p>We acquire directly from homeowners before the property is listed, at prices that reflect current use (typically a single-family home) rather than SB 1123 subdivision potential. Most homeowners are unaware of SB 1123 or its value impact on their parcel.</p>
+
+      <h3>How Discount is Estimated</h3>
+      <p>Estimated market value is derived from LA County Assessor data (assessed land + improvement value), time-adjusted to current date using ZIP-level appreciation rates. Off-market discount = (Est. Market Value &minus; Max Offer) &divide; Est. Market Value. Pins with insufficient data to compute a reliable estimate are ghosted.</p>
+
+      <h3>Why This Matters</h3>
+      <p>Acquiring at pre-SB 1123 pricing is the core of our return model. The spread between acquisition cost and exit value is only achievable if we buy before the market reprices. Direct-to-homeowner outreach and speed of close (no listing process, no competing bids) are our structural advantages.</p>
+    </div>
+
+    <!-- TAB 7: Assumptions (placeholder) -->
+    <div class="key-tab-content" data-tab="assumptions" style="display:none">
+      <p style="color:#94a3b8;font-style:italic;margin-top:20px">Assumptions tab coming soon. Use the gear icon in the sidebar to adjust deal assumptions.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleKeyPanel(){
+  var panel = document.getElementById('keyPanel');
+  var btn = document.getElementById('keyToggleBtn');
+  var isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('shifted', isOpen);
+  btn.textContent = isOpen ? '\u2039 KEY' : 'KEY \u203A';
+}
+function switchKeyTab(el){
+  var tabs = document.querySelectorAll('.key-tab');
+  var contents = document.querySelectorAll('.key-tab-content');
+  tabs.forEach(function(t){ t.classList.remove('active'); });
+  contents.forEach(function(c){ c.style.display = 'none'; });
+  el.classList.add('active');
+  var target = el.getAttribute('data-tab');
+  var content = document.querySelector('.key-tab-content[data-tab="'+target+'"]');
+  if(content) content.style.display = '';
+  document.getElementById('keyBody').scrollTop = 0;
+}
+// Escape key closes key panel
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && document.getElementById('keyPanel').classList.contains('open')){
+    toggleKeyPanel();
+  }
+});
+</script>
+
 </body>
 </html>
