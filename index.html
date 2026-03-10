@@ -434,6 +434,16 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-verdict-val{font-size:22px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
   .dc3-verdict-sub{font-size:9.5px;color:#b0ada8;margin-top:3px}
 
+  /* 4b. Exit Pricing Comp Anchors */
+  .dc3-comp-anchors{padding:10px 22px;border-top:1px solid #e8e8e8;background:#fafafa}
+  .dc3-comp-anchors-title{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#b8b5b0;margin-bottom:6px}
+  .dc3-comp-table{width:100%;border-collapse:collapse;font-size:11px}
+  .dc3-comp-table th{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:#a8a5a0;font-weight:600;text-align:left;padding:3px 8px 3px 0;border-bottom:1px solid #e8e8e8}
+  .dc3-comp-table td{padding:4px 8px 4px 0;border-bottom:1px solid #f0f0f0;font-variant-numeric:tabular-nums;color:#1a1f26}
+  .dc3-comp-addr{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dc3-comp-footer{font-size:10px;color:#a8a5a0;margin-top:6px;font-style:italic}
+  .dc3-info-tip{font-size:11px;color:#a8a5a0;cursor:help;margin-left:2px;font-style:normal;vertical-align:middle}
+
   /* 5. Bottom bar */
   .dc3-bottom{border-top:1px solid #e8e8e8}
   .dc3-bottom-dd{display:flex;align-items:center;padding:6px 22px;gap:16px;font-size:11px;color:#7a7870;background:#fff;border-bottom:1px solid #e8e8e8;flex-wrap:wrap}
@@ -1529,6 +1539,71 @@ function spreadColor(spread){
   return '#dc2626';                     // Crimson - high opportunity
 }
 
+// ── T1 comp anchor search for deal card ──
+// Finds top 3 T1 comps in same ZIP, sold within 18 months, closest in unit size
+function findT1CompAnchors(l){
+  var PT_LABEL = {1:'SFR',2:'Condo',3:'TH',4:'MF 2-4',5:'MF 5+'};
+  var zip = l.zip;
+  if(!zip || !COMPS.length) return {comps:[], total:0, zip:zip, dateRange:''};
+
+  // 18 months ago
+  var now = new Date();
+  var cutoff = new Date(now.getFullYear(), now.getMonth() - 18, now.getDate());
+  var MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+
+  function parseDate(d){
+    if(!d) return null;
+    var parts = d.split('-');
+    if(parts.length < 3) return null;
+    var m = MONTH_MAP[parts[0].toLowerCase()] || 0;
+    var day = parseInt(parts[1]) || 1;
+    var yr = parseInt(parts[2]) || 0;
+    if(!m || !yr) return null;
+    return new Date(yr, m - 1, day);
+  }
+
+  var targetSf = proforma.avgUnitSf || 1200;
+  var t1Comps = [];
+
+  for(var i = 0; i < COMPS.length; i++){
+    var c = COMPS[i];
+    if(c.t !== 1) continue;
+    if(c.zip !== zip) continue;
+    var sd = parseDate(c.date);
+    if(!sd || sd < cutoff) continue;
+    t1Comps.push({
+      address: c.address || '—',
+      date: c.date,
+      dateParsed: sd,
+      ppsf: c.ppsf || 0,
+      sqft: c.sqft || 0,
+      pt: PT_LABEL[c.pt] || '—',
+      sizeDelta: Math.abs((c.sqft || 0) - targetSf)
+    });
+  }
+
+  // Sort by size proximity to target unit SF
+  t1Comps.sort(function(a,b){ return a.sizeDelta - b.sizeDelta; });
+  var top3 = t1Comps.slice(0, 3);
+
+  // Date range
+  var dateRange = '';
+  if(t1Comps.length){
+    var dates = t1Comps.map(function(c){ return c.dateParsed; }).sort(function(a,b){ return a-b; });
+    var fmt = function(d){ var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return mo[d.getMonth()]+' '+d.getFullYear(); };
+    dateRange = fmt(dates[0]) + ' – ' + fmt(dates[dates.length-1]);
+  }
+
+  return {comps: top3, total: t1Comps.length, zip: zip, dateRange: dateRange};
+}
+
+function formatAnchorDate(d){
+  if(!d) return '—';
+  var parts = d.split('-');
+  if(parts.length >= 3) return parts[0].substring(0,3) + ' ' + parts[2];
+  return d;
+}
+
 // Legacy exit $/SF scale - used by neighborhood grid + comp heatmap
 function exitPsfColor(ppsf){
   if(!ppsf || ppsf <= 0) return '#888';
@@ -2602,7 +2677,7 @@ function generateDealCard(l, opts){
   var spreadPct = allInPsf > 0 ? Math.round((spread / allInPsf) * 100) : 0;
   var spreadColor = spread >= 100 ? '#246424' : spread >= 0 ? '#7a5e10' : '#b91c1c';
   h += '<div class="dc3-hero">';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF</div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="T1 condition-tiered comps only. Excludes existing/unrenovated sales.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">All-In $/SF</div><div class="dc3-hero-val">$' + commas(allInPsf) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">$' + spread + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val">' + fmtDollar(l.price) + '</div></div>';
@@ -2671,6 +2746,34 @@ function generateDealCard(l, opts){
 
   h += '</div>'; // end dc3-body
 
+  // ── EXIT PRICING COMPS (T1 anchors) ──
+  var anchors = findT1CompAnchors(l);
+  if(anchors.comps.length > 0){
+    h += '<div class="dc3-comp-anchors">';
+    h += '<div class="dc3-comp-anchors-title">Exit Pricing Comps</div>';
+    h += '<table class="dc3-comp-table"><thead><tr>';
+    h += '<th>Address</th><th>Sale Date</th><th>$/SF</th><th>Tier</th><th>Size</th><th>Type</th>';
+    h += '</tr></thead><tbody>';
+    anchors.comps.forEach(function(c){
+      h += '<tr>';
+      h += '<td class="dc3-comp-addr">' + c.address + '</td>';
+      h += '<td>' + formatAnchorDate(c.date) + '</td>';
+      h += '<td style="color:#246424;font-weight:600">$' + c.ppsf + '</td>';
+      h += '<td><span style="color:#14b8a6;font-weight:600">T1</span></td>';
+      h += '<td>' + (c.sqft ? c.sqft.toLocaleString() + ' SF' : '—') + '</td>';
+      h += '<td>' + c.pt + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    h += '<div class="dc3-comp-footer">Based on ' + anchors.total + ' T1 comp' + (anchors.total !== 1 ? 's' : '') + ' in ' + (anchors.zip || '—');
+    if(anchors.dateRange) h += ', ' + anchors.dateRange;
+    if(anchors.comps.length < 3) h += ' <span style="color:#7a5e10">(only ' + anchors.comps.length + ' found)</span>';
+    h += '</div>';
+    h += '</div>';
+  } else {
+    h += '<div class="dc3-comp-anchors"><div class="dc3-comp-anchors-title">Exit Pricing Comps</div>';
+    h += '<div class="dc3-comp-footer" style="padding:8px 0">No T1 comps found in ZIP ' + (l.zip || '—') + ' within 18 months</div></div>';
+  }
 
   // ── BOTTOM BAR ──
   h += '<div class="dc3-bottom">';
