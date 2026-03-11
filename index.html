@@ -626,8 +626,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   /* NEW listing badge */
   .new-badge{display:inline-block;padding:1px 6px;border-radius:9px;font-size:9px;font-weight:700;letter-spacing:0.04em;background:#22c55e;color:#fff;vertical-align:middle;margin-left:4px;line-height:1.4}
   .new-badge.week{background:#0ea5e9}
-  .listing-marker-new{animation:newPulse 2s ease-in-out infinite}
-  @keyframes newPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,0.6))}50%{filter:drop-shadow(0 0 10px rgba(34,197,94,0.9))}}
+  .pulse-ring{pointer-events:none;animation:pulse-ring 2s ease-out infinite}
+  @keyframes pulse-ring{0%{stroke-width:2;stroke-opacity:.7}70%{stroke-width:14;stroke-opacity:0}100%{stroke-width:14;stroke-opacity:0}}
   .marker-highlight{animation:markerPulse .5s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
   @keyframes markerPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px #fff)}50%{transform:scale(1.8);filter:drop-shadow(0 0 12px #fff)}}
 
@@ -1375,7 +1375,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="onboard-title">Welcome to SB 1123 Deal Finder</div>
       <div class="onboard-body">
         Each pin is a lot for sale. Size = lot area. Color = exit $/SF from <span class="key" style="background:#dbeafe;color:#2563eb">low</span> to <span class="key" style="background:#fee2e2;color:#dc2626">high</span>.<br>
-        <span class="key" style="background:#dcfce7;color:#16a34a">Green border</span> = new listing. <span class="key" style="background:#fff7ed;color:#f97316">Orange border</span> = for-sale.
+        <span class="key" style="background:#dcfce7;color:#16a34a">Pulsing pin</span> = listed within 7 days.
       </div>
     </div>
     <div class="onboard-step" data-step="1">
@@ -3001,20 +3001,23 @@ function rebuildListings(cachedListings){
     const fillColor = nonViable ? '#888' : exitPsfPinColor(exitPsf_pin);
 
     const lotSf = l.lotSf || 0;
-    const isNewListing = l.isNew;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
-    const radius = isNewListing ? baseRadius + 3 : baseRadius;
-    const borderColor = nonViable ? '#666' : (isNewListing ? '#22c55e' : '#f97316');
-    const markerWeight = isNewListing ? 4 : 2;
-    const margin = l.estMargin || 0;
-    const isDualViable = !nonViable && margin >= 20 && l.btrViable;
     const cm = L.circleMarker([l.lat,l.lng],{
-      radius, color: isDualViable ? '#f59e0b' : borderColor, fillColor,
+      radius: baseRadius, fillColor,
       fillOpacity: nonViable ? 0.4 : 0.95,
-      weight: isDualViable ? 3 : markerWeight,
+      weight: 0,
       pane:'listingsPane',
-      className: isNewListing && !nonViable ? 'listing-marker-new' : '',
     });
+
+    // Pulse ring for listings on market <= 7 days
+    if(l.isNewThisWeek && !nonViable){
+      const pulseColor = fillColor;
+      L.circleMarker([l.lat,l.lng],{
+        radius: baseRadius + 2, color: pulseColor, fillColor: pulseColor,
+        fillOpacity: 0, weight: 2, pane:'listingsPane',
+        className: 'pulse-ring',
+      }).addTo(listingsLayer);
+    }
 
     if(nonViable){
       cm.bindTooltip('Non-viable at current assumptions. Adjust sliders to explore.', {direction:'top',className:'ghost-tooltip'});
@@ -5298,8 +5301,8 @@ map.on('click', function(e) {
       <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">OTHER MARKERS</p>
       <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px;font-size:12px">
         <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;border:1.5px dashed #d97706;background:rgba(245,158,11,0.85)"></span> BTR-only deal (diamond)</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #f59e0b;background:transparent"></span> BTS + BTR viable (amber ring)</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #22c55e;background:transparent"></span> New listing (&lt;24h, green pulse)</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #f59e0b;background:transparent"></span> BTS + BTR viable (in deal card)</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;opacity:0.5"></span> Pulsing pin = listed within 7 days</div>
       </div>
       <p class="key-note" style="border-top:none;padding-top:0;margin-top:0">Adjust the <strong>Assumptions</strong> tab (highlighted in orange) to reprice all pins in real time with your own inputs.</p>
 
