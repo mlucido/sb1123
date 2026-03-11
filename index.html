@@ -6,9 +6,9 @@
   var CORRECT = 'dogood';
   var stored = sessionStorage.getItem('lu_auth');
   if (stored !== CORRECT) {
-    var attempt = prompt('Lucid Urban Development\n\nEnter investor access code:');
+    var attempt = prompt('Access Code');
     if (attempt !== CORRECT) {
-      document.documentElement.innerHTML = '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#1B3A6B;color:white;"><div style="text-align:center"><h2>Access Denied</h2><p>Contact Lucid Urban Development for access.</p></div></body>';
+      document.documentElement.innerHTML = '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#1B3A6B;color:white;"><div style="text-align:center"><h2>Access Denied</h2><p>Contact Lucid Residential for access.</p></div></body>';
       throw new Error('Access denied');
     }
     sessionStorage.setItem('lu_auth', CORRECT);
@@ -622,8 +622,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .new-badge.week{background:#0ea5e9}
   .pulse-ring{pointer-events:none;animation:pulse-ring 2s ease-out infinite}
   @keyframes pulse-ring{0%{stroke-width:2;stroke-opacity:.7}70%{stroke-width:14;stroke-opacity:0}100%{stroke-width:14;stroke-opacity:0}}
-  .marker-highlight{animation:markerPulse .5s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
-  @keyframes markerPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px #fff)}50%{transform:scale(1.8);filter:drop-shadow(0 0 12px #fff)}}
+  .marker-highlight{animation:markerPulse .5s ease-in-out infinite;transform-origin:center;transform-box:fill-box;z-index:9999!important}
+  @keyframes markerPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px #3b82f6) drop-shadow(0 0 16px #3b82f6)}50%{transform:scale(2.5);filter:drop-shadow(0 0 14px #3b82f6) drop-shadow(0 0 24px #3b82f6)}}
+  .beacon-ring{pointer-events:none;animation:beaconPulse 1s ease-out infinite}
+  @keyframes beaconPulse{0%{stroke-width:3;stroke-opacity:.8;r:18}70%{stroke-width:1;stroke-opacity:0;r:40}100%{stroke-width:1;stroke-opacity:0;r:40}}
 
   /* Panel toggle in sidebar */
   .panel-toggle{
@@ -3808,6 +3810,9 @@ function flyToListing(lat, lng){
 }
 
 let _highlightedPath = null;
+let _highlightedLayer = null;
+let _highlightedOrigRadius = null;
+let _beaconLayer = null;
 function highlightMarker(lat, lng){
   unhighlightMarker();
   listingsLayer.eachLayer(layer => {
@@ -3816,11 +3821,25 @@ function highlightMarker(lat, lng){
     if(Math.abs(ll.lat - lat) < COORD_MATCH_TOLERANCE && Math.abs(ll.lng - lng) < COORD_MATCH_TOLERANCE){
       layer._path.classList.add('marker-highlight');
       _highlightedPath = layer._path;
+      _highlightedLayer = layer;
+      _highlightedOrigRadius = layer.getRadius();
+      layer.setRadius(16);
+      layer.bringToFront();
+      // Add beacon ring
+      _beaconLayer = L.circleMarker([lat, lng], {
+        radius: 28, weight: 3, color: '#3b82f6', fillColor: 'transparent',
+        fillOpacity: 0, opacity: 0.7, className: 'beacon-ring'
+      }).addTo(map);
     }
   });
 }
 function unhighlightMarker(){
   if(_highlightedPath){ _highlightedPath.classList.remove('marker-highlight'); _highlightedPath = null; }
+  if(_highlightedLayer && _highlightedOrigRadius != null){
+    _highlightedLayer.setRadius(_highlightedOrigRadius);
+    _highlightedLayer = null; _highlightedOrigRadius = null;
+  }
+  if(_beaconLayer){ map.removeLayer(_beaconLayer); _beaconLayer = null; }
 }
 
 // ══════════════════════════════════════════
@@ -5097,7 +5116,7 @@ map.on('click', function(e) {
       <h3>What is SB 1123?</h3>
       <p>SB 1123 (signed 2024) allows by-right subdivision of single R1 and multifamily-zoned parcels into up to 10 fee-simple lots without discretionary review. &ldquo;By-right&rdquo; means no planning commission hearings, no neighbor appeals, no conditional use permits &mdash; the city must approve ministerially if the project meets objective standards.</p>
 
-      <h3>Lucid Urban&rsquo;s Strategy</h3>
+      <h3>Lucid Residential&rsquo;s Strategy</h3>
       <p>We acquire directly from homeowners at pre-SB 1123 pricing &mdash; before the market has repriced for subdivision potential. We subdivide, build attached townhomes, and sell fee-simple lots to end buyers. Each deal targets a 40%+ IRR and 2&times; MOIC on a 24-month hold.</p>
 
       <h3>Fee-Simple Lots</h3>
