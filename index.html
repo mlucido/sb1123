@@ -2777,7 +2777,6 @@ function generateDealCard(l, opts){
   if (l.openSpace) ddFails.push('<span class="dc3-warn">&#9888;</span> Protected area');
   if (l.rsoRisk && l.zone !== 'R1' && l.zone !== 'LAND') ddFails.push('<span class="dc3-warn">&#9888;</span> RSO');
   if (l.urbanArea === false) ddFails.push('<span class="dc3-warn">&#9888;</span> Not urban area');
-  if (l.zone !== 'R1' && l.zone !== 'LAND' && l.tenantRisk >= 2) ddFails.push('<span class="dc3-warn">&#9888;</span> Tenant risk');
   if (ddFails.length) {
     h += '<div class="dc3-bottom-dd">';
     ddFails.forEach(function(w){ h += '<span>' + w + '</span>'; });
@@ -3156,7 +3155,6 @@ function buildOffMarketLayer(){
       </div>
       ${l.hasStructure ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">DEMO REQUIRED</div>' : ''}
       ${l.urbanArea === false ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">NOT URBAN AREA</div>' : ''}
-      ${l.zone!=='R1'&&l.zone!=='LAND' ? (l.tenantRisk >= 3 ? '<div class="popup-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">HIGH TENANT RISK</div>' : l.tenantRisk >= 2 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">TENANT RISK</div>' : '') : ''}
       ${l.zone!=='R1'&&l.zone!=='LAND'&&l.rsoRisk ? '<div class="popup-badge" style="background:rgba(220,38,38,0.15);color:#dc2626">RSO — ELLIS ACT REQUIRED</div>' : ''}
       ${l.remainderViable ? '<div class="popup-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">REMAINDER PARCEL: '+l.remainderSf.toLocaleString()+' SF &#8594; '+l.remainderUnits+' units</div>' : l.remainderUnits > 0 ? '<div class="popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">REMAINDER: '+l.remainderSf.toLocaleString()+' SF ('+l.remainderUnits+' units)</div>' : ''}
       <div class="popup-title">${titleAddr(l.address || 'N/A')}</div>
