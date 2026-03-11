@@ -624,8 +624,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .new-badge.week{background:#0ea5e9}
   .pulse-ring{pointer-events:none;animation:pulse-ring 2s ease-out infinite}
   @keyframes pulse-ring{0%{stroke-width:2;stroke-opacity:.7}70%{stroke-width:14;stroke-opacity:0}100%{stroke-width:14;stroke-opacity:0}}
-  .marker-highlight{animation:markerPulse .5s ease-in-out infinite;transform-origin:center;transform-box:fill-box;z-index:9999!important}
-  @keyframes markerPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px #3b82f6) drop-shadow(0 0 16px #3b82f6)}50%{transform:scale(2.5);filter:drop-shadow(0 0 14px #3b82f6) drop-shadow(0 0 24px #3b82f6)}}
+  .marker-highlight{filter:drop-shadow(0 0 6px #3b82f6) drop-shadow(0 0 12px #3b82f6);z-index:9999!important}
   .beacon-ring{pointer-events:none;animation:beaconPulse 1s ease-out infinite}
   @keyframes beaconPulse{0%{stroke-width:3;stroke-opacity:.8;r:18}70%{stroke-width:1;stroke-opacity:0;r:40}100%{stroke-width:1;stroke-opacity:0;r:40}}
 
@@ -3821,19 +3820,22 @@ function highlightMarker(lat, lng){
   unhighlightMarker();
   listingsLayer.eachLayer(layer => {
     if(!layer.getLatLng || !layer._path) return;
+    // Skip pulse-ring and status-dot layers — only highlight the main pin
+    if(layer._path.classList.contains('pulse-ring')) return;
+    if(layer.options && layer.options.radius <= 5) return;  // status dots
     const ll = layer.getLatLng();
     if(Math.abs(ll.lat - lat) < COORD_MATCH_TOLERANCE && Math.abs(ll.lng - lng) < COORD_MATCH_TOLERANCE){
-      layer._path.classList.add('marker-highlight');
       _highlightedPath = layer._path;
       _highlightedLayer = layer;
       _highlightedOrigRadius = layer.getRadius();
-      layer.setRadius(16);
+      layer.setRadius(_highlightedOrigRadius + 4);
       layer.bringToFront();
       // Add beacon ring
       _beaconLayer = L.circleMarker([lat, lng], {
-        radius: 28, weight: 3, color: '#3b82f6', fillColor: 'transparent',
-        fillOpacity: 0, opacity: 0.7, className: 'beacon-ring'
+        radius: 20, weight: 2, color: '#3b82f6', fillColor: 'transparent',
+        fillOpacity: 0, opacity: 0.6, className: 'beacon-ring'
       }).addTo(map);
+      return;  // stop after first match
     }
   });
 }
