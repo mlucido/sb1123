@@ -2946,7 +2946,18 @@ function generateDealCard(l, opts){
   return h;
 }
 
+// Track open popup pin for re-open after rebuild
+var _openPinKey = null;
 function rebuildListings(cachedListings){
+  // Capture currently open popup's pin before clearing
+  var openLat = null, openLng = null;
+  listingsLayer.eachLayer(function(layer){
+    if(layer.isPopupOpen && layer.isPopupOpen()){
+      var ll = layer.getLatLng();
+      if(ll){ openLat = ll.lat; openLng = ll.lng; }
+    }
+  });
+
   listingsLayer.clearLayers();
   // Clear for-sale flags so off-market layer can exclude visible for-sale listings
   LISTINGS.forEach(l => { l._onForSaleLayer = false; });
@@ -2998,6 +3009,18 @@ function rebuildListings(cachedListings){
       dotMarker.addTo(listingsLayer);
     }
   });
+
+  // Re-open popup if one was open before rebuild
+  if(openLat !== null){
+    listingsLayer.eachLayer(function(layer){
+      if(layer.getLatLng){
+        var ll = layer.getLatLng();
+        if(Math.abs(ll.lat - openLat) < 0.0001 && Math.abs(ll.lng - openLng) < 0.0001){
+          layer.openPopup();
+        }
+      }
+    });
+  }
 
   document.getElementById('listingCount').textContent = filtered.length.toLocaleString();
   rebuildTable(filtered);
