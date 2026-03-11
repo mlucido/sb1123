@@ -5551,28 +5551,16 @@ function applyKeyAssumptions(){
   var softPct = _kaVal('softPct');
   var allIn = Math.round(hardPsf * (1 + softPct/100) + 15); // +$10 subdiv + $5 A&E
 
-  // Write directly to proforma object (source of truth)
-  proforma.allInBuildPsf = allIn;
-  proforma.softCostPct = softPct;
-  proforma.avgUnitSf = _kaVal('unitSf');
-  proforma.carryRatePct = _kaVal('carryRate');
-  proforma.holdMonths = _kaVal('holdMonths');
-  proforma.txnCostPct = _kaVal('txnCost');
-  proforma.fixedDispositionCosts = _kaVal('fixedDisp');
-  proforma.insurance = _kaVal('insurance');
-  proforma.originationPct = _kaVal('origination');
-  proforma.ellisPerUnit = _kaVal('ellis');
-
-  // Sync hidden backing inputs (BTR proforma reads from DOM)
+  // Write to hidden backing inputs (onProformaChange reads from these)
   document.getElementById('pfBuildCost').value = allIn;
-  document.getElementById('pfUnitSize').value = proforma.avgUnitSf;
-  document.getElementById('pfTxnCost').value = proforma.txnCostPct;
-  document.getElementById('pfFixedDisp').value = proforma.fixedDispositionCosts;
-  document.getElementById('pfHoldMonths').value = proforma.holdMonths;
-  document.getElementById('pfCarryRate').value = proforma.carryRatePct;
-  document.getElementById('pfInsurance').value = proforma.insurance;
-  document.getElementById('pfOrigination').value = proforma.originationPct;
-  document.getElementById('pfEllisPerUnit').value = proforma.ellisPerUnit;
+  document.getElementById('pfUnitSize').value = _kaVal('unitSf');
+  document.getElementById('pfTxnCost').value = _kaVal('txnCost');
+  document.getElementById('pfFixedDisp').value = _kaVal('fixedDisp');
+  document.getElementById('pfHoldMonths').value = _kaVal('holdMonths');
+  document.getElementById('pfCarryRate').value = _kaVal('carryRate');
+  document.getElementById('pfInsurance').value = _kaVal('insurance');
+  document.getElementById('pfOrigination').value = _kaVal('origination');
+  document.getElementById('pfEllisPerUnit').value = _kaVal('ellis');
   document.getElementById('btrOpex').value = (_kaVal('btrOpex')/100).toFixed(2);
   document.getElementById('btrCapRate').value = (_kaVal('btrCap')/100).toFixed(3);
   document.getElementById('btrLTV').value = (_kaVal('btrLtv')/100).toFixed(2);
@@ -5583,10 +5571,8 @@ function applyKeyAssumptions(){
   window._kaExitCeiling = _kaVal('exitCeiling');
   window._kaPrefReturn = _kaVal('prefReturn');
 
-  // Recompute everything
-  clearProformaCaches();
-  enrichListings();
-  applyFilters();
+  // Trigger module-scoped recompute (reads from hidden inputs, calls enrichListings + applyFilters)
+  if(typeof window.onProformaChange === 'function') window.onProformaChange();
 }
 function resetKeyAssumptions(){
   Object.keys(KA_DEFAULTS).forEach(function(k){
