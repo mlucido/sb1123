@@ -170,11 +170,12 @@ function computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF,
 function exportCSV(){
   const filtered = _deps.getFilteredListings();
   if(!filtered.length) return;
-  const headers = ['Fav','Address','Zone','Price','Lot SF','Lot Width','Units','Exit $/SF','Sale/Unit','Buy/Unit','Build/Unit','Profit','Margin %','Slope %','DOM','City','AIN','Notes','URL'];
+  const headers = ['Fav','Address','Zone','Price','Lot SF','Lot Width','Units','Exit $/SF','Comp Count','Low Confidence','SFR Comp %','Sale/Unit','Buy/Unit','Build/Unit','Profit','Margin %','Slope %','DOM','City','AIN','Notes','URL'];
   const favs = _deps.loadFavorites();
   const rows = filtered.map(l=>[
     favs[_deps.listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.lw||'', l.maxUnits, l.exitPsf||0,
+    l.lotSf||'', l.lw||'', l.maxUnits, l.exitPsf||'',
+    l.compCount||0, l.lowCompConfidence?'Y':'', ((l.sfrCompShare||0)*100).toFixed(0),
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
     l.slope!=null?l.slope:'', l.dom!==null?l.dom:'', l.city||'',

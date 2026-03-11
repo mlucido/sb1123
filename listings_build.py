@@ -47,17 +47,48 @@ market = get_market()
 LAT_MIN, LAT_MAX = market["lat_min"], market["lat_max"]
 LNG_MIN, LNG_MAX = market["lng_min"], market["lng_max"]
 
-# ── Spatial comp index config ──
-GRID_SIZE = 0.01          # ~0.7 miles per cell
-MIN_COMPS = 5             # Minimum comps needed for a reliable median
+# ── Weighted comp scoring model config ──
+GRID_SIZE = 0.01          # ~0.7 miles per cell (for spatial index)
+MIN_COMPS = 5             # Minimum scored comps for reliable output
 DEG_PER_MILE = 1 / 69.0  # Approximate degrees latitude per mile
-COMP_SQFT_MIN = 1300      # Min comp SF — 75% of 1,750 SF product size
-COMP_SQFT_MAX = 3500      # Max comp SF — exclude mega-homes that drag down $/SF
-# Search radii in degrees: 0.25mi, 0.5mi, 1mi — tighter start for hyperlocal comps
-SEARCH_RADII_DEG = [0.0036, 0.007, 0.015]
-ELIGIBLE_PT = {1, 2, 3}       # SFR, Condo, Townhome — exclude multi-family
-T1_WEIGHT = 1.75              # New/remodel (T1) comps weighted 1.75x over existing (T2)
-ATTACHED_BOOST = 1.5          # Condo/TH (pt=2,3) weighted 1.5x — closer to our attached product
+CURRENT_YEAR = datetime.now().year
+
+# ── Product type weights (Tier 1–6) ──
+TIER_1_WEIGHT = 1.00   # Townhouse, new (≤5yr)
+TIER_2_WEIGHT = 0.85   # Townhouse, renovated (T1, >5yr)
+TIER_3_WEIGHT = 0.75   # Condo/Co-op, new (≤5yr)
+TIER_4_WEIGHT = 0.70   # Townhouse, older high-end (5–10yr, T1)
+TIER_5_WEIGHT = 0.60   # Condo/Co-op, renovated (T1, >5yr)
+TIER_6_WEIGHT = 0.50   # SFR, new (≤5yr), 1500–2200 SF ONLY
+SFR_SQFT_MIN = 1500    # Hard gate: min SFR sqft to include
+SFR_SQFT_MAX = 2200    # Hard gate: max SFR sqft to include
+
+# ── Proximity weights (miles) ──
+PROX_0_05  = 1.00   # 0–0.5 miles
+PROX_05_10 = 0.80   # 0.5–1.0 miles
+PROX_10_15 = 0.60   # 1.0–1.5 miles
+PROX_15_20 = 0.40   # 1.5–2.0 miles
+MAX_RADIUS_MI = 2.0  # Hard exclude beyond this
+CASCADE_MAX_MI = 3.0 # Cascade can expand up to this
+
+# ── Recency weights (months) ──
+RECENCY_0_6   = 1.00
+RECENCY_6_12  = 0.85
+RECENCY_12_18 = 0.70
+RECENCY_18_24 = 0.50
+MAX_RECENCY_MONTHS = 24  # Hard exclude older
+
+# ── SFR attached discount by ZIP ──
+ATTACHED_DISCOUNT_BY_ZIP = {
+    "90402": 0.68, "90403": 0.68,
+    "90404": 0.70, "90405": 0.70,
+    "90049": 0.72, "90272": 0.72,
+    "91367": 0.82, "91364": 0.82,
+    "91302": 0.80,
+    "91335": 0.84, "91303": 0.84,
+    "91405": 0.84, "91406": 0.84,
+}
+ATTACHED_DISCOUNT_DEFAULT = 0.78
 
 # ── Step 1: Load comps and build spatial index ──
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
@@ -72,19 +103,94 @@ if os.path.exists(comps_file):
         comps = json.loads(match.group(1))
         print(f"   Loaded {len(comps):,} sold comps")
     else:
-        print(f"   ⚠️  Could not parse {comps_file} — neighborhood $/SF will be unavailable")
+        print(f"   ⚠️  Could not parse {comps_file} — exit $/SF will be unavailable")
 else:
-    print(f"   ⚠️  {comps_file} not found — neighborhood $/SF will be unavailable")
+    print(f"   ⚠️  {comps_file} not found — exit $/SF will be unavailable")
 
-# Build spatial grid: PT-filtered (SFR/Condo/TH only, exclude multi-family)
-# Key: (grid_row, grid_col) → list of (lat, lng, ppsf, sqft)
-comp_grid = {}    # all eligible-PT comps
-newcon_grid = {}  # eligible-PT comps with yb >= 2021: (lat, lng, ppsf, sqft, yb)
-# Zip-level fallback: { zip: [(ppsf, tier, rw)] }
-zip_ppsfs = {}
-newcon_count = 0
-pt_counts = {1: 0, 2: 0, 3: 0}
+# ── Haversine distance (miles) ──
+def haversine_mi(lat1, lng1, lat2, lng2):
+    """Great-circle distance in miles between two lat/lng points."""
+    R = 3958.8  # Earth radius in miles
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def proximity_weight(dist_mi):
+    """Return proximity weight for a given distance in miles."""
+    if dist_mi <= 0.5: return PROX_0_05
+    if dist_mi <= 1.0: return PROX_05_10
+    if dist_mi <= 1.5: return PROX_10_15
+    if dist_mi <= 2.0: return PROX_15_20
+    return 0  # excluded
+
+
+def scored_recency_weight(sale_date_str):
+    """Recency weight with hard 24-month exclude for the scoring model."""
+    if not sale_date_str:
+        return 0  # no date = exclude
+    try:
+        sale = datetime.strptime(sale_date_str, "%B-%d-%Y")
+    except Exception:
+        try:
+            sale = datetime.strptime(sale_date_str, "%Y-%m-%d")
+        except Exception:
+            return 0  # unparseable = exclude
+    months_ago = (datetime.now() - sale).days / 30.44
+    if months_ago > MAX_RECENCY_MONTHS:
+        return 0  # hard exclude
+    if months_ago <= 6: return RECENCY_0_6
+    if months_ago <= 12: return RECENCY_6_12
+    if months_ago <= 18: return RECENCY_12_18
+    return RECENCY_18_24
+
+
+# PT code mapping: 1=SFR, 2=Condo, 3=Townhouse (from build_comps.py PT_MAP)
+PT_SFR = 1
+PT_CONDO = 2
+PT_TOWNHOUSE = 3
+
+
+def product_weight(pt, tier, yb, sqft):
+    """Return (product_weight, tier_rank) or (0, -1) if excluded.
+    pt: property type code (1=SFR, 2=Condo, 3=TH)
+    tier: condition tier (1=T1 new/remodel, 2=T2 existing)
+    yb: year built (int or None)
+    sqft: building square footage
+    """
+    is_new = yb is not None and yb >= (CURRENT_YEAR - 5)
+    is_t1 = tier == 1
+    age = (CURRENT_YEAR - yb) if yb else 999
+
+    if pt == PT_TOWNHOUSE:
+        if is_new:
+            return TIER_1_WEIGHT, 1
+        if is_t1 and 5 < age <= 10:
+            return TIER_4_WEIGHT, 4  # older high-end (5-10yr, T1)
+        if is_t1:
+            return TIER_2_WEIGHT, 2  # renovated (>10yr, T1)
+        return 0, -1
+    elif pt == PT_CONDO:
+        if is_new:
+            return TIER_3_WEIGHT, 3
+        if is_t1:
+            return TIER_5_WEIGHT, 5
+        return 0, -1
+    elif pt == PT_SFR:
+        if is_new and SFR_SQFT_MIN <= sqft <= SFR_SQFT_MAX:
+            return TIER_6_WEIGHT, 6
+        return 0, -1
+    return 0, -1  # unknown type
+
+
+# Build spatial grid index for fast radius lookups
+# Each comp entry: dict with all needed fields for scoring
+comp_grid = {}  # (grid_row, grid_col) → [comp_dict, ...]
+eligible_count = 0
+pt_counts = {PT_SFR: 0, PT_CONDO: 0, PT_TOWNHOUSE: 0}
 skipped_mf = 0
+skipped_no_date = 0
 
 for c in comps:
     clat = c.get("lat", 0)
@@ -93,69 +199,61 @@ for c in comps:
     csqft = c.get("sqft", 0)
     czip = c.get("zip", "")
     cpt = c.get("pt", 0)
+    ctier = c.get("t", 2)
+    cyb = c.get("yb")
+    cdate = c.get("date", "")
+
     if cppsf <= 0 or clat == 0 or clng == 0:
         continue
 
-    # Filter to eligible property types only (SFR, Condo, Townhome)
-    if cpt not in ELIGIBLE_PT:
+    # Only SFR/Condo/TH
+    if cpt not in (PT_SFR, PT_CONDO, PT_TOWNHOUSE):
         skipped_mf += 1
         continue
 
+    # Pre-check: must have a parseable date within 24 months
+    rw = scored_recency_weight(cdate)
+    if rw == 0:
+        skipped_no_date += 1
+        continue
+
+    # Pre-check: must have a product weight in at least the most permissive tier
+    pw, tier_rank = product_weight(cpt, ctier, cyb, csqft)
+    # We store ALL eligible comps (even those with pw=0 at strict tier)
+    # because cascade may include lower tiers later.
+    # But we do a soft check — if even Tier 6 wouldn't match, skip.
+    # Actually, store all SFR/Condo/TH within 24 months — product_weight
+    # will be re-evaluated per-listing during cascade.
+
     pt_counts[cpt] = pt_counts.get(cpt, 0) + 1
 
-    # Grid cell
     grow = math.floor(clat / GRID_SIZE)
     gcol = math.floor(clng / GRID_SIZE)
-    entry = (clat, clng, cppsf, csqft, cpt)
 
-    comp_grid.setdefault((grow, gcol), []).append(entry)
+    comp_entry = {
+        "lat": clat, "lng": clng, "ppsf": cppsf, "sqft": csqft,
+        "zip": czip, "pt": cpt, "t": ctier, "yb": cyb, "date": cdate,
+        "rw": rw,
+    }
+    comp_grid.setdefault((grow, gcol), []).append(comp_entry)
+    eligible_count += 1
 
-    # New-con grid (year_built >= 2021)
-    yb = c.get("yb")
-    if yb and yb >= 2021:
-        nc_entry = (clat, clng, cppsf, csqft, yb, cpt)
-        newcon_grid.setdefault((grow, gcol), []).append(nc_entry)
-        newcon_count += 1
-
-    # Zip-level fallback (carry tier + recency weight + pt)
-    ctier = c.get("t", 2)  # default T2
-    crw = recency_weight(c.get("date", ""))
-    if czip:
-        zip_ppsfs.setdefault(czip, []).append((cppsf, ctier, crw, cpt))
-
-print(f"   Spatial index: {len(comp_grid):,} grid cells (PT 1/2/3 only)")
-print(f"     SFR (pt=1): {pt_counts.get(1, 0):,}")
-print(f"     Condo (pt=2): {pt_counts.get(2, 0):,}")
-print(f"     Townhome (pt=3): {pt_counts.get(3, 0):,}")
+print(f"   Spatial index: {len(comp_grid):,} grid cells")
+print(f"     SFR (pt=1): {pt_counts.get(PT_SFR, 0):,}")
+print(f"     Condo (pt=2): {pt_counts.get(PT_CONDO, 0):,}")
+print(f"     Townhome (pt=3): {pt_counts.get(PT_TOWNHOUSE, 0):,}")
 print(f"     Excluded MF (pt=4,5): {skipped_mf:,}")
-print(f"   New-con (2021+): {newcon_count:,} comps in {len(newcon_grid):,} cells")
-print(f"   Zip fallbacks: {len(zip_ppsfs)} zips")
-
-# Tier lookup: "lat,lng" → tier (1=T1 new/remodel, 2=T2 existing)
-comp_tier_map = {}
-comp_pt_map = {}
-comp_date_map = {}
-t1_count = 0
-for c in comps:
-    key = f"{c['lat']},{c['lng']}"
-    tier = c.get("t", 2)  # default T2
-    comp_tier_map[key] = tier
-    if tier == 1:
-        t1_count += 1
-    pt = c.get("pt", 0)
-    if pt:
-        comp_pt_map[key] = pt
-    comp_date_map[key] = c.get("date", "")
-print(f"   T1 (new/remodel) comps: {t1_count:,} (weighted {T1_WEIGHT}x)")
+print(f"     Excluded (no/stale date): {skipped_no_date:,}")
+print(f"   Eligible comps indexed: {eligible_count:,}")
 
 
 def iqr_trim(vals):
     """Remove outliers using IQR method (1.0x multiplier for tighter trim).
-    vals: list of (ppsf, ...) tuples.
+    vals: list of dicts with 'ppsf' key.
     Needs ≥5 comps to trim; otherwise returns original list."""
     if len(vals) < 5:
         return vals
-    ppsfs = sorted(v[0] for v in vals)
+    ppsfs = sorted(v["ppsf"] for v in vals)
     n = len(ppsfs)
     q1 = ppsfs[n // 4]
     q3 = ppsfs[(3 * n) // 4]
@@ -164,8 +262,7 @@ def iqr_trim(vals):
         return vals
     lo = q1 - 1.0 * iqr
     hi = q3 + 1.0 * iqr
-    trimmed = [v for v in vals if lo <= v[0] <= hi]
-    # Don't trim too aggressively — keep at least 60% of comps
+    trimmed = [v for v in vals if lo <= v["ppsf"] <= hi]
     if len(trimmed) < len(vals) * 0.6:
         return vals
     return trimmed if trimmed else vals
@@ -194,202 +291,139 @@ def rental_iqr_trim(vals):
     return trimmed if trimmed else vals
 
 
-def wp75(vals):
-    """Weighted P75 with tier + attached product weighting.
-    IQR outlier trimming applied first.
-    vals: list of (ppsf, tier, rw) or (ppsf, tier, rw, pt) tuples.
-    Weights: T1 1.75x, Condo/TH (pt 2,3) 1.5x — stacks multiplicatively."""
-    if not vals:
-        return 0
-    vals = iqr_trim(vals)
-    weighted = []
-    for item in vals:
-        ppsf, tier = item[0], item[1]
-        rw = item[2] if len(item) > 2 else 1.0
-        pt = item[3] if len(item) > 3 else 0
-        w = (T1_WEIGHT if tier == 1 else 1.0) * rw
-        if pt in (2, 3):  # Condo/TH — attached product boost
-            w *= ATTACHED_BOOST
-        weighted.append((ppsf, w))
-    weighted.sort(key=lambda x: x[0])
-    total = sum(w for _, w in weighted)
-    target = total * 0.75
-    cum = 0
-    for v, w in weighted:
-        cum += w
-        if cum >= target:
-            return round(v)
-    return round(weighted[-1][0])
-
-
-def detached_discount(ppsf, vals):
-    """Apply a discount when comps are predominantly detached SFR.
-    SB 1123 builds attached townhomes; detached SFR commands a premium.
-    Discount scales with SFR concentration: 0% at ≤50% SFR, up to 15% at 100% SFR.
-    Only applies when there are enough comps (≥5) for reliable stats."""
-    if not vals or len(vals) < 5:
-        return ppsf
-    sfr_count = sum(1 for v in vals if len(v) > 3 and v[3] == 1)
-    sfr_ratio = sfr_count / len(vals)
-    if sfr_ratio <= 0.50:
-        return ppsf
-    # Graduated discount: (ratio - 0.50) * 0.30 → ~15% max at 100% SFR
-    discount = (sfr_ratio - 0.50) * 0.30
-    return round(ppsf * (1.0 - discount))
-
-
-def find_exit_ppsf(lat, lng, zipcode):
-    """Find exit $/SF (P75) using PT-filtered, tier-weighted radius search.
-
-    Searches SFR/Condo/Townhome comps only (multi-family excluded).
-    T1 (new/remodel) comps get 1.75x weight over T2 (existing).
-    Condo/TH comps get 1.5x attached product boost.
-    Detached premium discount applied when comps are >65% SFR.
-    Three radii: 0.25mi, 0.5mi, 1mi — tighter start for hyperlocal comps.
-    Size-band 1300-3500 SF preferred; thin-comp fallback if 1-4 comps found.
-
-    Priority:
-      1. Size-band comps (≥5) → "spatial"
-      2. All-size comps (≥5 at widest) → "spatial"
-      3. Any comps at widest (1-4) → "spatial-thin"
-      4. Zip fallback
-    """
+def collect_comps_in_radius(lat, lng, radius_mi):
+    """Collect all comp entries from grid within radius_mi of (lat, lng)."""
+    radius_deg = radius_mi * DEG_PER_MILE
     grow = math.floor(lat / GRID_SIZE)
     gcol = math.floor(lng / GRID_SIZE)
-
-    def in_band(sqft):
-        return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
-
-    def _collect(radius):
-        """Collect (ppsf, tier, rw, pt) tuples from comp_grid within radius, split by size band."""
-        cells = int(radius / GRID_SIZE) + 1
-        band, all_ = [], []
-        for dr in range(-cells, cells + 1):
-            for dc in range(-cells, cells + 1):
-                for clat, clng, cppsf, csqft, cpt in comp_grid.get((grow + dr, gcol + dc), []):
-                    if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        key = f"{clat},{clng}"
-                        ctier = comp_tier_map.get(key, 2)
-                        rw = recency_weight(comp_date_map.get(key, ""))
-                        all_.append((cppsf, ctier, rw, cpt))
-                        if in_band(csqft):
-                            band.append((cppsf, ctier, rw, cpt))
-        return band, all_
-
-    # Spatial search with expanding radii
-    last_band = []
-    last_all = []
-    last_miles = 0
-    for radius in SEARCH_RADII_DEG:
-        nearby_band, nearby_all = _collect(radius)
-        if len(nearby_band) >= MIN_COMPS:
-            miles = round(radius * 69, 2)
-            return detached_discount(wp75(nearby_band), nearby_band), len(nearby_band), miles, "spatial"
-        last_band = nearby_band
-        last_all = nearby_all
-        last_miles = round(radius * 69, 2)
-
-    # At widest radius: try all-size fallback, then thin-comp
-    if len(last_all) >= MIN_COMPS:
-        return detached_discount(wp75(last_all), last_all), len(last_all), last_miles, "spatial"
-    if len(last_band) > 0:
-        return wp75(last_band), len(last_band), last_miles, "spatial-thin"
-    if len(last_all) > 0:
-        return wp75(last_all), len(last_all), last_miles, "spatial-thin"
-
-    # Fallback: zip-level
-    if zipcode in zip_ppsfs and len(zip_ppsfs[zipcode]) >= 3:
-        vals = list(zip_ppsfs[zipcode])
-        return detached_discount(wp75(vals), vals), len(vals), 0, "zip"
-
-    return 0, 0, 0, "none"
+    cells = int(radius_deg / GRID_SIZE) + 1
+    result = []
+    for dr in range(-cells, cells + 1):
+        for dc in range(-cells, cells + 1):
+            for comp in comp_grid.get((grow + dr, gcol + dc), []):
+                dist = haversine_mi(lat, lng, comp["lat"], comp["lng"])
+                if dist <= radius_mi:
+                    result.append((comp, dist))
+    return result
 
 
-NEWCON_RADII = [0.007, 0.015, 0.022, 0.029]  # 0.5mi/1mi/1.5mi/2mi
-NEWCON_MIN = 3  # Absolute minimum comps to use new-con pricing
-
-def find_newcon_ppsf(lat, lng, exit_psf):
-    """Find new-construction P75 $/SF with tiered vintage filtering.
-
-    Searches PT-filtered newcon_grid (SFR/Condo/TH only, yb >= 2021).
-    T1 comps get 1.5x weight via wp75.
-
-    Tiers (searched in order, each tier accumulates):
-      1. Built 2024-2025 — same rate environment
-      2. Built 2023+ — post-rate-shock
-      3. Built 2021-2022 — apply -10% haircut per comp
-
-    Minimum 3 comps required. Sanity check vs general P75.
-
-    Returns: (ppsf, count, tier_label, flag) or (None, 0, None, flag)
+def score_comps(lat, lng, zipcode, radius_mi, max_tier_rank=6):
+    """Score comps within radius using the weighted model.
+    Returns list of scored comp dicts (with composite_score, adjusted_psf, etc.)
+    Only includes comps with product tier_rank <= max_tier_rank.
     """
-    grow = math.floor(lat / GRID_SIZE)
-    gcol = math.floor(lng / GRID_SIZE)
+    nearby = collect_comps_in_radius(lat, lng, radius_mi)
+    scored = []
+    for comp, dist in nearby:
+        pw, tier_rank = product_weight(comp["pt"], comp["t"], comp["yb"], comp["sqft"])
+        if pw == 0 or tier_rank > max_tier_rank:
+            continue  # excluded by product filter
 
-    def in_band(sqft):
-        return COMP_SQFT_MIN <= sqft <= COMP_SQFT_MAX
+        prox_w = proximity_weight(dist)
+        if prox_w == 0:
+            continue  # beyond max radius
 
-    def collect_from_grid(radius):
-        """Collect comps from newcon_grid within radius."""
-        cells = int(radius / GRID_SIZE) + 1
-        result = []
-        for dr in range(-cells, cells + 1):
-            for dc in range(-cells, cells + 1):
-                for entry in newcon_grid.get((grow + dr, gcol + dc), []):
-                    clat, clng = entry[0], entry[1]
-                    if abs(clat - lat) <= radius and abs(clng - lng) <= radius:
-                        result.append(entry)
+        rec_w = comp["rw"]  # pre-computed recency weight
+        if rec_w == 0:
+            continue  # too old
+
+        composite = pw * prox_w * rec_w
+
+        # Apply SFR attached discount before scoring
+        raw_ppsf = comp["ppsf"]
+        if comp["pt"] == PT_SFR:
+            discount = ATTACHED_DISCOUNT_BY_ZIP.get(comp["zip"], ATTACHED_DISCOUNT_DEFAULT)
+            adj_ppsf = round(raw_ppsf * discount)
+        else:
+            adj_ppsf = raw_ppsf
+
+        scored.append({
+            **comp,
+            "dist_mi": round(dist, 3),
+            "product_wt": pw,
+            "proximity_wt": prox_w,
+            "recency_wt": rec_w,
+            "composite_score": round(composite, 4),
+            "adj_ppsf": adj_ppsf,
+            "tier_rank": tier_rank,
+        })
+    return scored
+
+
+def find_weighted_exit_ppsf(lat, lng, zipcode, debug=False):
+    """Compute weighted exit $/SF using the composite scoring model.
+
+    Cascade logic:
+      1. Score comps at default max radius (2.0 mi), top tiers only
+      2. If < 5 scored, expand radius by 0.5mi up to 3.0mi
+      3. If still < 5, include next lower product tier
+      4. If still < 5, flag low_comp_confidence
+      5. If 0 comps, return null
+
+    Returns: dict with exit_psf, comp_count, low_comp_confidence, sfr_comp_share, debug_info
+    """
+    result = {
+        "exit_psf": None,
+        "comp_count": 0,
+        "low_comp_confidence": False,
+        "sfr_comp_share": 0.0,
+        "cascade_triggered": False,
+        "cascade_step": None,
+        "scored_comps": [],
+    }
+
+    # Start with default radius and all 6 tiers
+    radius = MAX_RADIUS_MI
+    max_tier = 6
+
+    scored = score_comps(lat, lng, zipcode, radius, max_tier)
+
+    if len(scored) >= MIN_COMPS:
+        # Good pool at default radius
+        pass
+    else:
+        result["cascade_triggered"] = True
+
+        # Step 1: Expand radius in 0.5mi increments
+        for r in [2.5, 3.0]:
+            scored = score_comps(lat, lng, zipcode, r, max_tier)
+            if len(scored) >= MIN_COMPS:
+                result["cascade_step"] = f"radius_expand_{r}mi"
+                break
+
+        # Step 2: If still < 5, already including all tiers (max_tier=6)
+        # Product tiers are already all included. Nothing more to add.
+
+        if len(scored) < MIN_COMPS and len(scored) > 0:
+            result["low_comp_confidence"] = True
+            result["cascade_step"] = result["cascade_step"] or "low_comps"
+
+    if not scored:
         return result
 
-    def try_tiers(raw_comps):
-        """Apply tiered vintage filtering. Returns (adjusted_(ppsf,tier,rw,pt)_list, tier_label, has_stale)."""
-        # Tier 1: 2024-2025 only
-        t1 = [(cppsf, csqft, comp_tier_map.get(f"{clat},{clng}", 2),
-               recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
-              for clat, clng, cppsf, csqft, yb, cpt in raw_comps
-              if yb >= 2024 and in_band(csqft)]
-        if len(t1) >= MIN_COMPS:
-            return [(p, tier, rw, pt) for p, _, tier, rw, pt in t1], "2024-25", False
+    # IQR trim outliers
+    scored = iqr_trim(scored)
 
-        # Tier 2: 2023+ (includes tier 1)
-        t2 = [(cppsf, csqft, comp_tier_map.get(f"{clat},{clng}", 2),
-               recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
-              for clat, clng, cppsf, csqft, yb, cpt in raw_comps
-              if yb >= 2023 and in_band(csqft)]
-        if len(t2) >= MIN_COMPS:
-            return [(p, tier, rw, pt) for p, _, tier, rw, pt in t2], "2023+", False
+    # Compute weighted average
+    total_weight = sum(c["composite_score"] for c in scored)
+    if total_weight == 0:
+        return result
 
-        # Tier 3: 2021-2022 with -10% haircut, added to tier 2 comps
-        t3_adj = [(round(cppsf * 0.90), comp_tier_map.get(f"{clat},{clng}", 2),
-                   recency_weight(comp_date_map.get(f"{clat},{clng}", "")), cpt)
-                  for clat, clng, cppsf, csqft, yb, cpt in raw_comps
-                  if 2021 <= yb <= 2022 and in_band(csqft)]
-        combined = [(p, tier, rw, pt) for p, _, tier, rw, pt in t2] + t3_adj
-        if len(combined) >= NEWCON_MIN:
-            tier_label = "2021-22 adj" if t3_adj else "2023+"
-            return combined, tier_label, bool(t3_adj)
+    weighted_psf = sum(c["adj_ppsf"] * c["composite_score"] for c in scored) / total_weight
 
-        return combined, None, bool(t3_adj)
+    # SFR comp share (by weight)
+    sfr_weight = sum(c["composite_score"] for c in scored if c["pt"] == PT_SFR)
+    sfr_share = sfr_weight / total_weight if total_weight > 0 else 0
 
-    # Single-phase search of newcon_grid (no zone matching)
-    for radius in NEWCON_RADII:
-        raw = collect_from_grid(radius)
-        if not raw:
-            continue
-        ppsf_list, tier, has_stale = try_tiers(raw)
-        if tier and len(ppsf_list) >= MIN_COMPS:
-            val = wp75(ppsf_list)
-            flag = "thin" if len(ppsf_list) < MIN_COMPS + 2 else ("stale" if has_stale else None)
-            # Sanity check vs general P75
-            if exit_psf and exit_psf > 0:
-                if val < exit_psf * 0.75:
-                    return None, len(ppsf_list), tier, "sanity-low"
-                if val > exit_psf * 1.50:
-                    flag = "sanity-high"
-            return val, len(ppsf_list), tier, flag
+    if len(scored) < MIN_COMPS:
+        result["low_comp_confidence"] = True
 
-    # Not enough comps
-    return None, 0, None, None
+    result["exit_psf"] = round(weighted_psf)
+    result["comp_count"] = len(scored)
+    result["sfr_comp_share"] = round(sfr_share, 3)
+    result["scored_comps"] = scored if debug else []
+
+    return result
 
 
 # ── Step 2: Find and read Redfin CSV ──
@@ -997,87 +1031,72 @@ if burn_zones:
 else:
     print(f"\n✅ Step 3b: No burn zones configured for {market['name']}")
 
-# ── Step 4: PT-filtered spatial exit $/SF (P75) ──
+# ── Step 4: Weighted exit $/SF scoring model ──
 if comps:
-    print(f"\n📍 Step 4: Computing PT-filtered exit $/SF (P75)...")
+    print(f"\n📍 Step 4: Computing weighted exit $/SF (composite scoring model)...")
     t0 = time.time()
-    method_counts = {"spatial": 0, "spatial-thin": 0, "zip": 0, "none": 0}
-    radius_sum = 0
+    count_with_exit = 0
+    count_low_conf = 0
+    count_null = 0
+    count_cascade = 0
     comp_count_sum = 0
 
     for i, l in enumerate(listings):
-        exit_ppsf, n_comps, radius_mi, method = find_exit_ppsf(
-            l["lat"], l["lng"], l["zip"]
-        )
-        l["exitPsf"] = exit_ppsf if exit_ppsf > 0 else None
-        l["compMethod"] = method
-        l["compCount"] = n_comps
-        l["compRadius"] = radius_mi
-        method_counts[method] += 1
-        if method in ("spatial", "spatial-thin"):
-            radius_sum += radius_mi
-            comp_count_sum += n_comps
+        result = find_weighted_exit_ppsf(l["lat"], l["lng"], l["zip"])
+        l["exitPsf"] = result["exit_psf"]
+        l["compCount"] = result["comp_count"]
+        l["lowCompConfidence"] = result["low_comp_confidence"]
+        l["sfrCompShare"] = result["sfr_comp_share"]
+
+        # Keep legacy fields for backward compat (newconPpsf shown as reference)
+        l["hoodPpsf"] = result["exit_psf"]  # alias for any legacy readers
+        l["newconPpsf"] = None  # no longer computed separately
+        l["newconCount"] = 0
+        l["newconTier"] = None
+        l["newconFlag"] = None
+        l["compMethod"] = "scored"
+        l["compRadius"] = 0  # not used in new model
+
+        if result["exit_psf"]:
+            count_with_exit += 1
+            comp_count_sum += result["comp_count"]
+        else:
+            count_null += 1
+        if result["low_comp_confidence"]:
+            count_low_conf += 1
+        if result["cascade_triggered"]:
+            count_cascade += 1
 
         if (i + 1) % 2000 == 0:
             elapsed = time.time() - t0
             print(f"   {i+1:,}/{len(listings):,} ({elapsed:.1f}s)")
 
     elapsed = time.time() - t0
-    spatial_hits = sum(method_counts[m] for m in ("spatial", "spatial-thin"))
-    avg_radius = (radius_sum / spatial_hits) if spatial_hits else 0
-    avg_comps = (comp_count_sum / spatial_hits) if spatial_hits else 0
+    avg_comps = (comp_count_sum / count_with_exit) if count_with_exit else 0
+    sfr_heavy = sum(1 for l in listings if (l.get("sfrCompShare") or 0) > 0.30)
 
     print(f"   Done in {elapsed:.1f}s")
-    print(f"   Method breakdown:")
-    print(f"     Spatial (≥5 comps):   {method_counts['spatial']:,} ({method_counts['spatial']/len(listings)*100:.1f}%)")
-    print(f"     Spatial-thin (1-4):   {method_counts['spatial-thin']:,}")
-    print(f"     Zip fallback:         {method_counts['zip']:,}")
-    print(f"     No data:              {method_counts['none']:,}")
-    if spatial_hits:
-        print(f"   Avg search radius: {avg_radius:.2f} mi")
-        print(f"   Avg comps per listing: {avg_comps:.0f}")
+    print(f"   With exit $/SF: {count_with_exit:,}/{len(listings):,}")
+    print(f"   Null exit (no comps): {count_null:,}")
+    print(f"   Low confidence: {count_low_conf:,}")
+    print(f"   Cascade triggered: {count_cascade:,}")
+    print(f"   SFR-heavy (>30%): {sfr_heavy:,}")
+    if count_with_exit:
+        print(f"   Avg comps per listing: {avg_comps:.1f}")
 else:
     print(f"\n⚠️  No comps loaded — skipping exit $/SF computation")
     for l in listings:
         l["exitPsf"] = None
-
-# ── Step 4b: New-construction sell-side $/SF ──
-if newcon_count > 0:
-    print(f"\n🏗️  Step 4b: Computing tiered new-con exit $/SF (2021+ built)...")
-    nc_found = 0
-    tier_counts = {"2024-25": 0, "2023+": 0, "2021-22 adj": 0}
-    flag_counts = {"thin": 0, "stale": 0, "sanity-low": 0, "sanity-high": 0}
-    for l in listings:
-        exit_psf = l.get("exitPsf") or 0
-        nc_val, nc_count, nc_tier, nc_flag = find_newcon_ppsf(
-            l["lat"], l["lng"], exit_psf
-        )
-        l["newconPpsf"] = nc_val
-        l["newconCount"] = nc_count
-        l["newconTier"] = nc_tier
-        l["newconFlag"] = nc_flag
-        if nc_val:
-            nc_found += 1
-            if nc_tier in tier_counts:
-                tier_counts[nc_tier] += 1
-        if nc_flag and nc_flag in flag_counts:
-            flag_counts[nc_flag] += 1
-
-    print(f"   New-con pricing used: {nc_found:,}/{len(listings):,} listings")
-    print(f"   Discarded (fell back to general P75): {len(listings) - nc_found:,}")
-    print(f"   Tiers: 2024-25={tier_counts['2024-25']:,} | 2023+={tier_counts['2023+']:,} | 2021-22 adj={tier_counts['2021-22 adj']:,}")
-    print(f"   Flags: thin={flag_counts['thin']:,} stale={flag_counts['stale']:,} sanity-low={flag_counts['sanity-low']:,} sanity-high={flag_counts['sanity-high']:,}")
-    nc_vals = [l["newconPpsf"] for l in listings if l.get("newconPpsf")]
-    if nc_vals:
-        nc_vals.sort()
-        print(f"   New-con $/SF: median ${nc_vals[len(nc_vals)//2]}, P10=${nc_vals[len(nc_vals)//10]}, P90=${nc_vals[int(len(nc_vals)*0.9)]}")
-else:
-    print(f"\n⚠️  No new-construction comps — add 'yb' field to data.js (run build_comps.py)")
-    for l in listings:
+        l["compCount"] = 0
+        l["lowCompConfidence"] = False
+        l["sfrCompShare"] = 0
+        l["hoodPpsf"] = None
         l["newconPpsf"] = None
         l["newconCount"] = 0
         l["newconTier"] = None
         l["newconFlag"] = None
+        l["compMethod"] = "none"
+        l["compRadius"] = 0
 
 # ── Step 4b2: Subdivision comp exit $/SF (Tier 0 — highest priority) ──
 SUBDIV_FILE = market_file("subdiv_comps.json", market)
@@ -1584,12 +1603,12 @@ for z in ["R1", "R2", "R3", "R4", "MU", "LAND", "Unknown"]:
 
 with_exit = sum(1 for l in listings if l.get("exitPsf"))
 with_lot = sum(1 for l in listings if l["lotSf"])
-print(f"   With exit $/SF (P75): {with_exit}/{len(listings)}")
+print(f"   With exit $/SF: {with_exit}/{len(listings)}")
 print(f"   With lot size: {with_lot}/{len(listings)}")
 
 # Show zone-specific exit $/SF samples
 if with_exit:
-    print(f"\n   Zone-specific exit $/SF (P75):")
+    print(f"\n   Zone-specific exit $/SF:")
     for z in ["R1", "R2", "R3", "R4", "MU"]:
         zone_exits = [l["exitPsf"] for l in listings if l["zone"] == z and l.get("exitPsf")]
         if zone_exits:
@@ -1597,7 +1616,46 @@ if with_exit:
             med = zone_exits[len(zone_exits)//2]
             p10 = zone_exits[len(zone_exits)//10] if len(zone_exits) >= 10 else zone_exits[0]
             p90 = zone_exits[int(len(zone_exits)*0.9)] if len(zone_exits) >= 10 else zone_exits[-1]
-            print(f"     {z}: P75=${med}/sf (P10=${p10}, P90=${p90}, n={len(zone_exits)})")
+            print(f"     {z}: ${med}/sf (P10=${p10}, P90=${p90}, n={len(zone_exits)})")
+
+# ── Phase 5 Spot-Check: Debug two specific deals ──
+if "--spot-check" in sys.argv or "--debug" in sys.argv:
+    SPOT_CHECKS = [
+        {"name": "Deal A: Santa Monica 90405", "lat": 34.015815, "lng": -118.460505},
+        {"name": "Deal B: Woodland Hills 91367 (Oxnard St)", "lat": 34.185, "lng": -118.605},
+    ]
+    print(f"\n🔍 SPOT-CHECK: Comp scoring breakdown")
+    for spot in SPOT_CHECKS:
+        slat, slng = spot["lat"], spot["lng"]
+        # Find nearest listing
+        nearest = min(listings, key=lambda l: abs(l["lat"]-slat)+abs(l["lng"]-slng))
+        print(f"\n   === {spot['name']} ===")
+        print(f"   Nearest listing: {nearest.get('address','?')} ({nearest['lat']},{nearest['lng']})")
+        print(f"   ZIP: {nearest.get('zip','?')}")
+
+        # Run debug scoring
+        result = find_weighted_exit_ppsf(nearest["lat"], nearest["lng"], nearest.get("zip",""), debug=True)
+
+        # Also get raw pool count
+        all_nearby = collect_comps_in_radius(nearest["lat"], nearest["lng"], CASCADE_MAX_MI)
+        print(f"   Comp pool before filters (3mi radius): {len(all_nearby)}")
+
+        scored = result["scored_comps"]
+        print(f"   After scoring: {len(scored)} comps")
+        print(f"   Weighted exit $/SF: {'$'+str(result['exit_psf']) if result['exit_psf'] else 'NULL'}")
+        print(f"   Previous exit $/SF (from listing): {'$'+str(nearest.get('exitPsf','?')) if nearest.get('exitPsf') else 'NULL'}")
+        print(f"   SFR comp share: {result['sfr_comp_share']*100:.0f}%{'  ⚠️ SFR-HEAVY' if result['sfr_comp_share']>0.30 else ''}")
+        print(f"   Low comp confidence: {result['low_comp_confidence']}")
+        print(f"   Cascade triggered: {result['cascade_triggered']} ({result['cascade_step'] or 'none'})")
+
+        if scored:
+            print(f"\n   {'Address':<35} {'PropType':<8} {'YrBlt':<6} {'SqFt':<6} {'Date':<12} {'Raw$/SF':<8} {'ProdWt':<7} {'ProxWt':<7} {'RecWt':<6} {'Score':<7} {'Adj$/SF':<8}")
+            print(f"   {'─'*35} {'─'*8} {'─'*6} {'─'*6} {'─'*12} {'─'*8} {'─'*7} {'─'*7} {'─'*6} {'─'*7} {'─'*8}")
+            for c in sorted(scored, key=lambda x: -x["composite_score"])[:20]:
+                addr = (c.get("address","") or "")[:35]
+                pt_name = {1:"SFR",2:"Condo",3:"TH"}.get(c["pt"],"?")
+                print(f"   {addr:<35} {pt_name:<8} {c.get('yb','?')!s:<6} {c.get('sqft',0):<6} {(c.get('date','')or'')[:12]:<12} ${c['ppsf']:<7} {c['product_wt']:<7.2f} {c['proximity_wt']:<7.2f} {c['recency_wt']:<6.2f} {c['composite_score']:<7.4f} ${c['adj_ppsf']:<7}")
+        print()
 
 # ── Write listings.js ──
 output_file = market_file("listings.js", market)

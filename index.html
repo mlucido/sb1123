@@ -2139,18 +2139,17 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  // P75 general is the primary exit — newcon shown as reference only
   const exitPsf = l.exitPsf || 0;
-  if(!exitPsf) return {psf: 0, label: 'NO COMP DATA', color: 'var(--red)', short: 'no data'};
+  if(!exitPsf) return {psf: 0, label: 'Insufficient comps', color: 'var(--red)', short: 'no data', confidence: null};
   const count = l.compCount || 0;
-  const radius = l.compRadius || '';
-  // Show newcon as reference data
-  let refs = [];
-  if(l.newconPpsf) refs.push(`newcon $${l.newconPpsf}/sf`);
-  const refStr = refs.length ? ` (${refs.join(', ')})` : '';
-  const label = `P75 — ${count} comps within ${radius}mi${refStr}`;
-  const color = count >= 5 ? 'var(--green)' : 'var(--text-dim)';
-  return {psf: exitPsf, label, color, short: 'P75'};
+  const lowConf = l.lowCompConfidence;
+  const sfrHeavy = (l.sfrCompShare || 0) > 0.30;
+  let notes = [];
+  if(lowConf) notes.push(`Low comp confidence (${count} comps)`);
+  if(sfrHeavy) notes.push('SFR-heavy comps');
+  const label = `${count} comps scored` + (notes.length ? ' — ' + notes.join(', ') : '');
+  const color = lowConf ? 'var(--orange)' : count >= 5 ? 'var(--green)' : 'var(--text-dim)';
+  return {psf: exitPsf, label, color, short: lowConf ? 'low conf' : 'scored', confidence: !lowConf};
 }
 
 // calculateProForma — see js/proforma.js
@@ -2628,9 +2627,15 @@ function generateDealCard(l, opts){
   var spreadPct = allInPsf > 0 ? Math.round((spread / allInPsf) * 100) : 0;
   var spreadColor = spread >= 100 ? '#246424' : spread >= 0 ? '#7a5e10' : '#b91c1c';
   h += '<div class="dc3-hero">';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="T1 condition-tiered comps only. Excludes existing/unrenovated sales.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
+  var exitDisplay = el.psf ? '$' + commas(el.psf) : '—';
+  var exitSub = '';
+  if(l.lowCompConfidence) exitSub = '<div style="font-size:9px;color:var(--orange)">Low confidence (' + (l.compCount||0) + ' comps)</div>';
+  else if((l.sfrCompShare||0) > 0.30) exitSub = '<div style="font-size:9px;color:var(--text-dim)">SFR-heavy comps</div>';
+  else if(!el.psf) exitSub = '<div style="font-size:9px;color:var(--red)">Insufficient comps</div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="Weighted comp scoring model. Product type × proximity × recency.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">' + exitDisplay + '</div>' + exitSub + '</div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">All-In $/SF</div><div class="dc3-hero-val">$' + commas(allInPsf) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">' + fmtDollar(spread) + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
+  var spreadDisplay = el.psf ? fmtDollar(spread) + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span>' : '—';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + (el.psf ? spreadColor : 'var(--text-dim)') + '">' + spreadDisplay + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val">' + fmtDollar(l.price) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
@@ -2850,9 +2855,7 @@ function rebuildListings(cachedListings){
     // Compute exit $/SF for color mapping
     const pf_pin = calculateProForma(l);
     const exitPsf_pin = exitLabel(l).psf;
-    const exitFloor = window._kaExitFloor || 0;
-    const exitCeiling = window._kaExitCeiling || 0;
-    const nonViable = !l.maxOffer || l.maxOffer <= 0 || (exitFloor > 0 && exitPsf_pin < exitFloor) || (exitCeiling > 0 && exitPsf_pin > exitCeiling);
+    const nonViable = !exitPsf_pin || !l.maxOffer || l.maxOffer <= 0;
 
     // Color fill by Exit $/SF — ghost non-viable pins
     const fillColor = nonViable ? '#888' : exitPsfPinColor(exitPsf_pin);
@@ -5147,28 +5150,52 @@ map.on('click', function(e) {
       <p>All-In $/SF = Total Project Cost &divide; Total Sellable SF</p>
 
       <h3>Exit &amp; Spread</h3>
-      <p>Exit $/SF is anchored to T1 (new construction / fully remodeled) comparable sales in the same ZIP, filtered by condition tier before any size adjustment. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
+      <p>Exit $/SF is derived from a weighted scoring model using recent comparable sales &mdash; townhomes, condos, and size-gated SFR &mdash; scored by product similarity, proximity, and recency. See the Exit Pricing tab for full methodology. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
 
       <p class="key-note">IRR and MOIC are shown at the deal level in the deal card and reflect LP economics after preferred return and promote. See deal cards for deal-specific figures.</p>
     </div>
 
     <!-- TAB 3: Exit Pricing -->
     <div class="key-tab-content" data-tab="exitPricing" style="display:none">
-      <h3>Why Condition Tier Matters</h3>
-      <p>Raw $/SF variance in SFV ZIPs runs $425&ndash;$911/SF. The single biggest driver is condition &mdash; new construction and fully remodeled homes (T1) trade $200+/SF above unrenovated existing stock (T2). Blending T1 and T2 comps systematically underprices new construction exits. We isolate T1 comps before any size adjustment.</p>
+      <h3>How Exit $/SF Is Calculated</h3>
+      <p>Exit $/SF is the estimated sale price per square foot for completed townhomes. It is derived from a weighted average of recent comparable sales &mdash; not a manual input or a simple median. Every comp earns a composite score; higher-scoring comps have more influence.</p>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#f8fafc;padding:8px;border-radius:4px;margin:8px 0">Composite Score = Product Wt &times; Proximity Wt &times; Recency Wt<br>Exit $/SF = &Sigma;(comp $/SF &times; score) &divide; &Sigma;(scores)</p>
 
-      <h3>Tier Definitions</h3>
-      <div class="key-tier key-tier-t1">
-        <div class="key-tier-label">T1 &mdash; New Construction or Full Remodel</div>
-        <p>Built or fully renovated within last 5 years. High-end finishes, open floor plan, updated MEP. These are the comps that anchor our exit pricing.</p>
+      <h3>Product Type Weights</h3>
+      <p>We build new attached townhomes. Comps closest to that product receive the highest weight.</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div>New townhome (&le;5 yrs) <span style="float:right;font-family:'JetBrains Mono',monospace">1.00</span></div>
+        <div>Renovated townhome <span style="float:right;font-family:'JetBrains Mono',monospace">0.85</span></div>
+        <div>New condo (&le;5 yrs) <span style="float:right;font-family:'JetBrains Mono',monospace">0.75</span></div>
+        <div>Older townhome (5&ndash;10 yrs, T1) <span style="float:right;font-family:'JetBrains Mono',monospace">0.70</span></div>
+        <div>Renovated condo <span style="float:right;font-family:'JetBrains Mono',monospace">0.60</span></div>
+        <div>New SFR, 1,500&ndash;2,200 SF only <span style="float:right;font-family:'JetBrains Mono',monospace">0.50</span></div>
       </div>
-      <div class="key-tier key-tier-t2">
-        <div class="key-tier-label">T2 &mdash; Existing / Unrenovated</div>
-        <p>Original condition or cosmetic updates only. Used for context, not exit pricing.</p>
+      <p style="font-size:11px;color:#64748b">SFR outside 1,500&ndash;2,200 SF is excluded &mdash; $/SF is not comparable to a 1,750 SF townhome.</p>
+
+      <h3>Proximity Weights</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div>0&ndash;0.5 miles <span style="float:right;font-family:'JetBrains Mono',monospace">1.00</span></div>
+        <div>0.5&ndash;1.0 miles <span style="float:right;font-family:'JetBrains Mono',monospace">0.80</span></div>
+        <div>1.0&ndash;1.5 miles <span style="float:right;font-family:'JetBrains Mono',monospace">0.60</span></div>
+        <div>1.5&ndash;2.0 miles <span style="float:right;font-family:'JetBrains Mono',monospace">0.40</span></div>
+        <div>Beyond 2.0 miles <span style="float:right;color:var(--red)">excluded</span></div>
       </div>
 
-      <h3>Size Adjustment</h3>
-      <p>Within T1, we size-adjust comps to the subject unit&rsquo;s average SF using a local $/SF-vs-size regression. Smaller units trade at a premium $/SF; larger units compress. We do not blend across condition tiers before this adjustment.</p>
+      <h3>Recency Weights</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div>0&ndash;6 months ago <span style="float:right;font-family:'JetBrains Mono',monospace">1.00</span></div>
+        <div>6&ndash;12 months ago <span style="float:right;font-family:'JetBrains Mono',monospace">0.85</span></div>
+        <div>12&ndash;18 months ago <span style="float:right;font-family:'JetBrains Mono',monospace">0.70</span></div>
+        <div>18&ndash;24 months ago <span style="float:right;font-family:'JetBrains Mono',monospace">0.50</span></div>
+        <div>Older than 24 months <span style="float:right;color:var(--red)">excluded</span></div>
+      </div>
+
+      <h3>SFR Attached Discount</h3>
+      <p>Where SFR comps are used, a ZIP-level discount is applied to their $/SF before scoring &mdash; accounting for the premium detached homes command over attached product. Ranges from ~68% in coastal Santa Monica to ~84% in the San Fernando Valley. Townhouse and condo comps are used at face value.</p>
+
+      <h3>Cascade &amp; Confidence</h3>
+      <p>The model requires at least 5 comps. If fewer qualify, the search radius expands (up to 3.0 miles) and lower product tiers are added until 5 are found. A &ldquo;Low comp confidence&rdquo; label on a deal card means fewer than 5 high-quality comps were available &mdash; treat that exit $/SF with additional caution.</p>
     </div>
 
     <!-- TAB 4: BTR Model -->
@@ -5276,12 +5303,6 @@ map.on('click', function(e) {
           </div>
 
           <div class="key-slider-group">
-            <div class="key-slider-label"><b>Exit $/SF &mdash; Floor</b><span class="key-slider-val" id="kaSliderVal_exitFloor">$600</span></div>
-            <input type="range" class="key-slider-input" id="kaSlider_exitFloor" min="500" max="750" step="10" value="600" oninput="onKeyAssumptionChange()">
-            <div class="key-slider-range"><span>$500</span><span>$750</span></div>
-          </div>
-
-          <div class="key-slider-group">
             <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
             <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
             <div class="key-slider-range"><span>6%</span><span>12%</span></div>
@@ -5346,7 +5367,7 @@ function switchKeyTab(el){
 var KA_DEFAULTS = {
   buildCost:350, softPct:18, unitSf:1750, carryRate:11.5, holdMonths:24,
   txnCost:4.7, fixedDisp:40000, insurance:40000, origination:1, ellis:20000,
-  exitFloor:600, prefReturn:8,
+  prefReturn:8,
   btrOpex:30, btrCap:5.5, btrLtv:70, btrRate:6.5
 };
 var _kaTimer = null;
@@ -5365,7 +5386,6 @@ function onKeyAssumptionChange(){
   document.getElementById('kaSliderVal_insurance').textContent = _fmtK(_kaVal('insurance'));
   document.getElementById('kaSliderVal_origination').textContent = _kaVal('origination')+'%';
   document.getElementById('kaSliderVal_ellis').textContent = _fmtK(_kaVal('ellis'));
-  document.getElementById('kaSliderVal_exitFloor').textContent = '$'+_kaVal('exitFloor');
   document.getElementById('kaSliderVal_prefReturn').textContent = _kaVal('prefReturn')+'%';
   document.getElementById('kaSliderVal_btrOpex').textContent = _kaVal('btrOpex')+'%';
   document.getElementById('kaSliderVal_btrCap').textContent = _kaVal('btrCap')+'%';
@@ -5396,9 +5416,6 @@ function applyKeyAssumptions(){
   document.getElementById('btrLTV').value = (_kaVal('btrLtv')/100).toFixed(2);
   document.getElementById('btrRate').value = (_kaVal('btrRate')/100).toFixed(4);
 
-  // Exit floor/ceiling globals
-  window._kaExitFloor = _kaVal('exitFloor');
-  window._kaExitCeiling = 0;  // ceiling removed — exit $/SF uncapped
   window._kaPrefReturn = _kaVal('prefReturn');
 
   // Trigger module-scoped recompute (reads from hidden inputs, calls enrichListings + applyFilters)
