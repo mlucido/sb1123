@@ -5261,8 +5261,8 @@ map.on('click', function(e) {
           </div>
 
           <div class="key-slider-group">
-            <div class="key-slider-label"><b>Bridge / Const. Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
-            <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="14" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-label"><b>Bridge / Const. Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">9.5%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="14" step="0.25" value="9.5" oninput="onKeyAssumptionChange()">
             <div class="key-slider-range"><span>8%</span><span>14%</span></div>
           </div>
 
@@ -5279,10 +5279,11 @@ map.on('click', function(e) {
           </div>
 
           <div class="key-slider-group">
-            <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
-            <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
-            <div class="key-slider-range"><span>6%</span><span>12%</span></div>
+            <div class="key-slider-label"><b>Origination (%)</b><span class="key-slider-val" id="kaSliderVal_origination">1%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_origination" min="0.5" max="2.5" step="0.25" value="1" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>0.5%</span><span>2.5%</span></div>
           </div>
+
         </div>
 
         <div class="ka-col">
@@ -5298,12 +5299,6 @@ map.on('click', function(e) {
             <div class="key-slider-label"><b>Insurance ($/yr)</b><span class="key-slider-val" id="kaSliderVal_insurance">$40K</span></div>
             <input type="range" class="key-slider-input" id="kaSlider_insurance" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
             <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
-          </div>
-
-          <div class="key-slider-group">
-            <div class="key-slider-label"><b>Origination (%)</b><span class="key-slider-val" id="kaSliderVal_origination">1%</span></div>
-            <input type="range" class="key-slider-input" id="kaSlider_origination" min="0.5" max="2.5" step="0.25" value="1" oninput="onKeyAssumptionChange()">
-            <div class="key-slider-range"><span>0.5%</span><span>2.5%</span></div>
           </div>
 
           <div class="key-slider-group">
@@ -5367,9 +5362,8 @@ function switchKeyTab(el){
 }
 // ── Assumptions tab slider logic (single source of truth) ──
 var KA_DEFAULTS = {
-  buildCost:350, softPct:18, unitSf:1750, carryRate:11.5, holdMonths:24,
+  buildCost:350, softPct:18, unitSf:1750, carryRate:9.5, holdMonths:24,
   txnCost:4.7, fixedDisp:40000, insurance:40000, origination:1, ellis:20000,
-  prefReturn:8,
   btrOpex:30, btrCap:5.5, btrLtv:70, btrRate:6.5
 };
 var _kaTimer = null;
@@ -5388,7 +5382,6 @@ function onKeyAssumptionChange(){
   document.getElementById('kaSliderVal_insurance').textContent = _fmtK(_kaVal('insurance'));
   document.getElementById('kaSliderVal_origination').textContent = _kaVal('origination')+'%';
   document.getElementById('kaSliderVal_ellis').textContent = _fmtK(_kaVal('ellis'));
-  document.getElementById('kaSliderVal_prefReturn').textContent = _kaVal('prefReturn')+'%';
   document.getElementById('kaSliderVal_btrOpex').textContent = _kaVal('btrOpex')+'%';
   document.getElementById('kaSliderVal_btrCap').textContent = _kaVal('btrCap')+'%';
   document.getElementById('kaSliderVal_btrLtv').textContent = _kaVal('btrLtv')+'%';
@@ -5417,8 +5410,6 @@ function applyKeyAssumptions(){
   document.getElementById('btrCapRate').value = (_kaVal('btrCap')/100).toFixed(3);
   document.getElementById('btrLTV').value = (_kaVal('btrLtv')/100).toFixed(2);
   document.getElementById('btrRate').value = (_kaVal('btrRate')/100).toFixed(4);
-
-  window._kaPrefReturn = _kaVal('prefReturn');
 
   // Trigger module-scoped recompute (reads from hidden inputs, calls enrichListings + applyFilters)
   if(typeof window.onProformaChange === 'function') window.onProformaChange();

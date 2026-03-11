@@ -10,7 +10,7 @@ export const proforma = {
   aePsf: 5,
   softCostPct: 25,             // soft % of hard construction
   holdMonths: 24,
-  carryRatePct: 9,
+  carryRatePct: 9.5,
   insurance: 40000,
   originationPct: 1,
   ellisPerUnit: 20000,
