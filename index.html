@@ -2957,8 +2957,7 @@ function rebuildListings(cachedListings){
     if(activePopup && activePopup._source && activePopup._source._latlng){
       var src = activePopup._source._latlng;
       // Only track listing pins (deal-popup class)
-      var wrapper = activePopup._container;
-      if(wrapper && wrapper.querySelector('.dc3')){
+      if(activePopup.options && activePopup.options.className === 'deal-popup'){
         _openPopupLatLng = {lat: src.lat, lng: src.lng};
       }
     }
@@ -3020,7 +3019,7 @@ function rebuildListings(cachedListings){
     listingsLayer.eachLayer(function(layer){
       if(layer.getLatLng){
         var ll = layer.getLatLng();
-        if(Math.abs(ll.lat - _rlat) < 0.0001 && Math.abs(ll.lng - _rlng) < 0.0001 && layer.getPopup){
+        if(Math.abs(ll.lat - _rlat) < 0.0001 && Math.abs(ll.lng - _rlng) < 0.0001 && layer.getPopup && layer.getPopup()){
           layer.openPopup();
         }
       }
