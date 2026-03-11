@@ -26,7 +26,6 @@ export function initDrawControl(){
     <button class="draw-btn" id="drawBtn" title="Draw area to filter">&#9998;</button>
     <button class="draw-btn" id="drawDoneBtn" title="Close polygon" style="display:none;font-size:11px;font-weight:700">Done</button>
     <button class="draw-clear-btn" id="drawClearBtn" title="Clear drawn area">&#10005;</button>
-    <button class="draw-btn" id="dataKeyBtn" title="Data Key — how metrics are calculated" style="font-size:14px;font-weight:700;margin-top:8px">?</button>
   `;
   document.getElementById('map').appendChild(container);
   L.DomEvent.disableClickPropagation(container);
@@ -35,9 +34,6 @@ export function initDrawControl(){
   document.getElementById('drawBtn').addEventListener('click', toggleDrawMode);
   document.getElementById('drawDoneBtn').addEventListener('click', function(){ finishPolygon(); });
   document.getElementById('drawClearBtn').addEventListener('click', clearDrawPolygon);
-  document.getElementById('dataKeyBtn').addEventListener('click', function(){
-    document.getElementById('dataKeyModal').classList.add('active');
-  });
 }
 
 export function toggleDrawMode(){

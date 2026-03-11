@@ -502,8 +502,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-status-select{font-family:'IBM Plex Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:1px solid #e8e8e8;border-radius:2px;padding:3px 8px;cursor:pointer;outline:none;appearance:auto;-webkit-appearance:auto}
 
   /* Deal Pipeline Panel (pill-based status filter) */
-  .pipeline-panel{position:absolute;top:10px;right:10px;z-index:900;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);font-family:'DM Sans',sans-serif;min-width:180px;padding:10px 12px 8px}
-  .pipeline-header{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#94a3b8;margin-bottom:8px}
+  .pipeline-panel{position:absolute;top:10px;right:60px;z-index:900;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);font-family:'DM Sans',sans-serif;min-width:180px}
+  .pipeline-header{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#94a3b8;padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+  .pipeline-header:hover{color:#475569}
+  .pipeline-body-wrap{display:none;padding:0 12px 8px}
+  .pipeline-panel.open .pipeline-body-wrap{display:block}
+  .pipeline-total{display:none;font-size:10px;color:#94a3b8;text-align:center;padding:4px 12px 8px;border-top:1px solid #eee;font-family:'JetBrains Mono',monospace}
+  .pipeline-panel.open .pipeline-total{display:block}
   .pipeline-pill{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;margin-bottom:3px;border:1px solid transparent}
   .pipeline-pill:hover{background:#f8fafc}
   .pipeline-pill.active{background:rgba(37,99,235,0.06);border-color:#3b82f6}
@@ -1075,6 +1080,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       box-shadow:0 2px 8px rgba(0,0,0,0.12);
     }
     .key-toggle-btn.shifted{right:10px;bottom:70px}
+    .pipeline-panel{top:auto;bottom:62px;right:10px;left:10px;min-width:0}
   }
 </style>
 </head>
@@ -1348,7 +1354,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <span>&#9733; Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
       </button>
       <button class="bottom-btn" onclick="exportCSV()" aria-label="Export to CSV">&#128202; Export</button>
-      <button class="bottom-btn gear" onclick="openAssumptionsModal()" title="Deal Assumptions" aria-label="Deal assumptions">&#9881;</button>
     </div>
     <div class="basemap-row">
       <button class="basemap-link active" data-base="light" onclick="setBaseMap('light')">Light</button>
@@ -1385,7 +1390,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="onboard-body">
         Each deal card shows three columns: <strong>Economics</strong>, <strong>Site</strong>, and <strong>Pro Forma</strong>.<br>
         <strong>Max Offer</strong> = highest price where you still make your target margin (default 30%).<br>
-        Use the <strong>gear icon</strong> in the sidebar to adjust assumptions.
+        Open the <strong>KEY</strong> panel and select the <strong>Assumptions</strong> tab to adjust inputs.
       </div>
     </div>
     <div class="onboard-footer">
@@ -1404,8 +1409,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   </div>
   <!-- Deal Pipeline Panel (pill-based status filter) -->
   <div class="pipeline-panel" id="pipelinePanel">
-    <div class="pipeline-header">Deal Pipeline</div>
-    <div id="pipelineBody"></div>
+    <div class="pipeline-header" onclick="document.getElementById('pipelinePanel').classList.toggle('open')">
+      <span>Deal Pipeline</span><span class="pipeline-arrow">&#9660;</span>
+    </div>
+    <div class="pipeline-body-wrap"><div id="pipelineBody"></div></div>
     <div class="pipeline-total" id="pipelineTotal">0 total</div>
   </div>
 </div>
@@ -1428,76 +1435,21 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </div>
 </div><!-- /app-row -->
 
-<!-- Deal Assumptions Modal -->
-<div class="modal-overlay" id="assumptionsModal" role="dialog" aria-modal="true" aria-labelledby="assumptionsTitle" onclick="if(event.target===this) closeAssumptionsModal()">
-  <div class="modal-panel">
-    <div class="modal-header">
-      <h3 id="assumptionsTitle">Deal Assumptions</h3>
-      <button class="modal-close" onclick="closeAssumptionsModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="proforma-inputs">
-        <div class="proforma-group">
-          <label>All-In Build $/SF</label>
-          <input type="number" id="pfBuildCost" value="400" step="25" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Unit SF (avg)</label>
-          <input type="number" id="pfUnitSize" value="1750" step="50" onchange="onProformaChange()">
-        </div>
-        <!-- allInBuildPsf ($400) is truly all-in: hard + soft + subdivision + A&E -->
-        <div class="proforma-group">
-          <label>Txn Costs %</label>
-          <input type="number" id="pfTxnCost" value="4.7" step="0.5" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Fixed Disp $</label>
-          <input type="number" id="pfFixedDisp" value="40000" step="5000" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Hold Months</label>
-          <input type="number" id="pfHoldMonths" value="24" step="3" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Carry Rate %</label>
-          <input type="number" id="pfCarryRate" value="9" step="0.5" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Insurance $</label>
-          <input type="number" id="pfInsurance" value="40000" step="5000" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Origination %</label>
-          <input type="number" id="pfOrigination" value="1" step="0.25" onchange="onProformaChange()">
-        </div>
-        <div class="proforma-group">
-          <label>Ellis $/Unit</label>
-          <input type="number" id="pfEllisPerUnit" value="20000" step="5000" onchange="onProformaChange()">
-        </div>
-      </div>
-      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-        <h4 style="margin:0 0 8px;font-size:12px;color:var(--accent)">Build-to-Rent Assumptions</h4>
-        <div class="proforma-inputs">
-          <div class="proforma-group">
-            <label>OpEx Ratio</label>
-            <input type="number" id="btrOpex" value="0.30" step="0.05" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
-            <label>Cap Rate</label>
-            <input type="number" id="btrCapRate" value="0.055" step="0.005" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
-            <label>Refi LTV</label>
-            <input type="number" id="btrLTV" value="0.70" step="0.05" onchange="onProformaChange()">
-          </div>
-          <div class="proforma-group">
-            <label>Refi Rate</label>
-            <input type="number" id="btrRate" value="0.065" step="0.0025" onchange="onProformaChange()">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Hidden backing inputs for BTR proforma DOM reads -->
+<div style="display:none">
+  <input type="number" id="pfBuildCost" value="400">
+  <input type="number" id="pfUnitSize" value="1750">
+  <input type="number" id="pfTxnCost" value="4.7">
+  <input type="number" id="pfFixedDisp" value="40000">
+  <input type="number" id="pfHoldMonths" value="24">
+  <input type="number" id="pfCarryRate" value="9">
+  <input type="number" id="pfInsurance" value="40000">
+  <input type="number" id="pfOrigination" value="1">
+  <input type="number" id="pfEllisPerUnit" value="20000">
+  <input type="number" id="btrOpex" value="0.30">
+  <input type="number" id="btrCapRate" value="0.055">
+  <input type="number" id="btrLTV" value="0.70">
+  <input type="number" id="btrRate" value="0.065">
 </div>
 
 
@@ -2949,17 +2901,6 @@ function generateDealCard(l, opts){
     // Footnote
     h += '<div style="font-size:9px;color:#a8a5a0;margin-top:4px">Permanent financing: 6.5% I/O | LTV: 70% | Vacancy: 5% | OpEx: '+(opexRatio*100).toFixed(0)+'% | DSCR threshold: 1.25×</div>';
 
-    // Verdict badge — two states only
-    var baseDSCR = sc[1].dscr;
-    var verdictHtml, verdictStyle;
-    if(baseDSCR >= 1.25){
-      verdictStyle = 'background:#dcfce7;color:#166534';
-      verdictHtml = 'BTR VIABLE — Base Case';
-    } else {
-      verdictStyle = 'background:#f1f5f9;color:#64748b';
-      verdictHtml = 'BTR NOT VIABLE — For-Sale Exit Recommended';
-    }
-    h += '<div class="dc3-verdict-badge" style="'+verdictStyle+'">'+verdictHtml+'</div>';
   } else {
     h += '<div style="color:#a8a5a0;font-size:11px;padding:8px 0">No rent data available</div>';
   }
@@ -5405,32 +5346,70 @@ map.on('click', function(e) {
       <p>Acquiring at pre-SB 1123 pricing is the core of our return model. The spread between acquisition cost and exit value is only achievable if we buy before the market reprices. Direct-to-homeowner outreach and speed of close (no listing process, no competing bids) are our structural advantages.</p>
     </div>
 
-    <!-- TAB 7: Assumptions (live sliders) -->
+    <!-- TAB 7: Assumptions (live sliders — single source of truth) -->
     <div class="key-tab-content" data-tab="assumptions" style="display:none">
       <p style="font-size:11px;color:#64748b;margin-bottom:16px">Adjust assumptions below. All pins reprice live.</p>
 
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#1e293b;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Sale</h3>
+
       <div class="key-slider-group">
         <div class="key-slider-label"><b>Construction Cost ($/SF)</b><span class="key-slider-val" id="kaSliderVal_buildCost">$350</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="400" step="5" value="350" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$300</span><span>$400</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="450" step="5" value="350" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$300</span><span>$450</span></div>
       </div>
 
       <div class="key-slider-group">
         <div class="key-slider-label"><b>Soft Costs (% of Hard)</b><span class="key-slider-val" id="kaSliderVal_softPct">18%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="25" step="0.5" value="18" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>12%</span><span>25%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="30" step="0.5" value="18" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>12%</span><span>30%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Avg Unit Size (SF)</b><span class="key-slider-val" id="kaSliderVal_unitSf">1,750</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_unitSf" min="1000" max="2200" step="50" value="1750" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>1,000</span><span>2,200</span></div>
       </div>
 
       <div class="key-slider-group">
         <div class="key-slider-label"><b>Bridge / Construction Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="12" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>8%</span><span>12%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="14" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>8%</span><span>14%</span></div>
       </div>
 
       <div class="key-slider-group">
         <div class="key-slider-label"><b>Hold Period (months)</b><span class="key-slider-val" id="kaSliderVal_holdMonths">24</span></div>
         <input type="range" class="key-slider-input" id="kaSlider_holdMonths" min="18" max="36" step="1" value="24" oninput="onKeyAssumptionChange()">
         <div class="key-slider-range"><span>18 mo</span><span>36 mo</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Txn Costs (%)</b><span class="key-slider-val" id="kaSliderVal_txnCost">4.7%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_txnCost" min="3" max="7" step="0.1" value="4.7" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>3%</span><span>7%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Disposition Costs ($)</b><span class="key-slider-val" id="kaSliderVal_fixedDisp">$40K</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_fixedDisp" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Insurance ($/yr)</b><span class="key-slider-val" id="kaSliderVal_insurance">$40K</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_insurance" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Origination (%)</b><span class="key-slider-val" id="kaSliderVal_origination">1%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_origination" min="0.5" max="2.5" step="0.25" value="1" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>0.5%</span><span>2.5%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Ellis Act ($/unit)</b><span class="key-slider-val" id="kaSliderVal_ellis">$20K</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_ellis" min="10000" max="40000" step="5000" value="20000" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>$10K</span><span>$40K</span></div>
       </div>
 
       <div class="key-slider-group">
@@ -5449,6 +5428,32 @@ map.on('click', function(e) {
         <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
         <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
         <div class="key-slider-range"><span>6%</span><span>12%</span></div>
+      </div>
+
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#2a5aa0;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Rent</h3>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>OpEx Ratio</b><span class="key-slider-val" id="kaSliderVal_btrOpex">30%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_btrOpex" min="20" max="40" step="1" value="30" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>20%</span><span>40%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Cap Rate</b><span class="key-slider-val" id="kaSliderVal_btrCap">5.5%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_btrCap" min="4" max="7" step="0.25" value="5.5" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>4%</span><span>7%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Refi LTV</b><span class="key-slider-val" id="kaSliderVal_btrLtv">70%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_btrLtv" min="60" max="80" step="1" value="70" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>60%</span><span>80%</span></div>
+      </div>
+
+      <div class="key-slider-group">
+        <div class="key-slider-label"><b>Refi Rate</b><span class="key-slider-val" id="kaSliderVal_btrRate">6.5%</span></div>
+        <input type="range" class="key-slider-input" id="kaSlider_btrRate" min="5" max="8" step="0.25" value="6.5" oninput="onKeyAssumptionChange()">
+        <div class="key-slider-range"><span>5%</span><span>8%</span></div>
       </div>
 
       <button class="key-reset-btn" onclick="resetKeyAssumptions()">Reset to Defaults</button>
@@ -5476,47 +5481,82 @@ function switchKeyTab(el){
   if(content) content.style.display = '';
   document.getElementById('keyBody').scrollTop = 0;
 }
-// ── Assumptions tab slider logic ──
-var KA_DEFAULTS = {buildCost:350,softPct:18,carryRate:11.5,holdMonths:24,exitFloor:600,exitCeiling:850,prefReturn:8};
+// ── Assumptions tab slider logic (single source of truth) ──
+var KA_DEFAULTS = {
+  buildCost:350, softPct:18, unitSf:1750, carryRate:11.5, holdMonths:24,
+  txnCost:4.7, fixedDisp:40000, insurance:40000, origination:1, ellis:20000,
+  exitFloor:600, exitCeiling:850, prefReturn:8,
+  btrOpex:30, btrCap:5.5, btrLtv:70, btrRate:6.5
+};
 var _kaTimer = null;
+function _kaVal(k){ var el=document.getElementById('kaSlider_'+k); return el?parseFloat(el.value):KA_DEFAULTS[k]; }
+function _fmtK(n){ return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':n>=1000?'$'+Math.round(n/1000)+'K':'$'+n; }
+
 function onKeyAssumptionChange(){
   // Update display values
-  var v = {};
-  ['buildCost','softPct','carryRate','holdMonths','exitFloor','exitCeiling','prefReturn'].forEach(function(k){
-    var el = document.getElementById('kaSlider_'+k);
-    v[k] = parseFloat(el.value);
-  });
-  document.getElementById('kaSliderVal_buildCost').textContent = '$'+v.buildCost;
-  document.getElementById('kaSliderVal_softPct').textContent = v.softPct+'%';
-  document.getElementById('kaSliderVal_carryRate').textContent = v.carryRate+'%';
-  document.getElementById('kaSliderVal_holdMonths').textContent = v.holdMonths;
-  document.getElementById('kaSliderVal_exitFloor').textContent = '$'+v.exitFloor;
-  document.getElementById('kaSliderVal_exitCeiling').textContent = '$'+v.exitCeiling;
-  document.getElementById('kaSliderVal_prefReturn').textContent = v.prefReturn+'%';
+  document.getElementById('kaSliderVal_buildCost').textContent = '$'+_kaVal('buildCost');
+  document.getElementById('kaSliderVal_softPct').textContent = _kaVal('softPct')+'%';
+  document.getElementById('kaSliderVal_unitSf').textContent = _kaVal('unitSf').toLocaleString();
+  document.getElementById('kaSliderVal_carryRate').textContent = _kaVal('carryRate')+'%';
+  document.getElementById('kaSliderVal_holdMonths').textContent = _kaVal('holdMonths');
+  document.getElementById('kaSliderVal_txnCost').textContent = _kaVal('txnCost')+'%';
+  document.getElementById('kaSliderVal_fixedDisp').textContent = _fmtK(_kaVal('fixedDisp'));
+  document.getElementById('kaSliderVal_insurance').textContent = _fmtK(_kaVal('insurance'));
+  document.getElementById('kaSliderVal_origination').textContent = _kaVal('origination')+'%';
+  document.getElementById('kaSliderVal_ellis').textContent = _fmtK(_kaVal('ellis'));
+  document.getElementById('kaSliderVal_exitFloor').textContent = '$'+_kaVal('exitFloor');
+  document.getElementById('kaSliderVal_exitCeiling').textContent = '$'+_kaVal('exitCeiling');
+  document.getElementById('kaSliderVal_prefReturn').textContent = _kaVal('prefReturn')+'%';
+  document.getElementById('kaSliderVal_btrOpex').textContent = _kaVal('btrOpex')+'%';
+  document.getElementById('kaSliderVal_btrCap').textContent = _kaVal('btrCap')+'%';
+  document.getElementById('kaSliderVal_btrLtv').textContent = _kaVal('btrLtv')+'%';
+  document.getElementById('kaSliderVal_btrRate').textContent = _kaVal('btrRate')+'%';
 
   // Debounce the expensive re-computation
   clearTimeout(_kaTimer);
-  _kaTimer = setTimeout(function(){ applyKeyAssumptions(v); }, 150);
+  _kaTimer = setTimeout(applyKeyAssumptions, 150);
 }
-function applyKeyAssumptions(v){
-  // Sync to proforma module + existing modal inputs (keep them in sync)
-  // allInBuildPsf is truly all-in: hard*(1+soft%) + subdiv + A&E
-  // From the user's slider: hard=buildCost, soft%=softPct → allIn = hard*(1+soft%/100) + 10 + 5
-  var hardPsf = v.buildCost;
-  var allIn = Math.round(hardPsf * (1 + v.softPct/100) + 15); // +$10 subdiv + $5 A&E
-  // Dispatch to the module-scoped proforma object via the existing modal inputs
-  var pfBuild = document.getElementById('pfBuildCost');
-  if(pfBuild) pfBuild.value = allIn;
-  var pfCarry = document.getElementById('pfCarryRate');
-  if(pfCarry) pfCarry.value = v.carryRate;
-  var pfHold = document.getElementById('pfHoldMonths');
-  if(pfHold) pfHold.value = v.holdMonths;
-  // Update exit floor/ceiling globals (used by rebuildListings for ghost logic)
-  window._kaExitFloor = v.exitFloor;
-  window._kaExitCeiling = v.exitCeiling;
-  window._kaPrefReturn = v.prefReturn;
-  // Trigger the existing proforma change handler (which calls clearProformaCaches + enrichListings + applyFilters)
-  if(typeof onProformaChange === 'function') onProformaChange();
+function applyKeyAssumptions(){
+  var hardPsf = _kaVal('buildCost');
+  var softPct = _kaVal('softPct');
+  var allIn = Math.round(hardPsf * (1 + softPct/100) + 15); // +$10 subdiv + $5 A&E
+
+  // Write directly to proforma object (source of truth)
+  proforma.allInBuildPsf = allIn;
+  proforma.softCostPct = softPct;
+  proforma.avgUnitSf = _kaVal('unitSf');
+  proforma.carryRatePct = _kaVal('carryRate');
+  proforma.holdMonths = _kaVal('holdMonths');
+  proforma.txnCostPct = _kaVal('txnCost');
+  proforma.fixedDispositionCosts = _kaVal('fixedDisp');
+  proforma.insurance = _kaVal('insurance');
+  proforma.originationPct = _kaVal('origination');
+  proforma.ellisPerUnit = _kaVal('ellis');
+
+  // Sync hidden backing inputs (BTR proforma reads from DOM)
+  document.getElementById('pfBuildCost').value = allIn;
+  document.getElementById('pfUnitSize').value = proforma.avgUnitSf;
+  document.getElementById('pfTxnCost').value = proforma.txnCostPct;
+  document.getElementById('pfFixedDisp').value = proforma.fixedDispositionCosts;
+  document.getElementById('pfHoldMonths').value = proforma.holdMonths;
+  document.getElementById('pfCarryRate').value = proforma.carryRatePct;
+  document.getElementById('pfInsurance').value = proforma.insurance;
+  document.getElementById('pfOrigination').value = proforma.originationPct;
+  document.getElementById('pfEllisPerUnit').value = proforma.ellisPerUnit;
+  document.getElementById('btrOpex').value = (_kaVal('btrOpex')/100).toFixed(2);
+  document.getElementById('btrCapRate').value = (_kaVal('btrCap')/100).toFixed(3);
+  document.getElementById('btrLTV').value = (_kaVal('btrLtv')/100).toFixed(2);
+  document.getElementById('btrRate').value = (_kaVal('btrRate')/100).toFixed(4);
+
+  // Exit floor/ceiling globals
+  window._kaExitFloor = _kaVal('exitFloor');
+  window._kaExitCeiling = _kaVal('exitCeiling');
+  window._kaPrefReturn = _kaVal('prefReturn');
+
+  // Recompute everything
+  clearProformaCaches();
+  enrichListings();
+  applyFilters();
 }
 function resetKeyAssumptions(){
   Object.keys(KA_DEFAULTS).forEach(function(k){
