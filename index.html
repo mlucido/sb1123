@@ -2952,15 +2952,26 @@ function generateDealCard(l, opts){
 // Track open popup pin for re-open after rebuild
 var _openPopupLatLng = null;
 function rebuildListings(cachedListings){
-  // Capture currently open popup's pin before clearing
+  // Capture currently open deal popup before clearing markers
   _openPopupLatLng = null;
+  var _keepPopupOpen = null;  // standalone popup to hold open during rebuild
   try {
     var activePopup = map._popup;
     if(activePopup && activePopup._source && activePopup._source._latlng){
       var src = activePopup._source._latlng;
-      // Only track listing pins (deal-popup class)
       if(activePopup.options && activePopup.options.className === 'deal-popup'){
         _openPopupLatLng = {lat: src.lat, lng: src.lng};
+        // Find the listing to regenerate fresh card content
+        var _popupListing = LISTINGS.find(function(x){
+          return Math.abs(x.lat - src.lat) < 0.0001 && Math.abs(x.lng - src.lng) < 0.0001;
+        });
+        if(_popupListing){
+          // Open a standalone popup at same position — keeps card visible during rebuild
+          _keepPopupOpen = L.popup({maxWidth:780, className:'deal-popup', autoPan:false, closeOnClick:false})
+            .setLatLng([src.lat, src.lng])
+            .setContent(generateDealCard(_popupListing))
+            .openOn(map);
+        }
       }
     }
   } catch(e){}
@@ -3015,17 +3026,26 @@ function rebuildListings(cachedListings){
     }
   });
 
-  // Re-open popup if one was open before rebuild
+  // Swap standalone popup back to marker-bound popup (seamless — no flicker)
   if(_openPopupLatLng){
     var _rlat = _openPopupLatLng.lat, _rlng = _openPopupLatLng.lng;
+    var _rebound = false;
     listingsLayer.eachLayer(function(layer){
-      if(layer.getLatLng){
+      if(!_rebound && layer.getLatLng){
         var ll = layer.getLatLng();
         if(Math.abs(ll.lat - _rlat) < 0.0001 && Math.abs(ll.lng - _rlng) < 0.0001 && layer.getPopup && layer.getPopup()){
+          // Close standalone, open marker-bound — content is identical so no visual change
+          if(_keepPopupOpen) map.closePopup(_keepPopupOpen);
+          var pop = layer.getPopup();
+          if(pop) pop.options.autoPan = false;
           layer.openPopup();
+          if(pop) pop.options.autoPan = true;  // restore for normal click-opens
+          _rebound = true;
         }
       }
     });
+    // If listing was filtered out, close the standalone popup too
+    if(!_rebound && _keepPopupOpen) map.closePopup(_keepPopupOpen);
     _openPopupLatLng = null;
   }
 
