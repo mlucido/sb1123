@@ -35,14 +35,14 @@
 var _rawMarket = new URLSearchParams(window.location.search).get('market') || 'la';
 var _urlMarket = ['la','sd'].includes(_rawMarket) ? _rawMarket : 'la';
 var MARKET_CONFIG = {
-  la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:11,
+  la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:12,
         dataFile:'data.js', listingsFile:'listings.js', rentalDataFile:'rental_data.js',
         burnZones:true, burnZoneLabel:'Palisades + Eaton',
         hasZimas:true,
         hazardsUrl:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Dynamic/Hazards/MapServer',
         parcelUrl:'https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer',
         subtitle:'Townhome development sites in Los Angeles' },
-  sd: { name:'San Diego', slug:'sd', center:[32.77,-117.15], zoom:10,
+  sd: { name:'San Diego', slug:'sd', center:[32.77,-117.15], zoom:11,
         dataFile:'sd_data.js', listingsFile:'sd_listings.js', rentalDataFile:'sd_rental_data.js',
         burnZones:false, burnZoneLabel:'',
         hasZimas:false,
@@ -432,6 +432,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-k{font-size:11px;font-weight:400;color:#6e6c68;white-space:nowrap}
   .dc3-v{font-size:11.5px;font-weight:600;color:#1a1f26;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
   .dc3-v-green{color:#246424}
+  .dc3-v-red{color:#b91c1c}
   .dc3-v-amber{color:#7a5e10}
   .dc3-sub{font-size:9.5px;font-weight:300;color:#c0bdb8;margin-left:3px}
   .dc3-computed{font-size:9px;font-style:italic;color:#b8b5b0;margin-left:3px;font-weight:400}
@@ -501,7 +502,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   /* Deal Status Select */
   .dc3-status-select{font-family:'IBM Plex Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:1px solid #e8e8e8;border-radius:2px;padding:3px 8px;cursor:pointer;outline:none;appearance:auto;-webkit-appearance:auto}
 
-  /* Deal Pipeline Panel (pill-based status filter) */
+  /* Deal Status Panel (pill-based status filter) */
   .pipeline-panel{position:absolute;top:10px;right:60px;z-index:900;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);font-family:'DM Sans',sans-serif;min-width:180px}
   .pipeline-header{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#94a3b8;padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
   .pipeline-header:hover{color:#475569}
@@ -1282,7 +1283,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
       <!-- $/SF -->
       <div class="kf-block">
-        <div class="kf-header"><span class="kf-label">$/SF</span></div>
+        <div class="kf-header"><span class="kf-label">Exit $/SF</span></div>
         <input type="number" id="psfMin" step="50" style="display:none">
         <input type="number" id="psfMax" step="50" style="display:none">
         <div class="kf-range-labels">
@@ -1407,10 +1408,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="pin-legend" id="pinLegend">
     <!-- Dynamically populated based on active layers -->
   </div>
-  <!-- Deal Pipeline Panel (pill-based status filter) -->
+  <!-- Deal Status Panel (pill-based status filter) -->
   <div class="pipeline-panel" id="pipelinePanel">
     <div class="pipeline-header" onclick="document.getElementById('pipelinePanel').classList.toggle('open')">
-      <span>Deal Pipeline</span><span class="pipeline-arrow">&#9660;</span>
+      <span>Deal Status</span><span class="pipeline-arrow">&#9660;</span>
     </div>
     <div class="pipeline-body-wrap"><div id="pipelineBody"></div></div>
     <div class="pipeline-total" id="pipelineTotal">0 total</div>
@@ -1455,14 +1456,14 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
 <!-- Listings Panel Tab (visible when panel is closed) -->
 <div class="listings-panel-tab" id="listingsPanelTab" onclick="toggleListingsPanel()">
-  <span class="tab-arrow">&#9650;</span> Deal Pipeline <span class="tab-count" id="tabPanelCount">0</span>
+  <span class="tab-arrow">&#9650;</span> Deal Status <span class="tab-count" id="tabPanelCount">0</span>
 </div>
 
 <!-- Listings Panel -->
 <div class="listings-panel" id="listingsPanel">
   <div class="listings-panel-resize" id="panelResize"></div>
   <div class="listings-panel-header" id="pipelineHeader">
-    <h2><span>Deal Pipeline</span></h2>
+    <h2><span>Deal Status</span></h2>
     <span class="listings-panel-count" id="tablePanelCount">0</span>
     <button class="listings-panel-close" onclick="toggleListingsPanel()">x</button>
   </div>
@@ -1732,10 +1733,10 @@ function buildStatusFilterBody(){
   var body = document.getElementById('pipelineBody');
   if(!body) return;
   body.innerHTML = '';
-  // Count pins per status
+  // Count pins per status (from filtered listings, excluding status filter itself)
   var counts = {};
   DEAL_STATUSES.forEach(function(st){ counts[st] = 0; });
-  LISTINGS.forEach(function(l){
+  getFilteredListings(false, true).forEach(function(l){
     var st = getDealStatus(l.lat, l.lng);
     if(counts[st] !== undefined) counts[st]++;
   });
@@ -2552,7 +2553,7 @@ function getFilteredComps(){
 
 // isInsideDrawPolygon — see js/draw.js
 
-function getFilteredListings(skipZoneFilter){
+function getFilteredListings(skipZoneFilter, skipStatusFilter){
   const favs = favoritesOnly ? loadFavorites() : null;
   return LISTINGS.filter(l => {
     if(getDrawPolygonGeoJSON() && !isInsideDrawPolygon(l.lat, l.lng)) return false;
@@ -2562,11 +2563,11 @@ function getFilteredListings(skipZoneFilter){
     if(hideBurnZones && l.burnZone) return false;
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
     const lStatus = getDealStatus(l.lat, l.lng);
-    if(!statusFilterState[lStatus]) return false;
+    if(!skipStatusFilter && !statusFilterState[lStatus]) return false;
     const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
     const priceOk = l.price >= filters.price.min && l.price <= filters.price.max;
     const isLand = l.zone === 'LAND' || !l.sqft || l.type === 'Vacant Land';
-    const psfOk = isLand || (l.ppsf >= filters.psf.min && l.ppsf <= filters.psf.max);
+    const psfOk = (l.exitPsf||0) >= filters.psf.min && (l.exitPsf||0) <= filters.psf.max;
     const sqftOk = isLand || (l.sqft >= filters.sqft.min && l.sqft <= filters.sqft.max);
     const lotVal = l.lotSf || 0;
     const lotAtDefault = filters.lot.min === filters.lot.dataMin && filters.lot.max === filters.lot.dataMax;
@@ -2770,7 +2771,7 @@ function generateDealCard(l, opts){
   h += '<div class="dc3-hero">';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="T1 condition-tiered comps only. Excludes existing/unrenovated sales.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">$' + commas(el.psf) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">All-In $/SF</div><div class="dc3-hero-val">$' + commas(allInPsf) + '</div></div>';
-  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">$' + spread + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
+  h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Spread</div><div class="dc3-hero-val" style="color:' + spreadColor + '">' + fmtDollar(spread) + '<span style="font-size:11px;color:#a8a5a0;margin-left:4px">' + spreadPct + '%</span></div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">List Price</div><div class="dc3-hero-val">' + fmtDollar(l.price) + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Units</div><div class="dc3-hero-val">' + unitsLabel + '</div></div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Lot SF</div><div class="dc3-hero-val">' + (l.lotSf ? commas(l.lotSf) : '—') + '</div></div>';
@@ -2789,18 +2790,18 @@ function generateDealCard(l, opts){
   h += '</div><div class="dc3-subcol">';
   h += '<div class="dc3-row"><span class="dc3-k">Gross Revenue</span><span class="dc3-v">' + fmtShort(pf.grossRevenue) + '</span></div>';
   h += '<div class="dc3-row"><span class="dc3-k">Net Revenue</span><span class="dc3-v">' + fmtShort(pf.netRevenue) + '</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Est. Profit</span><span class="dc3-v dc3-v-green">' + fmtShort(pf.profit) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Est. Profit</span><span class="dc3-v ' + (pf.profit >= 0 ? 'dc3-v-green' : 'dc3-v-red') + '">' + fmtShort(pf.profit) + '</span></div>';
   h += '</div></div></div>';
 
   // TOP-RIGHT — PRO FORMA
   h += '<div class="dc3-quad dc3-quad-tr"><div class="dc3-quad-title">Pro Forma</div>';
   h += '<div class="dc3-subcols"><div class="dc3-subcol">';
   h += '<div class="dc3-row"><span class="dc3-k">Buildable SF</span><span class="dc3-v">' + commas(pf.effective_buildable_sf) + '</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Net Margin</span><span class="dc3-v dc3-v-green">' + pf.margin.toFixed(1) + '%</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Return on Cost</span><span class="dc3-v dc3-v-green">' + pf.return_on_cost.toFixed(1) + '%</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Net Margin</span><span class="dc3-v ' + (pf.margin >= 0 ? 'dc3-v-green' : 'dc3-v-red') + '">' + pf.margin.toFixed(1) + '%</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Return on Cost</span><span class="dc3-v ' + (pf.return_on_cost >= 0 ? 'dc3-v-green' : 'dc3-v-red') + '">' + pf.return_on_cost.toFixed(1) + '%</span></div>';
   h += '</div><div class="dc3-subcol">';
   h += '<div class="dc3-row"><span class="dc3-k">Sell / Unit</span><span class="dc3-v">' + fmtDollar(sellPerUnit) + '</span></div>';
-  h += '<div class="dc3-row"><span class="dc3-k">Profit / Unit</span><span class="dc3-v dc3-v-green">' + fmtDollar(profitPerUnit) + '</span></div>';
+  h += '<div class="dc3-row"><span class="dc3-k">Profit / Unit</span><span class="dc3-v ' + (profitPerUnit >= 0 ? 'dc3-v-green' : 'dc3-v-red') + '">' + fmtDollar(profitPerUnit) + '</span></div>';
   h += '<div class="dc3-row"><span class="dc3-k">Land Basis</span><span class="dc3-v">' + fmtDollar(pf.land_basis_psf) + '/sf</span></div>';
   h += '</div></div></div>';
 
@@ -2997,10 +2998,8 @@ function rebuildListings(cachedListings){
 
     if(nonViable){
       cm.bindTooltip('Non-viable at current assumptions. Adjust sliders to explore.', {direction:'top',className:'ghost-tooltip'});
-      cm.bindPopup('<div style="font-size:12px;color:#94a3b8;padding:8px;text-align:center"><b>Non-viable at current assumptions</b><br><small>' + titleAddr(l.address || 'N/A') + '</small></div>',{maxWidth:300});
-    } else {
-      cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
     }
+    cm.bindPopup(generateDealCard(l),{maxWidth:780,className:'deal-popup'});
     cm.addTo(listingsLayer);
 
     // Status dot — show for non-default statuses
