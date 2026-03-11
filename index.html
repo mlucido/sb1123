@@ -45,7 +45,7 @@
 var _rawMarket = new URLSearchParams(window.location.search).get('market') || 'la';
 var _urlMarket = ['la','sd'].includes(_rawMarket) ? _rawMarket : 'la';
 var MARKET_CONFIG = {
-  la: { name:'Los Angeles', slug:'la', center:[34.05,-118.35], zoom:12,
+  la: { name:'Los Angeles', slug:'la', center:[34.05,-118.25], zoom:13,
         dataFile:'data.js', listingsFile:'listings.js', rentalDataFile:'rental_data.js',
         burnZones:true, burnZoneLabel:'Palisades + Eaton',
         hasZimas:true,
