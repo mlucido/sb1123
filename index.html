@@ -1230,9 +1230,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header">
           <span class="kf-label">Min Units</span>
-          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">10</span>
+          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">7</span>
         </div>
-        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="10" oninput="onMinUnitsChange(this.value)">
+        <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="7" oninput="onMinUnitsChange(this.value)">
       </div>
 
       <!-- Asking Price -->
@@ -1651,13 +1651,13 @@ let listingsPanelOpen = false;
 let favoritesOnly = false;
 let newThisWeekFilter = false;
 let hideBurnZones = true;
-let minUnitsFilter = 10;  // Default: require at least 10 units
+let minUnitsFilter = 7;  // Default: require at least 7 units
 
 // Initialize AppState with soft filter defaults, then restore persisted values
 AppState.set('favoritesOnly', false);
 AppState.set('newThisWeekFilter', false);
 AppState.set('hideBurnZones', true);
-AppState.set('minUnitsFilter', 10);
+AppState.set('minUnitsFilter', 7);
 _PERSIST_KEYS.forEach(function(k){
   var s = localStorage.getItem('sb1123_'+k);
   if(s != null){ try{ AppState.set(k, JSON.parse(s)); }catch(e){} }
@@ -1674,7 +1674,7 @@ AppState.on('newThisWeekFilter', function(v){ newThisWeekFilter = v; });
 AppState.on('hideBurnZones', function(v){ hideBurnZones = v; });
 AppState.on('minUnitsFilter', function(v){ minUnitsFilter = v; });
 function onMinUnitsChange(val){ AppState.set('minUnitsFilter', parseInt(val)); document.getElementById('minUnitsLabel').textContent = val; applyFilters(); }
-function resetMinUnits(){ AppState.set('minUnitsFilter', 10); document.getElementById('minUnitsSlider').value = 10; document.getElementById('minUnitsLabel').textContent = '10'; applyFilters(); }
+function resetMinUnits(){ AppState.set('minUnitsFilter', 7); document.getElementById('minUnitsSlider').value = 7; document.getElementById('minUnitsLabel').textContent = '7'; applyFilters(); }
 
 const tierState = { t1: true, t2: true };
 let heatmapMode = 'raw';
@@ -3935,7 +3935,7 @@ function encodeFiltersToHash(){
   });
   var zones = ['R1','R2','R3','R4','MU','LAND'].filter(function(z){ return zoneState[z]; });
   if(zones.join(',') !== 'R1') parts.push('zone=' + zones.join(','));
-  if(minUnitsFilter !== 10) parts.push('units=' + minUnitsFilter);
+  if(minUnitsFilter !== 7) parts.push('units=' + minUnitsFilter);
   if(currentSort && currentSort.key) parts.push('sort=' + currentSort.key + ',' + currentSort.dir);
   if(sb1123Mode) parts.push('sb1123=1');
   if(favoritesOnly) parts.push('favs=1');
@@ -3973,7 +3973,7 @@ function decodeFiltersFromHash(){
       ['R1','R2','R3','R4','MU','LAND'].forEach(function(z){ zoneState[z] = zList.indexOf(z) >= 0; });
       applied = true;
     } else if(k === 'units'){
-      minUnitsFilter = parseInt(v) || 10;
+      minUnitsFilter = parseInt(v) || 7;
       var slider = document.getElementById('minUnitsSlider');
       var label = document.getElementById('minUnitsLabel');
       if(slider) slider.value = minUnitsFilter;
@@ -4700,7 +4700,7 @@ window.addEventListener('DOMContentLoaded', function(){
       decodeFiltersFromHash();
 
       // Restore soft filter UI from AppState (localStorage persistence)
-      if(minUnitsFilter !== 10){
+      if(minUnitsFilter !== 7){
         var muSlider = document.getElementById('minUnitsSlider');
         var muLabel = document.getElementById('minUnitsLabel');
         if(muSlider) muSlider.value = minUnitsFilter;
