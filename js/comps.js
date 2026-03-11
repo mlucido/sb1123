@@ -172,7 +172,7 @@ function compRow(c){
     +'<td>'+(c.bd||'\u2014')+'/'+(c.ba||'\u2014')+'</td>'
     +'<td>'+(c.zone||'\u2014')+'</td>'
     +'<td>'+(c.yb||'\u2014')+'</td>'
-    +'<td style="color:'+(c.t===1?'var(--green)':'var(--text-dim)')+'">T'+(c.t||'?')+'</td>'
+    +'<td style="color:'+(c.t1s==='T1-Reno'?'#d97706':c.t===1?'var(--green)':'var(--text-dim)')+'">'+( c.t1s || ('T'+(c.t||'?')) )+'</td>'
     +'<td>'+formatCompDate(c.date)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
     +'</tr>';
@@ -219,6 +219,7 @@ export function showCompsTable(lat,lng){
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; '+l.address+'</div>'
     +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+totalShown+' comps within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
     +'</div>'
+    +'<button onclick="exportSaleCompsCsv()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap" title="Export all sale comps to CSV">&#x2913; CSV</button>'
     +'<button class="listings-panel-close" onclick="hideCompsTable()">x</button>';
   compsHdr.style.display='';
 
@@ -488,6 +489,7 @@ export function findRentalCompsForListing(l){
   return {
     groups: groups,
     allComps: allComps,
+    fullPool: filtered,
     radius: searchRadius,
     totalCount: totalCount,
     method: l.rentMethod || '',
@@ -593,6 +595,7 @@ export function showRentalCompsTable(lat,lng){
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">RENTAL COMPS &mdash; '+l.address+'</div>'
     +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+estLine+'</div>'
     +'</div>'
+    +'<button onclick="exportRentalCompsCsv()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap" title="Export all rental comps to CSV">&#x2913; CSV</button>'
     +'<button class="listings-panel-close" onclick="hideRentalCompsTable()">x</button>';
   rentalHdr.style.display='';
 
@@ -771,6 +774,87 @@ export function unhighlightCompPin(){
     _pulseMarker.setStyle({color:_pulseOrig.color, weight:_pulseOrig.weight, fillOpacity:_pulseOrig.fillOpacity});
     _pulseMarker=null; _pulseOrig=null;
   }
+}
+
+// ── CSV Export ──
+
+function csvEscape(v){
+  if(v==null) return '';
+  var s = String(v);
+  if(s.indexOf(',')!==-1 || s.indexOf('"')!==-1 || s.indexOf('\n')!==-1) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+
+var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'Multi-Family (2-4)',5:'Multi-Family (5+)'};
+
+function downloadCsv(filename, csvContent){
+  var blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+export function exportSaleCompsCsv(){
+  var wrap = document.getElementById('compsTableWrap');
+  if(!wrap || !wrap._result || !wrap._listing) return;
+  var result = wrap._result;
+  var l = wrap._listing;
+  // Full uncapped pool: used + non-outlier ref
+  var pool = result.used.concat(result.ref.filter(function(c){return !c.isOutlier;}));
+  pool.sort(function(a,b){return a.dist-b.dist;});
+
+  var rows = [['Type','Address','Sale Price','$/SF','SqFt','Beds','Baths','Zone','Yr Built','Tier','Sale Date','Distance (mi)','Used in Model'].join(',')];
+  pool.forEach(function(c){
+    rows.push([
+      csvEscape(PT_LABEL[c.pt]||''),
+      csvEscape(c.address),
+      c.price,
+      c.ppsf,
+      c.sqft,
+      c.bd,
+      c.ba,
+      csvEscape(c.zone),
+      c.yb,
+      c.t1s || (c.t===1?'T1':'T2'),
+      csvEscape(c.date),
+      c.dist?c.dist.toFixed(2):'',
+      c.isUsed?'Yes':'No'
+    ].join(','));
+  });
+
+  var addr = (l.address||'export').replace(/[^a-zA-Z0-9]/g,'_').substring(0,40);
+  downloadCsv('sale_comps_'+addr+'.csv', rows.join('\n'));
+}
+
+export function exportRentalCompsCsv(){
+  var wrap = document.getElementById('rentalCompsTableWrap');
+  if(!wrap || !wrap._result || !wrap._listing) return;
+  var result = wrap._result;
+  var l = wrap._listing;
+  var pool = result.fullPool || result.allComps;
+  pool.sort(function(a,b){return a.dist-b.dist;});
+
+  var rows = [['Type','Address','Rent ($/mo)','$/SF','Beds','Baths','SqFt','Date','Distance (mi)','Match Score'].join(',')];
+  pool.forEach(function(c){
+    var psf = c.sqft>0 ? (c.rent/c.sqft).toFixed(2) : '';
+    rows.push([
+      csvEscape(PT_LABEL[c.pt]||''),
+      csvEscape(c.addr),
+      c.rent,
+      psf,
+      c.bd,
+      c.ba,
+      c.sqft,
+      csvEscape(c.dt),
+      c.dist?c.dist.toFixed(2):'',
+      c.matchScore||''
+    ].join(','));
+  });
+
+  var addr = (l.address||'export').replace(/[^a-zA-Z0-9]/g,'_').substring(0,40);
+  downloadCsv('rental_comps_'+addr+'.csv', rows.join('\n'));
 }
 
 // ── State queries (for other modules) ──

@@ -1461,7 +1461,7 @@ import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
 import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal, computeWaterfall } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
-import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin } from './js/comps.js';
+import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin, exportSaleCompsCsv, exportRentalCompsCsv } from './js/comps.js';
 
 // ── Constants ──
 const COORD_MATCH_TOLERANCE = 0.0001;
@@ -1949,7 +1949,7 @@ function updateCompPoints(){
     var ptLabel = {1:'SFR',2:'Condo',3:'Townhouse',4:'MF 2-4',5:'MF 5+'}[c.pt]||'';
     cm.bindPopup(`<div class="popup-title" style="margin-bottom:4px">${c.address||'Sold Comp'}</div>
       <div style="display:flex;gap:4px;margin-bottom:6px">
-        <span class="popup-badge" style="background:${isT1?'rgba(20,184,166,0.15)':'rgba(100,116,139,0.15)'};color:${isT1?'#14b8a6':'#64748b'}">${isT1?'T1 New/Remodel':'T2 Existing'}</span>
+        <span class="popup-badge" style="background:${c.t1s==='T1-Reno'?'rgba(217,119,6,0.15)':isT1?'rgba(20,184,166,0.15)':'rgba(100,116,139,0.15)'};color:${c.t1s==='T1-Reno'?'#d97706':isT1?'#14b8a6':'#64748b'}">${c.t1s||(isT1?'T1 New/Remodel':'T2 Existing')}</span>
         ${ptLabel?'<span class="popup-badge" style="background:rgba(99,102,241,0.15);color:#818cf8">'+ptLabel+'</span>':''}
         ${c.zone?'<span class="popup-badge" style="background:'+(ZONE_COLORS[c.zone]||'#666')+'22;color:'+(ZONE_COLORS[c.zone]||'#666')+'">'+c.zone+'</span>':''}
       </div>
@@ -4536,6 +4536,8 @@ window.showExportModal = showExportModal;
 window.closeExportModal = closeExportModal;
 window.generateTeaser = generateTeaser;
 window.flyToListing = flyToListing;
+window.exportRentalCompsCsv = exportRentalCompsCsv;
+window.exportSaleCompsCsv = exportSaleCompsCsv;
 window.hideCompsTable = hideCompsTable;
 window.hideRentalCompsTable = hideRentalCompsTable;
 window.highlightCompPin = highlightCompPin;
@@ -5158,20 +5160,21 @@ map.on('click', function(e) {
     <!-- TAB 3: Exit Pricing -->
     <div class="key-tab-content" data-tab="exitPricing" style="display:none">
       <h3>How Exit $/SF Is Calculated</h3>
-      <p>Exit $/SF is the estimated sale price per square foot for completed townhomes. It is derived from a weighted average of recent comparable sales &mdash; not a manual input or a simple median. Every comp earns a composite score; higher-scoring comps have more influence.</p>
+      <p>Exit $/SF is the estimated sale price per square foot for completed townhomes. It is derived from a weighted average of recent comparable sales &mdash; not a manual input or a simple median. Every comp earns a composite score; higher-scoring comps have more influence on the final number.</p>
       <p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#f8fafc;padding:8px;border-radius:4px;margin:8px 0">Composite Score = Product Wt &times; Proximity Wt &times; Recency Wt<br>Exit $/SF = &Sigma;(comp $/SF &times; score) &divide; &Sigma;(scores)</p>
+      <p style="font-size:12px;font-weight:600;color:#64748b">No floor. No ceiling. The model output is the number.</p>
 
       <h3>Product Type Weights</h3>
-      <p>We build new attached townhomes. Comps closest to that product receive the highest weight.</p>
+      <p>We build new attached townhomes. Comps closest to that product receive the highest weight. Comps further from it are discounted.</p>
       <div class="key-stack" style="font-size:12px;line-height:1.8">
-        <div>New townhome (&le;5 yrs) <span style="float:right;font-family:'JetBrains Mono',monospace">1.00</span></div>
+        <div>New townhome (&le;5 yrs) <span style="float:right;font-family:'JetBrains Mono',monospace">1.00</span> <span style="font-size:10px;color:#64748b">&larr; exact product match</span></div>
         <div>Renovated townhome <span style="float:right;font-family:'JetBrains Mono',monospace">0.85</span></div>
         <div>New condo (&le;5 yrs) <span style="float:right;font-family:'JetBrains Mono',monospace">0.75</span></div>
         <div>Older townhome (5&ndash;10 yrs, T1) <span style="float:right;font-family:'JetBrains Mono',monospace">0.70</span></div>
         <div>Renovated condo <span style="float:right;font-family:'JetBrains Mono',monospace">0.60</span></div>
-        <div>New SFR, 1,500&ndash;2,200 SF only <span style="float:right;font-family:'JetBrains Mono',monospace">0.50</span></div>
+        <div>New SFR, 1,500&ndash;2,200 SF only <span style="float:right;font-family:'JetBrains Mono',monospace">0.50</span> <span style="font-size:10px;color:#64748b">&larr; size-gated; lowest weight</span></div>
       </div>
-      <p style="font-size:11px;color:#64748b">SFR outside 1,500&ndash;2,200 SF is excluded &mdash; $/SF is not comparable to a 1,750 SF townhome.</p>
+      <p style="font-size:11px;color:#64748b">SFR outside 1,500&ndash;2,200 SF is excluded entirely &mdash; $/SF is not comparable to a 1,750 SF townhome. All other SFR is excluded.</p>
 
       <h3>Proximity Weights</h3>
       <div class="key-stack" style="font-size:12px;line-height:1.8">
@@ -5191,11 +5194,22 @@ map.on('click', function(e) {
         <div>Older than 24 months <span style="float:right;color:var(--red)">excluded</span></div>
       </div>
 
-      <h3>SFR Attached Discount</h3>
-      <p>Where SFR comps are used, a ZIP-level discount is applied to their $/SF before scoring &mdash; accounting for the premium detached homes command over attached product. Ranges from ~68% in coastal Santa Monica to ~84% in the San Fernando Valley. Townhouse and condo comps are used at face value.</p>
-
-      <h3>Cascade &amp; Confidence</h3>
+      <h3>Comp Confidence</h3>
       <p>The model requires at least 5 comps. If fewer qualify, the search radius expands (up to 3.0 miles) and lower product tiers are added until 5 are found. A &ldquo;Low comp confidence&rdquo; label on a deal card means fewer than 5 high-quality comps were available &mdash; treat that exit $/SF with additional caution.</p>
+
+      <h3>New Construction Premium</h3>
+      <p>The comp pool in our target markets is dominated by pre-2015 renovated stock &mdash; older homes that qualify as T1 via high $/SF relative to neighborhood median. We build new ground-up product.</p>
+      <p>Empirically, new construction in our target ZIPs trades approximately 20% above the blended T1 pool. We apply a conservative <strong>10% new construction premium</strong> to the weighted comp average to account for this gap.</p>
+      <p style="font-size:11px;color:#64748b">This premium is applied after scoring &mdash; it does not affect individual comp weights or pool composition.</p>
+
+      <h3>T1 Comp Sub-Tiers</h3>
+      <p>Comps labeled T1 in the comp table are split into three sub-types:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><span style="color:var(--green);font-weight:700">T1-New</span> &mdash; Built 2020 or later &mdash; new construction</div>
+        <div><span style="color:var(--green);font-weight:700">T1-Recent</span> &mdash; Built 2015&ndash;2019 &mdash; recent vintage</div>
+        <div><span style="color:#d97706;font-weight:700">T1-Reno</span> &mdash; Built before 2015 &mdash; qualifies as T1 via high $/SF relative to neighborhood median, indicating a full remodel or premium finish level</div>
+      </div>
+      <p style="font-size:11px;color:#64748b">All three sub-types are valid T1 comps. The sub-tier label lets you assess comp quality and vintage mix at a glance.</p>
     </div>
 
     <!-- TAB 4: BTR Model -->

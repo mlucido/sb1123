@@ -415,6 +415,15 @@ print(f"  ARV Model: Classifying condition tiers...")
 for c in comps:
     c['t'] = classify_tier(c.get('yb'), c['ppsf'], c.get('_nbhd_median', c['ppsf']))
     c['rw'] = round(recency_weight(c.get('date', '')), 2)
+    # T1 sub-tier classification
+    if c['t'] == 1:
+        yb = c.get('yb')
+        if yb and yb >= 2020:
+            c['t1s'] = 'T1-New'
+        elif yb and yb >= 2015:
+            c['t1s'] = 'T1-Recent'
+        else:
+            c['t1s'] = 'T1-Reno'
     # Clean up internal field
     if '_nbhd_median' in c:
         del c['_nbhd_median']

@@ -51,3 +51,6 @@ netlify.toml
 .DS_Store
 .claude/
 *_cache.json
+
+# Local Netlify folder
+.netlify

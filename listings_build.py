@@ -78,17 +78,11 @@ RECENCY_12_18 = 0.70
 RECENCY_18_24 = 0.50
 MAX_RECENCY_MONTHS = 24  # Hard exclude older
 
-# ── SFR attached discount by ZIP ──
-ATTACHED_DISCOUNT_BY_ZIP = {
-    "90402": 0.68, "90403": 0.68,
-    "90404": 0.70, "90405": 0.70,
-    "90049": 0.72, "90272": 0.72,
-    "91367": 0.82, "91364": 0.82,
-    "91302": 0.80,
-    "91335": 0.84, "91303": 0.84,
-    "91405": 0.84, "91406": 0.84,
-}
-ATTACHED_DISCOUNT_DEFAULT = 0.78
+# ── New construction premium ──
+# Comp pool is dominated by pre-2015 renovated stock (~87% T1-Reno in LA).
+# New ground-up product trades ~20% above blended T1; we apply 10% conservatively.
+NEW_CONSTRUCTION_PREMIUM = 1.10
+
 
 # ── Step 1: Load comps and build spatial index ──
 print("\n🏘️  Step 1: Loading comps + building spatial index...")
@@ -329,13 +323,8 @@ def score_comps(lat, lng, zipcode, radius_mi, max_tier_rank=6):
 
         composite = pw * prox_w * rec_w
 
-        # Apply SFR attached discount before scoring
         raw_ppsf = comp["ppsf"]
-        if comp["pt"] == PT_SFR:
-            discount = ATTACHED_DISCOUNT_BY_ZIP.get(comp["zip"], ATTACHED_DISCOUNT_DEFAULT)
-            adj_ppsf = round(raw_ppsf * discount)
-        else:
-            adj_ppsf = raw_ppsf
+        adj_ppsf = raw_ppsf
 
         scored.append({
             **comp,
@@ -418,7 +407,7 @@ def find_weighted_exit_ppsf(lat, lng, zipcode, debug=False):
     if len(scored) < MIN_COMPS:
         result["low_comp_confidence"] = True
 
-    result["exit_psf"] = round(weighted_psf)
+    result["exit_psf"] = round(weighted_psf * NEW_CONSTRUCTION_PREMIUM)
     result["comp_count"] = len(scored)
     result["sfr_comp_share"] = round(sfr_share, 3)
     result["scored_comps"] = scored if debug else []
@@ -1468,7 +1457,7 @@ def find_rental_psf(lat, lng, zipcode, safmr_3br):
     return 0, "none", 0, 0, 0, 0
 
 # 4d-d: Stamp rental estimates per listing
-if rental_comp_count > 0 or zori_by_zip:
+if rental_comp_count > 0 or zori_by_zip or census_rent_count > 0:
     print(f"\n   Computing 6-tier rental estimates...")
     t0 = time.time()
     tier_counts = {"rental-comp": 0, "rental-comp-wide": 0, "rental-adj": 0, "census-tract": 0, "zori": 0, "safmr": 0, "none": 0}
