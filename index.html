@@ -2994,7 +2994,8 @@ function rebuildListings(cachedListings){
     const pf_pin = calculateProForma(l);
     const exitPsf_pin = exitLabel(l).psf;
     const exitFloor = window._kaExitFloor || 0;
-    const nonViable = !l.maxOffer || l.maxOffer <= 0 || (exitFloor > 0 && exitPsf_pin < exitFloor);
+    const exitCeiling = window._kaExitCeiling || 0;
+    const nonViable = !l.maxOffer || l.maxOffer <= 0 || (exitFloor > 0 && exitPsf_pin < exitFloor) || (exitCeiling > 0 && exitPsf_pin > exitCeiling);
 
     // Color fill by Exit $/SF — ghost non-viable pins
     const fillColor = nonViable ? '#888' : exitPsfPinColor(exitPsf_pin);
@@ -3577,11 +3578,13 @@ function dismissOnboarding(){
 }
 
 function openAssumptionsModal(){
-  document.getElementById('assumptionsModal').classList.add('active');
+  var el = document.getElementById('assumptionsModal');
+  if(el) el.classList.add('active');
 }
 
 function closeAssumptionsModal(){
-  document.getElementById('assumptionsModal').classList.remove('active');
+  var el = document.getElementById('assumptionsModal');
+  if(el) el.classList.remove('active');
 }
 function closeDataKeyModal(){
   // Legacy stub — dataKeyModal removed, content moved to Key panel
@@ -3592,9 +3595,9 @@ document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
   var em = document.getElementById('exportModal');
   if(em) { closeExportModal(); return; }
-  if(document.getElementById('assumptionsModal').classList.contains('active')) closeAssumptionsModal();
-  else if(document.getElementById('onboardOverlay').classList.contains('active')) dismissOnboarding();
-  else if(isCompsTableActive()) hideCompsTable();
+  var oo = document.getElementById('onboardOverlay');
+  if(oo && oo.classList.contains('active')){ dismissOnboarding(); return; }
+  if(isCompsTableActive()) hideCompsTable();
   else if(isRentalCompsTableActive()) hideRentalCompsTable();
   else if(listingsPanelOpen) toggleListingsPanel();
 });
