@@ -2055,8 +2055,9 @@ function isSB1123Eligible(l){
   const notFireZone = !l.fireZone;
   const notProtectedArea = !l.openSpace;
   const minLot = ['R1','LAND'].includes(l.zone) ? 2400 : 1200;  // 2 units min: R1=2×1200, MF=2×600
-  const validLot = l.lotSf && l.lotSf >= minLot;
-  const maxLotSf = ['R1','LAND'].includes(l.zone) ? 65340 : 217800;
+  const validLot = !l.lotSf || l.lotSf >= minLot;  // null lotSf passes — surface for manual review
+  const r1AcreageCap = MARKET.slug === 'sd' ? 87120 : 65340;  // SD: 2ac, LA: 1.5ac
+  const maxLotSf = ['R1','LAND'].includes(l.zone) ? r1AcreageCap : 217800;
   const underAcreageCap = !l.lotSf || l.lotSf <= maxLotSf;
   const inUrbanArea = l.urbanArea !== false;  // true or undefined (not yet checked) = OK
   return validZone && notCondoTownhouse && notR1Hoa && notHighHoa && notFireZone && notProtectedArea && validLot && underAcreageCap && inUrbanArea;
