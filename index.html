@@ -1458,6 +1458,14 @@ import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDr
 import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin } from './js/comps.js';
 
 // ── Constants ──
+const COORD_MATCH_TOLERANCE = 0.0001;
+const COMP_GRID_SIZE = 0.005;
+const TABLE_ROW_LIMIT = 500;
+const MOBILE_CARD_LIMIT = 200;
+const COMP_RENDER_CAP_LABELED = 2000;
+const COMP_RENDER_CAP_DOTS = 5000;
+const T1_LOOKBACK_MONTHS = 18;
+
 const ZONE_COLORS = {R1:'#2563eb',R2:'#16a34a',R3:'#ea580c',R4:'#9333ea',MU:'#ec4899',LAND:'#b45309'};
 const ZONE_LABELS = {R1:'Single Family',R2:'Two Family',R3:'Multi-Family',R4:'High Density',MU:'Mixed-Use',LAND:'Vacant Land'};
 
@@ -1507,9 +1515,8 @@ function findT1CompAnchors(l){
   var zip = l.zip;
   if(!zip || !COMPS.length) return {comps:[], total:0, zip:zip, dateRange:''};
 
-  // 18 months ago
   var now = new Date();
-  var cutoff = new Date(now.getFullYear(), now.getMonth() - 18, now.getDate());
+  var cutoff = new Date(now.getFullYear(), now.getMonth() - T1_LOOKBACK_MONTHS, now.getDate());
   var MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
 
   function parseDate(d){
@@ -1872,7 +1879,7 @@ let compSpatialGrid = {};  // grid for fast viewport queries
 // Build spatial grid for comps (0.005° cells ≈ 500m)
 function buildCompGrid(comps){
   const grid = {};
-  const S = 0.005;
+  const S = COMP_GRID_SIZE;
   comps.forEach(c=>{
     if(!c.ppsf || c.ppsf <= 0) return;
     const key = Math.floor(c.lat/S)+','+Math.floor(c.lng/S);
@@ -1884,7 +1891,7 @@ function buildCompGrid(comps){
 
 // Query comps in a bounding box from grid
 function queryCompGrid(bounds){
-  const S = 0.005;
+  const S = COMP_GRID_SIZE;
   const s=bounds.getSouth(), n=bounds.getNorth(), w=bounds.getWest(), e=bounds.getEast();
   const rMin=Math.floor(s/S), rMax=Math.floor(n/S);
   const cMin=Math.floor(w/S), cMax=Math.floor(e/S);
@@ -1910,7 +1917,7 @@ function updateCompPoints(){
   const visible = queryCompGrid(bounds);
   const showLabels = zoom >= 15;
   // Cap markers to prevent browser freeze at mid-zoom with wide viewport
-  const cap = showLabels ? 2000 : 5000;
+  const cap = showLabels ? COMP_RENDER_CAP_LABELED : COMP_RENDER_CAP_DOTS;
 
   // Filter by tier
   const tierFiltered = visible.filter(c =>
@@ -2814,7 +2821,7 @@ function _closePinnedPopup(){
 function _refreshPinnedPopup(){
   if(!_pinnedPopup || !_pinnedLatLng) return;
   var l = LISTINGS.find(function(x){
-    return Math.abs(x.lat - _pinnedLatLng.lat) < 0.0001 && Math.abs(x.lng - _pinnedLatLng.lng) < 0.0001;
+    return Math.abs(x.lat - _pinnedLatLng.lat) < COORD_MATCH_TOLERANCE && Math.abs(x.lng - _pinnedLatLng.lng) < COORD_MATCH_TOLERANCE;
   });
   if(l){
     _pinnedPopup.setContent(generateDealCard(l));
@@ -3750,7 +3757,7 @@ function rebuildTable(filtered){
   }
 
   // Cap table rows for performance
-  const display = sorted.slice(0, 500);
+  const display = sorted.slice(0, TABLE_ROW_LIMIT);
 
   tbody.innerHTML = display.map(l => {
     const zoneColor = ZONE_COLORS[l.zone]||'#666';
@@ -3778,7 +3785,7 @@ function rebuildTable(filtered){
     </tr>`;
   }).join('');
 
-  const countStr = sorted.length > 500 ? `${sorted.length} deals (showing 500)` : `${sorted.length} deals`;
+  const countStr = sorted.length > TABLE_ROW_LIMIT ? `${sorted.length} deals (showing ${TABLE_ROW_LIMIT})` : `${sorted.length} deals`;
   const tablePanelCount = document.getElementById('tablePanelCount');
   if(tablePanelCount) tablePanelCount.textContent = countStr;
   const tabPanelCount = document.getElementById('tabPanelCount');
@@ -3795,7 +3802,7 @@ function flyToListing(lat, lng){
   listingsLayer.eachLayer(layer => {
     if(layer.getLatLng){
       const ll = layer.getLatLng();
-      if(Math.abs(ll.lat-lat)<0.0001 && Math.abs(ll.lng-lng)<0.0001) layer.openPopup();
+      if(Math.abs(ll.lat-lat)<COORD_MATCH_TOLERANCE && Math.abs(ll.lng-lng)<COORD_MATCH_TOLERANCE) layer.openPopup();
     }
   });
 }
@@ -3806,7 +3813,7 @@ function highlightMarker(lat, lng){
   listingsLayer.eachLayer(layer => {
     if(!layer.getLatLng || !layer._path) return;
     const ll = layer.getLatLng();
-    if(Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001){
+    if(Math.abs(ll.lat - lat) < COORD_MATCH_TOLERANCE && Math.abs(ll.lng - lng) < COORD_MATCH_TOLERANCE){
       layer._path.classList.add('marker-highlight');
       _highlightedPath = layer._path;
     }
@@ -4805,7 +4812,7 @@ window.addEventListener('DOMContentLoaded', function(){
                   layer.eachLayer(marker => {
                     if(found) return;
                     const pos = marker.getLatLng();
-                    if(Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001){
+                    if(Math.abs(pos.lat - lat) < COORD_MATCH_TOLERANCE && Math.abs(pos.lng - lng) < COORD_MATCH_TOLERANCE){
                       marker.openPopup();
                       found = true;
                     }
@@ -4815,7 +4822,7 @@ window.addEventListener('DOMContentLoaded', function(){
               // Fallback: listing may be filtered out — open via pinned popup so sliders refresh it
               if(!found){
                 var pinListing = LISTINGS.find(function(x){
-                  return Math.abs(x.lat - lat) < 0.0001 && Math.abs(x.lng - lng) < 0.0001;
+                  return Math.abs(x.lat - lat) < COORD_MATCH_TOLERANCE && Math.abs(x.lng - lng) < COORD_MATCH_TOLERANCE;
                 });
                 if(pinListing){
                   _openPinnedPopup(pinListing);
@@ -4891,7 +4898,7 @@ function updatePeekStats(cachedListings) {
 function rebuildMobileCards(sorted) {
   var container = document.getElementById('mobileCards');
   if (!container) return;
-  var display = sorted.slice(0, 200);
+  var display = sorted.slice(0, MOBILE_CARD_LIMIT);
   container.innerHTML = display.map(function(l) {
     var marginClass = (l.estMargin || 0) >= 0 ? 'profit-pos' : 'profit-neg';
     var profitK = Math.round((l.estProfit || 0) / 1000);

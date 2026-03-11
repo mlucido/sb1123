@@ -8,6 +8,9 @@ var _deps = {};
 export function initComps(deps){ _deps = deps; }
 
 // ── Constants ──
+var METERS_PER_MILE = 1609.34;
+var SCORE_GOOD = 80;
+var SCORE_OK = 50;
 var COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500;
 var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
 var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS exit comps
@@ -281,7 +284,7 @@ export function showCompsTable(lat,lng){
     ).addTo(compsMapLayer);
   });
   compsRadiusCircle = L.circle([l.lat,l.lng],{
-    radius: radius*1609.34, color:'#22c55e', fillColor:'#22c55e',
+    radius: radius*METERS_PER_MILE, color:'#22c55e', fillColor:'#22c55e',
     fillOpacity:0.04, weight:1, dashArray:'6,4'
   });
   compsMapLayer.addTo(map);
@@ -507,8 +510,8 @@ function formatRentalDate(dt){
 }
 
 function scoreColor(s){
-  if(s >= 80) return 'var(--green)';
-  if(s >= 50) return 'var(--yellow)';
+  if(s >= SCORE_GOOD) return 'var(--green)';
+  if(s >= SCORE_OK) return 'var(--yellow)';
   return 'var(--text-dim)';
 }
 
@@ -638,8 +641,8 @@ export function showRentalCompsTable(lat,lng){
   result.allComps.forEach(function(c){
     var sc = c.matchScore || 0;
     var r, fillOp, col;
-    if(sc >= 80){ r=7; fillOp=0.9; col='#3b82f6'; }
-    else if(sc >= 50){ r=5; fillOp=0.6; col='#3b82f6'; }
+    if(sc >= SCORE_GOOD){ r=7; fillOp=0.9; col='#3b82f6'; }
+    else if(sc >= SCORE_OK){ r=5; fillOp=0.6; col='#3b82f6'; }
     else { r=4; fillOp=0.35; col='#94a3b8'; }
     L.circleMarker([c.lat,c.lng],{
       radius:r, color:'#ffffff', fillColor:col, fillOpacity:fillOp, weight:1,
@@ -654,7 +657,7 @@ export function showRentalCompsTable(lat,lng){
     ).addTo(rentalCompsMapLayer);
   });
   rentalCompsRadiusCircle = L.circle([l.lat,l.lng],{
-    radius: radius*1609.34, color:'#3b82f6', fillColor:'#3b82f6',
+    radius: radius*METERS_PER_MILE, color:'#3b82f6', fillColor:'#3b82f6',
     fillOpacity:0.04, weight:1, dashArray:'6,4'
   });
   rentalCompsMapLayer.addTo(map);
