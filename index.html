@@ -1026,6 +1026,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .key-tier p{margin:0;font-size:12px;color:#475569;line-height:1.5}
 
   /* ── Assumptions tab sliders ── */
+  .ka-columns{display:flex;gap:24px}
+  .ka-col{flex:1;min-width:0}
   .key-slider-group{margin-bottom:16px;border-bottom:1px solid #f1f5f9;padding-bottom:14px}
   .key-slider-group:last-of-type{border-bottom:none}
   .key-slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -1049,6 +1051,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       box-shadow:0 2px 8px rgba(0,0,0,0.12);
     }
     .key-toggle-btn.shifted{right:10px;bottom:70px}
+    .ka-columns{flex-direction:column;gap:0}
     .key-slider-input::-webkit-slider-thumb{width:24px;height:24px;margin-top:-9px}
     .key-slider-input::-moz-range-thumb{width:24px;height:24px}
     .key-panel-close{width:44px;height:44px;font-size:20px}
@@ -5208,110 +5211,110 @@ map.on('click', function(e) {
     <div class="key-tab-content" data-tab="assumptions" style="display:none">
       <p style="font-size:11px;color:#64748b;margin-bottom:16px">Adjust assumptions below. All pins reprice live.</p>
 
-      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#1e293b;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Sale</h3>
+      <div class="ka-columns">
+        <div class="ka-col">
+          <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#1e293b;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Sale</h3>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Construction Cost ($/SF)</b><span class="key-slider-val" id="kaSliderVal_buildCost">$350</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="450" step="5" value="350" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$300</span><span>$450</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Construction Cost ($/SF)</b><span class="key-slider-val" id="kaSliderVal_buildCost">$350</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_buildCost" min="300" max="450" step="5" value="350" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>$300</span><span>$450</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Soft Costs (% of Hard)</b><span class="key-slider-val" id="kaSliderVal_softPct">18%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="30" step="0.5" value="18" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>12%</span><span>30%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Soft Costs (% of Hard)</b><span class="key-slider-val" id="kaSliderVal_softPct">18%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_softPct" min="12" max="30" step="0.5" value="18" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>12%</span><span>30%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Avg Unit Size (SF)</b><span class="key-slider-val" id="kaSliderVal_unitSf">1,750</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_unitSf" min="1000" max="2200" step="50" value="1750" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>1,000</span><span>2,200</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Avg Unit Size (SF)</b><span class="key-slider-val" id="kaSliderVal_unitSf">1,750</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_unitSf" min="1000" max="2200" step="50" value="1750" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>1,000</span><span>2,200</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Bridge / Construction Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="14" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>8%</span><span>14%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Bridge / Const. Rate</b><span class="key-slider-val" id="kaSliderVal_carryRate">11.5%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_carryRate" min="8" max="14" step="0.25" value="11.5" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>8%</span><span>14%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Hold Period (months)</b><span class="key-slider-val" id="kaSliderVal_holdMonths">24</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_holdMonths" min="18" max="36" step="1" value="24" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>18 mo</span><span>36 mo</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Hold Period (months)</b><span class="key-slider-val" id="kaSliderVal_holdMonths">24</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_holdMonths" min="18" max="36" step="1" value="24" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>18 mo</span><span>36 mo</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Txn Costs (%)</b><span class="key-slider-val" id="kaSliderVal_txnCost">4.7%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_txnCost" min="3" max="7" step="0.1" value="4.7" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>3%</span><span>7%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Txn Costs (%)</b><span class="key-slider-val" id="kaSliderVal_txnCost">4.7%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_txnCost" min="3" max="7" step="0.1" value="4.7" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>3%</span><span>7%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Disposition Costs ($)</b><span class="key-slider-val" id="kaSliderVal_fixedDisp">$40K</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_fixedDisp" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Disposition Costs ($)</b><span class="key-slider-val" id="kaSliderVal_fixedDisp">$40K</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_fixedDisp" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Insurance ($/yr)</b><span class="key-slider-val" id="kaSliderVal_insurance">$40K</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_insurance" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Insurance ($/yr)</b><span class="key-slider-val" id="kaSliderVal_insurance">$40K</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_insurance" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Origination (%)</b><span class="key-slider-val" id="kaSliderVal_origination">1%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_origination" min="0.5" max="2.5" step="0.25" value="1" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>0.5%</span><span>2.5%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Origination (%)</b><span class="key-slider-val" id="kaSliderVal_origination">1%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_origination" min="0.5" max="2.5" step="0.25" value="1" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>0.5%</span><span>2.5%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Ellis Act ($/unit)</b><span class="key-slider-val" id="kaSliderVal_ellis">$20K</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_ellis" min="10000" max="40000" step="5000" value="20000" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$10K</span><span>$40K</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Ellis Act ($/unit)</b><span class="key-slider-val" id="kaSliderVal_ellis">$20K</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_ellis" min="10000" max="40000" step="5000" value="20000" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>$10K</span><span>$40K</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Exit $/SF &mdash; Floor</b><span class="key-slider-val" id="kaSliderVal_exitFloor">$600</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_exitFloor" min="500" max="750" step="10" value="600" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$500</span><span>$750</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Exit $/SF &mdash; Floor</b><span class="key-slider-val" id="kaSliderVal_exitFloor">$600</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_exitFloor" min="500" max="750" step="10" value="600" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>$500</span><span>$750</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Exit $/SF &mdash; Ceiling</b><span class="key-slider-val" id="kaSliderVal_exitCeiling">$850</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_exitCeiling" min="700" max="1000" step="10" value="850" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>$700</span><span>$1,000</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>6%</span><span>12%</span></div>
+          </div>
+        </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>6%</span><span>12%</span></div>
-      </div>
+        <div class="ka-col">
+          <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#2a5aa0;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Rent</h3>
 
-      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#2a5aa0;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Rent</h3>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>OpEx Ratio</b><span class="key-slider-val" id="kaSliderVal_btrOpex">30%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_btrOpex" min="20" max="40" step="1" value="30" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>20%</span><span>40%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>OpEx Ratio</b><span class="key-slider-val" id="kaSliderVal_btrOpex">30%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_btrOpex" min="20" max="40" step="1" value="30" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>20%</span><span>40%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Cap Rate</b><span class="key-slider-val" id="kaSliderVal_btrCap">5.5%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_btrCap" min="4" max="7" step="0.25" value="5.5" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>4%</span><span>7%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Cap Rate</b><span class="key-slider-val" id="kaSliderVal_btrCap">5.5%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_btrCap" min="4" max="7" step="0.25" value="5.5" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>4%</span><span>7%</span></div>
-      </div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Refi LTV</b><span class="key-slider-val" id="kaSliderVal_btrLtv">70%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_btrLtv" min="60" max="80" step="1" value="70" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>60%</span><span>80%</span></div>
+          </div>
 
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Refi LTV</b><span class="key-slider-val" id="kaSliderVal_btrLtv">70%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_btrLtv" min="60" max="80" step="1" value="70" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>60%</span><span>80%</span></div>
-      </div>
-
-      <div class="key-slider-group">
-        <div class="key-slider-label"><b>Refi Rate</b><span class="key-slider-val" id="kaSliderVal_btrRate">6.5%</span></div>
-        <input type="range" class="key-slider-input" id="kaSlider_btrRate" min="5" max="8" step="0.25" value="6.5" oninput="onKeyAssumptionChange()">
-        <div class="key-slider-range"><span>5%</span><span>8%</span></div>
+          <div class="key-slider-group">
+            <div class="key-slider-label"><b>Refi Rate</b><span class="key-slider-val" id="kaSliderVal_btrRate">6.5%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_btrRate" min="5" max="8" step="0.25" value="6.5" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>5%</span><span>8%</span></div>
+          </div>
+        </div>
       </div>
 
       <button class="key-reset-btn" onclick="resetKeyAssumptions()">Reset to Defaults</button>
@@ -5343,7 +5346,7 @@ function switchKeyTab(el){
 var KA_DEFAULTS = {
   buildCost:350, softPct:18, unitSf:1750, carryRate:11.5, holdMonths:24,
   txnCost:4.7, fixedDisp:40000, insurance:40000, origination:1, ellis:20000,
-  exitFloor:600, exitCeiling:850, prefReturn:8,
+  exitFloor:600, prefReturn:8,
   btrOpex:30, btrCap:5.5, btrLtv:70, btrRate:6.5
 };
 var _kaTimer = null;
@@ -5363,7 +5366,6 @@ function onKeyAssumptionChange(){
   document.getElementById('kaSliderVal_origination').textContent = _kaVal('origination')+'%';
   document.getElementById('kaSliderVal_ellis').textContent = _fmtK(_kaVal('ellis'));
   document.getElementById('kaSliderVal_exitFloor').textContent = '$'+_kaVal('exitFloor');
-  document.getElementById('kaSliderVal_exitCeiling').textContent = '$'+_kaVal('exitCeiling');
   document.getElementById('kaSliderVal_prefReturn').textContent = _kaVal('prefReturn')+'%';
   document.getElementById('kaSliderVal_btrOpex').textContent = _kaVal('btrOpex')+'%';
   document.getElementById('kaSliderVal_btrCap').textContent = _kaVal('btrCap')+'%';
@@ -5396,7 +5398,7 @@ function applyKeyAssumptions(){
 
   // Exit floor/ceiling globals
   window._kaExitFloor = _kaVal('exitFloor');
-  window._kaExitCeiling = _kaVal('exitCeiling');
+  window._kaExitCeiling = 0;  // ceiling removed — exit $/SF uncapped
   window._kaPrefReturn = _kaVal('prefReturn');
 
   // Trigger module-scoped recompute (reads from hidden inputs, calls enrichListings + applyFilters)
