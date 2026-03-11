@@ -701,35 +701,58 @@ for l in listings:
     risk_score = 0
     risk_factors = []
 
-    if not l.get("hasStructure"):
-        # Vacant land = no tenant risk
+    beds_str = l.get("beds", "")
+    beds_int = int(beds_str) if beds_str and str(beds_str).isdigit() else 0
+    yb_str = l.get("yearBuilt", "")
+    yb_int = int(yb_str) if yb_str and str(yb_str).isdigit() else 0
+    is_sf = l.get("track") == "SF"  # R1/LAND = single-family (likely owner-occupied)
+    has_structure = l.get("hasStructure", False)
+    existing_units = l.get("existingUnits", 0) or 0
+    imp_val_check = l.get("assessedImpValue", 0) or 0
+    prop_type_mf = "multi-family" in (l.get("type") or "").lower()
+
+    # A MF property is "likely tenant-occupied" if any signal of existing occupancy is present,
+    # even if Redfin labels it "Vacant Land" (e.g., listed as land but has assessed improvements).
+    if not is_sf:
+        likely_tenant_occupied = (
+            existing_units >= 2
+            or imp_val_check > 200000
+            or prop_type_mf
+            or (has_structure and l.get("track") == "MF")
+        )
+    else:
+        likely_tenant_occupied = False
+    l["likelyTenantOccupied"] = likely_tenant_occupied
+
+    if not likely_tenant_occupied and not has_structure and is_sf:
+        # Vacant land / R1 with no signals = no tenant risk
         l["tenantRisk"] = 0
         l["tenantRiskFactors"] = []
         l["rsoRisk"] = False
         tenant_risk_counts[0] += 1
         continue
 
-    beds_str = l.get("beds", "")
-    beds_int = int(beds_str) if beds_str and str(beds_str).isdigit() else 0
-    yb_str = l.get("yearBuilt", "")
-    yb_int = int(yb_str) if yb_str and str(yb_str).isdigit() else 0
-    is_sf = l.get("track") == "SF"  # R1/LAND = single-family (likely owner-occupied)
-
     if is_sf:
         # R1/LAND SFR: owner-occupied is the norm, tenant risk is low
         # Only flag if 5+ beds (likely converted to rental units)
+        if not has_structure:
+            l["tenantRisk"] = 0
+            l["tenantRiskFactors"] = []
+            l["rsoRisk"] = False
+            tenant_risk_counts[0] += 1
+            continue
         if beds_int >= 5:
             risk_score += 2
             risk_factors.append("5+beds")
     else:
-        # MF (R2-R4): multi-family = likely tenanted
-        # Factor 1: Multi-family zone with structure
-        risk_score += 1
-        risk_factors.append("MF+struct")
+        # MF (R2-R4): likely tenanted if likelyTenantOccupied
+        # Factor 1: Multi-family zone with occupancy signal
+        if likely_tenant_occupied:
+            risk_score += 1
+            risk_factors.append("MF+struct")
 
         # Factor 2: Improvement value confirms occupied
-        imp_val = l.get("assessedImpValue", 0) or 0
-        if imp_val > 50000:
+        if imp_val_check > 50000:
             risk_score += 1
             risk_factors.append("improved")
 
@@ -747,7 +770,7 @@ for l in listings:
             risk_factors.append("pre-2000")
 
     # RSO/Ellis Act assessment (market-specific)
-    if market.get("has_rso") and l.get("hasStructure"):
+    if market.get("has_rso") and (has_structure or likely_tenant_occupied):
         is_pre_1978 = yb_int > 0 and yb_int < 1979
         is_la_city = (l.get("city") or "").lower() in market.get("rso_eligible_cities", [])
         is_multi = l.get("track") == "MF" or beds_int >= 3
@@ -776,7 +799,7 @@ for l in listings:
     # Remainder parcel analysis (R2-R4 with structure)
     # Strategy: keep existing building as remainder parcel, develop rest
     # SB 1123 explicitly allows this — existing uses retained, new units on remainder
-    if l.get("track") == "MF" and l.get("hasStructure") and l.get("lotSf"):
+    if l.get("track") == "MF" and (has_structure or likely_tenant_occupied) and l.get("lotSf"):
         sqft = l.get("sqft", 0) or 0
         lot_sf = l["lotSf"]
         est_stories = 1 if sqft < 1500 else 2

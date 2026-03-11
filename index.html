@@ -411,6 +411,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-tag-land{background:#e8f5e8;color:#2d6a2d;border:1px solid #c4dcc4}
   .dc3-tag-bts{background:#fdf6e3;color:#8a6d1b;border:1px solid #e8d9a8}
   .dc3-tag-btr{background:#e8f0fa;color:#2a5aa0;border:1px solid #c4d8f0}
+  .dc3-tag-tenant{background:#fee2e2;color:#dc2626}
+  .dc3-topbar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
   /* 2. Hero strip */
   .dc3-hero{display:grid;grid-template-columns:repeat(6,1fr);background:#fafafa;border-bottom:1px solid #e8e8e8}
@@ -2605,8 +2607,10 @@ function generateDealCard(l, opts){
   });
   statusSelectHtml += '</select>';
   h += '<div class="dc3-topbar">';
+  h += '<div class="dc3-topbar-left">';
   h += '<div class="dc3-topbar-addr">' + addr + '</div>';
   h += statusSelectHtml;
+  h += '</div>';
   h += '<div class="dc3-topbar-tags">';
   if (l.zone === 'LAND') h += '<span class="dc3-tag dc3-tag-land">LAND</span>';
   if (ctx === 'btr') {
@@ -2615,6 +2619,7 @@ function generateDealCard(l, opts){
     h += '<span class="dc3-tag dc3-tag-bts">BTS</span>';
     if (isDualViable) h += '<span class="dc3-tag dc3-tag-btr">BTR</span>';
   }
+  if (l.likelyTenantOccupied) h += '<span class="dc3-tag dc3-tag-tenant">Tenant Risk</span>';
   h += '</div></div>';
 
   // ── 2. HERO STRIP ──
