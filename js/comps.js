@@ -9,11 +9,7 @@ export function initComps(deps){ _deps = deps; }
 
 // ── Constants ──
 var COMP_SQFT_MIN = 1300, COMP_SQFT_MAX = 3500;
-var ZONE_TYPE_MAP = {R1:'SFR',R2:'TH/Condo',R3:'MF 2-4',R4:'MF 5+',MU:'Mixed-Use',LAND:'Land'};
 var PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
-// Zone matching removed — comp filtering now uses PT + tier only
-var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'MF 2-4',5:'MF 5+'};
-var SFR_TH_TYPES = [1,2,3,4];
 var BTS_ALLOWED_PT = [1, 2, 3];  // SFR, Condo, Townhome — exclude MF for BTS exit comps
 var MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
 function parseSaleDate(d){

@@ -1428,22 +1428,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   </div>
 </div>
 
-<div class="map-legend">
-  <div class="legend-section">Comps (Market Data)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r1)"></div> R1 Single Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r2)"></div> R2 Two Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r3)"></div> R3 Multi-Family</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> R4 High Density</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--mu)"></div> MU Mixed-Use</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--land)"></div> Vacant Land</div>
-  <div class="legend-section" style="margin-top:8px">Listings (Exit $/SF)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#888;border-radius:50%;opacity:0.4"></div> Non-viable</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;border-radius:50%"></div> $500&ndash;$649</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#14b8a6;border-radius:50%"></div> $650&ndash;$749</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#84cc16;border-radius:50%"></div> $750&ndash;$849</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f97316;border-radius:50%"></div> $850&ndash;$949</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#dc2626;border-radius:50%"></div> $950+</div>
-</div>
 </div><!-- /app-row -->
 
 <!-- Hidden backing inputs for BTR proforma DOM reads -->
@@ -1634,15 +1618,7 @@ function exitPsfColor(ppsf){
   return '#f97316';                   // Orange — premium market
 }
 
-function getPinBorder(ppsf){
-  if(!ppsf || ppsf <= 0) return '#666';
-  if(ppsf < 600) return '#2563eb';   // Darker blue border
-  if(ppsf < 700) return '#06b6d4';   // Darker cyan border
-  if(ppsf < 800) return '#16a34a';   // Darker green border
-  if(ppsf < 900) return '#ca8a04';   // Darker yellow border
-  if(ppsf < 1000) return '#ea580c';  // Darker orange border
-  return '#dc2626';                   // Darker red border
-}
+
 
 // ── AppState: event-emitting state container ──
 var AppState = (function(){
@@ -2116,30 +2092,6 @@ function compConfidence(l){
   return {score, label, color, icon, bar: Math.round(score), count, method, radius};
 }
 
-// ── Deal Scorecard (hero metrics banner) ──
-function dealScorecard(l, pf, btr){
-  const exitPsf = exitLabel(l).psf;
-  const allInPsf = pf.effective_buildable_sf>0 ? Math.round(pf.totalProjectCost/pf.effective_buildable_sf) : 0;
-  const spread = exitPsf - allInPsf;
-  const spreadColor = spread>=100?'var(--green)':spread>=0?'var(--yellow)':'var(--red)';
-  const marginColor = pf.margin>=30?'var(--green)':pf.margin>=15?'var(--yellow)':'var(--red)';
-  return '<div class="popup-scorecard">'
-    +'<div><div class="sc-label">SPREAD</div><div class="sc-value" style="color:'+spreadColor+'">$'+spread+'/sf</div></div>'
-    +'<div><div class="sc-label">NET MARGIN</div><div class="sc-value" style="color:'+marginColor+'">'+pf.margin.toFixed(1)+'%</div></div>'
-    +'<div><div class="sc-label">UNITS</div><div class="sc-value">'+pf.maxUnits+'</div></div>'
-    +'</div>';
-}
-
-// ── Action links bar ──
-function actionLinksBar(l){
-  return '<div class="popup-links">'
-    +'<a href="https://www.google.com/maps?q='+l.lat+','+l.lng+'&t=k&z=19" target="_blank">Maps &#8599;</a>'
-    +(l.url?'<a href="'+l.url+'" target="_blank">Redfin &#8599;</a>':'')
-    +(MARKET.hasZimas?'<a href="'+getZimasUrl(l)+'" target="_blank" style="color:var(--yellow)">ZIMAS &#8599;</a>':'')
-    +(l.lw&&l.ld?'<a href="'+lotPlannerUrl(l)+'" target="_blank">Planner &#8599;</a>':'')
-    +'</div>';
-}
-
 // ── Condensed Due Diligence ──
 function dueDiligenceBlock(l){
   var failures = [];
@@ -2170,105 +2122,12 @@ function dueDiligenceBlock(l){
   return h;
 }
 
-// ── Collapsible Economics (cost breakdown) ──
-function economicsBlock(pf, opts){
-  opts = opts || {};
-  var collapseId = 'econ-'+Math.random().toString(36).slice(2,8);
-  var h = '<div class="popup-section-label">'+(opts.label||'Economics')+'</div>';
-  // Always visible: Build $/SF + Hard/Soft/Total Build
-  h += '<div><div class="popup-label">Build $/SF'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' <span style="color:var(--orange)">(slope)</span>':'')+'</div><div class="popup-value"'+(pf.adjBuildCostPerSf>proforma.allInBuildPsf?' style="color:var(--orange)"':'')+'>$'+pf.adjBuildCostPerSf+'/sf</div></div>';
-  h += '<div><div class="popup-label">Hard Costs</div><div class="popup-value">$'+pf.hardCosts.toLocaleString()+'</div></div>';
-  h += '<div><div class="popup-label">Soft Costs</div><div class="popup-value">$'+pf.softCosts.toLocaleString()+'</div></div>';
-  h += '<div><div class="popup-label">Total Build</div><div class="popup-value">$'+Math.round(pf.constructionCost).toLocaleString()+'</div></div>';
-  // Collapsible: financing/carry items
-  var carryTotal = pf.carryInterest + pf.carryPropTax + pf.insurance + pf.originationFee;
-  h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> Financing &mdash; $'+Math.round(carryTotal).toLocaleString()+' carry</div>';
-  h += '<div class="popup-collapse-body" id="'+collapseId+'" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;padding-top:4px">';
-  h += '<div><div class="popup-label">Insurance</div><div class="popup-value">$'+pf.insurance.toLocaleString()+'</div></div>';
-  h += '<div><div class="popup-label">Origination ('+proforma.originationPct+'%)</div><div class="popup-value">$'+pf.originationFee.toLocaleString()+'</div></div>';
-  h += '<div><div class="popup-label">Carry Interest ('+proforma.holdMonths+'mo)</div><div class="popup-value">$'+pf.carryInterest.toLocaleString()+'</div></div>';
-  h += '<div><div class="popup-label">Prop Tax ('+proforma.holdMonths+'mo)</div><div class="popup-value">$'+pf.carryPropTax.toLocaleString()+'</div></div>';
-  h += '</div></div>';
-  return h;
-}
-
 // ── BTR section (collapsible when not viable) ──
 function btrConfidenceDot(conf){
   if(conf==='validated') return '<span style="color:#22c55e" title="Validated (5+ comps)">\u25cf</span>';
   if(conf==='estimated') return '<span style="color:#eab308" title="Estimated (<5 comps)">\u25d0</span>';
   if(conf==='manual') return '<span style="color:#3b82f6" title="Manual neighborhood data">\u25cf</span>';
   return '<span style="color:#64748b" title="Default (no local data)">\u25cb</span>';
-}
-
-function btrBlock(l, btr){
-  var hasRent = btr.rentPsf > 0;
-  if(!hasRent){
-    return '<div class="popup-divider"></div>'
-      +'<div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>'
-      +'<div class="popup-span-2" style="padding:4px 8px;border-radius:4px;background:rgba(100,116,139,0.1);color:#94a3b8;font-size:11px">&#9888;&#65039; No rent data</div>';
-  }
-  var collapseId = 'btr-'+Math.random().toString(36).slice(2,8);
-  var viable = btr.btrPencils;
-  var h = '<div class="popup-divider"></div>';
-  h += '<div class="popup-section-label">BUILD-TO-RENT ANALYSIS</div>';
-
-  // Three-scenario table (from pre-computed pipeline data)
-  var hasScenarios = l.rentBase > 0 && l.yocBase > 0;
-  var btrContent = '';
-  if(hasScenarios){
-    var conf = l.confidence || 'default';
-    var pf_str = l.premiumFactor ? l.premiumFactor.toFixed(2)+'x' : 'N/A';
-    btrContent += '<div class="popup-span-2" style="margin:4px 0 2px">';
-    btrContent += '<table style="width:100%;font-size:11px;font-family:\'JetBrains Mono\',monospace;border-collapse:collapse">';
-    btrContent += '<tr style="color:#8b8fa3;font-size:10px"><td></td><td style="text-align:right">$/mo</td><td style="text-align:right">YoC</td></tr>';
-    // Conservative
-    btrContent += '<tr><td style="color:#8b8fa3;padding:1px 0">Conservative</td>';
-    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentConservative.toLocaleString()+'</td>';
-    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocConservative>=0.04?'var(--green)':l.yocConservative>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocConservative||0)*100).toFixed(1)+'%</td></tr>';
-    // Base
-    btrContent += '<tr style="font-weight:600"><td style="padding:1px 0">Base Case '+btrConfidenceDot(conf)+'</td>';
-    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentBase.toLocaleString()+'</td>';
-    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocBase>=0.04?'var(--green)':l.yocBase>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocBase||0)*100).toFixed(1)+'%</td></tr>';
-    // Aggressive
-    btrContent += '<tr><td style="color:#8b8fa3;padding:1px 0">Aggressive</td>';
-    btrContent += '<td style="text-align:right;padding:1px 4px">$'+l.rentAggressive.toLocaleString()+'</td>';
-    btrContent += '<td style="text-align:right;padding:1px 0;color:'+(l.yocAggressive>=0.04?'var(--green)':l.yocAggressive>=0.03?'var(--yellow)':'var(--red)')+'">'+((l.yocAggressive||0)*100).toFixed(1)+'%</td></tr>';
-    btrContent += '</table></div>';
-    // Data source footer
-    btrContent += '<div class="popup-span-2" style="font-size:10px;color:#64748b;padding:2px 0;display:flex;gap:8px;flex-wrap:wrap">';
-    if(l.safmr3br) btrContent += '<span>SAFMR: $'+l.safmr3br.toLocaleString()+'</span>';
-    if(l.zoriBase) btrContent += '<span>ZORI: $'+l.zoriBase.toLocaleString()+'</span>';
-    if(l.premiumFactor) btrContent += '<span>Premium: '+pf_str+'</span>';
-    btrContent += '<span>'+btrConfidenceDot(conf)+' '+conf+'</span>';
-    btrContent += '</div>';
-  }
-
-  // Existing BTR metrics (from calculateBTRProForma)
-  btrContent += '<div><div class="popup-label">Rent Source</div><div class="popup-value">'+getRentSourceLabel(l)+'</div></div>';
-  if(RENTAL_COMPS.length > 0 && l.rentMethod && l.rentMethod.startsWith('rental-comp')){
-    btrContent += '<div class="popup-span-2" style="font-size:10px;line-height:1.4"><a href="#" onclick="showRentalCompsTable('+l.lat+','+l.lng+');return false" style="color:var(--accent);cursor:pointer">'+l.rentCompCount+' rental comps within '+l.rentCompRadius+'mi &#8599;</a></div>';
-  }
-  btrContent += '<div><div class="popup-label">Rent / Unit</div><div class="popup-value">$'+btr.rentPerUnit.toLocaleString()+'/mo</div></div>';
-  btrContent += '<div><div class="popup-label">NOI</div><div class="popup-value">$'+Math.round(btr.annualNOI).toLocaleString()+'</div></div>';
-  btrContent += '<div><div class="popup-label">YOC</div><div class="popup-value" style="color:'+(btr.yieldOnCost>=0.04?'var(--green)':btr.yieldOnCost>=0.03?'var(--yellow)':'var(--red)')+'">'+(btr.yieldOnCost*100).toFixed(1)+'%</div></div>';
-  var ioLoanAbbr = btr.loanAmount >= 1e6 ? '$'+(btr.loanAmount/1e6).toFixed(1)+'M' : '$'+(btr.loanAmount/1e3).toFixed(0)+'K';
-  btrContent += '<div><div class="popup-label">I/O Loan</div><div class="popup-value">'+ioLoanAbbr+' @ 6.5% = $'+Math.round(btr.annualDebtService).toLocaleString()+'/yr</div></div>';
-  btrContent += '<div><div class="popup-label">Stabilized Value</div><div class="popup-value" style="color:'+(btr.stabilizedValue>=btr.totalCost?'var(--green)':'var(--red)')+'">$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M</div></div>';
-  btrContent += '<div><div class="popup-label">DSCR</div><div class="popup-value" style="color:'+(btr.dscr>=1.25?'var(--green)':btr.dscr>=1.15?'var(--yellow)':'var(--red)')+'">'+btr.dscr.toFixed(2)+'x</div></div>';
-  btrContent += '<div><div class="popup-label">Cash Flow</div><div class="popup-value" style="color:'+(btr.cashFlow>=0?'var(--green)':'var(--red)')+'">$'+Math.round(btr.cashFlow).toLocaleString()+'/yr</div></div>';
-  if(viable){
-    // Expanded by default when viable
-    h += btrContent;
-  } else {
-    // Collapsed with summary line when not viable
-    var summaryYoc = (btr.yieldOnCost*100).toFixed(1);
-    var summaryStab = '$'+(Math.round(btr.stabilizedValue/1000)/1000).toFixed(3).replace(/\.?0+$/,'')+'M';
-    h += '<div class="popup-span-2"><div class="popup-collapse-toggle" onclick="var b=document.getElementById(\''+collapseId+'\');b.classList.toggle(\'open\');this.classList.toggle(\'open\')"><span class="tri">&#9654;</span> BTR: '+summaryYoc+'% YOC &middot; Stab '+summaryStab+'</div>';
-    h += '<div class="popup-collapse-body" id="'+collapseId+'" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;padding-top:4px">';
-    h += btrContent;
-    h += '</div></div>';
-  }
-  return h;
 }
 
 // ── Pro Forma Block (shared across all 3 pin card templates) ──
@@ -3590,19 +3449,6 @@ function dismissOnboarding(){
   if(ov) ov.classList.remove('active');
 }
 
-function openAssumptionsModal(){
-  var el = document.getElementById('assumptionsModal');
-  if(el) el.classList.add('active');
-}
-
-function closeAssumptionsModal(){
-  var el = document.getElementById('assumptionsModal');
-  if(el) el.classList.remove('active');
-}
-function closeDataKeyModal(){
-  // Legacy stub — dataKeyModal removed, content moved to Key panel
-}
-
 // ── Escape key: close topmost modal/panel ──
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
@@ -4712,8 +4558,6 @@ async function generateTeaser(lat, lng, overrides) {
 //  EXPOSE FUNCTIONS FOR INLINE onclick/onchange HANDLERS
 // ══════════════════════════════════════════
 window.advanceOnboarding = advanceOnboarding;
-window.closeAssumptionsModal = closeAssumptionsModal;
-window.closeDataKeyModal = closeDataKeyModal;
 window.doRefresh = doRefresh;
 window.dismissOnboarding = dismissOnboarding;
 window.exportCSV = exportCSV;
@@ -4730,7 +4574,6 @@ window.unhighlightCompPin = unhighlightCompPin;
 window.highlightMarker = highlightMarker;
 window.onMinUnitsChange = onMinUnitsChange;
 window.onProformaChange = onProformaChange;
-window.openAssumptionsModal = openAssumptionsModal;
 window.openMobileSheet = openMobileSheet;
 window.resetFilter = resetFilter;
 window.setBaseMap = setBaseMap;
