@@ -1525,11 +1525,10 @@ function findT1CompAnchors(l){
 
   var targetSf = proforma.avgUnitSf || 1200;
   var t1Comps = [];
+  var zipComps = getT1ByZip().get(zip) || [];
 
-  for(var i = 0; i < COMPS.length; i++){
-    var c = COMPS[i];
-    if(c.t !== 1) continue;
-    if(c.zip !== zip) continue;
+  for(var i = 0; i < zipComps.length; i++){
+    var c = zipComps[i];
     var sd = parseDate(c.date);
     if(!sd || sd < cutoff) continue;
     t1Comps.push({
@@ -1597,6 +1596,19 @@ AppState.on('*', function(k, v){
 
 // ── State ──
 let COMPS = [];
+var _t1ByZip = null;
+function getT1ByZip(){
+  if(_t1ByZip) return _t1ByZip;
+  _t1ByZip = new Map();
+  for(var i = 0; i < COMPS.length; i++){
+    var c = COMPS[i];
+    if(c.t !== 1 || !c.zip) continue;
+    var arr = _t1ByZip.get(c.zip);
+    if(!arr){ arr = []; _t1ByZip.set(c.zip, arr); }
+    arr.push(c);
+  }
+  return _t1ByZip;
+}
 let LISTINGS = [];
 let RENTAL_COMPS = [];
 let rentalCompGrid = null;
@@ -1663,8 +1675,9 @@ const DEAL_STATUSES = ['Screening','Analyzing','LOI Submitted','Under Contract',
 const STATUS_COLORS = {Screening:'#94a3b8',Analyzing:'#1B3A6B','LOI Submitted':'#E8682A','Under Contract':'#d97706',Closed:'#22c55e',Passed:'#cbd5e1'};
 const statusFilterState = {Screening:true,Analyzing:true,'LOI Submitted':true,'Under Contract':true,Closed:true,Passed:true};
 
-function loadDealStatuses(){ try{return JSON.parse(localStorage.getItem('sb1123_dealStatuses'))||{};}catch(e){return{};} }
-function saveDealStatuses(s){ localStorage.setItem('sb1123_dealStatuses', JSON.stringify(s)); }
+var _dealStatusCache = null;
+function loadDealStatuses(){ if(_dealStatusCache) return _dealStatusCache; try{_dealStatusCache=JSON.parse(localStorage.getItem('sb1123_dealStatuses'))||{};return _dealStatusCache;}catch(e){return{};} }
+function saveDealStatuses(s){ localStorage.setItem('sb1123_dealStatuses', JSON.stringify(s)); _dealStatusCache=null; }
 function getDealStatus(lat,lng){ return loadDealStatuses()[lat+','+lng] || 'Screening'; }
 function setDealStatus(lat,lng,status){
   var s = loadDealStatuses();
@@ -1732,8 +1745,9 @@ function buildStatusFilterBody(){
 
 // ── Favorites (localStorage) ──
 const FAV_KEY = 'sb1123_favorites';
-function loadFavorites(){ try{return JSON.parse(localStorage.getItem(FAV_KEY))||{}}catch(e){return{}} }
-function saveFavorites(f){ localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
+var _favCache = null;
+function loadFavorites(){ if(_favCache) return _favCache; try{_favCache=JSON.parse(localStorage.getItem(FAV_KEY))||{};return _favCache;}catch(e){return{};} }
+function saveFavorites(f){ localStorage.setItem(FAV_KEY, JSON.stringify(f)); _favCache=null; }
 function listingKey(l){ return l.lat+','+l.lng; }
 function isFavorite(l){ return !!loadFavorites()[listingKey(l)]; }
 function toggleFavorite(lat,lng){
@@ -3006,56 +3020,43 @@ function estimateMarketValue(l){
 //  PRIORITY 4: OFF-MARKET TARGETS
 // ══════════════════════════════════════════
 
+function isOffMarketViable(l){
+  if(!l.sb1123Eligible) return false;
+  const hood_psf = l.exitPsf || 0;
+  const emv = estimateMarketValue(l);
+  const est_market_value = emv.value;
+  if(!est_market_value) return false;
+  const est_offer = est_market_value * 0.95;
+  const maxUnits = getMaxUnits(l);
+  const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
+  const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
+  const exit_psf = hood_psf;
+  const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
+  const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
+  const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
+  const totalProjectDebt = (est_offer + total_build) * 0.70;
+  const acqDebt = est_offer * 0.70;
+  const constrDebt = totalProjectDebt - acqDebt;
+  const carry_interest = (acqDebt + constrDebt * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
+  const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
+  const f_insurance = proforma.insurance || 40000;
+  const f_origination = totalProjectDebt * ((proforma.originationPct || 1) / 100);
+  const total_carry = carry_interest + carry_prop_tax + f_insurance + f_origination;
+  const total_cost = est_offer + total_build + total_carry;
+  const est_profit = net_revenue - total_cost;
+  const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
+  const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
+  const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
+  const lotEff = l.lotEfficiency || 0;
+  const slope = l.slope || 0;
+  return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
+}
+
 function buildOffMarketLayer(){
   offMarketLayer.clearLayers();
-  
-  // In a real implementation, this would load a separate parcel dataset
-  // For now, we'll simulate "off-market" by filtering existing data
-  // that meets SB1123 criteria but isn't in active listings
-  
-  // Simulate off-market parcels (in practice, load from separate dataset)
-  // For demo purposes, let's create a hypothetical off-market filter
   const offMarketListings = LISTINGS.filter(l => {
-    if(!l.sb1123Eligible) return false;
-    if(l._onForSaleLayer) return false;  // Already visible on For Sale layer
-
-    const hood_psf = l.exitPsf || 0;
-    const emv = estimateMarketValue(l);
-    const est_market_value = emv.value;
-    if(!est_market_value) return false; // No market value = skip
-
-    // Est. Offer = est_market_value × 0.95 (5% below market)
-    const est_offer = est_market_value * 0.95;
-
-    // Calculate pro forma metrics for margin calculation
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
-
-    // Margin at Offer - retail exit model
-    const exit_psf = hood_psf;
-    const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
-    const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
-    const totalProjectDebt = (est_offer + total_build) * 0.70;
-    const acqDebt = est_offer * 0.70;
-    const constrDebt = totalProjectDebt - acqDebt;
-    const carry_interest = (acqDebt + constrDebt * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
-    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
-    const f_insurance = proforma.insurance || 40000;
-    const f_origination = totalProjectDebt * ((proforma.originationPct || 1) / 100);
-    const total_carry = carry_interest + carry_prop_tax + f_insurance + f_origination;
-    const total_cost = est_offer + total_build + total_carry;
-    const est_profit = net_revenue - total_cost;
-    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
-
-    const lotEff = l.lotEfficiency || 0;
-    const slope = l.slope || 0;
-
-    return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
+    if(l._onForSaleLayer) return false;
+    return isOffMarketViable(l);
   });
 
   offMarketListings.forEach(l => {
@@ -3628,38 +3629,10 @@ function updateStats(cachedListings, cachedComps){
 
 // Compute layer counts regardless of toggle state so sidebar shows what's available
 function updateLayerCounts(){
-  // Off-Market count — same predicate as buildOffMarketLayer() but without _onForSaleLayer gate
+  // Off-Market count — uses shared isOffMarketViable() predicate
   let offMarketN = 0;
   for(const l of LISTINGS){
-    if(!l.sb1123Eligible) continue;
-    const hood_psf = l.exitPsf || 0;
-    const _emv = estimateMarketValue(l);
-    const est_market_value = _emv.value;
-    if(!est_market_value) continue;
-    const est_offer = est_market_value * 0.95;
-    const maxUnits = getMaxUnits(l);
-    const effective_buildable_sf = maxUnits * proforma.avgUnitSf;
-    const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, proforma.allInBuildPsf);
-    const exit_psf = hood_psf;
-    const gross_revenue = maxUnits * exit_psf * proforma.avgUnitSf;
-    const net_revenue = gross_revenue * (1 - proforma.txnCostPct / 100) - proforma.fixedDispositionCosts;
-    const total_build = adjBuildCostPerSf * maxUnits * proforma.avgUnitSf;
-    const totalProjectDebt = (est_offer + total_build) * 0.70;
-    const acqDebt = est_offer * 0.70;
-    const constrDebt = totalProjectDebt - acqDebt;
-    const carry_interest = (acqDebt + constrDebt * 0.5) * (proforma.carryRatePct / 100) * (proforma.holdMonths / 12);
-    const carry_prop_tax = est_offer * 0.011 * (proforma.holdMonths / 12);
-    const f_insurance = proforma.insurance || 40000;
-    const f_origination = totalProjectDebt * ((proforma.originationPct || 1) / 100);
-    const total_carry = carry_interest + carry_prop_tax + f_insurance + f_origination;
-    const total_cost = est_offer + total_build + total_carry;
-    const est_profit = net_revenue - total_cost;
-    const margin_at_offer = net_revenue > 0 ? (est_profit / net_revenue) : 0;
-    const land_basis_psf = effective_buildable_sf > 0 ? (est_offer / effective_buildable_sf) : 0;
-    const spread = exit_psf - land_basis_psf - adjBuildCostPerSf;
-    const lotEff = l.lotEfficiency || 0;
-    const slope = l.slope || 0;
-    if(spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15) offMarketN++;
+    if(isOffMarketViable(l)) offMarketN++;
   }
   const omEl = document.getElementById('offMarketCount');
   if(omEl) omEl.textContent = offMarketN.toLocaleString();
