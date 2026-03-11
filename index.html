@@ -2947,16 +2947,21 @@ function generateDealCard(l, opts){
 }
 
 // Track open popup pin for re-open after rebuild
-var _openPinKey = null;
+var _openPopupLatLng = null;
 function rebuildListings(cachedListings){
   // Capture currently open popup's pin before clearing
-  var openLat = null, openLng = null;
-  listingsLayer.eachLayer(function(layer){
-    if(layer.isPopupOpen && layer.isPopupOpen()){
-      var ll = layer.getLatLng();
-      if(ll){ openLat = ll.lat; openLng = ll.lng; }
+  _openPopupLatLng = null;
+  try {
+    var activePopup = map._popup;
+    if(activePopup && activePopup._source && activePopup._source._latlng){
+      var src = activePopup._source._latlng;
+      // Only track listing pins (deal-popup class)
+      var wrapper = activePopup._container;
+      if(wrapper && wrapper.querySelector('.dc3')){
+        _openPopupLatLng = {lat: src.lat, lng: src.lng};
+      }
     }
-  });
+  } catch(e){}
 
   listingsLayer.clearLayers();
   // Clear for-sale flags so off-market layer can exclude visible for-sale listings
@@ -3011,15 +3016,17 @@ function rebuildListings(cachedListings){
   });
 
   // Re-open popup if one was open before rebuild
-  if(openLat !== null){
+  if(_openPopupLatLng){
+    var _rlat = _openPopupLatLng.lat, _rlng = _openPopupLatLng.lng;
     listingsLayer.eachLayer(function(layer){
       if(layer.getLatLng){
         var ll = layer.getLatLng();
-        if(Math.abs(ll.lat - openLat) < 0.0001 && Math.abs(ll.lng - openLng) < 0.0001){
+        if(Math.abs(ll.lat - _rlat) < 0.0001 && Math.abs(ll.lng - _rlng) < 0.0001 && layer.getPopup){
           layer.openPopup();
         }
       }
     });
+    _openPopupLatLng = null;
   }
 
   document.getElementById('listingCount').textContent = filtered.length.toLocaleString();
