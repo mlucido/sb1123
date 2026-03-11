@@ -5038,16 +5038,13 @@ window.addEventListener('DOMContentLoaded', function(){
                   });
                 }
               });
-              // Fallback: listing may be filtered out — open popup directly from LISTINGS data
+              // Fallback: listing may be filtered out — open via pinned popup so sliders refresh it
               if(!found){
                 var pinListing = LISTINGS.find(function(x){
                   return Math.abs(x.lat - lat) < 0.0001 && Math.abs(x.lng - lng) < 0.0001;
                 });
                 if(pinListing){
-                  L.popup({maxWidth:780, className:'deal-popup'})
-                    .setLatLng([lat, lng])
-                    .setContent(generateDealCard(pinListing))
-                    .openOn(map);
+                  _openPinnedPopup(pinListing);
                 }
               }
             }, 500);

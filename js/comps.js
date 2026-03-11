@@ -1,6 +1,8 @@
 // ── js/comps.js — Comp search, display, and sorting ──
 // Extracted from index.html P4-1
 
+import { proforma } from './proforma.js';
+
 // ── Dependencies (injected via initComps) ──
 var _deps = {};
 export function initComps(deps){ _deps = deps; }
@@ -408,9 +410,10 @@ function rentalMatchScore(c, maxRadius){
   var bd = c.bd || 0;
   if(bd === 3) score += 15;
   else if(bd === 2 || bd === 4) score += 8;
-  // Size proximity (15 pts): closer to 1750 SF = higher
+  // Size proximity (15 pts): closer to target unit SF = higher
   var sqft = c.sqft || 0;
-  if(sqft > 0) score += Math.max(0, 15 * (1 - Math.abs(sqft - 1750) / 1750));
+  var targetSf = proforma.avgUnitSf || 1750;
+  if(sqft > 0) score += Math.max(0, 15 * (1 - Math.abs(sqft - targetSf) / targetSf));
   // Recency (20 pts): newer = higher, requires dt field
   if(c.dt){
     var dtParts = c.dt.split('-');

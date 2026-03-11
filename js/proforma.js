@@ -143,7 +143,6 @@ export function calculateProForma(l){
     totalCost,
     profit,
     margin: margin_on_revenue,
-    margin_on_revenue,
     return_on_cost,
     pricePerUnit: Math.round(acquisition / maxUnits),
     effective_buildable_sf: Math.round(effective_buildable_sf),
@@ -173,7 +172,7 @@ export function calculateBTRProForma(l){
   const refiLTV = parseFloat((document.getElementById('btrLTV')||{}).value) || 0.70;
   const refiRate = parseFloat((document.getElementById('btrRate')||{}).value) || 0.065;
 
-  const rentPsf = l.rentPsf || (l.estRentMonth > 0 ? l.estRentMonth / 1750 : 0);
+  const rentPsf = l.rentPsf || (l.estRentMonth > 0 ? l.estRentMonth / proforma.avgUnitSf : 0);
   const hasEstRent = rentPsf > 0;
   const rentPerUnit = Math.round(rentPsf * proforma.avgUnitSf);
   const units = pf.maxUnits;

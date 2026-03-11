@@ -8,7 +8,7 @@ export function initExport(deps) {
 
 function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent) {
   const TAX_RATE = 0.011;
-  const INS_ANNUAL = 20000;
+  const INS_ANNUAL = proforma.insurance || 40000;
   const AM_MONTHLY = 3000;
   const DM_MONTHLY = 5000;
   const ACQ_FEE_PCT = 0.02;
@@ -42,9 +42,9 @@ function sizeEquityAndDebt(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF
 
 // ── Shared waterfall model (single source of truth for Teaser PDF, OM PPT, XLS) ──
 function computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF, monthlyRent) {
-  var SOFT_PCT = 0.25;
+  var SOFT_PCT = (proforma.softCostPct || 25) / 100;
   var TAX_RATE = 0.011;
-  var INS_ANNUAL = 20000;
+  var INS_ANNUAL = proforma.insurance || 40000;
   var AM_MONTHLY = 3000;
   var DM_MONTHLY = 5000;
   var ACQ_FEE_PCT = 0.02;
@@ -166,7 +166,6 @@ function computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF,
     acqFeePct: ACQ_FEE_PCT,
   };
 }
-window.computeWaterfall = computeWaterfall;
 
 function exportCSV(){
   const filtered = _deps.getFilteredListings();
@@ -294,8 +293,9 @@ function buildAssumptionsTab(wb, l, pf, ed, exitPSF, monthlyRent) {
   var buildableSF = units * avgUnitSF;
   var allInBuildPSF = pf.adjBuildCostPerSf;
   var totalBuildCost = buildableSF * allInBuildPSF;
-  var hardCosts = Math.round(totalBuildCost / 1.25);
-  var softCosts = Math.round(hardCosts * 0.25);
+  var softPct = (proforma.softCostPct || 25) / 100;
+  var hardCosts = Math.round(totalBuildCost / (1 + softPct));
+  var softCosts = Math.round(hardCosts * softPct);
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
   var start = new Date();
@@ -441,8 +441,9 @@ function buildSourcesUsesTab(wb, l, ed, pf) {
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
-  var hardCosts = Math.round(totalBuildCost / 1.25);
-  var softCosts = Math.round(hardCosts * 0.25);
+  var softPct = (proforma.softCostPct || 25) / 100;
+  var hardCosts = Math.round(totalBuildCost / (1 + softPct));
+  var softCosts = Math.round(hardCosts * softPct);
   var price = l.price || 0;
   var monthlyTax = price * 0.011 / 12;
 
@@ -565,8 +566,9 @@ function buildCashFlowTab(wb, l, ed, pf, wf) {
   var avgUnitSF = proforma.avgUnitSf;
   var buildableSF = units * avgUnitSF;
   var totalBuildCost = buildableSF * pf.adjBuildCostPerSf;
-  var hardCosts = Math.round(totalBuildCost / 1.25);
-  var softCosts = Math.round(hardCosts * 0.25);
+  var softPct = (proforma.softCostPct || 25) / 100;
+  var hardCosts = Math.round(totalBuildCost / (1 + softPct));
+  var softCosts = Math.round(hardCosts * softPct);
   var exitPSF = l.exitPsf || 0;
   var grossRevenue = units * avgUnitSF * exitPSF;
   var txCostPct = proforma.txnCostPct / 100;
@@ -992,7 +994,7 @@ function buildCashFlowTab(wb, l, ed, pf, wf) {
 
   // Hide month columns beyond the default hold period (24 months = cols 3..26)
   // Formulas exist in hidden columns and work if user extends timeline then unhides
-  var defaultHold = 24; // 6 pre-dev + 12 constr + 6 sale
+  var defaultHold = wf.holdMonths || 24;
   for (var hm = defaultHold; hm < MONTHS; hm++) {
     ws.getColumn(hm + 3).hidden = true;
   }
@@ -1636,9 +1638,9 @@ async function exportOM(lat, lng, overrides) {
   var allInPsf = wf.allInPsf;
 
   // Constants for deal dict
-  var SOFT_PCT = 0.25;
+  var SOFT_PCT = (proforma.softCostPct || 25) / 100;
   var TAX_RATE = 0.011;
-  var INS_ANNUAL = 20000;
+  var INS_ANNUAL = proforma.insurance || 40000;
   var AM_MONTHLY = 3000;
   var DM_MONTHLY = 5000;
   var ACQ_FEE_PCT = wf.acqFeePct;
@@ -1870,4 +1872,4 @@ async function exportOM(lat, lng, overrides) {
   }
 }
 
-export { exportCSV, exportModel, exportOM, showExportModal, closeExportModal, sizeEquityAndDebt, computeWaterfall };
+export { exportCSV, exportModel, exportOM, showExportModal, closeExportModal, computeWaterfall };
