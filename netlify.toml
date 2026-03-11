@@ -5,4 +5,4 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Basic-Auth = "investor:lucidresi"
+    Basic-Auth = "investor:dogood"
