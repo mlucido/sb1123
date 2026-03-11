@@ -5279,6 +5279,16 @@ map.on('click', function(e) {
           </div>
 
           <div class="key-slider-group">
+            <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
+            <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
+            <div class="key-slider-range"><span>6%</span><span>12%</span></div>
+          </div>
+        </div>
+
+        <div class="ka-col">
+          <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Financing &amp; Costs</h3>
+
+          <div class="key-slider-group">
             <div class="key-slider-label"><b>Disposition Costs ($)</b><span class="key-slider-val" id="kaSliderVal_fixedDisp">$40K</span></div>
             <input type="range" class="key-slider-input" id="kaSlider_fixedDisp" min="20000" max="80000" step="5000" value="40000" oninput="onKeyAssumptionChange()">
             <div class="key-slider-range"><span>$20K</span><span>$80K</span></div>
@@ -5302,15 +5312,7 @@ map.on('click', function(e) {
             <div class="key-slider-range"><span>$10K</span><span>$40K</span></div>
           </div>
 
-          <div class="key-slider-group">
-            <div class="key-slider-label"><b>Preferred Return</b><span class="key-slider-val" id="kaSliderVal_prefReturn">8%</span></div>
-            <input type="range" class="key-slider-input" id="kaSlider_prefReturn" min="6" max="12" step="0.5" value="8" oninput="onKeyAssumptionChange()">
-            <div class="key-slider-range"><span>6%</span><span>12%</span></div>
-          </div>
-        </div>
-
-        <div class="ka-col">
-          <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#2a5aa0;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Rent</h3>
+          <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#2a5aa0;margin:16px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">Build-to-Rent</h3>
 
           <div class="key-slider-group">
             <div class="key-slider-label"><b>OpEx Ratio</b><span class="key-slider-val" id="kaSliderVal_btrOpex">30%</span></div>
