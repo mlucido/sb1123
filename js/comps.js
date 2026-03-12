@@ -290,10 +290,10 @@ export function showCompsTable(lat,lng){
   });
   compsMapLayer.addTo(map);
   compsRadiusCircle.addTo(map);
-  // Cancel any in-flight animation, then zoom to show comp radius
-  map.stop();
-  map.flyToBounds(compsRadiusCircle.getBounds().pad(0.1), {duration:0.6, maxZoom:17});
   compsTableActive = true;
+  // Zoom to show comp radius — deferred to avoid Leaflet animation/autoPan conflicts
+  var compsBounds = compsRadiusCircle.getBounds().pad(0.1);
+  setTimeout(function(){ map.stop(); map.flyToBounds(compsBounds, {duration:0.6, maxZoom:17}); }, 50);
 }
 
 export function sortCompsTable(key, group){
@@ -668,10 +668,10 @@ export function showRentalCompsTable(lat,lng){
   });
   rentalCompsMapLayer.addTo(map);
   rentalCompsRadiusCircle.addTo(map);
-  // Cancel any in-flight animation, then zoom to show comp radius
-  map.stop();
-  map.flyToBounds(rentalCompsRadiusCircle.getBounds().pad(0.1), {duration:0.6, maxZoom:17});
   rentalCompsTableActive = true;
+  // Zoom to show comp radius — deferred to avoid Leaflet animation/autoPan conflicts
+  var rentalBounds = rentalCompsRadiusCircle.getBounds().pad(0.1);
+  setTimeout(function(){ map.stop(); map.flyToBounds(rentalBounds, {duration:0.6, maxZoom:17}); }, 50);
 }
 
 export function sortRentalCompsTable(key, group){
