@@ -2741,13 +2741,10 @@ function generateDealCard(l, opts){
     h += '<div style="margin-top:10px;border-top:1px solid #e8e8e8;padding-top:8px">';
     h += '<div class="dc3-comp-anchors-title">Exit Pricing Comps</div>';
     h += '<table class="dc3-comp-table" style="font-size:12px"><thead><tr>';
-    h += '<th style="min-width:0">Address</th><th style="width:80px">Date</th><th style="width:65px">$/SF</th><th style="width:45px">Tier</th><th style="width:75px">Size</th><th style="width:55px">Type</th>';
+    h += '<th style="width:80px">Date</th><th style="width:65px">$/SF</th><th style="width:45px">Tier</th><th style="width:75px">Size</th><th style="width:55px">Type</th>';
     h += '</tr></thead><tbody>';
     anchors.comps.forEach(function(c){
-      // Strip address to street number + street name only
-      var shortAddr = (c.address||'').replace(/\s+(#\S+|Unit\s*\S+|Apt\s*\S+)/i,'').replace(/,?\s*[A-Z][a-z]+(\s+[A-Z][a-z]+)*\s+[A-Z]{2}\s+\d{5}(-\d{4})?$/, '').replace(/,?\s*[A-Z]{2}\s+\d{5}(-\d{4})?$/, '').replace(/,?\s*\d{5}(-\d{4})?$/, '').trim();
       h += '<tr>';
-      h += '<td class="dc3-comp-addr" style="max-width:140px">' + shortAddr + '</td>';
       h += '<td>' + formatAnchorDate(c.date) + '</td>';
       h += '<td style="color:#246424;font-weight:600">$' + c.ppsf + '</td>';
       h += '<td><span style="color:#14b8a6;font-weight:600">T1</span></td>';
