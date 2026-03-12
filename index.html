@@ -1504,14 +1504,23 @@ function spreadColor(spread){
   return '#dc2626';                     // Crimson - high opportunity
 }
 
-// Exit $/SF based pin color scale (primary pin coloring)
+// Exit $/SF based pin color scale (kept for reference/off-market)
 function exitPsfPinColor(psf){
   if(!psf || psf <= 0) return '#888';
-  if(psf < 650) return '#3b82f6';    // Cool blue
-  if(psf < 750) return '#14b8a6';    // Teal/green
-  if(psf < 850) return '#84cc16';    // Yellow-green
-  if(psf < 950) return '#f97316';    // Orange
-  return '#dc2626';                   // Deep red/crimson
+  if(psf < 650) return '#3b82f6';
+  if(psf < 750) return '#14b8a6';
+  if(psf < 850) return '#84cc16';
+  if(psf < 950) return '#f97316';
+  return '#dc2626';
+}
+
+// Net Margin % based pin color scale (primary pin coloring)
+function marginPinColor(marginPct){
+  if(marginPct == null || marginPct < 0) return '#888';
+  if(marginPct < 10) return '#14b8a6';    // Teal — thin margin
+  if(marginPct < 20) return '#84cc16';    // Yellow-green — moderate
+  if(marginPct < 30) return '#f97316';    // Orange — strong
+  return '#dc2626';                        // Red — excellent
 }
 
 // ── T1 comp anchor search for deal card ──
@@ -2060,9 +2069,9 @@ function compConfidence(l){
   else score += count * 3;
 
   // Method quality (0-40 pts)
-  if(method === 'spatial') score += 30;          // Good: spatial PT-filtered
-  else if(method === 'spatial-thin') score += 15; // Weak: thin spatial
-  else if(method.includes('zip')) score += 8;    // Poor: zip fallback
+  if(l.lowCompConfidence) score += 5;
+  else if(method === 'scored' && count >= 10) score += 40;
+  else if(method === 'scored') score += 30;
   else score += 5;
 
   score = Math.max(0, Math.min(100, score));
@@ -2852,13 +2861,14 @@ function rebuildListings(cachedListings){
 
   filtered.forEach(l => {
     l._onForSaleLayer = true;
-    // Compute exit $/SF for color mapping
+    // Compute pro forma for color mapping
     const pf_pin = calculateProForma(l);
     const exitPsf_pin = exitLabel(l).psf;
-    const nonViable = !exitPsf_pin || !l.maxOffer || l.maxOffer <= 0;
+    const marginPct = pf_pin.margin;
+    const nonViable = !exitPsf_pin || !l.maxOffer || l.maxOffer <= 0 || marginPct < 0;
 
-    // Color fill by Exit $/SF — ghost non-viable pins
-    const fillColor = nonViable ? '#888' : exitPsfPinColor(exitPsf_pin);
+    // Color fill by Net Margin % — ghost non-viable pins
+    const fillColor = nonViable ? '#888' : marginPinColor(marginPct);
 
     const lotSf = l.lotSf || 0;
     const baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
@@ -3340,13 +3350,12 @@ function updatePinLegend(){
   
   // Show For Sale legend if listings layer is on
   if(layerState.listings){
-    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Exit $/SF</div>';
+    html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Net Margin</div>';
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#888;opacity:0.4;border:1.5px solid #666"></div> Non-viable</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border:1.5px solid #f97316"></div> $500\u2013$649</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6;border:1.5px solid #f97316"></div> $650\u2013$749</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#84cc16;border:1.5px solid #f97316"></div> $750\u2013$849</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> $850\u2013$949</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#dc2626;border:1.5px solid #f97316"></div> $950+</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#14b8a6;border:1.5px solid #14b8a6"></div> 0\u201310%</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#84cc16;border:1.5px solid #84cc16"></div> 10\u201320%</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border:1.5px solid #f97316"></div> 20\u201330%</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#dc2626;border:1.5px solid #dc2626"></div> 30%+</div>';
   }
   
   // Show BTR legend if Build to Rent layer is on
@@ -5102,13 +5111,12 @@ map.on('click', function(e) {
     <!-- TAB 1: How It Works -->
     <div class="key-tab-content" data-tab="howItWorks">
       <h3>Map Guide</h3>
-      <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">PIN COLORS (Exit $/SF)</p>
+      <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">PIN COLORS (Net Margin)</p>
       <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px;font-size:12px">
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6"></span> $500&ndash;$649/SF exit</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#14b8a6"></span> $650&ndash;$749/SF exit</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#84cc16"></span> $750&ndash;$849/SF exit</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316"></span> $850&ndash;$949/SF exit</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dc2626"></span> $950+/SF exit</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#14b8a6"></span> 0&ndash;10% margin</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#84cc16"></span> 10&ndash;20% margin</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316"></span> 20&ndash;30% margin</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dc2626"></span> 30%+ margin</div>
         <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;opacity:0.4"></span> Non-viable at current assumptions</div>
       </div>
       <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">DEAL STATUS DOTS</p>

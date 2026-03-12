@@ -323,9 +323,6 @@ def score_comps(lat, lng, zipcode, radius_mi, max_tier_rank=6):
 
         composite = pw * prox_w * rec_w
 
-        raw_ppsf = comp["ppsf"]
-        adj_ppsf = raw_ppsf
-
         scored.append({
             **comp,
             "dist_mi": round(dist, 3),
@@ -333,7 +330,6 @@ def score_comps(lat, lng, zipcode, radius_mi, max_tier_rank=6):
             "proximity_wt": prox_w,
             "recency_wt": rec_w,
             "composite_score": round(composite, 4),
-            "adj_ppsf": adj_ppsf,
             "tier_rank": tier_rank,
         })
     return scored
@@ -398,7 +394,7 @@ def find_weighted_exit_ppsf(lat, lng, zipcode, debug=False):
     if total_weight == 0:
         return result
 
-    weighted_psf = sum(c["adj_ppsf"] * c["composite_score"] for c in scored) / total_weight
+    weighted_psf = sum(c["ppsf"] * c["composite_score"] for c in scored) / total_weight
 
     # SFR comp share (by weight)
     sfr_weight = sum(c["composite_score"] for c in scored if c["pt"] == PT_SFR)
@@ -1638,12 +1634,12 @@ if "--spot-check" in sys.argv or "--debug" in sys.argv:
         print(f"   Cascade triggered: {result['cascade_triggered']} ({result['cascade_step'] or 'none'})")
 
         if scored:
-            print(f"\n   {'Address':<35} {'PropType':<8} {'YrBlt':<6} {'SqFt':<6} {'Date':<12} {'Raw$/SF':<8} {'ProdWt':<7} {'ProxWt':<7} {'RecWt':<6} {'Score':<7} {'Adj$/SF':<8}")
-            print(f"   {'─'*35} {'─'*8} {'─'*6} {'─'*6} {'─'*12} {'─'*8} {'─'*7} {'─'*7} {'─'*6} {'─'*7} {'─'*8}")
+            print(f"\n   {'Address':<35} {'PropType':<8} {'YrBlt':<6} {'SqFt':<6} {'Date':<12} {'Raw$/SF':<8} {'ProdWt':<7} {'ProxWt':<7} {'RecWt':<6} {'Score':<7}")
+            print(f"   {'─'*35} {'─'*8} {'─'*6} {'─'*6} {'─'*12} {'─'*8} {'─'*7} {'─'*7} {'─'*6} {'─'*7}")
             for c in sorted(scored, key=lambda x: -x["composite_score"])[:20]:
                 addr = (c.get("address","") or "")[:35]
                 pt_name = {1:"SFR",2:"Condo",3:"TH"}.get(c["pt"],"?")
-                print(f"   {addr:<35} {pt_name:<8} {c.get('yb','?')!s:<6} {c.get('sqft',0):<6} {(c.get('date','')or'')[:12]:<12} ${c['ppsf']:<7} {c['product_wt']:<7.2f} {c['proximity_wt']:<7.2f} {c['recency_wt']:<6.2f} {c['composite_score']:<7.4f} ${c['adj_ppsf']:<7}")
+                print(f"   {addr:<35} {pt_name:<8} {c.get('yb','?')!s:<6} {c.get('sqft',0):<6} {(c.get('date','')or'')[:12]:<12} ${c['ppsf']:<7} {c['product_wt']:<7.2f} {c['proximity_wt']:<7.2f} {c['recency_wt']:<6.2f} {c['composite_score']:<7.4f}")
         print()
 
 # ── Write listings.js ──
