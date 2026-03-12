@@ -402,6 +402,7 @@ function searchRentalCompsInRadius(lat,lng,radiusMi){
 var RENTAL_GROUP_ORDER = ['townhome','condo','sfr','mf'];
 var RENTAL_GROUP_LABELS = {townhome:'Townhomes',condo:'Condos',sfr:'Single Family',mf:'Multi-Family'};
 var RENTAL_PT_TO_GROUP = {3:'townhome',2:'condo',1:'sfr',4:'mf',5:'mf'};
+var RENTAL_PT_LABEL = {1:'SFR',2:'Condo',3:'Townhome',4:'Apartment',5:'Multi-Family'};
 var RENTAL_GROUP_CAP = 10;
 
 function rentalMatchScore(c, maxRadius){
