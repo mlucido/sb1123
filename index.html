@@ -5193,6 +5193,54 @@ map.on('click', function(e) {
 
       <h3>Fee-Simple Lots</h3>
       <p>Unlike condos, fee-simple buyers own their land outright. No shared ownership structure, no master HOA over the land. This is the same ownership structure as a single-family home &mdash; the most liquid and fundable product in the for-sale market.</p>
+
+      <h3>Markets</h3>
+      <p>The app supports multiple markets. Append <strong>?market=sd</strong> to the URL for San Diego. Default is Los Angeles. Each market has its own listings, comps, and zoning data.</p>
+
+      <h3>Map Tools</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>Draw polygon</strong> &mdash; click the pencil icon to draw a custom boundary. Only listings inside the polygon are shown. Click &times; to clear.</div>
+        <div><strong>Favorites</strong> &mdash; star a deal in the deal card to save it. Toggle &ldquo;Favorites only&rdquo; in the filter bar to isolate saved deals. Persists across sessions.</div>
+        <div><strong>Deal status</strong> &mdash; use the dropdown in the deal card header to track workflow (Screening &rarr; Analyzing &rarr; LOI &rarr; Under Contract &rarr; Closed / Passed). Status dots appear on pins.</div>
+        <div><strong>URL sharing</strong> &mdash; all active filters encode into the URL hash. Copy the URL to share a filtered view.</div>
+      </div>
+
+      <h3>Layer Toggles</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>On-Market</strong> &mdash; active listings colored by net margin</div>
+        <div><strong>Sale $/SF</strong> &mdash; sold comp dots + neighborhood grid (median exit $/SF per 0.01&deg; cell)</div>
+        <div><strong>Off-Market</strong> &mdash; cross-hair pins for direct-to-homeowner targets (see Off-Market tab)</div>
+        <div><strong>BTR</strong> &mdash; amber diamond pins for DSCR &ge; 1.25&times; deals</div>
+        <div><strong>Fire / Flood / Quake</strong> &mdash; hazard overlay layers from state GIS data</div>
+      </div>
+
+      <h3>Deal Card Tools</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>Sale Comps</strong> &mdash; opens a full spatial comp table (radius search, grouped by SFR/Condo/TH, sortable, CSV export). Used comps highlighted with green bar.</div>
+        <div><strong>Rent Comps</strong> &mdash; opens a spatial rental comp table (expanding radius search, match-scored 0&ndash;100, CSV export).</div>
+        <div><strong>Lot layout diagram</strong> &mdash; expandable SVG showing setbacks, 20 ft driveway, unit footprints, and remainder area. Drawn from actual lot dimensions when available.</div>
+        <div><strong>XLS</strong> &mdash; downloads a 6-tab Excel model: Assumptions, Sources &amp; Uses, 36-month Cash Flow, Outputs (IRR/MOIC sensitivity), BTR Hold, Exit Comps.</div>
+        <div><strong>OM</strong> &mdash; generates a PowerPoint offering memorandum via API.</div>
+        <div><strong>Teaser</strong> &mdash; downloads a 2-page investor teaser PDF with metrics, waterfall, and 7-scenario sensitivity table.</div>
+      </div>
+      <p style="font-size:11px;color:#64748b">Export models use an LP waterfall: 8% preferred return, 20% GP promote above pref, 95/5 LP/GP co-invest split. Editable overrides appear in a pre-export modal.</p>
+
+      <h3>Filters</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>Net Margin</strong> &mdash; range slider + preset chips (20%/10%/0%). Ghost pins (max offer &le; $0) hidden when min margin &gt; 0.</div>
+        <div><strong>Min Units</strong> &mdash; default 7. Hides listings below this threshold.</div>
+        <div><strong>Hide Burn Zones</strong> &mdash; on by default. Burn zones are a <em>soft</em> filter (toggleable); VHFHSZ fire zones are a hard exclusion (always removed).</div>
+        <div><strong>Zone toggles</strong> &mdash; show/hide R1, R2, R3, R4, MU, LAND independently.</div>
+        <div><strong>BTR bypass</strong> &mdash; BTR-viable deals are shown regardless of the margin filter when the BTR layer is active.</div>
+      </div>
+
+      <h3>Visual Encoding</h3>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>Pin size</strong> &mdash; larger pins = bigger lots (&ge;15K SF = large, &ge;10K SF = medium, &lt;10K SF = small)</div>
+        <div><strong>Land basis $/SF</strong> &mdash; green &lt; $120, yellow $120&ndash;$160, red &gt; $160</div>
+        <div><strong>SFR-heavy warning</strong> &mdash; shown when &gt;30% of comps are SFR; exit $/SF may overstate townhome value</div>
+        <div><strong>Lot efficiency</strong> &mdash; buildable SF &divide; lot SF. Used in off-market gate (&gt;70% required).</div>
+      </div>
     </div>
 
     <!-- TAB 2: Deal Economics -->
