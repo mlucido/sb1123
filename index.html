@@ -5189,7 +5189,7 @@ map.on('click', function(e) {
       <p>SB 1123 (signed 2024) allows by-right subdivision of single R1 and multifamily-zoned parcels into up to 10 fee-simple lots without discretionary review. &ldquo;By-right&rdquo; means no planning commission hearings, no neighbor appeals, no conditional use permits &mdash; the city must approve ministerially if the project meets objective standards.</p>
 
       <h3>Lucid Residential&rsquo;s Strategy</h3>
-      <p>We acquire directly from homeowners at pre-SB 1123 pricing &mdash; before the market has repriced for subdivision potential. We subdivide, build attached townhomes, and sell fee-simple lots to end buyers. Each deal targets a 40%+ IRR and 2&times; MOIC on a 24-month hold.</p>
+      <p>We acquire directly from homeowners at pre-SB 1123 pricing &mdash; before the market has repriced for subdivision potential. We subdivide, build attached townhomes, and sell fee-simple lots to end buyers.</p>
 
       <h3>Fee-Simple Lots</h3>
       <p>Unlike condos, fee-simple buyers own their land outright. No shared ownership structure, no master HOA over the land. This is the same ownership structure as a single-family home &mdash; the most liquid and fundable product in the for-sale market.</p>
@@ -5219,11 +5219,10 @@ map.on('click', function(e) {
         <div><strong>Sale Comps</strong> &mdash; opens a full spatial comp table (radius search, grouped by SFR/Condo/TH, sortable, CSV export). Used comps highlighted with green bar.</div>
         <div><strong>Rent Comps</strong> &mdash; opens a spatial rental comp table (expanding radius search, match-scored 0&ndash;100, CSV export).</div>
         <div><strong>Lot layout diagram</strong> &mdash; expandable SVG showing setbacks, 20 ft driveway, unit footprints, and remainder area. Drawn from actual lot dimensions when available.</div>
-        <div><strong>XLS</strong> &mdash; downloads a 6-tab Excel model: Assumptions, Sources &amp; Uses, 36-month Cash Flow, Outputs (IRR/MOIC sensitivity), BTR Hold, Exit Comps.</div>
+        <div><strong>XLS</strong> &mdash; downloads a multi-tab Excel model: Assumptions, Sources &amp; Uses, Cash Flow, Outputs, BTR Hold, Exit Comps.</div>
         <div><strong>OM</strong> &mdash; generates a PowerPoint offering memorandum via API.</div>
-        <div><strong>Teaser</strong> &mdash; downloads a 2-page investor teaser PDF with metrics, waterfall, and 7-scenario sensitivity table.</div>
+        <div><strong>Teaser</strong> &mdash; downloads a 2-page deal summary PDF with key metrics and sensitivity table.</div>
       </div>
-      <p style="font-size:11px;color:#64748b">Export models use an LP waterfall: 8% preferred return, 20% GP promote above pref, 95/5 LP/GP co-invest split. Editable overrides appear in a pre-export modal.</p>
 
       <h3>Filters</h3>
       <div class="key-stack" style="font-size:12px;line-height:1.8">
@@ -5265,13 +5264,11 @@ map.on('click', function(e) {
       <p>All-In $/SF = Total Project Cost &divide; Total Sellable SF</p>
       <p style="font-size:11px;color:#64748b">Slopes above 5% increase hard costs by $15/SF per 5% increment (e.g., 12% slope adds $30/SF). Ellis Act relocation costs apply to RSO-risk multifamily properties and add 4 months to the hold period.</p>
 
-      <h3>Max Offer</h3>
-      <p>The Max Offer shown on each deal card is a backward-solved acquisition price that targets a 30% net margin. Given fixed build costs and exit $/SF, the model solves for the land price that achieves the target return. Deals where the asking price exceeds the max offer appear as ghost pins.</p>
+      <h3>Ghost Pins</h3>
+      <p>Deals where the economics don&rsquo;t pencil at current assumptions appear as faded &ldquo;ghost&rdquo; pins. These are filtered out when the margin slider minimum is above 0%.</p>
 
       <h3>Exit &amp; Spread</h3>
-      <p>Exit $/SF is derived from a weighted scoring model using recent comparable sales &mdash; townhomes, condos, and size-gated SFR &mdash; scored by product similarity, proximity, and recency. See the Exit Pricing tab for full methodology. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
-
-      <p class="key-note">IRR and MOIC are shown at the deal level in the deal card and reflect LP economics after preferred return and promote. See deal cards for deal-specific figures.</p>
+      <p>Exit $/SF is derived from a weighted scoring model using recent comparable sales &mdash; townhomes, condos, and size-gated SFR &mdash; scored by product similarity, proximity, and recency. See the Exit Pricing tab for full methodology. Spread = Exit $/SF &minus; All-In $/SF.</p>
     </div>
 
     <!-- TAB 3: Exit Pricing -->
