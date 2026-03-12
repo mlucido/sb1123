@@ -290,7 +290,8 @@ export function showCompsTable(lat,lng){
   });
   compsMapLayer.addTo(map);
   compsRadiusCircle.addTo(map);
-  // Zoom map to show the comp radius so pins are visible
+  // Cancel any in-flight animation, then zoom to show comp radius
+  map.stop();
   map.flyToBounds(compsRadiusCircle.getBounds().pad(0.1), {duration:0.6, maxZoom:17});
   compsTableActive = true;
 }
@@ -667,7 +668,8 @@ export function showRentalCompsTable(lat,lng){
   });
   rentalCompsMapLayer.addTo(map);
   rentalCompsRadiusCircle.addTo(map);
-  // Zoom map to show the comp radius so pins are visible
+  // Cancel any in-flight animation, then zoom to show comp radius
+  map.stop();
   map.flyToBounds(rentalCompsRadiusCircle.getBounds().pad(0.1), {duration:0.6, maxZoom:17});
   rentalCompsTableActive = true;
 }
