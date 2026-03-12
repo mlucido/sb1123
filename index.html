@@ -5166,7 +5166,7 @@ map.on('click', function(e) {
         <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f4a261"></span> 25&ndash;30% margin</div>
         <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e76f51"></span> 30&ndash;35% margin</div>
         <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#c0392b"></span> 35%+ margin</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;opacity:0.4"></span> Non-viable at current assumptions</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;opacity:0.4"></span> Ghost pin &mdash; max offer &le; $0 (not viable at current assumptions)</div>
       </div>
       <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">DEAL STATUS DOTS</p>
       <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px;font-size:12px">
@@ -5197,16 +5197,28 @@ map.on('click', function(e) {
 
     <!-- TAB 2: Deal Economics -->
     <div class="key-tab-content" data-tab="dealEcon" style="display:none">
+      <h3>Unit Count</h3>
+      <p>SB 1123 unit capacity is calculated from lot size:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>R1 / LAND:</strong> floor(lot SF &divide; 1,200), capped at 10</div>
+        <div><strong>R2 / R3 / R4 / MU:</strong> floor(lot SF &divide; 600), capped at 10</div>
+      </div>
+      <p style="font-size:11px;color:#64748b">On parcels with known lot dimensions, a layout check verifies that the lot width and depth can physically accommodate the calculated units. If not, the count is reduced and a layout warning is shown.</p>
+
       <h3>All-In Cost Build-Up</h3>
       <div class="key-stack">
         <div>+ Land Acquisition</div>
-        <div>+ Hard Costs <span style="color:#94a3b8">(construction, incl. 12% contingency)</span></div>
-        <div>+ Soft Costs <span style="color:#94a3b8">(permits, A&amp;E, title, legal)</span></div>
-        <div>+ Carry / Financing Costs</div>
-        <div>+ Sponsor Fees</div>
+        <div>+ Hard Costs <span style="color:#94a3b8">(construction $/SF &times; buildable SF)</span></div>
+        <div>+ Soft Costs <span style="color:#94a3b8">(% of hard costs + $15/SF fixed: $10 subdivision + $5 A&amp;E)</span></div>
+        <div>+ Carry / Financing <span style="color:#94a3b8">(70% LTC debt, bridge rate &times; hold period + property tax + insurance)</span></div>
+        <div>+ Disposition &amp; Transaction Costs</div>
         <div class="key-stack-total">= Total Project Cost (All-In)</div>
       </div>
       <p>All-In $/SF = Total Project Cost &divide; Total Sellable SF</p>
+      <p style="font-size:11px;color:#64748b">Slopes above 5% increase hard costs by $15/SF per 5% increment (e.g., 12% slope adds $30/SF). Ellis Act relocation costs apply to RSO-risk multifamily properties and add 4 months to the hold period.</p>
+
+      <h3>Max Offer</h3>
+      <p>The Max Offer shown on each deal card is a backward-solved acquisition price that targets a 30% net margin. Given fixed build costs and exit $/SF, the model solves for the land price that achieves the target return. Deals where the asking price exceeds the max offer appear as ghost pins.</p>
 
       <h3>Exit &amp; Spread</h3>
       <p>Exit $/SF is derived from a weighted scoring model using recent comparable sales &mdash; townhomes, condos, and size-gated SFR &mdash; scored by product similarity, proximity, and recency. See the Exit Pricing tab for full methodology. Spread = Exit $/SF &minus; All-In $/SF. This is the gross margin per sellable square foot before LP waterfall.</p>
@@ -5252,7 +5264,16 @@ map.on('click', function(e) {
       </div>
 
       <h3>Comp Confidence</h3>
-      <p>The model requires at least 5 comps. If fewer qualify, the search radius expands (up to 3.0 miles) and lower product tiers are added until 5 are found. A &ldquo;Low comp confidence&rdquo; label on a deal card means fewer than 5 high-quality comps were available &mdash; treat that exit $/SF with additional caution.</p>
+      <p>The model requires at least 5 comps. If fewer qualify, the search radius expands (up to 3.0 miles) and lower product tiers are added until 5 are found. Confidence is scored 0&ndash;100 based on comp count and method quality:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><span style="color:#22c55e;font-weight:700">High</span> (75+) &mdash; 10+ scored comps within search radius</div>
+        <div><span style="color:#f59e0b;font-weight:700">Medium</span> (50&ndash;74) &mdash; 5&ndash;9 scored comps</div>
+        <div><span style="color:#f97316;font-weight:700">Low</span> (25&ndash;49) &mdash; fewer than 5 high-quality comps; treat exit $/SF with caution</div>
+        <div><span style="color:#ef4444;font-weight:700">Very Low</span> (&lt;25) &mdash; sparse data; exit $/SF is unreliable</div>
+      </div>
+
+      <h3>Outlier Trimming</h3>
+      <p>Before computing the weighted average, the model trims outlier comps using a 1.0&times; IQR filter on $/SF. Trimming only activates when the pool has at least 5 comps and will never remove more than 40% of the pool, ensuring the average is not skewed by extreme values while preserving thin markets.</p>
 
       <h3>New Construction Premium</h3>
       <p>The comp pool in our target markets is dominated by pre-2015 renovated stock &mdash; older homes that qualify as T1 via high $/SF relative to neighborhood median. We build new ground-up product.</p>
@@ -5273,25 +5294,57 @@ map.on('click', function(e) {
     <!-- TAB 4: BTR Model -->
     <div class="key-tab-content" data-tab="btrModel" style="display:none">
       <h3>When BTR Applies</h3>
-      <p>Build-to-Rent (BTR) is modeled as a secondary exit strategy for markets with strong rent fundamentals. It is not our primary strategy &mdash; the for-sale exit typically produces superior returns. BTR viability is constrained by DSCR: at current market rates and 65% LTV, most deals do not achieve 1.25&times; DSCR, which sets the cap on permanent loan proceeds and therefore on equity return.</p>
+      <p>Build-to-Rent (BTR) is modeled as a secondary exit strategy for markets with strong rent fundamentals. It is not our primary strategy &mdash; the for-sale exit typically produces superior returns. BTR viability is constrained by DSCR: at current market rates and 70% LTV, most deals do not achieve 1.25&times; DSCR, which sets the cap on permanent loan proceeds and therefore on equity return.</p>
 
       <h3>DSCR Mechanics</h3>
-      <p>DSCR = NOI &divide; Annual Debt Service. We require &ge;1.25&times; for a BTR deal to be considered viable. At 6.5% I/O permanent financing and 65% LTV, the DSCR constraint back-calculates the maximum sustainable NOI &mdash; which in turn caps the rent required to make the deal work.</p>
+      <p>DSCR = NOI &divide; Annual Debt Service. We require &ge;1.25&times; for a BTR deal to be considered viable. At 6.5% I/O permanent financing and 70% LTV, the DSCR constraint back-calculates the maximum sustainable NOI &mdash; which in turn caps the rent required to make the deal work.</p>
+      <p>The deal card DSCR waterfall shows three scenarios at <strong>90% / 100% / 110%</strong> of base rent, with vacancy at 5% and operating expenses at the slider-set OpEx ratio (default 30%). Deals achieving &ge;1.25&times; DSCR at base rent are flagged BTR-viable.</p>
 
       <h3>Rent Methodology</h3>
-      <p>Rent estimates use empirically-derived premium factors per ZIP, triangulated with HUD Small Area Fair Market Rents (SAFMR). Three scenarios are modeled: conservative (10th percentile), base (median), aggressive (75th percentile). The BTR card on each deal shows all three.</p>
+      <p>Rent estimates are derived from a 6-tier spatial cascade. The model uses the first tier that produces enough data:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>Tier 1:</strong> Rental comps within 0.5&ndash;1 mi &mdash; 3BR, 1,000&ndash;2,300 SF, SFR/TH/Condo/MF</div>
+        <div><strong>Tier 2:</strong> Rental comps within 2 mi &mdash; same filters, wider radius</div>
+        <div><strong>Tier 3:</strong> Adjusted comps within 1 mi &mdash; 2+ BR, 800+ SF, +15% adjustment if median beds &lt; 3</div>
+        <div><strong>Tier 4:</strong> Census tract rent data &mdash; nearest tract within 1.4 mi, 3BR &times; 1.20</div>
+        <div><strong>Tier 5:</strong> Zillow ZORI &mdash; ZIP-level observed rent &times; 1.20</div>
+        <div><strong>Tier 6:</strong> HUD SAFMR &mdash; Small Area Fair Market Rent &times; 1.15 (last resort)</div>
+      </div>
+      <p style="font-size:11px;color:#64748b">Each comp&rsquo;s $/SF is size-normalized to 1,750 SF before aggregation. The model uses P75 when 8+ comps are available, median when fewer. Rental outliers are trimmed using 1.5&times; IQR.</p>
     </div>
 
     <!-- TAB 5: Eligibility -->
     <div class="key-tab-content" data-tab="eligibility" style="display:none">
       <h3>Zone Eligibility</h3>
-      <p>SB 1123 applies to parcels where residential use is permitted as-of-right. Priority stack: R1 and MF zones are directly eligible. Commercial zones (CR, C-1, C-2) are eligible where residential use is listed in the zone&rsquo;s use table. C-4 is a gray zone requiring parcel-level verification. C-5 and CM are ineligible.</p>
+      <p>SB 1123 applies to parcels where residential use is permitted as-of-right. Eligible zones: <strong>R1, R2, R3, R4, MU,</strong> and <strong>LAND</strong> (vacant residential). All other zones are excluded.</p>
 
-      <h3>VHFHSZ Exclusion</h3>
-      <p>Very High Fire Hazard Severity Zones are a statutory hard exclusion under Government Code &sect;66499.41. No city or county can waive this. Parcels in VHFHSZ are excluded from this map and cannot be SB 1123 projects regardless of zoning. This is not a local policy &mdash; it is state law.</p>
+      <h3>Hard Exclusions</h3>
+      <p>The following are automatic disqualifiers &mdash; no override possible:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>VHFHSZ</strong> &mdash; Very High Fire Hazard Severity Zone (state law, Gov. Code &sect;66499.41)</div>
+        <div><strong>Condo / Townhouse</strong> &mdash; shared-land ownership; cannot subdivide what you don&rsquo;t fully own</div>
+        <div><strong>R1 + HOA</strong> &mdash; HOA signals CC&amp;Rs that likely restrict subdivision</div>
+        <div><strong>High HOA (&ge;$1,000/mo)</strong> &mdash; any zone; shared-land indicator regardless of zoning</div>
+        <div><strong>Open space / protected area</strong> &mdash; conservation easement or similar restriction</div>
+        <div><strong>Non-urban area</strong> &mdash; SB 1123 applies only within Census-designated urban areas</div>
+      </div>
 
-      <h3>Lot Size</h3>
-      <p>SB 1123 requires a minimum lot size sufficient to create the proposed number of lots. On lots under 14,000 SF, the 1.25 FAR floor binds before the 1,750 SF average unit size cap &mdash; meaning full-size units may not be achievable on small lots. Breakeven for full-size units is approximately 14,000 SF.</p>
+      <h3>Lot Size Limits</h3>
+      <p>Minimum lot size: <strong>2,400 SF</strong> for R1/LAND (2-unit floor at 1,200 SF/lot), <strong>1,200 SF</strong> for R2&ndash;R4/MU (2-unit floor at 600 SF/lot). Maximum: 1.5 acres (LA) or 2 acres (SD) for R1/LAND; 5 acres for multifamily zones.</p>
+      <p style="font-size:11px;color:#64748b">On lots under 14,000 SF, the FAR floor binds before the 1,750 SF average unit size cap &mdash; meaning full-size units may not be achievable. Breakeven for full-size units is approximately 14,000 SF.</p>
+
+      <h3>Tenant Risk</h3>
+      <p>Each listing is scored 0&ndash;3 for tenant displacement risk, shown as a badge on the deal card:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><strong>0 &mdash; None:</strong> vacant land or no structure</div>
+        <div><strong>1 &mdash; Low:</strong> single indicator (e.g., improved lot, 3+ bedrooms)</div>
+        <div><strong>2 &mdash; Medium:</strong> multiple indicators (e.g., MF structure + pre-2000 build)</div>
+        <div><strong>3 &mdash; High:</strong> strong tenant-occupied signals, possibly RSO-protected</div>
+      </div>
+      <p style="font-size:11px;color:#64748b">Risk factors: existing improvements, bedroom count (3+ or 5+), multifamily structure, pre-2000 build year, and RSO rent stabilization (LA only &mdash; built pre-1979 in an RSO-eligible city). RSO properties incur Ellis Act relocation costs and a longer hold period.</p>
+
+      <h3>Remainder Analysis (R2&ndash;R4)</h3>
+      <p>For multifamily parcels with existing structures, the model estimates how many SB 1123 units can fit on the <em>remainder</em> of the lot after deducting the existing building footprint and a 2,000 SF driveway access corridor. Viable if &ge;6,000 SF available and &ge;4 units fit.</p>
     </div>
 
     <!-- TAB 6: Off-Market -->
@@ -5301,6 +5354,16 @@ map.on('click', function(e) {
 
       <h3>How Discount is Estimated</h3>
       <p>Estimated market value is derived from LA County Assessor data (assessed land + improvement value), time-adjusted to current date using ZIP-level appreciation rates. Off-market discount = (Est. Market Value &minus; Max Offer) &divide; Est. Market Value. Pins with insufficient data to compute a reliable estimate are ghosted.</p>
+
+      <h3>Viability Gate</h3>
+      <p>Off-market pins only appear when all of the following are met:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div>Spread &gt; $150/SF</div>
+        <div>Net margin &ge; 25%</div>
+        <div>Lot efficiency &gt; 70%</div>
+        <div>No fire zone</div>
+        <div>Slope &lt; 15%</div>
+      </div>
 
       <h3>Why This Matters</h3>
       <p>Acquiring at pre-SB 1123 pricing is the core of our return model. The spread between acquisition cost and exit value is only achievable if we buy before the market reprices. Direct-to-homeowner outreach and speed of close (no listing process, no competing bids) are our structural advantages.</p>
