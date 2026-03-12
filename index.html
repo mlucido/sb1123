@@ -1514,13 +1514,17 @@ function exitPsfPinColor(psf){
   return '#dc2626';
 }
 
-// Net Margin % based pin color scale (primary pin coloring)
+// Net Margin % based pin color scale (primary pin coloring) — 5% increments
 function marginPinColor(marginPct){
   if(marginPct == null || marginPct < 0) return '#888';
-  if(marginPct < 10) return '#14b8a6';    // Teal — thin margin
-  if(marginPct < 20) return '#84cc16';    // Yellow-green — moderate
-  if(marginPct < 30) return '#f97316';    // Orange — strong
-  return '#dc2626';                        // Red — excellent
+  if(marginPct < 5)  return '#a8d8ea';    // Light blue
+  if(marginPct < 10) return '#2a9d8f';    // Teal
+  if(marginPct < 15) return '#57cc99';    // Green
+  if(marginPct < 20) return '#a8e063';    // Yellow-green
+  if(marginPct < 25) return '#f4d03f';    // Yellow
+  if(marginPct < 30) return '#f4a261';    // Orange
+  if(marginPct < 35) return '#e76f51';    // Dark orange
+  return '#c0392b';                        // Red
 }
 
 // ── T1 comp anchor search for deal card ──
@@ -1553,22 +1557,62 @@ function findT1CompAnchors(l){
     var c = zipComps[i];
     var sd = parseDate(c.date);
     if(!sd || sd < cutoff) continue;
+    var sqft = c.sqft || 0;
+    var sizeDelta = Math.abs(sqft - targetSf);
+    var sizeScore = 1 / (1 + sizeDelta / 1000);
+    var rw = c.rw || 0.5;
     t1Comps.push({
       address: c.address || '—',
       date: c.date,
       dateParsed: sd,
       ppsf: c.ppsf || 0,
-      sqft: c.sqft || 0,
+      sqft: sqft,
       pt: PT_LABEL[c.pt] || '—',
-      sizeDelta: Math.abs((c.sqft || 0) - targetSf)
+      ptRaw: c.pt,
+      sizeDelta: sizeDelta,
+      composite: rw * sizeScore
     });
   }
 
-  // Sort by size proximity to target unit SF
-  t1Comps.sort(function(a,b){ return a.sizeDelta - b.sizeDelta; });
-  var top3 = t1Comps.slice(0, 3);
+  // Two-pass product-type-priority selection
+  // Priority 1: Townhouse (pt=3), Priority 2: Condo (pt=2), Priority 3: SFR/other
+  var sortDesc = function(a,b){ return b.composite - a.composite; };
+  var thPool = t1Comps.filter(function(c){ return c.ptRaw === 3; }).sort(sortDesc);
+  var condoPool = t1Comps.filter(function(c){ return c.ptRaw === 2; }).sort(sortDesc);
+  var otherPool = t1Comps.filter(function(c){ return c.ptRaw !== 3 && c.ptRaw !== 2; }).sort(sortDesc);
 
-  // Date range
+  var selected = [];
+  var thIdx = 0, condoIdx = 0, otherIdx = 0;
+
+  // Pass 1: top 1 from each priority tier
+  if(thPool.length > 0) selected.push(thPool[thIdx++]);
+  if(condoPool.length > 0 && selected.length < 3) selected.push(condoPool[condoIdx++]);
+
+  // Pass 2: fill to 3 — drain TH then Condo before SFR/other
+  // Within TH vs Condo, prefer TH when composite scores are within 10%
+  while(selected.length < 3){
+    var thNext = thIdx < thPool.length ? thPool[thIdx] : null;
+    var condoNext = condoIdx < condoPool.length ? condoPool[condoIdx] : null;
+    var otherNext = otherIdx < otherPool.length ? otherPool[otherIdx] : null;
+    if(!thNext && !condoNext && !otherNext) break;
+
+    // TH and Condo compete with 10% preference for TH; SFR only when both exhausted
+    if(thNext && condoNext){
+      if(condoNext.composite > thNext.composite * 1.1){
+        selected.push(condoNext); condoIdx++;
+      } else {
+        selected.push(thNext); thIdx++;
+      }
+    } else if(thNext){
+      selected.push(thNext); thIdx++;
+    } else if(condoNext){
+      selected.push(condoNext); condoIdx++;
+    } else {
+      selected.push(otherNext); otherIdx++;
+    }
+  }
+
+  // Date range from full pool
   var dateRange = '';
   if(t1Comps.length){
     var dates = t1Comps.map(function(c){ return c.dateParsed; }).sort(function(a,b){ return a-b; });
@@ -1576,7 +1620,7 @@ function findT1CompAnchors(l){
     dateRange = fmt(dates[0]) + ' – ' + fmt(dates[dates.length-1]);
   }
 
-  return {comps: top3, total: t1Comps.length, zip: zip, dateRange: dateRange};
+  return {comps: selected, total: t1Comps.length, zip: zip, dateRange: dateRange};
 }
 
 function formatAnchorDate(d){
@@ -5209,6 +5253,7 @@ map.on('click', function(e) {
       <p>The comp pool in our target markets is dominated by pre-2015 renovated stock &mdash; older homes that qualify as T1 via high $/SF relative to neighborhood median. We build new ground-up product.</p>
       <p>Empirically, new construction in our target ZIPs trades approximately 20% above the blended T1 pool. We apply a conservative <strong>10% new construction premium</strong> to the weighted comp average to account for this gap.</p>
       <p style="font-size:11px;color:#64748b">This premium is applied after scoring &mdash; it does not affect individual comp weights or pool composition.</p>
+      <p style="font-size:11px;color:#64748b">The three comps shown on each deal card are selected by product type relevance &mdash; townhomes first, then condos, then SFR &mdash; so the most comparable sales are always visible.</p>
 
       <h3>T1 Comp Sub-Tiers</h3>
       <p>Comps labeled T1 in the comp table are split into three sub-types:</p>
