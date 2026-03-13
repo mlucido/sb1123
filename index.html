@@ -3651,6 +3651,14 @@ function toggleLayerRow(layer,btn){
   }
   refreshVisibility();
   updateLayersActiveCount();
+  // When listings layer toggled off, blank the stat pills; when on, recompute
+  if(layer === 'listings'){
+    if(!layerState.listings){
+      updateSummaryStats({units:0,acquisition:0,hardCosts:0,softCosts:0,grossRevenue:0,profit:0}, 0);
+    } else {
+      applyFilters();
+    }
+  }
 }
 function initLayerRowStates(){
   document.querySelectorAll('.layer-row.active,.layer-cell.active,.chip-btn.active').forEach(function(btn){
