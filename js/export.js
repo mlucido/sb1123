@@ -1427,21 +1427,23 @@ function showExportModal(lat, lng, type) {
   var existing = document.getElementById('exportModal');
   if (existing) existing.remove();
 
+  // Find the deal card popup to anchor the modal inside it
+  var popupContent = document.querySelector('.deal-popup .leaflet-popup-content');
+
   var overlay = document.createElement('div');
   overlay.id = 'exportModal';
-  overlay.className = 'modal-overlay active';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.onclick = function(e) { if (e.target === overlay) closeExportModal(); };
 
-  overlay.innerHTML =
-    '<div class="modal-panel" style="max-width:440px">' +
-      '<div class="modal-header">' +
-        '<div><h3>' + typeLabel + '</h3>' +
-        '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + addr + ' \u00b7 ' + zone + '</div></div>' +
-        '<button class="modal-close" onclick="closeExportModal()">\u00d7</button>' +
-      '</div>' +
-      '<div class="modal-body" style="padding:16px 20px">' +
+  if (popupContent) {
+    // Render inside the deal card as an overlay panel
+    overlay.style.cssText = 'position:absolute;inset:0;z-index:100;background:rgba(255,255,255,0.97);display:flex;align-items:center;justify-content:center;border-radius:3px;';
+    overlay.onclick = function(e) { if (e.target === overlay) closeExportModal(); };
+    overlay.innerHTML =
+      '<div style="width:100%;max-width:420px;padding:20px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">' +
+          '<div><div style="font-size:15px;font-weight:700">' + typeLabel + '</div>' +
+          '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + addr + ' \u00b7 ' + zone + '</div></div>' +
+          '<button onclick="closeExportModal()" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;padding:0 0 0 12px;line-height:1">\u00d7</button>' +
+        '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">' +
           _expField('Asking Price', 'expAskingPrice', defPrice, '$', '') +
           _expField('Exit $/SF', 'expExitPSF', defExitPSF, '$', exitSrc) +
@@ -1454,10 +1456,39 @@ function showExportModal(lat, lng, type) {
           'background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer">' +
           (type === 'xls' ? 'Download XLS' : type === 'teaser' ? 'Generate Teaser' : 'Generate OM') +
         '</button>' +
-      '</div>' +
-    '</div>';
-
-  document.body.appendChild(overlay);
+      '</div>';
+    popupContent.style.position = 'relative';
+    popupContent.appendChild(overlay);
+  } else {
+    // Fallback: full-page modal if no deal card is open
+    overlay.className = 'modal-overlay active';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.onclick = function(e) { if (e.target === overlay) closeExportModal(); };
+    overlay.innerHTML =
+      '<div class="modal-panel" style="max-width:440px">' +
+        '<div class="modal-header">' +
+          '<div><h3>' + typeLabel + '</h3>' +
+          '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + addr + ' \u00b7 ' + zone + '</div></div>' +
+          '<button class="modal-close" onclick="closeExportModal()">\u00d7</button>' +
+        '</div>' +
+        '<div class="modal-body" style="padding:16px 20px">' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">' +
+            _expField('Asking Price', 'expAskingPrice', defPrice, '$', '') +
+            _expField('Exit $/SF', 'expExitPSF', defExitPSF, '$', exitSrc) +
+            _expField('Build Cost $/SF', 'expBuildPSF', Math.round(defBuildPSF), '$', buildSrc) +
+            _expField('Units', 'expUnits', defUnits, '', '') +
+            _expField('Avg Unit SF', 'expAvgUnitSF', defAvgUnitSF, '', 'sf') +
+            _expField('Monthly Rent', 'expMonthlyRent', defRent, '$', rentSrc) +
+          '</div>' +
+          '<button id="expDoExport" style="margin-top:16px;width:100%;padding:10px;border:none;border-radius:8px;' +
+            'background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer">' +
+            (type === 'xls' ? 'Download XLS' : type === 'teaser' ? 'Generate Teaser' : 'Generate OM') +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  }
 
   var defaults = { askingPrice: defPrice, exitPSF: defExitPSF, allInBuildPSF: defBuildPSF, units: defUnits, avgUnitSF: defAvgUnitSF, monthlyRent: defRent };
   document.getElementById('expDoExport').onclick = async function() {
@@ -1521,6 +1552,9 @@ function _readExpValues(defaults) {
 function closeExportModal() {
   var el = document.getElementById('exportModal');
   if (el) el.remove();
+  // Restore popup content position if we modified it
+  var pc = document.querySelector('.deal-popup .leaflet-popup-content');
+  if (pc) pc.style.position = '';
 }
 
 async function exportModel(lat, lng, overrides) {
