@@ -3836,7 +3836,7 @@ function rebuildTable(filtered){
       <td class="col-zone"><span class="zone-pill" style="background:${zoneColor}22;color:${zoneColor}">${l.zone||'—'}</span></td>
       <td class="col-price mono">$${l.price.toLocaleString()}</td>
       <td class="col-lot mono">${l.lotSf?l.lotSf.toLocaleString():'—'}</td>
-      <td class="col-lotw mono">${l.lw?l.lw+"'":'\u2014'}</td>
+      <td class="col-lotw mono">${l.lw?(l.lw+"'"+(l.lotShape==='est'?' <span style="font-size:8px;color:var(--text-dim)" title="Estimated from lot SF (2.5:1 ratio)">~</span>':'')):'\u2014'}</td>
       <td class="col-units mono" style="color:${l.maxUnits>=8?'var(--green)':l.maxUnits>=4?'var(--yellow)':'var(--text-dim)'}">${l.maxUnits}${l.layoutNote?' <span style="font-size:9px;color:var(--orange)" title="'+l.layoutNote+'">&#9888;</span>':''}</td>
       <td class="col-hood mono">${exitPpsf?'$'+exitPpsf:'—'}</td>
       <td class="col-sale mono">${l.salePerUnit?'$'+(l.salePerUnit).toLocaleString():'—'}</td>

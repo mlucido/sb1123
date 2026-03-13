@@ -355,11 +355,16 @@ def main():
             existing = json.load(f)
         print(f"  Loaded {len(existing):,} cached parcels")
 
+    # --refetch-dims: re-query parcels that have data but are missing lotWidth
+    refetch_dims = "--refetch-dims" in sys.argv
+
     # Build work list
     work = []
     for lat, lng in listings:
         key = f"{lat},{lng}"
         if key not in existing or "lotWidth" not in existing[key] or "lotShape" not in existing[key] or "existingUnits" not in existing.get(key, {}):
+            work.append((lat, lng, key))
+        elif refetch_dims and not existing[key].get("lotWidth"):
             work.append((lat, lng, key))
 
     if test_mode:

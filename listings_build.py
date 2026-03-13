@@ -576,8 +576,8 @@ if os.path.exists(PARCEL_FILE):
                     l["ld"] = round(final_lot / p["lotWidth"])
                 elif p.get("lotDepth"):
                     l["ld"] = p["lotDepth"]
-            if p.get("lotShape"):
-                l["lotShape"] = p["lotShape"]
+                if p.get("lotShape"):
+                    l["lotShape"] = p["lotShape"]
             # Assessor data for popup display
             if p.get("existingUnits"):
                 l["existingUnits"] = p["existingUnits"]
@@ -595,6 +595,21 @@ if os.path.exists(PARCEL_FILE):
             else:
                 l["lotSource"] = "none"
                 lot_source_counts["none"] += 1
+
+    # ── Step 2.5b: Estimate lot dimensions when parcel geometry unavailable ──
+    # Uses 2.5:1 depth-to-width ratio (typical LA residential lot proportion)
+    est_count = 0
+    for l in listings:
+        if not l.get("lw") and l.get("lotSf") and l["lotSf"] >= 2500:
+            lot_sf = l["lotSf"]
+            # Standard LA residential ratio: depth ≈ 2.5 × width
+            est_w = round(math.sqrt(lot_sf / 2.5))
+            est_d = round(lot_sf / est_w)
+            if est_w >= 20 and est_d >= 40:
+                l["lw"] = est_w
+                l["ld"] = est_d
+                l["lotShape"] = "est"
+                est_count += 1
 
     print(f"   Parcel records matched: {parcel_stamped:,}/{len(listings):,}")
     print(f"   Fire zone (VHFHSZ): {parcel_fire_count:,}")
@@ -618,7 +633,11 @@ if os.path.exists(PARCEL_FILE):
         for addr, mls, parcel, ratio in lot_mismatches[:10]:
             print(f"     {addr}: MLS={mls:,} vs Parcel={parcel:,} ({ratio:.1f}x)")
     with_dims = sum(1 for l in listings if l.get("lw"))
+    from_geom = sum(1 for l in listings if l.get("lotShape") in ("rect", "irreg"))
+    from_est = sum(1 for l in listings if l.get("lotShape") == "est")
     print(f"\n   With lot dimensions: {with_dims:,}/{len(listings):,}")
+    print(f"     From parcel geometry: {from_geom:,}")
+    print(f"     Estimated (2.5:1 ratio): {from_est:,}")
 else:
     print(f"\n⚠️  {PARCEL_FILE} not found — run: python3 fetch_parcels.py")
     # Tag all listings with lotSource even without parcel data
