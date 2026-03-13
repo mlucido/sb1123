@@ -2907,7 +2907,7 @@ var _pinnedLatLng = null;  // {lat, lng} of the pinned listing
 function _openPinnedPopup(l){
   _closePinnedPopup();
   _pinnedLatLng = {lat: l.lat, lng: l.lng};
-  _pinnedPopup = L.popup({maxWidth:780, className:'deal-popup', autoPan:true, closeOnClick:false})
+  _pinnedPopup = L.popup({maxWidth:780, className:'deal-popup', autoPan:true, closeOnClick:true})
     .setLatLng([l.lat, l.lng])
     .setContent(generateDealCard(l))
     .openOn(map);
