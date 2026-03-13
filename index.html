@@ -5482,7 +5482,8 @@ map.on('click', function(e) {
         <div><strong>Tier 5:</strong> Zillow ZORI &mdash; ZIP-level observed rent &times; 1.20</div>
         <div><strong>Tier 6:</strong> HUD SAFMR &mdash; Small Area Fair Market Rent &times; 1.15 (last resort)</div>
       </div>
-      <p style="font-size:11px;color:#64748b">Each comp&rsquo;s $/SF is size-normalized to 1,750 SF before aggregation. The model uses P75 when 8+ comps are available, median when fewer. Rental outliers are trimmed using 1.5&times; IQR.</p>
+      <p style="font-size:11px;color:#64748b">Each comp&rsquo;s $/SF is size-normalized to 1,750 SF before aggregation. Rental outliers are trimmed using 1.5&times; IQR before any percentile calculation.</p>
+      <p style="font-size:11px;color:#64748b;margin-top:4px"><strong>Why P75:</strong> The comp pool includes aged existing stock that rents well below what a new-construction 3BR townhome would command. The 75th percentile better reflects achievable rents for new product without cherry-picking a single top comp. When fewer than 8 comps are available the model falls back to median to avoid overfitting a thin sample.</p>
     </div>
 
     <!-- TAB 5: Eligibility -->
