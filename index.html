@@ -1515,14 +1515,34 @@ function spreadColor(spread){
   return '#dc2626';                     // Crimson - high opportunity
 }
 
+// Sale $/SF color scale — cold (blue) to hot (red), 14 buckets
+const SALE_SF_COLORS = [
+  { max: 650,      color: '#3B82F6' },   // blue
+  { max: 700,      color: '#60A5FA' },   // light blue
+  { max: 750,      color: '#38BDF8' },   // sky blue
+  { max: 800,      color: '#34D399' },   // teal-green
+  { max: 850,      color: '#86EFAC' },   // light green
+  { max: 900,      color: '#FDE047' },   // yellow
+  { max: 950,      color: '#FCD34D' },   // amber-yellow
+  { max: 1000,     color: '#FB923C' },   // orange
+  { max: 1100,     color: '#F97316' },   // dark orange
+  { max: 1200,     color: '#EF4444' },   // red
+  { max: 1300,     color: '#DC2626' },   // deeper red
+  { max: 1400,     color: '#B91C1C' },   // dark red
+  { max: 1500,     color: '#991B1B' },   // very dark red
+  { max: Infinity, color: '#7F1D1D' },   // $1500+ — darkest red
+];
+function saleSfColor(psf){
+  if(!psf || psf <= 0) return '#888';
+  for(var i = 0; i < SALE_SF_COLORS.length; i++){
+    if(psf < SALE_SF_COLORS[i].max) return SALE_SF_COLORS[i].color;
+  }
+  return SALE_SF_COLORS[SALE_SF_COLORS.length - 1].color;
+}
+
 // Exit $/SF based pin color scale (kept for reference/off-market)
 function exitPsfPinColor(psf){
-  if(!psf || psf <= 0) return '#888';
-  if(psf < 650) return '#3b82f6';
-  if(psf < 750) return '#14b8a6';
-  if(psf < 850) return '#84cc16';
-  if(psf < 950) return '#f97316';
-  return '#dc2626';
+  return saleSfColor(psf);
 }
 
 // Net Margin % based pin color scale (primary pin coloring) — 5% increments
@@ -1643,13 +1663,7 @@ function formatAnchorDate(d){
 
 // Legacy exit $/SF scale - used by neighborhood grid + comp heatmap
 function exitPsfColor(ppsf){
-  if(!ppsf || ppsf <= 0) return '#888';
-  if(ppsf < 650) return '#6366f1';   // Indigo — weak exit market
-  if(ppsf < 700) return '#3b82f6';   // Blue — below target
-  if(ppsf < 750) return '#22d3ee';   // Teal — break-even zone
-  if(ppsf < 800) return '#22c55e';   // Green — healthy margin
-  if(ppsf < 900) return '#eab308';   // Amber — strong exit
-  return '#f97316';                   // Orange — premium market
+  return saleSfColor(ppsf);
 }
 
 
@@ -3029,9 +3043,9 @@ function buildNeighborhoodLayer(){
     // Color by median exit $/SF — same scale as exitPsfColor() / listing pins
     const color = exitPsfColor(median);
     let fillOpacity;
-    if(median >= 900)      fillOpacity = 0.4;
+    if(median >= 1200)     fillOpacity = 0.45;
+    else if(median >= 1000) fillOpacity = 0.4;
     else if(median >= 800) fillOpacity = 0.35;
-    else if(median >= 700) fillOpacity = 0.35;
     else if(median >= 650) fillOpacity = 0.3;
     else                   fillOpacity = 0.2;
 
@@ -3435,16 +3449,24 @@ function updatePinLegend(){
     html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#64748b"></div> T2 Existing</div>';
   }
 
-  // Sale $/SF grid legend
+  // Sale $/SF grid legend — 14 buckets, hot (top) to cold (bottom)
   if(layerState.neighborhoods){
     if(html) html += '<div class="pin-legend-section"></div>';
     html += '<div class="pin-legend-item" style="font-weight:600;font-size:10px;color:var(--text-dim);margin-bottom:4px">Sale $/SF</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#f97316;border-radius:2px"></div> $900+</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#eab308;border-radius:2px"></div> $800–900</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22c55e;border-radius:2px"></div> $750–800</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#22d3ee;border-radius:2px"></div> $700–750</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3b82f6;border-radius:2px"></div> $650–700</div>';
-    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#6366f1;border-radius:2px"></div> &lt;$650</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#7F1D1D;border-radius:2px"></div> $1,500+</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#991B1B;border-radius:2px"></div> $1,400\u20131,500</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#B91C1C;border-radius:2px"></div> $1,300\u20131,400</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#DC2626;border-radius:2px"></div> $1,200\u20131,300</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#EF4444;border-radius:2px"></div> $1,100\u20131,200</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#F97316;border-radius:2px"></div> $1,000\u20131,100</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#FB923C;border-radius:2px"></div> $950\u20131,000</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#FCD34D;border-radius:2px"></div> $900\u2013950</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#FDE047;border-radius:2px"></div> $850\u2013900</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#86EFAC;border-radius:2px"></div> $800\u2013850</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#34D399;border-radius:2px"></div> $750\u2013800</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#38BDF8;border-radius:2px"></div> $700\u2013750</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#60A5FA;border-radius:2px"></div> $650\u2013700</div>';
+    html += '<div class="pin-legend-item"><div class="pin-legend-marker" style="background:#3B82F6;border-radius:2px"></div> &lt;$650</div>';
   }
 
   // Risk overlay legends
@@ -3742,18 +3764,16 @@ function updateFilterCount(cachedComps, cachedListings){
   if(lpc) lpc.textContent = `${listings} deals`;
 }
 
-function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
+function rebuildZoneToggles(cachedListingsAllZones){
   const el=document.getElementById('zoneToggles');
   if(!el){ console.error('zoneToggles element not found!'); return; }
   el.innerHTML='';
-  const filtered = cachedComps || getFilteredComps();
-  // Count listings per zone ignoring zone toggle state (all other filters apply)
+  // Listings filtered by all active filters (including margin) but ignoring zone toggle
   const allFiltered = cachedListingsAllZones || getFilteredListings(true);
 
   function makeRow(zone){
-    const zc=filtered.filter(c=>c.zone===zone);
     const zl=allFiltered.filter(l=>l.zone===zone);
-    const psfs=zc.map(c=>c.ppsf||c.price/c.sqft);
+    const psfs=zl.map(l=>l.exitPsf).filter(v=>v>0);
     const avg=psfs.length?Math.round(psfs.reduce((a,b)=>a+b,0)/psfs.length):0;
     const div=document.createElement('label');
     div.className='zone-toggle';
@@ -3770,8 +3790,8 @@ function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
   // All zones in flat list
   ['R1','R2','R3','R4','MU','LAND'].forEach(z => el.appendChild(makeRow(z)));
   // Update zoning bar summary (R1 stats)
-  var r1c=filtered.filter(c=>c.zone==='R1');
-  var r1psfs=r1c.map(c=>c.ppsf||c.price/c.sqft);
+  var r1l=allFiltered.filter(l=>l.zone==='R1');
+  var r1psfs=r1l.map(l=>l.exitPsf).filter(v=>v>0);
   var r1avg=r1psfs.length?Math.round(r1psfs.reduce((a,b)=>a+b,0)/r1psfs.length):0;
   var zbn=document.getElementById('zoningBarName');
   var zbp=document.getElementById('zoningBarPsf');
@@ -4079,7 +4099,7 @@ function applyFilters(){
   if(layerState.btr) buildBTRLayer(_cachedListings);
   if(layerState.neighborhoods) buildNeighborhoodLayer();
   if(layerState.offMarket) buildOffMarketLayer();
-  rebuildZoneToggles(_cachedComps, _cachedListingsAllZones);
+  rebuildZoneToggles(_cachedListingsAllZones);
   updateStats(_cachedListings, _cachedComps);
   updateFilterCount(_cachedComps, _cachedListings);
   updateStatPills(_cachedListings, _cachedComps);
@@ -5289,6 +5309,25 @@ map.on('click', function(e) {
       <p>Exit $/SF is the estimated sale price per square foot for completed townhomes. It is derived from a weighted average of recent comparable sales &mdash; not a manual input or a simple median. Every comp earns a composite score; higher-scoring comps have more influence on the final number.</p>
       <p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#f8fafc;padding:8px;border-radius:4px;margin:8px 0">Composite Score = Product Wt &times; Proximity Wt &times; Recency Wt<br>Exit $/SF = &Sigma;(comp $/SF &times; score) &divide; &Sigma;(scores)</p>
       <p style="font-size:12px;font-weight:600;color:#64748b">No floor. No ceiling. The model output is the number.</p>
+
+      <h3>Sale $/SF Color Scale</h3>
+      <p>The Sale $/SF grid layer and comp popup colors use a 14-bucket cold-to-hot gradient:</p>
+      <div class="key-stack" style="font-size:12px;line-height:1.8">
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7F1D1D;margin-right:6px"></span>$1,500+</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#991B1B;margin-right:6px"></span>$1,400&ndash;1,500</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#B91C1C;margin-right:6px"></span>$1,300&ndash;1,400</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#DC2626;margin-right:6px"></span>$1,200&ndash;1,300</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#EF4444;margin-right:6px"></span>$1,100&ndash;1,200</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#F97316;margin-right:6px"></span>$1,000&ndash;1,100</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FB923C;margin-right:6px"></span>$950&ndash;1,000</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FCD34D;margin-right:6px"></span>$900&ndash;950</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FDE047;margin-right:6px"></span>$850&ndash;900</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#86EFAC;margin-right:6px"></span>$800&ndash;850</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#34D399;margin-right:6px"></span>$750&ndash;800</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#38BDF8;margin-right:6px"></span>$700&ndash;750</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#60A5FA;margin-right:6px"></span>$650&ndash;700</div>
+        <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3B82F6;margin-right:6px"></span>&lt;$650</div>
+      </div>
 
       <h3>Product Type Weights</h3>
       <p>We build new attached townhomes. Comps closest to that product receive the highest weight. Comps further from it are discounted.</p>
