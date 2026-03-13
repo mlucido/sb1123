@@ -197,6 +197,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .bottom-btn{flex:1;padding:8px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;color:var(--text);transition:all 0.15s}
   .bottom-btn:hover{border-color:#94a3b8}
   .bottom-btn.active{border-color:#facc15;background:rgba(250,204,21,0.08)}
+  #unqualToggle.active{border-color:#EF4444;background:rgba(239,68,68,0.08)}
+  #unqualToggle:disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
   .bottom-btn.gear{padding:8px 10px;flex:none;font-size:16px}
   .basemap-row{display:flex;justify-content:center;gap:12px;margin-top:8px}
   .basemap-link{font-size:10px;cursor:pointer;color:#94a3b8;background:none;border:none;font-family:inherit;padding:0;transition:color 0.15s}
@@ -491,6 +493,10 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .dc3-bottom-actions button:last-child,.dc3-bottom-actions a:last-child{border-right:none}
   .dc3-bottom-actions button:hover,.dc3-bottom-actions a:hover{background:#eee;color:#1a1f26}
   .dc3-bottom-actions .dc3-saved-active{color:#a07810;font-weight:600}
+  .dc3-unqual-btn{background:#F3F4F6;color:#6B7280;border-radius:4px;font-size:12px;padding:4px 8px}
+  .dc3-unqual-btn:hover{background:#E5E7EB}
+  .dc3-unqual-active{background:#EF4444!important;color:#fff!important}
+  .dc3-unqual-active:hover{background:#DC2626!important}
   .dc3-bottom-actions .dc3-btn-comp{color:#2a6fb5;font-weight:600;background:#edf4fb}
 
   @media (max-width: 820px){
@@ -1147,7 +1153,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <span class="lcount" id="neighborhoodCount">0</span>
       </button>
 
-      <!-- Secondary layers: Off-Market / BTR grid -->
+      <!-- Secondary layers: Off-Market / BTR / Unqualified -->
       <div class="layer-grid" style="margin-top:4px">
         <button class="layer-cell" data-layer="offMarket" onclick="toggleLayerRow('offMarket',this)">
           <span class="ldot"></span>
@@ -1351,6 +1357,9 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <button class="bottom-btn" id="favToggle" onclick="toggleFavoritesFilter()">
         <span>&#9733; Saved</span><span class="fav-count" id="favCount" style="font-family:'JetBrains Mono',monospace;color:#facc15;font-size:10px">0</span>
       </button>
+      <button class="bottom-btn" id="unqualToggle" onclick="toggleUnqualFilter()">
+        <span>✕ Unqual</span><span id="unqualCount" style="font-family:'JetBrains Mono',monospace;color:#EF4444;font-size:10px;margin-left:auto">0</span>
+      </button>
       <button class="bottom-btn" onclick="exportCSV()" aria-label="Export to CSV">&#128202; Export</button>
     </div>
     <div class="basemap-row">
@@ -1412,6 +1421,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     </div>
     <div class="pipeline-body-wrap"><div id="pipelineBody"></div></div>
     <div class="pipeline-total" id="pipelineTotal">0 total</div>
+    <div class="pipeline-total" id="unqualBadgeWrap" style="color:#EF4444;border-top:1px solid #eee;padding-top:4px">✕ <span id="unqualBadge">0</span> unqual</div>
   </div>
 </div>
 
@@ -1720,7 +1730,8 @@ const listingsLayer = L.layerGroup();
 const btrLayer = L.layerGroup();  // BTR opportunity layer
 const offMarketLayer = L.layerGroup();  // Priority 4: Off-market targets
 const neighborhoodLayer = L.layerGroup();  // Sale $/SF grid overlay
-const layerState = {markers:false,compHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
+const unqualLayer = L.layerGroup();  // Unqualified deals (hidden by default)
+const layerState = {markers:false,compHeat:false,neighborhoods:false,listings:true,offMarket:false,btr:false,unqual:false,fireZones:false,floodZones:false,liquefaction:false,parcels:false};
 
 // ── Polygon Draw State ──
 // Draw state — see js/draw.js
@@ -1782,12 +1793,71 @@ var _dealStatusCache = null;
 function loadDealStatuses(){ if(_dealStatusCache) return _dealStatusCache; try{_dealStatusCache=JSON.parse(localStorage.getItem('sb1123_dealStatuses'))||{};return _dealStatusCache;}catch(e){return{};} }
 function saveDealStatuses(s){ localStorage.setItem('sb1123_dealStatuses', JSON.stringify(s)); _dealStatusCache=null; }
 function getDealStatus(lat,lng){ return loadDealStatuses()[lat+','+lng] || 'Screening'; }
+function isUnqual(lat,lng){ return getDealStatus(lat,lng) === 'unqual'; }
 function setDealStatus(lat,lng,status){
   var s = loadDealStatuses();
+  if(status === 'unqual'){
+    // Clear any saved/fav status when marking unqual
+    var favs = loadFavorites();
+    if(favs[lat+','+lng]){ delete favs[lat+','+lng]; saveFavorites(favs); updateFavCount(); }
+  }
   s[lat+','+lng] = status;
   saveDealStatuses(s);
   rebuildListings();
   buildStatusFilterBody();
+  updateUnqualCount();
+}
+var _unqualTimer = null;
+function toggleUnqual(lat,lng){
+  if(isUnqual(lat,lng)){
+    // Un-unqual: cancel pending removal, restore to default, keep card open
+    if(_unqualTimer){ clearTimeout(_unqualTimer); _unqualTimer = null; }
+    var s = loadDealStatuses();
+    delete s[lat+','+lng];
+    saveDealStatuses(s);
+    updateUnqualCount();
+    buildStatusFilterBody();
+    // Deferred rebuild so the popup stays open during this click
+    setTimeout(function(){ rebuildListings(); }, 50);
+  } else {
+    // Mark unqual: save immediately, delay pin/card removal 1.5s
+    var s = loadDealStatuses();
+    var favs = loadFavorites();
+    if(favs[lat+','+lng]){ delete favs[lat+','+lng]; saveFavorites(favs); updateFavCount(); }
+    s[lat+','+lng] = 'unqual';
+    saveDealStatuses(s);
+    updateUnqualCount();
+    buildStatusFilterBody();
+    _unqualTimer = setTimeout(function(){
+      _unqualTimer = null;
+      _closePinnedPopup();
+      rebuildListings();
+    }, 1500);
+  }
+}
+function getUnqualCount(){
+  var s = loadDealStatuses(), n = 0;
+  for(var k in s){ if(s[k] === 'unqual') n++; }
+  return n;
+}
+function updateUnqualCount(){
+  var el = document.getElementById('unqualCount');
+  if(el) el.textContent = getUnqualCount();
+  var badge = document.getElementById('unqualBadge');
+  if(badge) badge.textContent = getUnqualCount();
+  var btn = document.getElementById('unqualToggle');
+  if(btn){ btn.disabled = getUnqualCount() === 0; }
+}
+function toggleUnqualFilter(){
+  layerState.unqual = !layerState.unqual;
+  var btn = document.getElementById('unqualToggle');
+  if(btn) btn.classList.toggle('active');
+  if(layerState.unqual){
+    buildUnqualLayer();
+    unqualLayer.addTo(map);
+  } else {
+    map.removeLayer(unqualLayer);
+  }
 }
 
 function buildStatusFilterBody(){
@@ -2507,6 +2577,8 @@ function getFilteredListings(skipZoneFilter, skipStatusFilter){
     if(newThisWeekFilter && !l.isNewThisWeek) return false;
     if(hideBurnZones && l.burnZone) return false;
     if(minUnitsFilter > 1 && (l.maxUnits || 0) < minUnitsFilter) return false;
+    // Exclude unqual deals from main filtered set
+    if(isUnqual(l.lat, l.lng)) return false;
     const lStatus = getDealStatus(l.lat, l.lng);
     if(!skipStatusFilter && !statusFilterState[lStatus]) return false;
     const zoneOk = skipZoneFilter || !l.zone || zoneState[l.zone];
@@ -2891,6 +2963,8 @@ function generateDealCard(l, opts){
   if (l.lw && l.ld) h += '<a href="' + lotPlannerUrl(l) + '" target="_blank">Planner</a>';
   var isSaved = isFavorite(l);
   h += '<button class="' + (isSaved ? 'dc3-saved-active' : '') + '" onclick="toggleFavorite(' + l.lat + ',' + l.lng + ');var a=this.classList.contains(\'dc3-saved-active\');this.classList.toggle(\'dc3-saved-active\');this.textContent=a?\'\\u2605 Save\':\'\\u2605 Saved\'">&#9733; ' + (isSaved ? 'Saved' : 'Save') + '</button>';
+  var isUQ = isUnqual(l.lat, l.lng);
+  h += '<button class="dc3-unqual-btn' + (isUQ ? ' dc3-unqual-active' : '') + '" onclick="toggleUnqual(' + l.lat + ',' + l.lng + ');var a=this.classList.toggle(\'dc3-unqual-active\');this.textContent=a?\'✕ Unqual\\u2019d\':\'✕ Unqual\'">✕ ' + (isUQ ? 'Unqual\u2019d' : 'Unqual') + '</button>';
   h += '<button onclick="sharePin(' + l.lat + ',' + l.lng + ',event)">Share</button>';
   h += '</div>';
 
@@ -3007,6 +3081,9 @@ function rebuildListings(cachedListings){
 
   document.getElementById('listingCount').textContent = filtered.length.toLocaleString();
   rebuildTable(filtered);
+  // Rebuild unqual layer if visible
+  if(layerState.unqual) buildUnqualLayer();
+  updateUnqualCount();
 }
 
 function buildBTRLayer(cachedListings){
@@ -3173,6 +3250,22 @@ function isOffMarketViable(l){
   const lotEff = l.lotEfficiency || 0;
   const slope = l.slope || 0;
   return spread > 150 && margin_at_offer >= 0.25 && lotEff > 70 && !l.fireZone && slope < 15;
+}
+
+function buildUnqualLayer(){
+  unqualLayer.clearLayers();
+  LISTINGS.forEach(function(l){
+    if(!isUnqual(l.lat, l.lng)) return;
+    var lotSf = l.lotSf || 0;
+    var baseRadius = lotSf >= 15000 ? 11 : lotSf >= 10000 ? 9 : 8;
+    var cm = L.circleMarker([l.lat,l.lng],{
+      radius: baseRadius, fillColor: '#9CA3AF', color: '#6B7280',
+      fillOpacity: 0.5, weight: 1, pane: 'listingsPane'
+    });
+    cm.on('click', function(){ _openPinnedPopup(l); });
+    cm.addTo(unqualLayer);
+  });
+  updateUnqualCount();
 }
 
 function buildOffMarketLayer(){
@@ -3413,6 +3506,13 @@ function refreshVisibility(){
   } else {
     map.removeLayer(btrLayer);
   }
+  // Unqualified deals layer
+  if(layerState.unqual) {
+    buildUnqualLayer();
+    unqualLayer.addTo(map);
+  } else {
+    map.removeLayer(unqualLayer);
+  }
   if(fireZoneLayer){
     if(layerState.fireZones) fireZoneLayer.addTo(map);
     else map.removeLayer(fireZoneLayer);
@@ -3619,7 +3719,7 @@ function setHeatmapMode(mode) {
   if (layerState.compHeat) compHeatLayer.addTo(map);
 }
 
-var LAYER_COLORS = {listings:'#22c55e',neighborhoods:'#8b5cf6',offMarket:'#3b82f6',btr:'#f59e0b',parcels:'#3b82f6',fireZones:'#ef4444',floodZones:'#3b82f6',liquefaction:'#a855f7',markers:'#64748b',compHeat:'#f0641e'};
+var LAYER_COLORS = {listings:'#22c55e',neighborhoods:'#8b5cf6',offMarket:'#3b82f6',btr:'#f59e0b',unqual:'#9CA3AF',parcels:'#3b82f6',fireZones:'#ef4444',floodZones:'#3b82f6',liquefaction:'#a855f7',markers:'#64748b',compHeat:'#f0641e'};
 function toggleLayer(layer,btn){
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
@@ -4721,6 +4821,8 @@ window.sortTable = sortTable;
 window.toggleBurnZoneFilter = toggleBurnZoneFilter;
 window.toggleFavorite = toggleFavorite;
 window.toggleFavoritesFilter = toggleFavoritesFilter;
+window.toggleUnqual = toggleUnqual;
+window.toggleUnqualFilter = toggleUnqualFilter;
 window.toggleLayerRow = toggleLayerRow;
 window.toggleListingsPanel = toggleListingsPanel;
 window.toggleZone = toggleZone;
@@ -4937,6 +5039,7 @@ window.addEventListener('DOMContentLoaded', function(){
       updateStats();
       updateFilterCount();
       updateFavCount();
+      updateUnqualCount();
       // summary stats updated inside rebuildListings()
       updateLayersActiveCount();
       initLayerRowStates();
