@@ -1415,7 +1415,7 @@ function showExportModal(lat, lng, type) {
   var defRent = l.estRentMonth || l.fmr3br || 4000;
   var defPrice = l.price || 0;
 
-  var exitSrc = l._overrideExitPsf != null ? 'filtered' : (l.exitPsf ? 'P75' : 'none');
+  var exitSrc = l._overrideExitPsf != null ? 'filtered' : (l.exitPsf ? 'scored' : 'none');
   var slopePct = l.slope || 0;
   var buildSrc = slopePct > 0 ? 'slope-adj ' + slopePct + '%' : 'base';
   var rentSrc = l.estRentMonth ? 'est rent' : l.fmr3br ? 'HUD SAFMR' : 'default';

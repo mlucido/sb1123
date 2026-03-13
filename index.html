@@ -5377,6 +5377,11 @@ map.on('click', function(e) {
       <p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#f8fafc;padding:8px;border-radius:4px;margin:8px 0">Composite Score = Product Wt &times; Proximity Wt &times; Recency Wt<br>Exit $/SF = &Sigma;(comp $/SF &times; score) &divide; &Sigma;(scores)</p>
       <p style="font-size:12px;font-weight:600;color:#64748b">No floor. No ceiling. The model output is the number.</p>
 
+      <h3>Comp Search Methodology</h3>
+      <p>Each listing&rsquo;s exit $/SF is computed offline by the data pipeline using a spatial expanding-radius search. The pipeline searches outward from the listing (0.25 mi &rarr; 0.5 &rarr; 1 &rarr; 2 &rarr; 4 mi) until at least 5 qualifying comps are found. Only sold comps within the past 24 months and in eligible property types (SFR, Condo, Townhome) are considered.</p>
+      <p>The resulting weighted average skews toward the upper quartile of the scored comp pool &mdash; reflecting the positioning of new-construction product against predominantly older resale stock. This is not a simple median or mean; higher-scoring comps (better product match, closer, more recent) carry more weight in the final number.</p>
+      <p style="font-size:11px;color:#64748b">The comp search radius and count are shown on each deal card. Open the BTS Comps table to inspect the full comp pool, sort by any column, and use the Hide toggle to exclude individual comps from the exit $/SF calculation.</p>
+
       <h3>Sale $/SF Color Scale</h3>
       <p>The Sale $/SF grid layer and comp popup colors use a 14-bucket cold-to-hot gradient:</p>
       <div class="key-stack" style="font-size:12px;line-height:1.8">

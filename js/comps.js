@@ -226,9 +226,7 @@ export function showCompsTable(lat,lng){
 
   var result = findCompsForListing(l);
   var groups = result.groups;
-  var source = result.source;
   var radius = result.radius;
-  var sourceLabel = {subdiv:'Subdivision',spatial:'Spatial P75'}[source]||source;
   var totalShown = result.allComps.length;
 
   document.getElementById('tableWrap').style.display='none';
@@ -238,7 +236,7 @@ export function showCompsTable(lat,lng){
   compsHdr.innerHTML = '<button onclick="hideCompsTable()" style="background:none;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">&larr; Back to Pipeline</button>'
     +'<div style="flex:1;min-width:0">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BTS COMPS &mdash; '+l.address+'</div>'
-    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sourceLabel+' &bull; '+totalShown+' comps within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
+    +'<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+totalShown+' comps within '+radius.toFixed(1)+'mi <span style="margin-left:8px;font-size:10px"><span style="color:#3b82f6">&#9679;</span> SFR <span style="color:#a855f7">&#9679;</span> Condo <span style="color:#22c55e">&#9679;</span> TH</span></div>'
     +'</div>'
     +'<button onclick="exportSaleCompsCsv()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;white-space:nowrap" title="Export all sale comps to CSV">&#x2913; CSV</button>'
     +'<button class="listings-panel-close" onclick="hideCompsTable()">x</button>';
