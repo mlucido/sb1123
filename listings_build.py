@@ -58,8 +58,8 @@ TIER_1_WEIGHT = 1.00   # Townhouse, new (≤5yr)
 TIER_2_WEIGHT = 0.85   # Townhouse, renovated (T1, >5yr)
 TIER_3_WEIGHT = 0.75   # Condo/Co-op, new (≤5yr)
 TIER_4_WEIGHT = 0.70   # Townhouse, older high-end (5–10yr, T1)
-TIER_5_WEIGHT = 0.60   # Condo/Co-op, renovated (T1, >5yr)
-TIER_6_WEIGHT = 0.50   # SFR, new (≤5yr), 1500–2200 SF ONLY
+TIER_5_WEIGHT = 0.35   # Condo/Co-op, renovated (T1, >5yr)
+TIER_6_WEIGHT = 0.65   # SFR, new (≤5yr), 1500–2200 SF ONLY
 SFR_SQFT_MIN = 1500    # Hard gate: min SFR sqft to include
 SFR_SQFT_MAX = 2200    # Hard gate: max SFR sqft to include
 
@@ -80,8 +80,8 @@ MAX_RECENCY_MONTHS = 24  # Hard exclude older
 
 # ── New construction premium ──
 # Comp pool is dominated by pre-2015 renovated stock (~87% T1-Reno in LA).
-# New ground-up product trades ~20% above blended T1; we apply 10% conservatively.
-NEW_CONSTRUCTION_PREMIUM = 1.10
+# New ground-up product trades ~20% above blended T1; 18% balances accuracy vs conservatism.
+NEW_CONSTRUCTION_PREMIUM = 1.18
 
 
 # ── Step 1: Load comps and build spatial index ──

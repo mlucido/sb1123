@@ -465,8 +465,9 @@ if sorted_clusters:
 
 # ── Write data.js ──
 output_file = market_file("data.js", market)
-js = "var LOADED_COMPS = " + json.dumps(comps, separators=(",", ":")) + ";\n"
-js += "var CLUSTERS = " + json.dumps(clusters, separators=(",", ":")) + ";"
+suffix = f"_{market.upper()}" if market != "la" else ""
+js = f"var LOADED_COMPS{suffix} = " + json.dumps(comps, separators=(",", ":")) + ";\n"
+js += f"var CLUSTERS{suffix} = " + json.dumps(clusters, separators=(",", ":")) + ";"
 with open(output_file, "w") as f:
     f.write(js)
 
