@@ -212,7 +212,6 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .kf-chip.active{background:#dcfce7;color:#16a34a}
   .kf-chip:not(.active){background:#e2e8f0;color:#94a3b8}
   .kf-chip:hover:not(.active){background:#e2e8f0;color:#64748b}
-  .kf-range-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:6px}
   .kf-block{margin-bottom:14px}
 
   /* Secondary filter rows */
@@ -295,13 +294,13 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .range-slider-track{position:relative;height:4px;background:#e2e8f0;border-radius:2px;margin:0 4px 10px}
   .range-slider-fill{position:absolute;height:100%;background:var(--accent);border-radius:2px;opacity:0.4}
   .range-slider-track input[type="range"]{
-    position:absolute;width:100%;height:4px;top:0;
+    position:absolute;width:100%;height:16px;top:50%;transform:translateY(-50%);
     -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;margin:0;
   }
   .range-slider-track input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
     background:#3b82f6;border:2px solid #fff;cursor:pointer;pointer-events:auto;
-    box-shadow:0 1px 3px rgba(0,0,0,0.2);margin-top:-6px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
   }
   .range-slider-track input[type="range"]::-moz-range-thumb{
     width:16px;height:16px;border-radius:50%;
@@ -310,19 +309,26 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   }
   /* Standalone single slider (Min Units) */
   input[type="range"].standalone-slider{
-    -webkit-appearance:none;appearance:none;width:100%;height:4px;
-    background:#e2e8f0;border-radius:2px;outline:none;margin:0;
+    -webkit-appearance:none;appearance:none;width:100%;height:16px;
+    background:transparent;outline:none;margin:0;
+    background-image:linear-gradient(#e2e8f0,#e2e8f0);background-size:100% 4px;background-position:center;background-repeat:no-repeat;border-radius:2px;
   }
   input[type="range"].standalone-slider::-webkit-slider-thumb{
     -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
     background:#3b82f6;border:2px solid #fff;cursor:pointer;
-    box-shadow:0 1px 3px rgba(0,0,0,0.2);margin-top:-6px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
   }
   input[type="range"].standalone-slider::-moz-range-thumb{
     width:16px;height:16px;border-radius:50%;
     background:#3b82f6;border:2px solid #fff;cursor:pointer;
     box-shadow:0 1px 3px rgba(0,0,0,0.2);
   }
+  /* Arrow buttons flanking value labels */
+  .kf-range-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:6px}
+  .kf-val-group{display:inline-flex;align-items:center;gap:2px}
+  .kf-arrow-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:22px;
+    background:#F3F4F6;border:none;border-radius:4px;font-size:13px;color:#6b7280;cursor:pointer;padding:0;line-height:1;user-select:none}
+  .kf-arrow-btn:hover{background:#E5E7EB}
 
   .filter-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-align:center;padding:6px 0;background:rgba(96,165,250,0.06);border-radius:6px}
   .reset-btn{
@@ -749,11 +755,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
     /* Range slider: bigger touch targets */
     .range-slider-track input[type="range"]::-webkit-slider-thumb {
-      width: 24px; height: 24px; margin-top: -10px;
+      width: 24px; height: 24px;
     }
-    .range-slider-track input[type="range"] { height: 4px; top: 0; }
+    .range-slider-track input[type="range"] { height: 24px; top: 50%; transform: translateY(-50%); }
+    input[type="range"].standalone-slider { height: 24px; }
     input[type="range"].standalone-slider::-webkit-slider-thumb {
-      width: 24px; height: 24px; margin-top: -10px;
+      width: 24px; height: 24px;
     }
 
     /* Buttons: min 44px touch target */
@@ -1214,8 +1221,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="marginMin" step="5" style="display:none">
         <input type="number" id="marginMax" step="5" style="display:none">
         <div class="kf-range-labels">
-          <span id="marginRangeMin">30%</span>
-          <span id="marginRangeMax">85%</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('margin','min',-1)">&#8249;</button><span id="marginRangeMin">30%</span><button class="kf-arrow-btn" onclick="nudgeFilter('margin','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('margin','max',-1)">&#8249;</button><span id="marginRangeMax">85%</span><button class="kf-arrow-btn" onclick="nudgeFilter('margin','max',1)">&#8250;</button></span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="marginSliderFill"></div>
@@ -1228,8 +1235,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header"><span class="kf-label">Lot Size</span></div>
         <div class="kf-range-labels">
-          <span id="lotRangeMin">12K sf</span>
-          <span id="lotRangeMax">65K sf</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('lot','min',-1)">&#8249;</button><span id="lotRangeMin">12K sf</span><button class="kf-arrow-btn" onclick="nudgeFilter('lot','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('lot','max',-1)">&#8249;</button><span id="lotRangeMax">65K sf</span><button class="kf-arrow-btn" onclick="nudgeFilter('lot','max',1)">&#8250;</button></span>
         </div>
         <!-- Hidden inputs for JS compat -->
         <input type="number" id="lotMin" step="500" style="display:none">
@@ -1245,7 +1252,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
       <div class="kf-block">
         <div class="kf-header">
           <span class="kf-label">Min Units</span>
-          <span id="minUnitsLabel" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">7</span>
+          <span class="kf-val-group" style="margin-left:auto"><button class="kf-arrow-btn" onclick="nudgeMinUnits(-1)">&#8249;</button><span id="minUnitsLabel" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#94a3b8">7</span><button class="kf-arrow-btn" onclick="nudgeMinUnits(1)">&#8250;</button></span>
         </div>
         <input type="range" class="standalone-slider" id="minUnitsSlider" min="2" max="10" step="1" value="7" oninput="onMinUnitsChange(this.value)">
       </div>
@@ -1256,8 +1263,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="priceMin" step="25000" style="display:none">
         <input type="number" id="priceMax" step="25000" style="display:none">
         <div class="kf-range-labels">
-          <span id="priceRangeMin">$0</span>
-          <span id="priceRangeMax">$3M</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('price','min',-1)">&#8249;</button><span id="priceRangeMin">$0</span><button class="kf-arrow-btn" onclick="nudgeFilter('price','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('price','max',-1)">&#8249;</button><span id="priceRangeMax">$3M</span><button class="kf-arrow-btn" onclick="nudgeFilter('price','max',1)">&#8250;</button></span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="priceSliderFill"></div>
@@ -1272,8 +1279,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="psfMin" step="50" style="display:none">
         <input type="number" id="psfMax" step="50" style="display:none">
         <div class="kf-range-labels">
-          <span id="psfRangeMin">$0</span>
-          <span id="psfRangeMax">$2,000</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('psf','min',-1)">&#8249;</button><span id="psfRangeMin">$0</span><button class="kf-arrow-btn" onclick="nudgeFilter('psf','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('psf','max',-1)">&#8249;</button><span id="psfRangeMax">$2,000</span><button class="kf-arrow-btn" onclick="nudgeFilter('psf','max',1)">&#8250;</button></span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="psfSliderFill"></div>
@@ -1293,8 +1300,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="lotwMin" step="5" style="display:none">
         <input type="number" id="lotwMax" step="5" style="display:none">
         <div class="kf-range-labels">
-          <span id="lotwRangeMin">50 ft</span>
-          <span id="lotwRangeMax">200 ft</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('lotw','min',-1)">&#8249;</button><span id="lotwRangeMin">50 ft</span><button class="kf-arrow-btn" onclick="nudgeFilter('lotw','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('lotw','max',-1)">&#8249;</button><span id="lotwRangeMax">200 ft</span><button class="kf-arrow-btn" onclick="nudgeFilter('lotw','max',1)">&#8250;</button></span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotwSliderFill"></div>
@@ -1309,8 +1316,8 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="slopeMin" step="1" style="display:none">
         <input type="number" id="slopeMax" step="1" style="display:none">
         <div class="kf-range-labels">
-          <span id="slopeRangeMin">0%</span>
-          <span id="slopeRangeMax">10%</span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('slope','min',-1)">&#8249;</button><span id="slopeRangeMin">0%</span><button class="kf-arrow-btn" onclick="nudgeFilter('slope','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('slope','max',-1)">&#8249;</button><span id="slopeRangeMax">10%</span><button class="kf-arrow-btn" onclick="nudgeFilter('slope','max',1)">&#8250;</button></span>
         </div>
         <div class="range-slider-track">
           <div class="range-slider-fill" id="slopeSliderFill"></div>
@@ -4020,6 +4027,34 @@ function setMarginPreset(minPct,btn){
   applyFilters();
 }
 
+// ── Arrow nudge buttons for filter sliders ──
+var NUDGE_STEPS = { margin:5, lot:1000, price:50000, psf:25, lotw:5, slope:1, sqft:100 };
+function nudgeFilter(key, side, dir){
+  var f = filters[key];
+  var step = NUDGE_STEPS[key] || f.step;
+  var sMin = document.getElementById(key+'SliderMin'), sMax = document.getElementById(key+'SliderMax');
+  var iMin = document.getElementById(key+'Min'), iMax = document.getElementById(key+'Max');
+  if(side === 'min'){
+    var v = f.min + dir * step;
+    v = Math.max(f.dataMin, Math.min(v, f.max - step));
+    f.min = v; if(sMin) sMin.value = v; if(iMin) iMin.value = v;
+  } else {
+    var v = f.max + dir * step;
+    v = Math.min(f.dataMax, Math.max(v, f.min + step));
+    f.max = v; if(sMax) sMax.value = v; if(iMax) iMax.value = v;
+  }
+  updateFill(key);
+  applyFilters();
+}
+function nudgeMinUnits(dir){
+  var slider = document.getElementById('minUnitsSlider');
+  var label = document.getElementById('minUnitsLabel');
+  var v = parseInt(slider.value) + dir;
+  v = Math.max(parseInt(slider.min), Math.min(v, parseInt(slider.max)));
+  slider.value = v; label.textContent = v;
+  onMinUnitsChange(v);
+}
+
 // ── URL Hash Filter State ──
 function encodeFiltersToHash(){
   var parts = [];
@@ -4636,6 +4671,8 @@ window.resetFilter = resetFilter;
 window.setBaseMap = setBaseMap;
 window.setDealStatus = setDealStatus;
 window.setMarginPreset = setMarginPreset;
+window.nudgeFilter = nudgeFilter;
+window.nudgeMinUnits = nudgeMinUnits;
 window.sharePin = sharePin;
 window.showCompsTable = showCompsTable;
 window.showRentalCompsTable = showRentalCompsTable;
