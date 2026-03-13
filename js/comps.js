@@ -1,7 +1,7 @@
 // ── js/comps.js — Comp search, display, and sorting ──
 // Extracted from index.html P4-1
 
-import { proforma } from './proforma.js';
+import { proforma, clearProformaCaches } from './proforma.js';
 
 // ── Dependencies (injected via initComps) ──
 var _deps = {};
@@ -37,6 +37,19 @@ var compsRadiusCircle = null;
 var rentalCompsTableActive = false;
 var rentalCompsMapLayer = null;
 var rentalCompsRadiusCircle = null;
+
+// ── Excluded comps state (per-deal, per-session, in-memory only) ──
+var excludedComps = {}; // { [dealId]: Set<compKey> }  compKey = "lat,lng"
+function dealId(l){ return l.lat + ',' + l.lng; }
+export function getExcluded(did){ return excludedComps[did] || new Set(); }
+function isCompExcluded(did, c){ return getExcluded(did).has(c.lat+','+c.lng); }
+function toggleCompExcluded(did, c){
+  if(!excludedComps[did]) excludedComps[did] = new Set();
+  var key = c.lat+','+c.lng;
+  var s = excludedComps[did];
+  s.has(key) ? s.delete(key) : s.add(key);
+}
+export function getExcludedCount(did){ var s = excludedComps[did]; return s ? s.size : 0; }
 
 // ── Helpers ──
 
@@ -162,12 +175,18 @@ function formatCompDate(d){
   return d;
 }
 
-function compRow(c){
-  var style = c.isUsed ? 'border-left:3px solid var(--green)' : '';
-  return '<tr style="cursor:pointer;'+style+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)" onmouseenter="highlightCompPin('+c.lat+','+c.lng+')" onmouseleave="unhighlightCompPin()">'
+function compRow(c, did){
+  var excluded = isCompExcluded(did, c);
+  var borderStyle = excluded ? 'border-left:2px solid #dc2626' : (c.isUsed ? 'border-left:3px solid var(--green)' : '');
+  var rowOpacity = excluded ? 'opacity:0.38;' : '';
+  var ppsfStyle = 'color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)');
+  if(excluded) ppsfStyle += ';text-decoration:line-through';
+  var pillBg = excluded ? 'background:#fee2e2;color:#dc2626;border:1px solid #fca5a5' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border)';
+  var pillLabel = excluded ? 'Show' : 'Hide';
+  return '<tr style="cursor:pointer;'+borderStyle+';'+rowOpacity+'" onclick="map.flyTo(['+c.lat+','+c.lng+'],17)" onmouseenter="highlightCompPin('+c.lat+','+c.lng+')" onmouseleave="unhighlightCompPin()">'
     +'<td style="white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis"><a class="redfin-link" href="'+redfinLink(c.address)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on Redfin">'+(c.address||'\u2014')+' &#8599;</a></td>'
     +'<td>$'+c.price.toLocaleString()+'</td>'
-    +'<td style="color:'+(c.ppsf>=800?'var(--green)':c.ppsf>=600?'var(--yellow)':'var(--red)')+'">$'+c.ppsf+'</td>'
+    +'<td style="'+ppsfStyle+'">$'+c.ppsf+'</td>'
     +'<td>'+c.sqft.toLocaleString()+'</td>'
     +'<td>'+(c.bd||'\u2014')+'/'+(c.ba||'\u2014')+'</td>'
     +'<td>'+(c.zone||'\u2014')+'</td>'
@@ -175,21 +194,23 @@ function compRow(c){
     +'<td style="color:'+(c.t1s==='T1-Reno'?'#d97706':c.t===1?'var(--green)':'var(--text-dim)')+'">'+( c.t1s || ('T'+(c.t||'?')) )+'</td>'
     +'<td>'+formatCompDate(c.date)+'</td>'
     +'<td>'+c.dist.toFixed(2)+'mi</td>'
+    +'<td style="text-align:center"><button onclick="event.stopPropagation();toggleCompHide('+c.lat+','+c.lng+')" style="'+pillBg+';padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap">'+pillLabel+'</button></td>'
     +'</tr>';
 }
 
 function saleGroupTheadRow(group){
   return '<tr>'
-    +'<th data-sort="address" onclick="sortCompsTable(\'address\',\''+group+'\')" style="cursor:pointer">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="price" onclick="sortCompsTable(\'price\',\''+group+'\')" style="cursor:pointer">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\',\''+group+'\')" style="cursor:pointer">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\',\''+group+'\')" style="cursor:pointer">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="bd" onclick="sortCompsTable(\'bd\',\''+group+'\')" style="cursor:pointer">Bd/Ba<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="zone" onclick="sortCompsTable(\'zone\',\''+group+'\')" style="cursor:pointer">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="yb" onclick="sortCompsTable(\'yb\',\''+group+'\')" style="cursor:pointer">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="t" onclick="sortCompsTable(\'t\',\''+group+'\')" style="cursor:pointer">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="date" onclick="sortCompsTable(\'date\',\''+group+'\')" style="cursor:pointer">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
-    +'<th data-sort="dist" onclick="sortCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="address" onclick="sortCompsTable(\'address\',\''+group+'\')" style="cursor:pointer;width:22%">Address<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="price" onclick="sortCompsTable(\'price\',\''+group+'\')" style="cursor:pointer;width:10%">Sale Price<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="ppsf" onclick="sortCompsTable(\'ppsf\',\''+group+'\')" style="cursor:pointer;width:7%">$/SF<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="sqft" onclick="sortCompsTable(\'sqft\',\''+group+'\')" style="cursor:pointer;width:7%">SqFt<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="bd" onclick="sortCompsTable(\'bd\',\''+group+'\')" style="cursor:pointer;width:6%">Bd/Ba<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="zone" onclick="sortCompsTable(\'zone\',\''+group+'\')" style="cursor:pointer;width:6%">Zone<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="yb" onclick="sortCompsTable(\'yb\',\''+group+'\')" style="cursor:pointer;width:8%">Yr Built<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="t" onclick="sortCompsTable(\'t\',\''+group+'\')" style="cursor:pointer;width:8%">Tier<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="date" onclick="sortCompsTable(\'date\',\''+group+'\')" style="cursor:pointer;width:9%">Sale Date<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th data-sort="dist" onclick="sortCompsTable(\'dist\',\''+group+'\')" style="cursor:pointer;width:7%">Dist<span class="sort-arrow" style="opacity:0.4"> \u25BD</span></th>'
+    +'<th style="width:6%;text-align:center;cursor:default">Hide</th>'
     +'</tr>';
 }
 
@@ -234,22 +255,13 @@ export function showCompsTable(lat,lng){
   wrap.style.display = '';
 
   // Build grouped sections
+  var did = dealId(l);
   var html = '';
   SALE_GROUP_ORDER.forEach(function(g){
     var comps = groups[g] || [];
     if(!comps.length) return;
     var label = SALE_GROUP_LABELS[g] || g;
-    var avgs = saleGroupAvgs(comps);
-    var avgLine = avgs.avgPrice ? 'Avg: $'+(avgs.avgPrice>=1000000?(avgs.avgPrice/1000000).toFixed(1)+'M':(avgs.avgPrice/1000).toFixed(0)+'K')+' | $'+avgs.avgPpsf+'/SF | '+avgs.avgSqft.toLocaleString()+' SF' : '';
-    html += '<div class="sale-group-section" data-group="'+g+'" style="margin-bottom:8px">'
-      +'<div class="sale-group-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px 6px 0 0;cursor:pointer" onclick="toggleSaleGroup(\''+g+'\')">'
-      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span>'+(avgLine ? ' <span style="font-weight:400;font-size:11px;color:var(--text-dim);margin-left:8px">'+avgLine+'</span>' : '')+'</span>'
-      +'<span class="sale-group-chevron" style="font-size:10px;color:var(--text-dim)">\u25BC</span>'
-      +'</div>'
-      +'<div class="sale-group-body">'
-      +'<table class="listings-table" style="margin:0"><thead>'+saleGroupTheadRow(g)+'</thead>'
-      +'<tbody data-group="'+g+'">'+comps.map(function(c){return compRow(c);}).join('')+'</tbody></table>'
-      +'</div></div>';
+    html += buildSaleGroupSection(g, comps, label, did);
   });
 
   if(!html){
@@ -320,8 +332,9 @@ export function sortCompsTable(key, group){
   };
   comps.sort(sorter);
 
+  var did = wrap._listing ? dealId(wrap._listing) : '';
   var tbody = wrap.querySelector('tbody[data-group="'+group+'"]');
-  if(tbody) tbody.innerHTML = comps.map(function(c){return compRow(c);}).join('');
+  if(tbody) tbody.innerHTML = comps.map(function(c){return compRow(c, did);}).join('');
 
   // Update arrows within this group's section
   var section = wrap.querySelector('.sale-group-section[data-group="'+group+'"]');
@@ -349,6 +362,102 @@ export function toggleSaleGroup(group){
     body.style.display = 'none';
     if(chevron) chevron.textContent = '\u25B6';
   }
+}
+
+// ── Sale group section builder (used by showCompsTable + re-render) ──
+function buildSaleGroupSection(g, comps, label, did){
+  var excluded = getExcluded(did);
+  var activeComps = comps.filter(function(c){ return !isCompExcluded(did, c); });
+  var hiddenCount = comps.length - activeComps.length;
+  var avgs = saleGroupAvgs(activeComps.length ? activeComps : comps);
+  var avgLine = avgs.avgPrice ? 'Avg: $'+(avgs.avgPrice>=1000000?(avgs.avgPrice/1000000).toFixed(1)+'M':(avgs.avgPrice/1000).toFixed(0)+'K')+' | $'+avgs.avgPpsf+'/SF | '+avgs.avgSqft.toLocaleString()+' SF' : '';
+  var hiddenLabel = hiddenCount > 0 ? ' <span style="font-size:10px;color:#9ca3af;font-weight:400">('+hiddenCount+' hidden)</span>' : '';
+  return '<div class="sale-group-section" data-group="'+g+'" style="margin-bottom:8px">'
+    +'<div class="sale-group-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px 6px 0 0;cursor:pointer" onclick="toggleSaleGroup(\''+g+'\')">'
+    +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+label.toUpperCase()+' <span style="font-weight:400;color:var(--text-dim)">('+comps.length+')</span>'+hiddenLabel+(avgLine ? ' <span style="font-weight:400;font-size:11px;color:var(--text-dim);margin-left:8px">'+avgLine+'</span>' : '')+'</span>'
+    +'<span class="sale-group-chevron" style="font-size:10px;color:var(--text-dim)">\u25BC</span>'
+    +'</div>'
+    +'<div class="sale-group-body">'
+    +'<table class="listings-table" style="margin:0;min-width:0"><thead>'+saleGroupTheadRow(g)+'</thead>'
+    +'<tbody data-group="'+g+'">'+comps.map(function(c){return compRow(c, did);}).join('')+'</tbody></table>'
+    +'</div></div>';
+}
+
+// ── Toggle comp hide + recalc ──
+export function toggleCompHide(lat, lng){
+  var wrap = document.getElementById('compsTableWrap');
+  if(!wrap || !wrap._listing || !wrap._result) return;
+  var l = wrap._listing;
+  var did = dealId(l);
+  var comp = wrap._result.allComps.find(function(c){ return c.lat===lat && c.lng===lng; });
+  if(!comp) return;
+  toggleCompExcluded(did, comp);
+
+  // Re-render all group sections (preserving collapse state)
+  var groups = wrap._groups;
+  SALE_GROUP_ORDER.forEach(function(g){
+    var comps = groups[g] || [];
+    if(!comps.length) return;
+    var section = wrap.querySelector('.sale-group-section[data-group="'+g+'"]');
+    if(!section) return;
+    var body = section.querySelector('.sale-group-body');
+    var wasCollapsed = body && body.style.display === 'none';
+    var label = SALE_GROUP_LABELS[g] || g;
+    var newSection = document.createElement('div');
+    newSection.innerHTML = buildSaleGroupSection(g, comps, label, did);
+    var replacement = newSection.firstChild;
+    if(wasCollapsed){
+      var nb = replacement.querySelector('.sale-group-body');
+      var nc = replacement.querySelector('.sale-group-chevron');
+      if(nb) nb.style.display = 'none';
+      if(nc) nc.textContent = '\u25B6';
+    }
+    section.parentNode.replaceChild(replacement, section);
+  });
+
+  // Recalculate exit $/SF from active comps
+  recalcExitPsf(l, wrap._result);
+
+  // Clear proforma cache so deal card picks up new exitPsf
+  clearProformaCaches();
+
+  // Re-render pinned deal card popup
+  if(_deps.refreshPinnedPopup) _deps.refreshPinnedPopup();
+}
+
+// ── Recalculate exit $/SF using active (non-excluded) comps ──
+// Uses distance-weighted average + new construction premium (matching Python model spirit)
+var NEW_CONSTRUCTION_PREMIUM = 1.18;
+
+function recalcExitPsf(l, result){
+  var did = dealId(l);
+  var excluded = getExcluded(did);
+  if(!excluded.size){
+    // No exclusions — restore original Python-computed value
+    delete l._overrideExitPsf;
+    delete l._excludedCompCount;
+    return;
+  }
+
+  // Use the "used" comps (the ones within the scoring radius) minus excluded
+  var activeUsed = result.used.filter(function(c){ return !isCompExcluded(did, c); });
+  if(!activeUsed.length){
+    l._overrideExitPsf = 0;
+    l._excludedCompCount = excluded.size;
+    return;
+  }
+
+  // Distance-weighted average $/SF (linear decay over search radius)
+  var maxDist = result.radius || 2;
+  var totalWeight = 0, weightedSum = 0;
+  activeUsed.forEach(function(c){
+    var w = Math.max(0.1, 1 - (c.dist / (maxDist + 0.5)));
+    totalWeight += w;
+    weightedSum += c.ppsf * w;
+  });
+  var avgPsf = totalWeight > 0 ? weightedSum / totalWeight : 0;
+  l._overrideExitPsf = Math.round(avgPsf * NEW_CONSTRUCTION_PREMIUM);
+  l._excludedCompCount = excluded.size;
 }
 
 export function hideCompsTable(){
@@ -808,11 +917,12 @@ export function exportSaleCompsCsv(){
   if(!wrap || !wrap._result || !wrap._listing) return;
   var result = wrap._result;
   var l = wrap._listing;
+  var did = dealId(l);
   // Full uncapped pool: used + non-outlier ref
   var pool = result.used.concat(result.ref.filter(function(c){return !c.isOutlier;}));
   pool.sort(function(a,b){return a.dist-b.dist;});
 
-  var rows = [['Type','Address','Sale Price','$/SF','SqFt','Beds','Baths','Zone','Yr Built','Tier','Sale Date','Distance (mi)','Used in Model'].join(',')];
+  var rows = [['Type','Address','Sale Price','$/SF','SqFt','Beds','Baths','Zone','Yr Built','Tier','Sale Date','Distance (mi)','Used in Model','Excluded'].join(',')];
   pool.forEach(function(c){
     rows.push([
       csvEscape(PT_LABEL[c.pt]||''),
@@ -827,7 +937,8 @@ export function exportSaleCompsCsv(){
       c.t1s || (c.t===1?'T1':'T2'),
       csvEscape(c.date),
       c.dist?c.dist.toFixed(2):'',
-      c.isUsed?'Yes':'No'
+      c.isUsed?'Yes':'No',
+      isCompExcluded(did,c)?'TRUE':'FALSE'
     ].join(','));
   });
 

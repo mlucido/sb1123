@@ -174,7 +174,7 @@ function exportCSV(){
   const favs = _deps.loadFavorites();
   const rows = filtered.map(l=>[
     favs[_deps.listingKey(l)]?'*':'', l.address, l.zone, l.price,
-    l.lotSf||'', l.lw||'', l.maxUnits, l.exitPsf||'',
+    l.lotSf||'', l.lw||'', l.maxUnits, (l._overrideExitPsf != null ? l._overrideExitPsf : l.exitPsf)||'',
     l.compCount||0, l.lowCompConfidence?'Y':'', ((l.sfrCompShare||0)*100).toFixed(0),
     l.salePerUnit||'', l.pricePerUnit||'', l.buildPerUnit||'',
     Math.round(l.estProfit||0), (l.estMargin||0).toFixed(1),
@@ -1408,14 +1408,14 @@ function showExportModal(lat, lng, type) {
   if (!l) { alert('Listing not found'); return; }
   var pf = calculateProForma(l);
 
-  var defExitPSF = l.exitPsf || 0;
+  var defExitPSF = (l._overrideExitPsf != null ? l._overrideExitPsf : l.exitPsf) || 0;
   var defBuildPSF = pf.adjBuildCostPerSf;
   var defUnits = pf.maxUnits;
   var defAvgUnitSF = proforma.avgUnitSf;
   var defRent = l.estRentMonth || l.fmr3br || 4000;
   var defPrice = l.price || 0;
 
-  var exitSrc = l.exitPsf ? 'P75' : 'none';
+  var exitSrc = l._overrideExitPsf != null ? 'filtered' : (l.exitPsf ? 'P75' : 'none');
   var slopePct = l.slope || 0;
   var buildSrc = slopePct > 0 ? 'slope-adj ' + slopePct + '%' : 'base';
   var rentSrc = l.estRentMonth ? 'est rent' : l.fmr3br ? 'HUD SAFMR' : 'default';
@@ -1621,7 +1621,7 @@ async function exportOM(lat, lng, overrides) {
 
   var pf = calculateProForma(l);
   var btr = calculateBTRProForma(l);
-  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.exitPsf || 0);
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : ((l._overrideExitPsf != null ? l._overrideExitPsf : l.exitPsf) || 0);
   var monthlyRent = ov.monthlyRent != null ? ov.monthlyRent : (l.estRentMonth || l.fmr3br || 4000);
   var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
   var units = ov.units != null ? ov.units : pf.maxUnits;
