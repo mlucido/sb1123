@@ -138,14 +138,14 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .sidebar-header .law-ref{font-size:10px;color:var(--accent);margin-top:4px;opacity:0.7}
 
   /* Stat pills */
-  .stat-pills{display:flex;gap:8px;margin-top:8px}
+  .stat-pills{display:flex;gap:8px;margin-top:6px}
   .pill{flex:1;text-align:center;padding:6px 0;border-radius:6px;background:#f1f5f9}
   .pill-val{display:block;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#1e293b}
   .pill-label{display:block;font-size:9px;color:#94a3b8;margin-top:1px}
 
   /* Header action buttons */
-  .header-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-  .header-actions .analytics-btn,.header-actions .refresh-btn{font-size:9px;padding:3px 8px}
+  .header-actions{display:flex;gap:8px;margin-top:8px}
+  .header-actions .analytics-btn,.header-actions .refresh-btn{flex:1;text-align:center;font-size:9px;padding:3px 8px}
 
   /* Sidebar scroll wrapper */
   .sidebar-scroll{flex:1;overflow-y:auto;padding-bottom:80px}
@@ -1098,9 +1098,14 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
     <div class="stat-pills" id="statPills" aria-live="polite">
-      <span class="pill"><span class="pill-val" id="pillOnMarket">0</span><span class="pill-label">on-mkt</span></span>
-      <span class="pill"><span class="pill-val" id="pillComps">0</span><span class="pill-label">comps</span></span>
-      <span class="pill"><span class="pill-val" id="pillMinMargin">10%</span><span class="pill-label">min margin</span></span>
+      <span class="pill"><span class="pill-val" id="pillUnits">—</span><span class="pill-label"># of Homes</span></span>
+      <span class="pill"><span class="pill-val" id="pillAcquisition">—</span><span class="pill-label">Acquisition Cost</span></span>
+      <span class="pill"><span class="pill-val" id="pillHardCosts">—</span><span class="pill-label">Hard Costs <span id="pillHardSub" style="color:#9CA3AF;font-size:10px;font-weight:400"></span></span></span>
+    </div>
+    <div class="stat-pills" aria-live="polite">
+      <span class="pill"><span class="pill-val" id="pillSoftCosts">—</span><span class="pill-label">Soft Costs <span id="pillSoftSub" style="color:#9CA3AF;font-size:10px;font-weight:400"></span></span></span>
+      <span class="pill"><span class="pill-val" id="pillSaleValue">—</span><span class="pill-label">Sale Value</span></span>
+      <span class="pill"><span class="pill-val" id="pillProfit">—</span><span class="pill-label">Profit</span></span>
     </div>
     <div class="header-actions">
       <a href="analytics.html" class="analytics-btn" id="analyticsLink" title="Market Analytics Dashboard">&#9632; Analytics</a>
@@ -1479,7 +1484,7 @@ import { fmtDollar, fmtShort, commas } from './js/format.js';
 import { proforma, clearProformaCaches, getMinLotPerUnit, getMaxUnits, getSlopeAdjBuildCost, calculateProForma, calculateBTRProForma } from './js/proforma.js';
 import { initExport, exportCSV, exportModel, exportOM, showExportModal, closeExportModal, computeWaterfall } from './js/export.js';
 import { initDraw, initDrawControl, toggleDrawMode, clearDrawPolygon, isInsideDrawPolygon, getDrawPolygonGeoJSON, applyPolygonOpacity } from './js/draw.js';
-import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin, exportSaleCompsCsv, exportRentalCompsCsv } from './js/comps.js';
+import { initComps, distMi, findCompsForListing, showCompsTable, sortCompsTable, toggleSaleGroup, hideCompsTable, buildRentalCompGrid, findRentalCompsForListing, showRentalCompsTable, sortRentalCompsTable, toggleRentalGroup, hideRentalCompsTable, isCompsTableActive, isRentalCompsTableActive, highlightCompPin, unhighlightCompPin, exportSaleCompsCsv, exportRentalCompsCsv, toggleCompHide, getExcludedCount } from './js/comps.js';
 
 // ── Constants ──
 const COORD_MATCH_TOLERANCE = 0.0001;
@@ -2224,7 +2229,7 @@ function proFormaBlock(l, pf, opts){
 // ── View Comps — see js/comps.js ──
 // Build descriptive exit $/SF label for popup display
 function exitLabel(l){
-  const exitPsf = l.exitPsf || 0;
+  const exitPsf = (l._overrideExitPsf != null ? l._overrideExitPsf : l.exitPsf) || 0;
   if(!exitPsf) return {psf: 0, label: 'Insufficient comps', color: 'var(--red)', short: 'no data', confidence: null};
   const count = l.compCount || 0;
   const lowConf = l.lowCompConfidence;
@@ -2714,7 +2719,9 @@ function generateDealCard(l, opts){
   h += '<div class="dc3-hero">';
   var exitDisplay = el.psf ? '$' + commas(el.psf) : '—';
   var exitSub = '';
-  if(l.lowCompConfidence) exitSub = '<div style="font-size:9px;color:var(--orange)">Low confidence (' + (l.compCount||0) + ' comps)</div>';
+  var excCount = l._excludedCompCount || 0;
+  if(excCount > 0) exitSub = '<div style="font-size:9px;color:#d97706">(' + excCount + ' comp' + (excCount>1?'s':'') + ' excluded)</div>';
+  else if(l.lowCompConfidence) exitSub = '<div style="font-size:9px;color:var(--orange)">Low confidence (' + (l.compCount||0) + ' comps)</div>';
   else if((l.sfrCompShare||0) > 0.30) exitSub = '<div style="font-size:9px;color:var(--text-dim)">SFR-heavy comps</div>';
   else if(!el.psf) exitSub = '<div style="font-size:9px;color:var(--red)">Insufficient comps</div>';
   h += '<div class="dc3-hero-cell"><div class="dc3-hero-lbl">Exit $/SF <span class="dc3-info-tip" title="Weighted comp scoring model. Product type × proximity × recency.">&#9432;</span></div><div class="dc3-hero-val dc3-hero-accent">' + exitDisplay + '</div>' + exitSub + '</div>';
@@ -2981,6 +2988,19 @@ function rebuildListings(cachedListings){
       dotMarker.addTo(listingsLayer);
     }
   });
+
+  // Aggregate portfolio stats across visible pins
+  var _agg = {units:0, acquisition:0, hardCosts:0, softCosts:0, grossRevenue:0, profit:0};
+  filtered.forEach(l => {
+    var pf = calculateProForma(l);
+    _agg.units += pf.maxUnits || 0;
+    _agg.acquisition += l.price || 0;
+    _agg.hardCosts += pf.hardCosts || 0;
+    _agg.softCosts += pf.softCosts || 0;
+    _agg.grossRevenue += pf.grossRevenue || 0;
+    _agg.profit += pf.profit || 0;
+  });
+  updateSummaryStats(_agg, filtered.length);
 
   // Refresh pinned popup content with recalculated data (never closes it)
   _refreshPinnedPopup();
@@ -3537,13 +3557,21 @@ document.addEventListener('keydown', function(e){
 //  HERO STAT BAR (updates with filters)
 // ══════════════════════════════════════════
 
-function updateStatPills(cachedListings, cachedComps){
-  const filtered = cachedListings || getFilteredListings();
-  const eligible = filtered.filter(l=>l.sb1123Eligible);
-  document.getElementById('pillOnMarket').textContent = eligible.length.toLocaleString();
-  const compN = (cachedComps || getFilteredComps()).length;
-  document.getElementById('pillComps').textContent = compN >= 1000 ? (compN/1000).toFixed(1).replace(/\.0$/,'') + 'K' : compN.toLocaleString();
-  document.getElementById('pillMinMargin').textContent = filters.margin.min + '%';
+function updateSummaryStats(agg, count){
+  function fmtM(v){ if(!count) return '—'; if(Math.abs(v)>=1e9){ var b=v/1e9; return '$'+b.toFixed(1).replace(/\.0$/,'')+'B'; } var m=v/1e6; return '$'+m.toFixed(1).replace(/\.0$/,'')+'M'; }
+  document.getElementById('pillUnits').textContent = count ? agg.units.toLocaleString() : '—';
+  document.getElementById('pillAcquisition').textContent = fmtM(agg.acquisition);
+  document.getElementById('pillHardCosts').textContent = fmtM(agg.hardCosts);
+  document.getElementById('pillSoftCosts').textContent = fmtM(agg.softCosts);
+  document.getElementById('pillSaleValue').textContent = fmtM(agg.grossRevenue);
+  var profitEl = document.getElementById('pillProfit');
+  profitEl.textContent = fmtM(agg.profit);
+  profitEl.style.color = !count ? '' : agg.profit >= 0 ? '#22c55e' : '#ef4444';
+  // Sublabels — read live from KA slider values
+  var bc = _kaVal('buildCost');
+  var sp = _kaVal('softPct');
+  document.getElementById('pillHardSub').textContent = '$' + bc + '/SF';
+  document.getElementById('pillSoftSub').textContent = '$' + Math.round(bc * (sp / 100)) + '/SF';
 }
 
 // ══════════════════════════════════════════
@@ -4137,7 +4165,7 @@ function applyFilters(){
   rebuildZoneToggles(_cachedListingsAllZones);
   updateStats(_cachedListings, _cachedComps);
   updateFilterCount(_cachedComps, _cachedListings);
-  updateStatPills(_cachedListings, _cachedComps);
+  // summary stats updated inside rebuildListings()
   refreshVisibility();
   applyPolygonOpacity();
   encodeFiltersToHash();
@@ -4207,7 +4235,7 @@ function computeTeaserData(l, overrides) {
 
   // Override resolution — use != null (matches exportOM, avoids falsy 0 bug)
   var askingPrice = ov.askingPrice != null ? ov.askingPrice : (l.price || 0);
-  var exitPSF = ov.exitPSF != null ? ov.exitPSF : (l.exitPsf || 0);
+  var exitPSF = ov.exitPSF != null ? ov.exitPSF : ((l._overrideExitPsf != null ? l._overrideExitPsf : l.exitPsf) || 0);
   var units = ov.units != null ? ov.units : pf.maxUnits;
   var avgUnitSF = ov.avgUnitSF != null ? ov.avgUnitSF : proforma.avgUnitSf;
   var allInBuildPSF = ov.allInBuildPSF != null ? ov.allInBuildPSF : pf.adjBuildCostPerSf;
@@ -4680,6 +4708,7 @@ window.sortCompsTable = sortCompsTable;
 window.sortRentalCompsTable = sortRentalCompsTable;
 window.toggleRentalGroup = toggleRentalGroup;
 window.toggleSaleGroup = toggleSaleGroup;
+window.toggleCompHide = toggleCompHide;
 window.sortTable = sortTable;
 window.toggleBurnZoneFilter = toggleBurnZoneFilter;
 window.toggleFavorite = toggleFavorite;
@@ -4708,6 +4737,7 @@ initComps({
   getRentalCompGrid: function(){ return rentalCompGrid; },
   isListingsPanelOpen: function(){ return listingsPanelOpen; },
   toggleListingsPanel: function(){ toggleListingsPanel(); },
+  refreshPinnedPopup: function(){ _refreshPinnedPopup(); },
 });
 
 // Wire draw module dependencies
@@ -4899,7 +4929,7 @@ window.addEventListener('DOMContentLoaded', function(){
       updateStats();
       updateFilterCount();
       updateFavCount();
-      updateStatPills();
+      // summary stats updated inside rebuildListings()
       updateLayersActiveCount();
       initLayerRowStates();
       updatePinLegend();
@@ -5422,6 +5452,10 @@ map.on('click', function(e) {
         <div><span style="color:#d97706;font-weight:700">T1-Reno</span> &mdash; Built before 2015 &mdash; qualifies as T1 via high $/SF relative to neighborhood median, indicating a full remodel or premium finish level</div>
       </div>
       <p style="font-size:11px;color:#64748b">All three sub-types are valid T1 comps. The sub-tier label lets you assess comp quality and vintage mix at a glance.</p>
+
+      <h3>Comp Exclusion (Hide Toggle)</h3>
+      <p>Exit $/SF reflects active comps only. Use the Hide toggle in the BTS table to exclude individual comps based on local market expertise. Excluded comps remain visible at reduced opacity and are flagged (EXCLUDED: TRUE) in CSV exports but are removed from the exit $/SF regression and all downstream exports (XLS, OM, Teaser).</p>
+      <p style="font-size:11px;color:#64748b">Exclusions are per-deal and per-session &mdash; they reset on page reload. When comps are excluded, the exit $/SF is recalculated using a distance-weighted average of remaining comps with the same 18% new construction premium.</p>
     </div>
 
     <!-- TAB 4: BTR Model -->
