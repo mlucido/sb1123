@@ -5158,87 +5158,12 @@ function rebuildMobileCards(sorted) {
   });
 })();
 
-// Tap map to collapse sheet + neighborhood pricing card
+// Tap map to collapse mobile sheet + dismiss popups
 map.on('click', function(e) {
-  // Mobile: collapse sheet first
+  // Mobile: collapse sheet on map tap
   if (isMobile() && sheetState !== 'collapsed') {
     setSheetState('collapsed');
-    return;
   }
-
-  // Neighborhood pricing card at zoom >= 14
-  if (map.getZoom() < 14 || !CLUSTERS.length) return;
-
-  var lat = e.latlng.lat, lng = e.latlng.lng;
-  var nearest = null, minDist = Infinity;
-  CLUSTERS.forEach(function(cl) {
-    var d = Math.abs(cl.lat - lat) + Math.abs(cl.lng - lng);
-    if (d < minDist) { minDist = d; nearest = cl; }
-  });
-
-  if (!nearest || minDist > 0.01) return;
-
-  var t1psf = nearest.t1psf || 0;
-  var t2psf = nearest.t2psf || 0;
-  var prem = nearest.prem || (t1psf - t2psf);
-  var t1n = nearest.t1n || 0;
-  var t2n = nearest.t2n || 0;
-  var rw = nearest.rw || 0;
-
-  // Confidence: based on recency weight AND T1 count
-  var confLabel, confDots;
-  if (rw >= 0.8 && t1n >= 8) { confLabel = 'High'; confDots = 4; }
-  else if (rw >= 0.5 && t1n >= 4) { confLabel = 'Medium'; confDots = 3; }
-  else if (t1n >= 2) { confLabel = 'Low'; confDots = 2; }
-  else { confLabel = 'Low'; confDots = 1; }
-
-  var dots = '';
-  for (var di = 0; di < 4; di++) {
-    dots += '<span style="display:inline-block;width:8px;height:8px;border-radius:50;margin-right:2px;background:' + (di < confDots ? '#14b8a6' : '#2e3140') + '"></span>';
-  }
-
-  // Find zip from nearest listing
-  var nearestListing = null, nlDist = Infinity;
-  LISTINGS.forEach(function(ll) {
-    var d2 = Math.abs(ll.lat - nearest.lat) + Math.abs(ll.lng - nearest.lng);
-    if (d2 < nlDist) { nlDist = d2; nearestListing = ll; }
-  });
-  var zipLabel = nearestListing ? (nearestListing.zip || '') : '';
-  var cityLabel = nearestListing ? (nearestListing.city || '') : '';
-  var locLine = (zipLabel ? zipLabel + ' · ' : '') + cityLabel;
-
-  // Compute T1 raw median from nearby comps for display
-  var cellComps = COMPS.filter(function(c) {
-    return Math.abs(c.lat - nearest.lat) < 0.004 && Math.abs(c.lng - nearest.lng) < 0.004;
-  });
-  var t1Raw = cellComps.filter(function(c) { return c.t === 1; }).map(function(c) { return c.ppsf; }).sort(function(a,b){return a-b;});
-  var t1RawMedian = t1Raw.length ? t1Raw[Math.floor(t1Raw.length / 2)] : t1psf;
-
-  var html = '<div style="min-width:260px;font-family:DM Sans,sans-serif">'
-    // Header
-    + '<div style="padding-bottom:8px;border-bottom:1px solid #2e3140;margin-bottom:10px">'
-    + '  <div style="font-size:13px;font-weight:600;color:#e4e6ed">' + locLine + '</div>'
-    + '  <div style="font-size:11px;color:#8b8fa3;margin-top:3px">' + dots + ' ' + confLabel + ' (' + t1n + ' T1)</div>'
-    + '</div>'
-    // Primary metric
-    + '<div style="padding-bottom:10px;border-bottom:1px solid #2e3140;margin-bottom:10px">'
-    + '  <div style="font-size:11px;color:#8b8fa3;margin-bottom:4px">T1 Exit $/SF (@ 1,750 SF)</div>'
-    + '  <div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:700;color:#14b8a6">$' + t1psf.toLocaleString() + '</div>'
-    + '</div>'
-    // Breakdown rows
-    + '<div style="padding-bottom:10px;border-bottom:1px solid #2e3140;margin-bottom:10px;font-size:12px">'
-    + '  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8b8fa3">T1 Raw Median</span><span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">$' + t1RawMedian.toLocaleString() + '</span></div>'
-    + '  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8b8fa3">T2 Baseline</span><span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">$' + t2psf.toLocaleString() + '</span></div>'
-    + (prem > 0 ? '  <div style="display:flex;justify-content:space-between"><span style="color:#8b8fa3">Remodel Premium</span><span style="font-family:JetBrains Mono,monospace;color:#14b8a6">+$' + prem.toLocaleString() + '</span></div>' : '')
-    + '</div>'
-    // Footer stats
-    + '<div style="display:flex;justify-content:space-between;font-size:11px">'
-    + '  <div><span style="color:#8b8fa3">Recency</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + rw.toFixed(2) + '</span></div>'
-    + '  <div><span style="color:#8b8fa3">T1</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + t1n + '</span></div>'
-    + '  <div><span style="color:#8b8fa3">T2</span> <span style="font-family:JetBrains Mono,monospace;color:#e4e6ed">' + t2n + '</span></div>'
-    + '</div></div>';
-
-  L.popup({className:'dark-popup'}).setLatLng(e.latlng).setContent(html).openOn(map);
 });
 </script>
 
