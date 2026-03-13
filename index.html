@@ -70,9 +70,9 @@ if(!_isMob){
 }
 document.write('<script src="'+MARKET.listingsFile+'?v=7"><\/script>');
 document.write('<script src="'+(MARKET.rentalDataFile||'rental_data.js')+'?v=7"><\/script>');
-window.LOADED_COMPS = window.LOADED_COMPS || [];
+window.LOADED_COMPS = window.LOADED_COMPS || window.LOADED_COMPS_SD || [];
 window.LOADED_LISTINGS = window.LOADED_LISTINGS || [];
-window.CLUSTERS = window.CLUSTERS || [];
+window.CLUSTERS = window.CLUSTERS || window.CLUSTERS_SD || [];
 window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,6 +97,17 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
 
   /* (hero-stats removed — stats now in sidebar pills) */
   /* ── Onboarding walkthrough ── */
+  /* ── Export modal overlay ── */
+  .modal-overlay{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.15s ease}
+  .modal-overlay.active{opacity:1;pointer-events:auto}
+  .modal-panel{background:var(--card);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.35);width:100%;overflow:hidden;animation:modalIn 0.15s ease-out}
+  .modal-header{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 12px;border-bottom:1px solid var(--border)}
+  .modal-header h3{margin:0;font-size:15px;font-weight:700}
+  .modal-close{background:none;border:none;font-size:22px;color:var(--text-dim);cursor:pointer;padding:0 0 0 12px;line-height:1}
+  .modal-close:hover{color:var(--text)}
+  .modal-body label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:3px}
+  .modal-body input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box}
+  @keyframes modalIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
   .onboard-overlay{position:fixed;inset:0;z-index:9000;display:none}
   .onboard-overlay.active{display:block}
   .onboard-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.55)}
@@ -2943,7 +2954,8 @@ function rebuildListings(cachedListings){
       var dotColor = STATUS_COLORS[pinStatus] || '#94a3b8';
       var dotMarker = L.circleMarker([l.lat - 0.0003, l.lng + 0.0003], {
         radius: 4, color: '#fff', fillColor: dotColor,
-        fillOpacity: 1, weight: 1.5, pane: 'listingsPane'
+        fillOpacity: 1, weight: 1.5, pane: 'listingsPane',
+        interactive: false
       });
       dotMarker.addTo(listingsLayer);
     }
@@ -3750,7 +3762,7 @@ function rebuildZoneToggles(cachedComps, cachedListingsAllZones){
       <span class="check-box"></span>
       <span class="zone-swatch" style="background:${ZONE_COLORS[zone]}"></span>
       <span class="zone-label">${zone} <small>${ZONE_LABELS[zone]}</small></span>
-      <span class="zone-stat">${avg?'$'+avg+'/sf':'—'}<span class="data-count">${zl.length}</span></span>
+      <span class="zone-stat">${avg?'$'+avg+'/sf <small style="color:var(--text-dim);font-weight:400">avg exit comp</small>':'—'}<span class="data-count">${zl.length}</span></span>
     `;
     return div;
   }
