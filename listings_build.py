@@ -92,7 +92,7 @@ comps_file = market_file("data.js", market)
 if os.path.exists(comps_file):
     with open(comps_file, "r") as f:
         raw = f.read()
-    match = re.search(r"LOADED_COMPS\s*=\s*(\[.*?\]);\s", raw, re.DOTALL)
+    match = re.search(r"LOADED_COMPS(?:_[A-Z]+)?\s*=\s*(\[.*?\]);\s", raw, re.DOTALL)
     if match:
         comps = json.loads(match.group(1))
         print(f"   Loaded {len(comps):,} sold comps")
