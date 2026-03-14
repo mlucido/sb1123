@@ -1344,6 +1344,22 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         </div>
       </div>
 
+      <!-- Land Basis $/SF -->
+      <div class="kf-block">
+        <div class="kf-header"><span class="kf-label">Land Basis $/SF</span></div>
+        <input type="number" id="landBasisMin" step="10" style="display:none">
+        <input type="number" id="landBasisMax" step="10" style="display:none">
+        <div class="kf-range-labels">
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('landBasis','min',-1)">&#8249;</button><span id="landBasisRangeMin">$0</span><button class="kf-arrow-btn" onclick="nudgeFilter('landBasis','min',1)">&#8250;</button></span>
+          <span class="kf-val-group"><button class="kf-arrow-btn" onclick="nudgeFilter('landBasis','max',-1)">&#8249;</button><span id="landBasisRangeMax">$500</span><button class="kf-arrow-btn" onclick="nudgeFilter('landBasis','max',1)">&#8250;</button></span>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="landBasisSliderFill"></div>
+          <input type="range" id="landBasisSliderMin" min="0" max="500" step="10" value="0">
+          <input type="range" id="landBasisSliderMax" min="0" max="500" step="10" value="500">
+        </div>
+      </div>
+
       <!-- Home Size filter inputs hidden for JS compat -->
       <input type="number" id="sqftMin" step="100" style="display:none">
       <input type="number" id="sqftMax" step="100" style="display:none">
@@ -1791,6 +1807,7 @@ const filters = {
   lotw: { min:0, max:200, dataMin:0, dataMax:200, step:5, cap:200, defaultMin:50, defaultMax:null },
   slope:{ min:0, max:100, dataMin:0, dataMax:100, step:1, cap:100, defaultMin:null, defaultMax:10 },
   margin:{ min:-100, max:100, dataMin:-100, dataMax:100, step:5, cap:null, defaultMin:10, defaultMax:85 },
+  landBasis:{ min:0, max:500, dataMin:0, dataMax:500, step:10, cap:500, defaultMin:null, defaultMax:null },
 };
 
 let currentSort = { key:null, dir:'desc' };
@@ -2541,6 +2558,7 @@ function enrichListings(){
     l.buildPerUnit = pf.maxUnits > 0 ? Math.round(pf.totalBuildCost / pf.maxUnits) : 0;
     l.buildableSf = pf.buildableSf;
     l.maxOffer = pf.max_offer;
+    l.estLandBasis = pf.land_basis_psf || 0;
     l.landPpsf = l.lotSf ? Math.round(l.price / l.lotSf) : null;
     l.lotEfficiency = pf.lot_efficiency ? Math.round(pf.lot_efficiency * 100) : 0; // Store as percentage
     // NEW listing detection: DOM <= 3 = NEW, DOM <= 7 = new this week
@@ -2604,10 +2622,13 @@ function getFilteredListings(skipZoneFilter, skipStatusFilter){
     // When BTR layer is on, don't exclude BTR-viable deals via margin filter
     const marginOk = marginAtDefault ? true : (marginVal >= filters.margin.min && marginVal <= filters.margin.max)
       || (layerState.btr && l.btrViable);
+    const lbVal = l.estLandBasis || 0;
+    const lbAtDefault = filters.landBasis.min === filters.landBasis.dataMin && filters.landBasis.max === filters.landBasis.dataMax;
+    const lbOk = lbAtDefault ? true : (lbVal >= filters.landBasis.min && lbVal <= filters.landBasis.max);
     // Ghost pins (non-viable: maxOffer <= 0) must be excluded when a positive margin filter is active
     const isGhost = !l.maxOffer || l.maxOffer <= 0;
     const ghostOk = !isGhost || marginAtDefault || filters.margin.min <= 0;
-    return zoneOk && priceOk && psfOk && sqftOk && lotOk && lotwOk && slopeOk && marginOk && ghostOk;
+    return zoneOk && priceOk && psfOk && sqftOk && lotOk && lotwOk && slopeOk && marginOk && lbOk && ghostOk;
   });
 }
 
@@ -4099,7 +4120,7 @@ function updateFill(key){
     if(key==='lot'){ rlMin.textContent=fmtSf(f.min); rlMax.textContent=fmtSf(f.max); }
     else if(key==='margin'){ rlMin.textContent=f.min+'%'; rlMax.textContent=f.max+'%'; }
     else if(key==='price'){ rlMin.textContent=fmtPrice(f.min); rlMax.textContent=fmtPrice(f.max); }
-    else if(key==='psf'){ rlMin.textContent='$'+f.min.toLocaleString(); rlMax.textContent='$'+f.max.toLocaleString(); }
+    else if(key==='psf' || key==='landBasis'){ rlMin.textContent='$'+f.min.toLocaleString(); rlMax.textContent='$'+f.max.toLocaleString(); }
     else if(key==='lotw'){ rlMin.textContent=f.min+' ft'; rlMax.textContent=f.max+' ft'; }
     else if(key==='slope'){ rlMin.textContent=f.min+'%'; rlMax.textContent=f.max+'%'; }
   }
@@ -4123,7 +4144,7 @@ function setMarginPreset(minPct,btn){
 }
 
 // ── Arrow nudge buttons for filter sliders ──
-var NUDGE_STEPS = { margin:5, lot:1000, price:50000, psf:25, lotw:5, slope:1, sqft:100 };
+var NUDGE_STEPS = { margin:5, lot:1000, price:50000, psf:25, lotw:5, slope:1, sqft:100, landBasis:10 };
 function nudgeFilter(key, side, dir){
   var f = filters[key];
   var step = NUDGE_STEPS[key] || f.step;
@@ -4153,7 +4174,7 @@ function nudgeMinUnits(dir){
 // ── URL Hash Filter State ──
 function encodeFiltersToHash(){
   var parts = [];
-  var keys = ['price','margin','lot','lotw','slope','psf','sqft'];
+  var keys = ['price','margin','lot','lotw','slope','psf','sqft','landBasis'];
   keys.forEach(function(k){
     var f = filters[k];
     if(f.min !== f.dataMin || f.max !== f.dataMax){
@@ -4242,7 +4263,7 @@ function applyFilters(){
 
 function resetFilter(key){
   if(key==='all'){
-    ['margin','price','psf','sqft','lot','lotw','slope'].forEach(k=>resetFilter(k));
+    ['margin','price','psf','sqft','lot','lotw','slope','landBasis'].forEach(k=>resetFilter(k));
     AppState.set('newThisWeekFilter', false);
     resetMinUnits();
     document.querySelectorAll('.preset-btn,.kf-chip').forEach(b=>b.classList.remove('active'));
@@ -4930,6 +4951,8 @@ window.addEventListener('DOMContentLoaded', function(){
       if(withSlope.length) initRangeFilter('slope', l=>l.slope!=null?l.slope:0, withSlope);
       const withMargin = LISTINGS.filter(l=>l.estMargin!=null);
       if(withMargin.length) initRangeFilter('margin', l=>l.estMargin||0, withMargin);
+      const withLandBasis = LISTINGS.filter(l=>l.estLandBasis!=null&&l.estLandBasis>0);
+      if(withLandBasis.length) initRangeFilter('landBasis', l=>l.estLandBasis||0, withLandBasis);
 
       // Restore filter state from URL hash if present
       decodeFiltersFromHash();
