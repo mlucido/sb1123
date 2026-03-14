@@ -2110,7 +2110,7 @@ function queryCompGrid(bounds){
   for(let r=rMin;r<=rMax;r++){
     for(let c=cMin;c<=cMax;c++){
       const cell=compSpatialGrid[r+','+c];
-      if(cell) result.push(...cell);
+      if(cell) for(var ci=0;ci<cell.length;ci++) result.push(cell[ci]);
     }
   }
   return result;

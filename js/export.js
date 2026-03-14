@@ -50,7 +50,7 @@ function computeWaterfall(askingPrice, units, avgUnitSF, allInBuildPSF, exitPSF,
   var ACQ_FEE_PCT = 0.02;
   var DISP_FEE_PCT = 0.015;
   var ORIG_FEE_PCT = 0.02;
-  var INTEREST_RATE = 0.09;
+  var INTEREST_RATE = (proforma.carryRatePct || 9.5) / 100;
   var LP_PREF = 0.08;
   var GP_PROMOTE = 0.20;
   var GP_COINVEST = 0.05;
