@@ -27,11 +27,28 @@ export function getMinLotPerUnit(zone){
   return 600;
 }
 
+function getFAR(units){
+  if(units >= 8) return 1.25;
+  if(units >= 3) return 1.0;
+  return 0.5;
+}
+
 export function getMaxUnits(l){
   if(!l.lotSf) return 1;
   const minPer = getMinLotPerUnit(l.zone);
-  const byLot = Math.floor(l.lotSf / minPer);
-  return Math.min(10, Math.max(1, byLot));
+  const byLot = Math.min(10, Math.max(1, Math.floor(l.lotSf / minPer)));
+  // Apply FAR constraint: total buildable SF cannot exceed lotSf × FAR
+  // Iterate since FAR tier depends on unit count
+  let units = byLot;
+  const avgUnitSf = proforma.avgUnitSf || 1750;
+  for(let i = 0; i < 3; i++){
+    const far = getFAR(units);
+    const maxSf = l.lotSf * far;
+    const farUnits = Math.floor(maxSf / avgUnitSf);
+    units = Math.min(units, farUnits);
+    if(units < 1) { units = 1; break; }
+  }
+  return Math.min(10, Math.max(1, units));
 }
 
 export function getSlopeAdjBuildCost(slope, base){

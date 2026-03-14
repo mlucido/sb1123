@@ -134,7 +134,7 @@ listings_build.py → listings.js (enriched active listings with zone $/SF, new-
 
 ## SB 1123 Business Logic (in index.html)
 
-- **Eligibility**: R1-R4/LAND zones, no condo/townhouse (shared land), no R1+HOA, no VHFHSZ fire zone, lot ≥ 10K SF
+- **Eligibility**: R1-R4/LAND zones, no condo/townhouse (shared land), no R1+HOA, no VHFHSZ fire zone, lot ≥ 2,400 SF (R1/LAND: 1,200 SF/unit min, R2-R4: 600 SF/unit min). 10K SF is a UI filter default, not a hard eligibility rule.
 - **Unit count**: R1/LAND = `floor(lot/1200)` cap 10; R2-R4 = `floor(lot/600)` cap 10
 - **FAR**: 1.25 (8-10 units), 1.0 (3-7 units), 0.5 (<3 units)
 - **Pro forma defaults**: $350/SF hard + 25% soft, 1,200 SF avg unit, 5% sale discount, $25K demo
