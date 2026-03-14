@@ -4246,8 +4246,8 @@ function resetFilter(key){
     AppState.set('newThisWeekFilter', false);
     resetMinUnits();
     document.querySelectorAll('.preset-btn,.kf-chip').forEach(b=>b.classList.remove('active'));
-    // Re-activate the 30%+ chip as default
-    var defChip=document.querySelector('.kf-chip');
+    // Re-activate the 10%+ chip as default
+    var defChip=document.querySelector('.kf-chip[onclick*="setMarginPreset(10"]');
     if(defChip) defChip.classList.add('active');
     return;
   }
