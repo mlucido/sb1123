@@ -27,7 +27,7 @@ export function getMinLotPerUnit(zone){
   return 600;
 }
 
-function getFAR(units){
+export function getFAR(units){
   if(units >= 8) return 1.25;
   if(units >= 3) return 1.0;
   return 0.5;
@@ -37,18 +37,7 @@ export function getMaxUnits(l){
   if(!l.lotSf) return 1;
   const minPer = getMinLotPerUnit(l.zone);
   const byLot = Math.min(10, Math.max(1, Math.floor(l.lotSf / minPer)));
-  // Apply FAR constraint: total buildable SF cannot exceed lotSf × FAR
-  // Iterate since FAR tier depends on unit count
-  let units = byLot;
-  const avgUnitSf = proforma.avgUnitSf || 1750;
-  for(let i = 0; i < 3; i++){
-    const far = getFAR(units);
-    const maxSf = l.lotSf * far;
-    const farUnits = Math.floor(maxSf / avgUnitSf);
-    units = Math.min(units, farUnits);
-    if(units < 1) { units = 1; break; }
-  }
-  return Math.min(10, Math.max(1, units));
+  return byLot;
 }
 
 export function getSlopeAdjBuildCost(slope, base){
@@ -85,9 +74,13 @@ export function calculateProForma(l){
   const valuePerSf = l.exitPsf || 0;
   const adjBuildCostPerSf = getSlopeAdjBuildCost(l.slope, pf.allInBuildPsf);
 
-  const effective_buildable_sf = maxUnits * pf.avgUnitSf;
+  // FAR caps total buildable SF, not unit count. Units may be slightly smaller than avgUnitSf.
+  const far = getFAR(maxUnits);
+  const farMaxSf = l.lotSf ? l.lotSf * far : Infinity;
+  const effective_buildable_sf = Math.min(maxUnits * pf.avgUnitSf, farMaxSf);
+  const effectiveUnitSf = maxUnits > 0 ? effective_buildable_sf / maxUnits : pf.avgUnitSf;
 
-  const grossPerUnit = valuePerSf * pf.avgUnitSf;
+  const grossPerUnit = valuePerSf * effectiveUnitSf;
   const grossRevenue = maxUnits * grossPerUnit;
   const netRevenue = grossRevenue * (1 - pf.txnCostPct / 100) - pf.fixedDispositionCosts;
 
