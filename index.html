@@ -105,6 +105,44 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .modal-header h3{margin:0;font-size:15px;font-weight:700}
   .modal-close{background:none;border:none;font-size:22px;color:var(--text-dim);cursor:pointer;padding:0 0 0 12px;line-height:1}
   .modal-close:hover{color:var(--text)}
+
+  /* ── Lot Planner modal ── */
+  .planner-overlay{position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,0.50);display:none;align-items:center;justify-content:center}
+  .planner-overlay.active{display:flex}
+  .planner-wrap{display:flex;flex-direction:column;width:85%;height:85%;background:#fff;font-family:'Inter',sans-serif;color:#111827;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,0.3);overflow:hidden}
+  .planner-header{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #E5E7EB;flex-shrink:0}
+  .planner-header-left{display:flex;align-items:center;gap:10px}
+  .planner-header-dot{color:#2563EB;font-size:16px}
+  .planner-header-title{font-size:14px;font-weight:600}
+  .planner-header-addr{font-size:12px;color:#6B7280;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .planner-header-close{background:none;border:none;font-size:22px;color:#9CA3AF;cursor:pointer;padding:0 0 0 12px;line-height:1}
+  .planner-header-close:hover{color:#111827}
+  .planner-body{display:flex;flex:1;overflow:hidden}
+  .planner-sidebar{width:280px;flex-shrink:0;background:#F8F9FB;border-right:1px solid #E5E7EB;overflow-y:auto;padding:16px 14px 28px}
+  .planner-canvas{flex:1;position:relative;background:#EEF0F3}
+  .planner-canvas svg{width:100%;height:100%;display:block;cursor:default}
+  .ps-label{font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;margin-top:16px}
+  .ps-label:first-child{margin-top:0}
+  .ps-field{margin-bottom:10px}
+  .ps-field label{font-size:11px;color:#6B7280;margin-bottom:3px;display:block}
+  .ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .ps-suffix{position:relative}
+  .ps-suffix .sfx{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:#9CA3AF;pointer-events:none}
+  .ps-input{height:30px;font-size:11px;font-family:'Inter',sans-serif;color:#111827;border:1px solid #E5E7EB;border-radius:5px;padding:0 24px 0 8px;width:100%;box-sizing:border-box;background:#fff}
+  .ps-input:focus{border-color:#2563EB;outline:none;box-shadow:0 0 0 2px rgba(37,99,235,0.12)}
+  .ps-input::-webkit-inner-spin-button,.ps-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  .ps-input{-moz-appearance:textfield}
+  .ps-seg{display:flex;margin-top:4px}
+  .ps-seg button{flex:1;height:28px;font-size:10px;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid #E5E7EB;background:#F3F4F6;color:#6B7280;transition:background 0.15s}
+  .ps-seg button:first-child{border-radius:5px 0 0 5px}
+  .ps-seg button:last-child{border-radius:0 5px 5px 0}
+  .ps-seg button:not(:first-child):not(:last-child){border-radius:0;border-left:none;border-right:none}
+  .ps-seg button.active{background:#1E3A5F;color:#fff;border-color:#1E3A5F}
+  .ps-stats{border-top:1px solid #E5E7EB;padding-top:12px;margin-top:16px}
+  .ps-stat{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+  .ps-stat-label{font-size:10px;color:#6B7280}
+  .ps-stat-val{font-size:11px;font-weight:600;color:#111827}
+  .ps-share{font-size:10px;color:#2563EB;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;margin-top:12px}
   .modal-body label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:3px}
   .modal-body input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box}
   @keyframes modalIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -1488,6 +1526,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <div class="mobile-cards" id="mobileCards"></div>
 </div>
 
+<script>window._plListings = {};</script>
 <script type="module">
 // ── Module imports ──
 import { fmtDollar, fmtShort, commas } from './js/format.js';
@@ -2734,6 +2773,7 @@ function getZoneHeight(l){
 }
 
 function generateDealCard(l, opts){
+  window._plListing = l;
   opts = opts || {};
   var ctx = opts.context || 'bts';
   var pf = calculateProForma(l);
@@ -2960,7 +3000,7 @@ function generateDealCard(l, opts){
   h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'teaser\')" title="Download 2-page investor teaser">Teaser</button>';
   h += '<a href="https://www.google.com/maps?q=' + l.lat + ',' + l.lng + '&amp;t=k&amp;z=19" target="_blank">Maps</a>';
   if (l.url) h += '<a href="' + l.url + '" target="_blank">Redfin</a>';
-  if (l.lw && l.ld) h += '<a href="' + lotPlannerUrl(l) + '" target="_blank">Planner</a>';
+  if (l.lw && l.ld) h += '<a href="#" onclick="openLotPlanner(window._plListing);return false">Planner</a>';
   var isSaved = isFavorite(l);
   h += '<button class="' + (isSaved ? 'dc3-saved-active' : '') + '" onclick="toggleFavorite(' + l.lat + ',' + l.lng + ');var a=this.classList.contains(\'dc3-saved-active\');this.classList.toggle(\'dc3-saved-active\');this.textContent=a?\'\\u2605 Save\':\'\\u2605 Saved\'">&#9733; ' + (isSaved ? 'Saved' : 'Save') + '</button>';
   var isUQ = isUnqual(l.lat, l.lng);
@@ -3341,7 +3381,8 @@ function buildOffMarketLayer(){
     });
     
     const marker = L.marker([l.lat, l.lng], { icon: offMarketIcon });
-    
+    window._plListings[l.lat+','+l.lng] = l;
+
     // Build full pro forma using est_offer as acquisition price
     const omProxy = Object.assign({}, l, {price: Math.round(est_offer)});
     const pf = calculateProForma(omProxy);
@@ -3451,7 +3492,7 @@ function buildOffMarketLayer(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         ${MARKET.hasZimas?`<a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>`:''}
-        ${l.lw && l.ld ? `<a href="${lotPlannerUrl(l)}" target="_blank" style="color:var(--accent);font-size:11px">Layout Planner &#8599;</a>` : ''}
+        ${l.lw && l.ld ? `<a href="#" onclick="openLotPlanner(window._plListings['${l.lat},${l.lng}']);return false" style="color:var(--accent);font-size:11px">Layout Planner &#9650;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'xls')">&#128202; XLS</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'om')">&#128196; OM</button>
@@ -3644,6 +3685,8 @@ function dismissOnboarding(){
 // ── Escape key: close topmost modal/panel ──
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
+  var po = document.getElementById('plannerOverlay');
+  if(po && po.classList.contains('active')) { closeLotPlanner(); return; }
   var em = document.getElementById('exportModal');
   if(em) { closeExportModal(); return; }
   var oo = document.getElementById('onboardOverlay');
@@ -5772,6 +5815,350 @@ document.addEventListener('keydown', function(e){
     toggleKeyPanel();
   }
 });
+</script>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  LOT PLANNER MODAL                       -->
+<!-- ══════════════════════════════════════════ -->
+<div id="plannerOverlay" class="planner-overlay" onclick="if(event.target===this)closeLotPlanner()">
+  <div class="planner-wrap">
+    <div class="planner-header">
+      <div class="planner-header-left">
+        <span class="planner-header-dot">&#9679;</span>
+        <span class="planner-header-title">Lot Planner</span>
+        <span class="planner-header-addr" id="pl-address"></span>
+      </div>
+      <button class="planner-header-close" onclick="closeLotPlanner()">&times;</button>
+    </div>
+    <div class="planner-body">
+      <div class="planner-sidebar" id="pl-sidebar">
+        <div class="ps-label">Lot Dimensions</div>
+        <div class="ps-grid">
+          <div class="ps-field"><label>Width</label><div class="ps-suffix"><input class="ps-input" id="pl-width" type="number" min="20" max="300"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Depth</label><div class="ps-suffix"><input class="ps-input" id="pl-depth" type="number" min="50" max="600"><span class="sfx">ft</span></div></div>
+        </div>
+        <div class="ps-label">Development Standards</div>
+        <div class="ps-grid">
+          <div class="ps-field"><label>Front Setback</label><div class="ps-suffix"><input class="ps-input" id="pl-front" type="number" value="15"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Rear Setback</label><div class="ps-suffix"><input class="ps-input" id="pl-rear" type="number" value="4"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Side Setback</label><div class="ps-suffix"><input class="ps-input" id="pl-side" type="number" value="4"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Driveway Width</label><div class="ps-suffix"><input class="ps-input" id="pl-drwy" type="number" value="20"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Max Unit Depth</label><div class="ps-suffix"><input class="ps-input" id="pl-udepth" type="number" value="50"><span class="sfx">ft</span></div></div>
+          <div class="ps-field"><label>Min Unit Width</label><div class="ps-suffix"><input class="ps-input" id="pl-uwidth" type="number" value="14"><span class="sfx">ft</span></div></div>
+        </div>
+        <div class="ps-label">Layout Mode</div>
+        <div class="ps-seg" id="pl-seg">
+          <button class="active" data-mode="auto">Auto</button>
+          <button data-mode="double">Double</button>
+          <button data-mode="single">Single</button>
+        </div>
+        <div class="ps-stats">
+          <div class="ps-label" style="margin-top:0">Site Statistics</div>
+          <div class="ps-stat"><span class="ps-stat-label">Units</span><span class="ps-stat-val" id="pl-s-units">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">Unit Width</span><span class="ps-stat-val" id="pl-s-uw">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">Unit Depth</span><span class="ps-stat-val" id="pl-s-ud">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">Footprint / Unit</span><span class="ps-stat-val" id="pl-s-fp">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">Lot Coverage</span><span class="ps-stat-val" id="pl-s-cov">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">FAR</span><span class="ps-stat-val" id="pl-s-far">&mdash;</span></div>
+          <div class="ps-stat"><span class="ps-stat-label">Buildable Area</span><span class="ps-stat-val" id="pl-s-ba">&mdash;</span></div>
+        </div>
+        <button class="ps-share" id="pl-share">&#8599; Copy share link</button>
+      </div>
+      <div class="planner-canvas"><svg id="pl-canvas"></svg></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  LOT PLANNER ENGINE
+// ═══════════════════════════════════════════════
+(function(){
+  var NS = 'http://www.w3.org/2000/svg';
+  var pl = {
+    lotWidth:50, lotDepth:150, lotSF:null,
+    front:15, rear:4, side:4, drwy:20,
+    unitDepth:50, minUnitWidth:14,
+    mode:'auto', address:'', listing:null
+  };
+  var iSt = { drivewayOffset:0, unitDepthOverride:null, dragging:null };
+
+  function plLayout(s){
+    var bw = s.lotWidth - 2*s.side;
+    var bd = s.lotDepth - s.front - s.rear;
+    var useD;
+    if(s.mode==='double') useD=true;
+    else if(s.mode==='single') useD=false;
+    else useD = (bw - s.drwy)/2 >= s.minUnitWidth;
+
+    if(useD){
+      var uw = (bw - s.drwy)/2;
+      var ad = bd/5;
+      var ud = Math.min(ad, s.unitDepth);
+      var ps = Math.min(5, Math.floor(bd/ud));
+      return {type:'double',unitWidth:uw,unitDepth:ud,unitsPerSide:ps,totalUnits:ps*2,bw:bw,bd:bd,dw:s.drwy};
+    } else {
+      var uwS = bw - s.drwy;
+      var adS = bd/10;
+      var udS = Math.min(adS, s.unitDepth);
+      var tot = Math.min(10, Math.floor(bd/udS));
+      return {type:'single',unitWidth:uwS,unitDepth:udS,totalUnits:tot,bw:bw,bd:bd,dw:s.drwy};
+    }
+  }
+
+  function svgR(p,x,y,w,h,a){a=a||{};var e=document.createElementNS(NS,'rect');e.setAttribute('x',x);e.setAttribute('y',y);e.setAttribute('width',w);e.setAttribute('height',h);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+  function svgL(p,x1,y1,x2,y2,a){a=a||{};var e=document.createElementNS(NS,'line');e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+  function svgT(p,x,y,c,a){a=a||{};var e=document.createElementNS(NS,'text');e.setAttribute('x',x);e.setAttribute('y',y);e.setAttribute('font-family','Inter,sans-serif');for(var k in a)e.setAttribute(k,a[k]);e.textContent=c;p.appendChild(e);return e}
+
+  function drawUnit(p,x,y,w,h,num,uwFt,udFt){
+    var sf=Math.round(uwFt*udFt);
+    svgR(p,x+1,y+1,w-2,h-2,{fill:num%2===1?'#1E3A5F':'#264A75',rx:3});
+    svgT(p,x+w/2,y+16,''+num,{'font-size':11,fill:'#fff','text-anchor':'middle','font-weight':600});
+    if(h>36){
+      svgT(p,x+w/2,y+h/2+2,Math.round(uwFt)+' \u00d7 '+Math.round(udFt)+' ft',{'font-size':9,fill:'#93C5FD','text-anchor':'middle'});
+      svgT(p,x+w/2,y+h-8,sf+' SF',{'font-size':9,fill:'#7DD3FC','text-anchor':'middle'});
+    } else if(h>24){
+      svgT(p,x+w/2,y+h-8,sf+' SF',{'font-size':9,fill:'#7DD3FC','text-anchor':'middle'});
+    }
+  }
+
+  function dimLbl(p,x1,y1,x2,y2,lbl,ori){
+    var sp=ori==='h'?Math.abs(x2-x1):Math.abs(y2-y1);
+    if(sp<10)return;
+    var ls={stroke:'#CBD5E1','stroke-width':1};
+    if(ori==='h'){
+      var mn=Math.min(x1,x2),mx=Math.max(x1,x2),cy2=(y1+y2)/2;
+      svgL(p,mn,cy2-3,mn,cy2+3,ls);svgL(p,mx,cy2-3,mx,cy2+3,ls);svgL(p,mn,cy2,mx,cy2,ls);
+      svgT(p,(mn+mx)/2,cy2-4,lbl,{'font-size':9,fill:'#9CA3AF','text-anchor':'middle'});
+    } else {
+      var mny=Math.min(y1,y2),mxy=Math.max(y1,y2),cx2=(x1+x2)/2;
+      svgL(p,cx2-3,mny,cx2+3,mny,ls);svgL(p,cx2-3,mxy,cx2+3,mxy,ls);svgL(p,cx2,mny,cx2,mxy,ls);
+      svgT(p,cx2+6,(mny+mxy)/2+3,lbl,{'font-size':9,fill:'#9CA3AF','dominant-baseline':'middle'});
+    }
+  }
+
+  function drawScaleBar(p,rX,y,sc){
+    var ft=50;[50,25,10].forEach(function(f){var px=f*sc;if(px>=40&&px<=120)ft=f});
+    var bp=ft*sc,lX=rX-bp,ls={stroke:'#9CA3AF','stroke-width':1.5};
+    svgL(p,lX,y,rX,y,ls);svgL(p,lX,y-2,lX,y+2,ls);svgL(p,rX,y-2,rX,y+2,ls);
+    svgT(p,(lX+rX)/2,y+12,ft+' ft',{'font-size':9,fill:'#9CA3AF','text-anchor':'middle'});
+  }
+
+  function plStats(lay){
+    var lotA=pl.lotSF||(pl.lotWidth*pl.lotDepth);
+    var fpU=Math.round(lay.unitWidth*lay.unitDepth);
+    var totFP=fpU*lay.totalUnits;
+    var cov=((totFP/lotA)*100).toFixed(1);
+    var ba=Math.round(lay.bw*lay.bd);
+    var far2=(totFP/lotA).toFixed(2);
+    function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v}
+    s('pl-s-units',lay.totalUnits);
+    s('pl-s-uw',lay.unitWidth.toFixed(1)+' ft');
+    s('pl-s-ud',lay.unitDepth.toFixed(1)+' ft');
+    s('pl-s-fp',fpU.toLocaleString()+' SF');
+    s('pl-s-cov',cov+'%');
+    s('pl-s-far',far2);
+    s('pl-s-ba',ba.toLocaleString()+' SF');
+  }
+
+  function plRender(){
+    var svg=document.getElementById('pl-canvas');
+    if(!svg||!svg.clientWidth)return;
+    var W=svg.clientWidth,H=svg.clientHeight;
+    svg.innerHTML='';
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+
+    var PAD=48,STH=22;
+    var lay=plLayout(pl);
+
+    // Apply interactive overrides
+    if(iSt.unitDepthOverride!==null){
+      lay.unitDepth=iSt.unitDepthOverride;
+      if(lay.type==='double'){lay.unitsPerSide=Math.min(5,Math.floor(lay.bd/lay.unitDepth));lay.totalUnits=lay.unitsPerSide*2}
+      else{lay.totalUnits=Math.min(10,Math.floor(lay.bd/lay.unitDepth))}
+    }
+    if(iSt.drivewayOffset!==0&&lay.type==='double'){
+      var mx=lay.unitWidth-pl.minUnitWidth;
+      iSt.drivewayOffset=Math.max(-mx,Math.min(mx,iSt.drivewayOffset));
+      lay.leftUnitWidth=lay.unitWidth+iSt.drivewayOffset;
+      lay.rightUnitWidth=lay.unitWidth-iSt.drivewayOffset;
+    } else {lay.leftUnitWidth=lay.unitWidth;lay.rightUnitWidth=lay.unitWidth}
+
+    plStats(lay);
+
+    var aW=W-PAD*2,aH=H-PAD*2-STH-16;
+    var sc=Math.min(aW/pl.lotWidth,aH/pl.lotDepth);
+    var lw=pl.lotWidth*sc,ld=pl.lotDepth*sc;
+    var ox=(W-lw)/2,oy=(H-ld-STH-PAD/2)/2;
+    var px=function(f){return f*sc};
+
+    svgR(svg,0,0,W,H,{fill:'#EEF0F3'});
+    svgR(svg,ox,oy,lw,ld,{fill:'#FAFAFA',stroke:'#374151','stroke-width':2});
+
+    var fs=px(pl.front),rs=px(pl.rear),ss=px(pl.side);
+    svgR(svg,ox,oy+ld-fs,lw,fs,{fill:'rgba(234,88,12,0.07)'});
+    svgR(svg,ox,oy,lw,rs,{fill:'rgba(234,88,12,0.07)'});
+    svgR(svg,ox,oy,ss,ld,{fill:'rgba(234,88,12,0.07)'});
+    svgR(svg,ox+lw-ss,oy,ss,ld,{fill:'rgba(234,88,12,0.07)'});
+
+    var bx=ox+ss,by=oy+rs;
+    var bwpx=px(lay.bw),bdpx=px(lay.bd);
+    svgR(svg,bx,by,bwpx,bdpx,{fill:'none',stroke:'#CBD5E1','stroke-width':1,'stroke-dasharray':'4 2'});
+
+    if(lay.type==='double'){
+      var drwyLF=(lay.bw-lay.dw)/2+iSt.drivewayOffset;
+      var drwyX=bx+px(drwyLF),dwpx=px(lay.dw);
+      svgR(svg,drwyX,by,dwpx,bdpx,{fill:'#E4E6E9'});
+      svgL(svg,drwyX+dwpx/2,by,drwyX+dwpx/2,by+bdpx,{stroke:'#9CA3AF','stroke-width':1,'stroke-dasharray':'6 4'});
+      dimLbl(svg,drwyX,by+bdpx+10,drwyX+dwpx,by+bdpx+10,lay.dw+"' drwy",'h');
+
+      var ud=px(lay.unitDepth),lwPx=px(lay.leftUnitWidth),rwPx=px(lay.rightUnitWidth);
+      var leftX=bx,rightX=drwyX+dwpx;
+      for(var i=0;i<lay.unitsPerSide;i++){
+        var uy=by+i*ud;
+        drawUnit(svg,leftX,uy,lwPx,ud,i*2+1,lay.leftUnitWidth,lay.unitDepth);
+        drawUnit(svg,rightX,uy,rwPx,ud,i*2+2,lay.rightUnitWidth,lay.unitDepth);
+      }
+
+      // Depth resize handle
+      var lastY=by+lay.unitsPerSide*ud;
+      var dg=document.createElementNS(NS,'g');dg.style.cursor='ns-resize';
+      svgR(dg,bx,lastY-8,bwpx,16,{fill:'transparent',cursor:'ns-resize'});
+      var dln=svgL(dg,bx+8,lastY,bx+bwpx-8,lastY,{stroke:'#2563EB','stroke-width':2,opacity:0,'stroke-linecap':'round'});
+      dg.addEventListener('mouseenter',function(){dln.setAttribute('opacity',0.7)});
+      dg.addEventListener('mouseleave',function(){if(!iSt.dragging)dln.setAttribute('opacity',0)});
+      dg.addEventListener('mousedown',function(e){e.preventDefault();dln.setAttribute('opacity',1);iSt.dragging={type:'depth',startY:e.clientY,startDepth:lay.unitDepth,scale:sc,bd:lay.bd}});
+      svg.appendChild(dg);
+
+      // Driveway drag handle
+      var dcx=drwyX+dwpx/2;
+      var dg2=document.createElementNS(NS,'g');dg2.style.cursor='ew-resize';
+      svgR(dg2,dcx-10,by,20,bdpx,{fill:'transparent',cursor:'ew-resize'});
+      var darr=svgT(dg2,dcx,by+bdpx/2+4,'\u27FA',{'font-size':11,fill:'#2563EB','text-anchor':'middle',opacity:0,'pointer-events':'none'});
+      dg2.addEventListener('mouseenter',function(){darr.setAttribute('opacity',0.8)});
+      dg2.addEventListener('mouseleave',function(){if(!iSt.dragging)darr.setAttribute('opacity',0)});
+      dg2.addEventListener('mousedown',function(e){e.preventDefault();iSt.dragging={type:'driveway',startX:e.clientX,startOffset:iSt.drivewayOffset,scale:sc}});
+      svg.appendChild(dg2);
+    } else {
+      var dwpxS=px(lay.dw);
+      svgR(svg,bx,by,dwpxS,bdpx,{fill:'#E4E6E9'});
+      svgL(svg,bx+dwpxS/2,by,bx+dwpxS/2,by+bdpx,{stroke:'#9CA3AF','stroke-width':1,'stroke-dasharray':'6 4'});
+      dimLbl(svg,bx,by-14,bx+dwpxS,by-14,lay.dw+"' drwy",'h');
+      var ux=bx+dwpxS,uwS=px(lay.unitWidth),udS=px(lay.unitDepth);
+      for(var j=0;j<lay.totalUnits;j++){drawUnit(svg,ux,by+j*udS,uwS,udS,j+1,lay.unitWidth,lay.unitDepth)}
+
+      var lastYS=by+lay.totalUnits*udS;
+      var dgS=document.createElementNS(NS,'g');dgS.style.cursor='ns-resize';
+      svgR(dgS,bx,lastYS-8,bwpx,16,{fill:'transparent',cursor:'ns-resize'});
+      var dlnS=svgL(dgS,bx+8,lastYS,bx+bwpx-8,lastYS,{stroke:'#2563EB','stroke-width':2,opacity:0,'stroke-linecap':'round'});
+      dgS.addEventListener('mouseenter',function(){dlnS.setAttribute('opacity',0.7)});
+      dgS.addEventListener('mouseleave',function(){if(!iSt.dragging)dlnS.setAttribute('opacity',0)});
+      dgS.addEventListener('mousedown',function(e){e.preventDefault();dlnS.setAttribute('opacity',1);iSt.dragging={type:'depth',startY:e.clientY,startDepth:lay.unitDepth,scale:sc,bd:lay.bd}});
+      svg.appendChild(dgS);
+    }
+
+    dimLbl(svg,ox+lw+8,oy+ld-fs,ox+lw+8,oy+ld,pl.front+"'",'v');
+    dimLbl(svg,ox+lw+8,oy,ox+lw+8,oy+rs,pl.rear+"'",'v');
+    dimLbl(svg,ox,oy-12,ox+ss,oy-12,pl.side+"'",'h');
+
+    svgR(svg,ox,oy+ld,lw,STH,{fill:'#1F2937'});
+    svgT(svg,ox+lw/2,oy+ld+STH/2+3,'STREET',{'font-size':8,fill:'#fff','letter-spacing':2,'text-anchor':'middle','font-weight':500});
+
+    drawScaleBar(svg,W-PAD-4,oy+ld+STH+14,sc);
+  }
+
+  // ── Input wiring ──
+  var fmap={
+    'pl-width':{k:'lotWidth',n:true},'pl-depth':{k:'lotDepth',n:true},
+    'pl-front':{k:'front',n:true},'pl-rear':{k:'rear',n:true},
+    'pl-side':{k:'side',n:true},'pl-drwy':{k:'drwy',n:true},
+    'pl-udepth':{k:'unitDepth',n:true},'pl-uwidth':{k:'minUnitWidth',n:true}
+  };
+
+  document.getElementById('pl-sidebar').addEventListener('input',function(e){
+    var m=fmap[e.target.id];if(!m)return;
+    pl[m.k]=m.n?(Number(e.target.value)||0):e.target.value;
+    iSt.drivewayOffset=0;iSt.unitDepthOverride=null;
+    plRender();
+  });
+
+  document.querySelectorAll('#pl-seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      pl.mode=b.dataset.mode;
+      document.querySelectorAll('#pl-seg button').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      iSt.drivewayOffset=0;iSt.unitDepthOverride=null;
+      plRender();
+    });
+  });
+
+  document.getElementById('pl-share').addEventListener('click',function(){
+    var p='width='+pl.lotWidth+'&depth='+pl.lotDepth;
+    p+='&address='+encodeURIComponent(pl.address||'');
+    p+='&lotSF='+(pl.lotSF||0);
+    var url=window.location.origin+'/planner/?'+p;
+    navigator.clipboard.writeText(url);
+    var btn=document.getElementById('pl-share');
+    btn.textContent='\u2713 Copied!';
+    setTimeout(function(){btn.textContent='\u2197 Copy share link'},2000);
+  });
+
+  // ── Drag handlers ──
+  document.addEventListener('mousemove',function(e){
+    if(!iSt.dragging)return;
+    if(iSt.dragging.type==='depth'){
+      var dy=e.clientY-iSt.dragging.startY;
+      iSt.unitDepthOverride=Math.max(16,Math.min(iSt.dragging.bd,iSt.dragging.startDepth+dy/iSt.dragging.scale));
+      plRender();
+    }
+    if(iSt.dragging.type==='driveway'){
+      var dx2=e.clientX-iSt.dragging.startX;
+      iSt.drivewayOffset=iSt.dragging.startOffset+dx2/iSt.dragging.scale;
+      plRender();
+    }
+  });
+  document.addEventListener('mouseup',function(){
+    if(iSt.dragging){
+      if(iSt.dragging.type==='depth'&&iSt.unitDepthOverride!==null){
+        pl.unitDepth=Math.round(iSt.unitDepthOverride);
+        document.getElementById('pl-udepth').value=pl.unitDepth;
+      }
+      iSt.dragging=null;plRender();
+    }
+  });
+
+  // ── Resize observer ──
+  var resizeTimer;
+  new ResizeObserver(function(){clearTimeout(resizeTimer);resizeTimer=setTimeout(plRender,50)}).observe(document.querySelector('.planner-canvas')||document.body);
+
+  // ── Public API ──
+  window.openLotPlanner = function(l){
+    pl.lotWidth=l.lw||50; pl.lotDepth=l.ld||150;
+    pl.lotSF=l.lotSf||null; pl.address=l.address||'';
+    pl.listing=l; pl.mode='auto';
+    pl.front=15; pl.rear=4; pl.side=4; pl.drwy=20; pl.unitDepth=50; pl.minUnitWidth=14;
+    iSt.drivewayOffset=0; iSt.unitDepthOverride=null; iSt.dragging=null;
+
+    document.getElementById('pl-address').textContent=pl.address||'No address';
+    document.getElementById('pl-width').value=pl.lotWidth;
+    document.getElementById('pl-depth').value=pl.lotDepth;
+    document.getElementById('pl-front').value=pl.front;
+    document.getElementById('pl-rear').value=pl.rear;
+    document.getElementById('pl-side').value=pl.side;
+    document.getElementById('pl-drwy').value=pl.drwy;
+    document.getElementById('pl-udepth').value=pl.unitDepth;
+    document.getElementById('pl-uwidth').value=pl.minUnitWidth;
+    document.querySelectorAll('#pl-seg button').forEach(function(b){b.classList.toggle('active',b.dataset.mode==='auto')});
+
+    document.getElementById('plannerOverlay').classList.add('active');
+    setTimeout(plRender,50);
+  };
+
+  window.closeLotPlanner = function(){
+    document.getElementById('plannerOverlay').classList.remove('active');
+    iSt.dragging=null;
+  };
+})();
 </script>
 
 </body>
