@@ -1148,7 +1148,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
     <div class="law-ref">California SB 1123 — by-right subdivision, no city approval required</div>
     <div class="law-ref" id="dataFreshness" style="margin-top:2px"></div>
     <div class="stat-pills" id="statPills" aria-live="polite">
-      <span class="pill"><span class="pill-val" id="pillUnits">—</span><span class="pill-label"># of Homes</span></span>
+      <span class="pill"><span class="pill-val" id="pillUnits">—</span><span class="pill-label"># New Homes</span></span>
       <span class="pill"><span class="pill-val" id="pillAcquisition">—</span><span class="pill-label">Acquisition Cost</span></span>
       <span class="pill"><span class="pill-val" id="pillHardCosts">—</span><span class="pill-label">Hard Costs <span id="pillHardSub" style="color:#9CA3AF;font-size:10px;font-weight:400"></span></span></span>
     </div>
@@ -1298,7 +1298,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
         <input type="number" id="lotMax" step="500" style="display:none">
         <div class="range-slider-track">
           <div class="range-slider-fill" id="lotSliderFill"></div>
-          <input type="range" id="lotSliderMin" min="0" max="65000" step="500" value="12000">
+          <input type="range" id="lotSliderMin" min="0" max="65000" step="500" value="7000">
           <input type="range" id="lotSliderMax" min="0" max="65000" step="500" value="65000">
         </div>
       </div>
@@ -1478,7 +1478,7 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   <input type="number" id="pfTxnCost" value="4.7">
   <input type="number" id="pfFixedDisp" value="40000">
   <input type="number" id="pfHoldMonths" value="24">
-  <input type="number" id="pfCarryRate" value="9">
+  <input type="number" id="pfCarryRate" value="9.5">
   <input type="number" id="pfInsurance" value="40000">
   <input type="number" id="pfOrigination" value="1">
   <input type="number" id="pfEllisPerUnit" value="20000">
@@ -2282,36 +2282,6 @@ function compConfidence(l){
   return {score, label, color, icon, bar: Math.round(score), count, method, radius};
 }
 
-// ── Condensed Due Diligence ──
-function dueDiligenceBlock(l){
-  var failures = [];
-  if(l.burnZone) failures.push('<span style="color:var(--red)">&#10007;</span> &#128293; BURN ZONE');
-  else if(l.fireZone) failures.push('<span style="color:var(--red)">&#10007;</span> VHFHSZ fire zone');
-  if(l.openSpace) failures.push('<span style="color:var(--red)">&#10007;</span> Protected: '+l.openSpace);
-  if(l.rsoRisk) failures.push('<span style="color:var(--red)">&#10007;</span> RSO rent-controlled (Ellis Act)');
-  var sb = slopeBadge(l);
-  if(sb && sb.includes('&#10007;')) failures.push(sb.replace(/^ • /,''));
-
-  var h = '<div class="popup-divider"></div>';
-  h += '<div class="popup-section-label">Due Diligence</div>';
-  if(failures.length === 0){
-    h += '<div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">'
-      +'<span style="color:var(--green)">&#10003;</span> All checks passed &nbsp;&bull;&nbsp; '
-      +'<span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking'
-      +(sb?sb:'')
-      +'</div>';
-  } else {
-    h += '<div class="popup-span-2" style="font-size:10px;color:var(--text-dim);line-height:1.5">'
-      +failures.join(' &bull; ')
-      +' &bull; <span style="color:var(--yellow)">&#9733;</span> TPA = 0 parking'
-      +'</div>';
-  }
-  if(l.rsoRisk&&l.zone!=='R1'&&l.zone!=='LAND'){
-    h += '<div class="popup-span-2" style="font-size:10px;color:#dc2626;line-height:1.4">&#9888; RSO: Budget ~$20K/unit relocation + 120-day Ellis Act notice</div>';
-  }
-  return h;
-}
-
 // ── BTR section (collapsible when not viable) ──
 function btrConfidenceDot(conf){
   if(conf==='validated') return '<span style="color:#22c55e" title="Validated (5+ comps)">\u25cf</span>';
@@ -2646,32 +2616,10 @@ function getFilteredListings(skipZoneFilter, skipStatusFilter){
 // ══════════════════════════════════════════
 
 function rebuildMarkers(cachedComps){
+  // Zone comp markers disabled — no UI toggle enables layerState.markers
   Object.values(markerLayers).forEach(l=>l.clearLayers());
   const filtered = cachedComps || getFilteredComps();
-  filtered.forEach(comp => {
-    const psf = comp.ppsf || Math.round(comp.price / comp.sqft);
-    const cm = L.circleMarker([comp.lat,comp.lng],{
-      radius:3, color:ZONE_COLORS[comp.zone], fillColor:ZONE_COLORS[comp.zone],
-      fillOpacity:0.5, weight:1
-    });
-    cm.bindPopup(`
-      <div class="popup-badge comp">Market Comp</div>
-      <div class="popup-title">${comp.address || 'N/A'}</div>
-      <div class="popup-grid">
-        <div><div class="popup-label">Market Value</div><div class="popup-value">$${comp.price.toLocaleString()}</div></div>
-        <div><div class="popup-label">$/SF</div><div class="popup-value" style="color:${ZONE_COLORS[comp.zone]}">$${psf}</div></div>
-        <div><div class="popup-label">Size</div><div class="popup-value">${comp.sqft.toLocaleString()} sf</div></div>
-        <div><div class="popup-label">Zone</div><div class="popup-value">${comp.zone}</div></div>
-        ${comp.zip?`<div><div class="popup-label">Zip</div><div class="popup-value">${comp.zip}</div></div>`:''}
-      </div>
-      <div style="margin-top:6px;display:flex;gap:8px;justify-content:center">
-        <a href="https://www.google.com/maps?q=${comp.lat},${comp.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
-      </div>
-    `,{maxWidth:280});
-    cm.addTo(markerLayers[comp.zone]);
-  });
   document.getElementById('compCount').textContent = filtered.length.toLocaleString();
-  refreshVisibility();
 }
 
 // ── Format helpers — see js/format.js ──
@@ -3758,16 +3706,6 @@ function setHeatmapMode(mode) {
 }
 
 var LAYER_COLORS = {listings:'#22c55e',neighborhoods:'#8b5cf6',offMarket:'#3b82f6',btr:'#f59e0b',unqual:'#9CA3AF',parcels:'#3b82f6',fireZones:'#ef4444',floodZones:'#3b82f6',liquefaction:'#a855f7',markers:'#64748b',compHeat:'#f0641e'};
-function toggleLayer(layer,btn){
-  layerState[layer]=!layerState[layer];
-  btn.classList.toggle('active');
-  if(layer === 'compHeat'){
-    document.getElementById('heatmapModeToggle').style.display = layerState.compHeat ? 'block' : 'none';
-    document.getElementById('tierFilterSection').style.display = layerState.compHeat ? 'block' : 'none';
-  }
-  refreshVisibility();
-  updateLayersActiveCount();
-}
 function toggleLayerRow(layer,btn){
   layerState[layer]=!layerState[layer];
   btn.classList.toggle('active');
@@ -3876,25 +3814,9 @@ function toggleNewThisWeek(btn){
     AppState.set('newThisWeekFilter', !newThisWeekFilter);
     btn.classList.toggle('active', newThisWeekFilter);
   } else {
-    const cb = document.getElementById('newThisWeekCheckbox');
-    AppState.set('newThisWeekFilter', cb ? cb.checked : !newThisWeekFilter);
+    AppState.set('newThisWeekFilter', !newThisWeekFilter);
   }
   applyFilters();
-}
-
-function setFilter(key, min, max){
-  const f = filters[key];
-  f.min = Math.max(f.dataMin, min);
-  f.max = Math.min(f.dataMax, max);
-  const sMin = document.getElementById(key+'SliderMin');
-  const sMax = document.getElementById(key+'SliderMax');
-  const iMin = document.getElementById(key+'Min');
-  const iMax = document.getElementById(key+'Max');
-  if(sMin) sMin.value = f.min;
-  if(sMax) sMax.value = f.max;
-  if(iMin) iMin.value = f.min;
-  if(iMax) iMax.value = f.max;
-  updateFill(key);
 }
 
 // ── Stats ──
@@ -3911,7 +3833,7 @@ function updateStats(cachedListings, cachedComps){
   if(compCountEl) compCountEl.textContent = compFiltered.length.toLocaleString();
 
   updatePeekStats(filtered);
-  updateLayerCounts();
+  setTimeout(updateLayerCounts, 0);
 }
 
 // Compute layer counts regardless of toggle state so sidebar shows what's available
@@ -3941,8 +3863,6 @@ function updateFilterCount(cachedComps, cachedListings){
   const listings = (cachedListings || getFilteredListings()).length;
   const fc = document.getElementById('filterCount');
   if(fc) fc.textContent = `${comps.toLocaleString()} comps | ${listings.toLocaleString()} listings`;
-  const lpc = document.getElementById('listingPanelCount');
-  if(lpc) lpc.textContent = `${listings} deals`;
 }
 
 function rebuildZoneToggles(cachedListingsAllZones){
@@ -4077,11 +3997,12 @@ function flyToListing(lat, lng){
     setSheetState('collapsed');
   }
   map.flyTo([lat, lng], 16, {duration:0.8});
-  listingsLayer.eachLayer(layer => {
-    if(layer.getLatLng){
-      const ll = layer.getLatLng();
-      if(Math.abs(ll.lat-lat)<COORD_MATCH_TOLERANCE && Math.abs(ll.lng-lng)<COORD_MATCH_TOLERANCE) layer.openPopup();
-    }
+  // Open deal card via pinned popup after fly animation completes
+  map.once('moveend', function(){
+    var l = LISTINGS.find(function(x){
+      return Math.abs(x.lat-lat)<COORD_MATCH_TOLERANCE && Math.abs(x.lng-lng)<COORD_MATCH_TOLERANCE;
+    });
+    if(l) _openPinnedPopup(l);
   });
 }
 
@@ -4323,7 +4244,6 @@ function resetFilter(key){
   if(key==='all'){
     ['margin','price','psf','sqft','lot','lotw','slope'].forEach(k=>resetFilter(k));
     AppState.set('newThisWeekFilter', false);
-    var ntwCb=document.getElementById('newThisWeekCheckbox'); if(ntwCb) ntwCb.checked=false;
     resetMinUnits();
     document.querySelectorAll('.preset-btn,.kf-chip').forEach(b=>b.classList.remove('active'));
     // Re-activate the 30%+ chip as default
@@ -5030,8 +4950,7 @@ window.addEventListener('DOMContentLoaded', function(){
         if(bzCb) bzCb.checked = false;
       }
       if(newThisWeekFilter){
-        var ntwCb = document.getElementById('newThisWeekCheckbox');
-        if(ntwCb) ntwCb.checked = true;
+        // newThisWeekFilter state restored via AppState (no UI checkbox)
       }
 
       // Build $/SF heatmap layer from sold comps
