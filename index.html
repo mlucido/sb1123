@@ -6097,11 +6097,26 @@ document.addEventListener('keydown', function(e){
     p+='&address='+encodeURIComponent(pl.address||'');
     p+='&lotSF='+(pl.lotSF||0);
     var url=window.location.origin+'/planner/?'+p;
-    navigator.clipboard.writeText(url);
     var btn=document.getElementById('pl-share');
-    btn.textContent='\u2713 Copied!';
-    setTimeout(function(){btn.textContent='\u2197 Copy share link'},2000);
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(function(){
+        btn.textContent='\u2713 Copied!';
+        setTimeout(function(){btn.textContent='\u2197 Copy share link'},2000);
+      }).catch(function(){
+        fallbackCopy(url,btn);
+      });
+    } else {
+      fallbackCopy(url,btn);
+    }
   });
+  function fallbackCopy(url,btn){
+    var ta=document.createElement('textarea');
+    ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');btn.textContent='\u2713 Copied!';setTimeout(function(){btn.textContent='\u2197 Copy share link'},2000)}
+    catch(e){prompt('Copy this link:',url)}
+    document.body.removeChild(ta);
+  }
 
   // ── Drag handlers ──
   document.addEventListener('mousemove',function(e){
