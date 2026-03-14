@@ -143,6 +143,12 @@ window.LOADED_RENTAL_COMPS = window.LOADED_RENTAL_COMPS || [];
   .ps-stat-label{font-size:10px;color:#6B7280}
   .ps-stat-val{font-size:11px;font-weight:600;color:#111827}
   .ps-share{font-size:10px;color:#2563EB;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;margin-top:12px}
+  @media(max-width:700px){
+    .planner-wrap{width:100%;height:100%;border-radius:0}
+    .planner-body{flex-direction:column-reverse}
+    .planner-sidebar{width:100%;max-height:40vh;border-right:none;border-top:1px solid #E5E7EB;padding:12px 14px 16px}
+    .planner-canvas{min-height:50vh}
+  }
   .modal-body label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:3px}
   .modal-body input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box}
   @keyframes modalIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -2354,7 +2360,6 @@ function exitLabel(l){
 // calculateProForma — see js/proforma.js
 // sizeEquityAndDebt — see js/export.js
 
-// ── Layout Planner URL builder ──
 // ── Lot Layout SVG for popup ──
 function lotLayoutSection(l, pf){
   if(!l.lw || !l.ld || !pf.maxUnits || pf.maxUnits <= 0 || pf.max_offer <= 0) return '';
@@ -2480,16 +2485,6 @@ function buildLotLayoutSVG(l, pf){
 
   s += '</svg>';
   return s;
-}
-
-function lotPlannerUrl(l){
-  var exitSF = l.exitPsf || 0;
-  var p = 'width='+l.lw+'&depth='+l.ld+'&zone='+(l.zone||'R1')+'&street=S';
-  p += '&address='+encodeURIComponent(l.address||'');
-  p += '&asking='+(l.price||0);
-  p += '&lotSF='+(l.lotSf||0);
-  if(exitSF) p += '&exitSF='+exitSF;
-  return 'https://mlucido.github.io/lot-planner/?'+p;
 }
 
 // Lot size display with source + mismatch warning
@@ -3001,6 +2996,7 @@ function generateDealCard(l, opts){
   h += '<a href="https://www.google.com/maps?q=' + l.lat + ',' + l.lng + '&amp;t=k&amp;z=19" target="_blank">Maps</a>';
   if (l.url) h += '<a href="' + l.url + '" target="_blank">Redfin</a>';
   if (l.lw && l.ld) h += '<a href="#" onclick="openLotPlanner(window._plListing);return false">Layout</a>';
+  else if (l.lotSf) h += '<span style="color:var(--text-dim);font-size:10px" title="Lot dimensions unavailable — no width/depth data">Layout N/A</span>';
   var isSaved = isFavorite(l);
   h += '<button class="' + (isSaved ? 'dc3-saved-active' : '') + '" onclick="toggleFavorite(' + l.lat + ',' + l.lng + ');var a=this.classList.contains(\'dc3-saved-active\');this.classList.toggle(\'dc3-saved-active\');this.textContent=a?\'\\u2605 Save\':\'\\u2605 Saved\'">&#9733; ' + (isSaved ? 'Saved' : 'Save') + '</button>';
   var isUQ = isUnqual(l.lat, l.lng);
@@ -3492,7 +3488,7 @@ function buildOffMarketLayer(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         ${MARKET.hasZimas?`<a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>`:''}
-        ${l.lw && l.ld ? `<a href="#" onclick="openLotPlanner(window._plListings['${l.lat},${l.lng}']);return false" style="color:var(--accent);font-size:11px">Layout &#9650;</a>` : ''}
+        ${l.lw && l.ld ? `<a href="#" onclick="openLotPlanner(window._plListings['${l.lat},${l.lng}']);return false" style="color:var(--accent);font-size:11px">Layout &#9650;</a>` : (l.lotSf ? `<span style="color:var(--text-dim);font-size:10px" title="Lot dimensions unavailable">Layout N/A</span>` : '')}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'xls')">&#128202; XLS</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'om')">&#128196; OM</button>
@@ -3500,7 +3496,6 @@ function buildOffMarketLayer(){
         <button class="popup-fav-btn ${isFavorite(l)?'active':''}" onclick="toggleFavorite(${l.lat},${l.lng});this.classList.toggle('active')">&#9733; ${isFavorite(l)?'Saved':'Save'}</button>
         <button class="popup-fav-btn" onclick="sharePin(${l.lat},${l.lng},event)">&#128279; Share</button>
       </div>
-      ${lotLayoutSection(l, pf)}
     `, {maxWidth: 580});
 
     marker.addTo(offMarketLayer);
@@ -3686,7 +3681,7 @@ function dismissOnboarding(){
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
   var po = document.getElementById('plannerOverlay');
-  if(po && po.classList.contains('active')) { closeLotPlanner(); return; }
+  if(po && po.classList.contains('active')) { closeLotPlanner(); e.stopImmediatePropagation(); return; }
   var em = document.getElementById('exportModal');
   if(em) { closeExportModal(); return; }
   var oo = document.getElementById('onboardOverlay');
@@ -5883,9 +5878,13 @@ document.addEventListener('keydown', function(e){
   };
   var iSt = { drivewayOffset:0, unitDepthOverride:null, dragging:null };
 
+  var MIN_UNIT_DEPTH = 20;
+
   function plLayout(s){
-    var bw = s.lotWidth - 2*s.side;
-    var bd = s.lotDepth - s.front - s.rear;
+    var bw = Math.max(0, s.lotWidth - 2*s.side);
+    var bd = Math.max(0, s.lotDepth - s.front - s.rear);
+    if(bw <= 0 || bd < MIN_UNIT_DEPTH) return {type:'none',unitWidth:0,unitDepth:0,totalUnits:0,bw:bw,bd:bd,dw:s.drwy,leftUnitWidth:0,rightUnitWidth:0,unitsPerSide:0};
+
     var useD;
     if(s.mode==='double') useD=true;
     else if(s.mode==='single') useD=false;
@@ -5893,14 +5892,16 @@ document.addEventListener('keydown', function(e){
 
     if(useD){
       var uw = (bw - s.drwy)/2;
+      if(uw <= 0) return {type:'none',unitWidth:0,unitDepth:0,totalUnits:0,bw:bw,bd:bd,dw:s.drwy,leftUnitWidth:0,rightUnitWidth:0,unitsPerSide:0};
       var ad = bd/5;
-      var ud = Math.min(ad, s.unitDepth);
+      var ud = Math.max(MIN_UNIT_DEPTH, Math.min(ad, s.unitDepth));
       var ps = Math.min(5, Math.floor(bd/ud));
       return {type:'double',unitWidth:uw,unitDepth:ud,unitsPerSide:ps,totalUnits:ps*2,bw:bw,bd:bd,dw:s.drwy};
     } else {
       var uwS = bw - s.drwy;
+      if(uwS <= 0) return {type:'none',unitWidth:0,unitDepth:0,totalUnits:0,bw:bw,bd:bd,dw:s.drwy,leftUnitWidth:0,rightUnitWidth:0,unitsPerSide:0};
       var adS = bd/10;
-      var udS = Math.min(adS, s.unitDepth);
+      var udS = Math.max(MIN_UNIT_DEPTH, Math.min(adS, s.unitDepth));
       var tot = Math.min(10, Math.floor(bd/udS));
       return {type:'single',unitWidth:uwS,unitDepth:udS,totalUnits:tot,bw:bw,bd:bd,dw:s.drwy};
     }
@@ -5946,14 +5947,27 @@ document.addEventListener('keydown', function(e){
 
   function plStats(lay){
     var lotA=pl.lotSF||(pl.lotWidth*pl.lotDepth);
-    var fpU=Math.round(lay.unitWidth*lay.unitDepth);
+    function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v}
+    if(!lotA||lay.totalUnits<=0||lay.type==='none'){
+      s('pl-s-units','0');s('pl-s-uw','\u2014');s('pl-s-ud','\u2014');
+      s('pl-s-fp','\u2014');s('pl-s-cov','\u2014');s('pl-s-far','\u2014');
+      s('pl-s-ba',lay.bw>0&&lay.bd>0?Math.round(lay.bw*lay.bd).toLocaleString()+' SF':'\u2014');
+      return;
+    }
+    // Asymmetric unit widths when driveway is offset
+    var hasAsym=lay.leftUnitWidth&&lay.rightUnitWidth&&Math.abs(lay.leftUnitWidth-lay.rightUnitWidth)>0.5;
+    var avgUW=hasAsym?(lay.leftUnitWidth+lay.rightUnitWidth)/2:lay.unitWidth;
+    var fpU=Math.round(avgUW*lay.unitDepth);
     var totFP=fpU*lay.totalUnits;
     var cov=((totFP/lotA)*100).toFixed(1);
     var ba=Math.round(lay.bw*lay.bd);
     var far2=(totFP/lotA).toFixed(2);
-    function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v}
     s('pl-s-units',lay.totalUnits);
-    s('pl-s-uw',lay.unitWidth.toFixed(1)+' ft');
+    if(hasAsym){
+      s('pl-s-uw','L: '+lay.leftUnitWidth.toFixed(1)+' / R: '+lay.rightUnitWidth.toFixed(1)+' ft');
+    } else {
+      s('pl-s-uw',lay.unitWidth.toFixed(1)+' ft');
+    }
     s('pl-s-ud',lay.unitDepth.toFixed(1)+' ft');
     s('pl-s-fp',fpU.toLocaleString()+' SF');
     s('pl-s-cov',cov+'%');
@@ -5971,6 +5985,8 @@ document.addEventListener('keydown', function(e){
     var PAD=48,STH=22;
     var lay=plLayout(pl);
 
+    if(lay.type==='none'){plStats(lay);svgR(svg,0,0,W,H,{fill:'#EEF0F3'});svgT(svg,W/2,H/2,'Insufficient lot dimensions',{'font-size':13,fill:'#9CA3AF','text-anchor':'middle'});return}
+
     // Apply interactive overrides
     if(iSt.unitDepthOverride!==null){
       lay.unitDepth=iSt.unitDepthOverride;
@@ -5978,7 +5994,7 @@ document.addEventListener('keydown', function(e){
       else{lay.totalUnits=Math.min(10,Math.floor(lay.bd/lay.unitDepth))}
     }
     if(iSt.drivewayOffset!==0&&lay.type==='double'){
-      var mx=lay.unitWidth-pl.minUnitWidth;
+      var mx=Math.max(0,lay.unitWidth-pl.minUnitWidth);
       iSt.drivewayOffset=Math.max(-mx,Math.min(mx,iSt.drivewayOffset));
       lay.leftUnitWidth=lay.unitWidth+iSt.drivewayOffset;
       lay.rightUnitWidth=lay.unitWidth-iSt.drivewayOffset;
@@ -6096,7 +6112,7 @@ document.addEventListener('keydown', function(e){
     var p='width='+pl.lotWidth+'&depth='+pl.lotDepth;
     p+='&address='+encodeURIComponent(pl.address||'');
     p+='&lotSF='+(pl.lotSF||0);
-    var url=window.location.origin+'/planner/?'+p;
+    var url='https://mlucido.github.io/parcel-builder/?'+p;
     var btn=document.getElementById('pl-share');
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(url).then(function(){
@@ -6151,7 +6167,9 @@ document.addEventListener('keydown', function(e){
     pl.lotWidth=l.lw||50; pl.lotDepth=l.ld||150;
     pl.lotSF=l.lotSf||null; pl.address=l.address||'';
     pl.listing=l; pl.mode='auto';
-    pl.front=15; pl.rear=4; pl.side=4; pl.drwy=20; pl.unitDepth=50; pl.minUnitWidth=14;
+    var z=l.zone||'R1';
+    pl.front=(z==='R1'||z==='LAND'||z==='RA'||z==='RS'||z==='RE')?20:15;
+    pl.rear=4; pl.side=4; pl.drwy=20; pl.unitDepth=50; pl.minUnitWidth=14;
     iSt.drivewayOffset=0; iSt.unitDepthOverride=null; iSt.dragging=null;
 
     document.getElementById('pl-address').textContent=pl.address||'No address';
