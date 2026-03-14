@@ -3000,7 +3000,7 @@ function generateDealCard(l, opts){
   h += '<button onclick="showExportModal(' + l.lat + ',' + l.lng + ',\'teaser\')" title="Download 2-page investor teaser">Teaser</button>';
   h += '<a href="https://www.google.com/maps?q=' + l.lat + ',' + l.lng + '&amp;t=k&amp;z=19" target="_blank">Maps</a>';
   if (l.url) h += '<a href="' + l.url + '" target="_blank">Redfin</a>';
-  if (l.lw && l.ld) h += '<a href="#" onclick="openLotPlanner(window._plListing);return false">Planner</a>';
+  if (l.lw && l.ld) h += '<a href="#" onclick="openLotPlanner(window._plListing);return false">Layout</a>';
   var isSaved = isFavorite(l);
   h += '<button class="' + (isSaved ? 'dc3-saved-active' : '') + '" onclick="toggleFavorite(' + l.lat + ',' + l.lng + ');var a=this.classList.contains(\'dc3-saved-active\');this.classList.toggle(\'dc3-saved-active\');this.textContent=a?\'\\u2605 Save\':\'\\u2605 Saved\'">&#9733; ' + (isSaved ? 'Saved' : 'Save') + '</button>';
   var isUQ = isUnqual(l.lat, l.lng);
@@ -3492,7 +3492,7 @@ function buildOffMarketLayer(){
         <a href="https://www.google.com/maps?q=${l.lat},${l.lng}&t=k&z=19" target="_blank" style="color:var(--accent);font-size:11px">Google Maps &#8599;</a>
         ${l.url?`<a href="${l.url}" target="_blank" style="color:var(--accent);font-size:11px">Redfin &#8599;</a>`:''}
         ${MARKET.hasZimas?`<a href="${getZimasUrl(l)}" target="_blank" style="color:var(--yellow);font-size:11px">ZIMAS &#8599;</a>`:''}
-        ${l.lw && l.ld ? `<a href="#" onclick="openLotPlanner(window._plListings['${l.lat},${l.lng}']);return false" style="color:var(--accent);font-size:11px">Layout Planner &#9650;</a>` : ''}
+        ${l.lw && l.ld ? `<a href="#" onclick="openLotPlanner(window._plListings['${l.lat},${l.lng}']);return false" style="color:var(--accent);font-size:11px">Layout &#9650;</a>` : ''}
         <button class="popup-fav-btn" onclick="alert('Mail campaign coming soon!')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Mail ★</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'xls')">&#128202; XLS</button>
         <button class="popup-fav-btn" onclick="showExportModal(${l.lat},${l.lng},'om')">&#128196; OM</button>
